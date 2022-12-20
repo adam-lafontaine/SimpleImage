@@ -70,29 +70,3 @@ void process_range(u32 id_begin, u32 id_end, id_func_t const& id_func)
 
     execute_procs(make_proc_list(thread_func));
 }
-
-
-void process_range(u32 id_begin, u32 id_end, id_func_t const& id_func, u32 n_threads)
-{
-    assert(id_begin <= id_end);
-
-    if (n_threads > N_THREADS)
-    {
-        n_threads = N_THREADS;
-    }
-
-    auto const n_per_thread = (id_end - id_begin) / n_threads;
-
-    auto const thread_func = [&](u32 t)
-    {
-        auto const n_begin = t * n_per_thread + id_begin;
-        auto const n_end = (t == n_threads - 1) ? id_end : (t + 1) * n_per_thread;
-
-        for (u32 id = n_begin; id < n_end; ++id)
-        {
-            id_func(id);
-        }
-    };
-
-    execute_procs(make_proc_list(thread_func));
-}

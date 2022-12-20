@@ -61,5 +61,3 @@ using id_func_t = std::function<void(u32)>;
 
 
 void process_range(u32 id_begin, u32 id_end, id_func_t const& id_func);
-
-void process_range(u32 id_begin, u32 id_end, id_func_t const& id_func, u32 n_threads);

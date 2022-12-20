@@ -29,17 +29,22 @@ static void sleep_id(int id, int sleep_ms)
 }
 
 
-static std::array<std::function<void()>, 5> make_func_array()
+static std::array<std::function<void()>, 10> make_func_array()
 {
     constexpr int sleep_ms = 5;
 
-    std::array<std::function<void()>, 5> f_array
+    std::array<std::function<void()>, 10> f_array
     {
         [&](){ sleep_id(1, sleep_ms); },
         [&](){ sleep_id(2, sleep_ms); },
         [&](){ sleep_id(3, sleep_ms); },
         [&](){ sleep_id(4, sleep_ms); },
-        [&](){ sleep_id(5, sleep_ms); }
+        [&](){ sleep_id(5, sleep_ms); },
+        [&](){ sleep_id(6, sleep_ms); },
+        [&](){ sleep_id(7, sleep_ms); },
+        [&](){ sleep_id(8, sleep_ms); },
+        [&](){ sleep_id(9, sleep_ms); },
+        [&](){ sleep_id(10, sleep_ms); },
     };
 
     return f_array;
@@ -54,7 +59,7 @@ static  std::vector<std::function<void()>> make_func_vector()
 
     for (int i = 1; i <= 32; ++i)
     {
-        f_vector.push_back([&](){ sleep_id(1, sleep_ms); });
+        f_vector.push_back([=](){ sleep_id(i, sleep_ms); });
     }
 
     return f_vector;
@@ -63,7 +68,7 @@ static  std::vector<std::function<void()>> make_func_vector()
 
 static void execute_sequential_test()
 {
-    console_print("execute_sequential_test\n");
+    console_print("\nexecute_sequential_test\n");
 
     auto f_array = make_func_array();
     auto f_vector = make_func_vector();
@@ -84,7 +89,7 @@ static void execute_sequential_test()
 
 static void execute_parallel_test()
 {
-    console_print("execute_parallel_test\n");
+    console_print("\nexecute_parallel_test\n");
 
 #ifndef SIMPLE_NO_PARALLEL
 
@@ -95,12 +100,12 @@ static void execute_parallel_test()
 
     console_print("\narray\n");
     sw.start();
-    execute_sequential(f_array);
+    execute_parallel(f_array);
     console_print("\ntime: %f\n", sw.get_time_milli());
 
     console_print("\nvector\n");
     sw.start();
-    execute_sequential(f_vector);
+    execute_parallel(f_vector);
     console_print("\ntime: %f\n", sw.get_time_milli());
 
 #else
@@ -113,7 +118,7 @@ static void execute_parallel_test()
 
 static void process_range_test()
 {
-    console_print("process_range_test\n");
+    console_print("\nprocess_range_test\n");
 
     auto const id_func = [](u32 id){ sleep_id(id, 5); };
 
@@ -121,15 +126,8 @@ static void process_range_test()
     u32 id_end = 32;
 
     Stopwatch sw;
-
-    console_print("\nmulti-threaded\n");
     sw.start();
     process_range(id_begin, id_end, id_func);
-    console_print("\ntime: %f\n", sw.get_time_milli());
-
-    console_print("\nsingle-threaded\n");
-    sw.start();
-    process_range(id_begin, id_end, id_func, 1);
     console_print("\ntime: %f\n", sw.get_time_milli());
 }
 

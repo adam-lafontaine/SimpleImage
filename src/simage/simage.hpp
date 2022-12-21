@@ -1,6 +1,34 @@
 #pragma once
 
-#include "../defines.hpp"
+#include "simage_platform.hpp"
+
+
+/* stb_simage.cpp */
+
+namespace simage
+{
+	void read_image_from_file(const char* img_path_src, Image& image_dst);
+
+	void read_image_from_file(const char* file_path_src, gray::Image& image_dst);
+
+
+	#ifndef SIMAGE_NO_WRITE
+
+	void write_image(Image const& image_src, const char* file_path_dst);
+
+	void write_image(gray::Image const& image_src, const char* file_path_dst);
+
+	#endif // !SIMAGE_NO_WRITE
+	
+
+	#ifndef SIMAGE_NO_RESIZE
+
+	void resize_image(Image const& image_src, Image& image_dst);
+
+	void resize_image(gray::Image const& image_src, gray::Image& image_dst);
+
+	#endif // !SIMAGE_NO_RESIZE
+}
 
 
 /* constants, enums */
@@ -39,28 +67,6 @@ namespace simage
 	};
 
 
-	class RGBAu8
-	{
-	public:
-		u8 red;
-		u8 green;
-		u8 blue;
-		u8 alpha;
-	};
-
-
-	enum class RGB : int
-	{
-		R = 0, G = 1, B = 2
-	};
-
-
-	enum class RGBA : int
-	{
-		R = 0, G = 1, B = 2, A = 3
-	};
-
-
 	enum class GA : int
 	{
 		G = 0, A = 1
@@ -77,128 +83,42 @@ namespace simage
 	{
 		X = 0, Y = 1
 	};
-
-
-	template <typename T>
-	constexpr inline int id_cast(T channel)
-	{
-		return static_cast<int>(channel);
-	}
 }
 
 
-/* platform image */
+
+
+
+/* camera */
 
 namespace simage
 {
-    typedef union pixel_t
-	{
-		u8 channels[4] = {};
-
-		u32 value;
-
-		RGBAu8 rgba;
-
-	} Pixel;
-
-
-	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b, u8 a)
-	{
-		Pixel p{};
-		p.channels[id_cast(RGBA::R)] = r;
-		p.channels[id_cast(RGBA::G)] = g;
-		p.channels[id_cast(RGBA::B)] = b;
-		p.channels[id_cast(RGBA::A)] = a;
-
-		return p;
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b)
-	{
-		return to_pixel(r, g, b, 255);
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 value)
-	{
-		return to_pixel(value, value, value, 255);
-	}
-
-
-	class Image
+    class YUV422
 	{
 	public:
-
-		u32 width = 0;
-		u32 height = 0;
-
-		Pixel* data = nullptr;
+		u8 u;
+		u8 y1;
+		u8 v;
+		u8 y2;
 	};
 
 
-    class ViewRGBAu8
+	class YUV2
 	{
 	public:
-
-		Pixel* image_data = 0;
-		u32 image_width = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
-
-		u32 width = 0;
-		u32 height = 0;
+		u8 uv;
+		u8 y;
 	};
 
 
-    namespace gray
-    {
-        class Image
-		{
-		public:
+	class ImageYUV
+	{
+	public:
+		u32 width;
+		u32 height;
 
-			u32 width;
-			u32 height;
-
-			u8* data = nullptr;
-		};
-
-
-		class View
-		{
-		public:
-
-			u8* image_data = 0;
-			u32 image_width = 0;
-
-			union
-			{
-				Range2Du32 range = {};
-
-				struct
-				{
-					u32 x_begin;
-					u32 x_end;
-					u32 y_begin;
-					u32 y_end;
-				};
-			};
-
-			u32 width = 0;
-			u32 height = 0;
-		};
-    }
+		YUV2* data;
+	};
 }
 
 
@@ -258,16 +178,6 @@ namespace simage
 	};
 
 
-	using View4r32 = ViewCHr32<4>;
-	using View3r32 = ViewCHr32<3>;
-	using View2r32 = ViewCHr32<2>;
-
-	using ViewRGBAr32 = View4r32;
-	using ViewRGBr32 = View3r32;
-
-	using ViewHSVr32 = View3r32;
-
-
     template <size_t N>
 	class PixelCHr32
 	{
@@ -277,11 +187,6 @@ namespace simage
 
 		r32* channels[N] = {};
 	};
-
-
-	using Pixel4r32 = PixelCHr32<4>;
-	using Pixel3r32 = PixelCHr32<3>;
-	using Pixel2r32 = PixelCHr32<2>;
 
 
 	class PixelRGBAr32
@@ -298,10 +203,10 @@ namespace simage
 		};
 
 		// for_each_xy
-		r32& red() { return *rgba.R; }
+		/*r32& red() { return *rgba.R; }
 		r32& green() { return *rgba.G; }
 		r32& blue() { return *rgba.B; }
-		r32& alpha() { return *rgba.A; }
+		r32& alpha() { return *rgba.A; }*/
 	};
 
 
@@ -343,3 +248,22 @@ namespace simage
 		r32& val() { return *hsv.V; }*/
 	};
 }
+
+
+namespace simage
+{
+	using View4r32 = ViewCHr32<4>;
+	using View3r32 = ViewCHr32<3>;
+	using View2r32 = ViewCHr32<2>;
+
+    using Pixel4r32 = PixelCHr32<4>;
+	using Pixel3r32 = PixelCHr32<3>;
+	using Pixel2r32 = PixelCHr32<2>;
+
+    using ViewRGBAr32 = View4r32;
+	using ViewRGBr32 = View3r32;
+
+	using ViewHSVr32 = View3r32;
+}
+
+

@@ -14,9 +14,22 @@ using Pixel = img::Pixel;
 
 using path_t = fs::path;
 
+#ifdef _WIN32
+
+// set this directory for your system
+//constexpr auto ROOT_DIR = "../../../tests/";
+constexpr auto ROOT_DIR = "C:\\D_Data\\Repos\\SimpleImage\\tests";
+
+#else
 
 // set this directory for your system
 constexpr auto ROOT_DIR = "../";
+
+#endif // _WIN32
+
+
+
+
 
 constexpr auto TEST_IMAGE_DIR = "TestImages/";
 constexpr auto IMAGE_IN_DIR = "in_files/";

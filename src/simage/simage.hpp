@@ -3,6 +3,18 @@
 #include "simage_platform.hpp"
 
 
+namespace simage
+{
+	void make_image(Image& image, u32 width, u32 height);
+
+	void destroy_image(Image& image);
+
+	void make_image(gray::Image& image, u32 width, u32 height);
+
+	void destroy_image(gray::Image& image);
+}
+
+
 /* stb_simage.cpp */
 
 namespace simage
@@ -12,32 +24,105 @@ namespace simage
 	void read_image_from_file(const char* file_path_src, gray::Image& image_dst);
 
 
-	#ifndef SIMAGE_NO_WRITE
+#ifndef SIMAGE_NO_WRITE
 
 	void write_image(Image const& image_src, const char* file_path_dst);
 
 	void write_image(gray::Image const& image_src, const char* file_path_dst);
 
-	#endif // !SIMAGE_NO_WRITE
-	
+#endif // !SIMAGE_NO_WRITE
 
-	#ifndef SIMAGE_NO_RESIZE
+
+#ifndef SIMAGE_NO_RESIZE
 
 	void resize_image(Image const& image_src, Image& image_dst);
 
 	void resize_image(gray::Image const& image_src, gray::Image& image_dst);
 
-	#endif // !SIMAGE_NO_RESIZE
+#endif // !SIMAGE_NO_RESIZE
 }
+
+
+#ifndef SIMAGE_NO_FILESYSTEM
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
+
+namespace simage
+{
+
+	inline void read_image_from_file(fs::path const& img_path_src, Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.string().c_str(), image_dst);
+	}
+
+
+	inline void read_image_from_file(fs::path const& img_path_src, gray::Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.string().c_str(), image_dst);
+	}
+
+#ifndef SIMAGE_NO_WRITE
+
+	inline void write_image(Image const& image_src, fs::path const& file_path_dst)
+	{
+		write_image(image_src, file_path_dst.string().c_str());
+	}
+
+
+	inline void write_image(gray::Image const& image_src, fs::path const& file_path_dst)
+	{
+		write_image(image_src, file_path_dst.string().c_str());
+	}
+
+#endif // !SIMAGE_NO_WRITE
+	
+}
+
+#else
+
+#include <string>
+
+namespace simage
+{
+
+	inline void read_image_from_file(std::string const& img_path_src, Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.c_str(), image_dst);
+	}
+
+
+	inline void read_image_from_file(std::string const& img_path_src, gray::Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.c_str(), image_dst);
+	}
+
+#ifndef SIMAGE_NO_WRITE
+
+	inline void write_image(Image const& image_src, std::string const& file_path_dst)
+	{
+		write_image(image_src, file_path_dst.c_str());
+	}
+
+
+	inline void write_image(gray::Image const& image_src, std::string const& file_path_dst)
+	{
+		write_image(image_src, file_path_dst.c_str());
+	}
+
+#endif // !SIMAGE_NO_WRITE
+	
+}
+
+#endif // !SIMAGE_NO_FILESYSTEM
 
 
 /* constants, enums */
 
 namespace simage
 {
-	constexpr auto RGB_CHANNELS = 3u;
-	constexpr auto RGBA_CHANNELS = 4u;
-
 	// platform dependent, endianness
 	class RGBAr32p
 	{

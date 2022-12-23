@@ -38,6 +38,7 @@ stb_h := $(stb)/stb_include.hpp
 stb_h += $(stb)/stb_image_resize.h
 stb_h += $(stb)/stb_image_write.h
 stb_h += $(stb)/stb_image.h
+stb_h += $(defines_h)
 
 stb_simage_c := $(stb)/stb_simage.cpp
 stb_simage_o := $(build)/stb_simage.object_files

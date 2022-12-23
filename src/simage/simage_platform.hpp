@@ -16,26 +16,7 @@ namespace simage
 		u8 green;
 		u8 blue;
 		u8 alpha;
-	};
-
-
-	enum class RGB : int
-	{
-		R = 0, G = 1, B = 2
-	};
-
-
-	enum class RGBA : int
-	{
-		R = 0, G = 1, B = 2, A = 3
-	};
-
-
-	template <typename T>
-	constexpr inline int id_cast(T channel)
-	{
-		return static_cast<int>(channel);
-	}
+	};	
 }
 
 
@@ -127,31 +108,4 @@ namespace simage
 			u32 height = 0;
 		};
     }
-}
-
-
-namespace simage
-{
-    constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b, u8 a)
-	{
-		Pixel p{};
-		p.channels[id_cast(RGBA::R)] = r;
-		p.channels[id_cast(RGBA::G)] = g;
-		p.channels[id_cast(RGBA::B)] = b;
-		p.channels[id_cast(RGBA::A)] = a;
-
-		return p;
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b)
-	{
-		return to_pixel(r, g, b, 255);
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 value)
-	{
-		return to_pixel(value, value, value, 255);
-	}
 }

@@ -109,3 +109,60 @@ namespace simage
 		};
     }
 }
+
+
+/* camera */
+
+namespace simage
+{
+    class YUV422
+	{
+	public:
+		u8 u;
+		u8 y1;
+		u8 v;
+		u8 y2;
+	};
+
+
+	class YUV2
+	{
+	public:
+		u8 uv;
+		u8 y;
+	};
+
+
+	class ImageYUV
+	{
+	public:
+		u32 width;
+		u32 height;
+
+		YUV2* data;
+	};
+
+
+	class ViewYUV
+	{
+	public:
+		YUV2* image_data = 0;
+		u32 image_width = 0;
+
+		union
+		{
+			Range2Du32 range = {};
+
+			struct
+			{
+				u32 x_begin;
+				u32 x_end;
+				u32 y_begin;
+				u32 y_end;
+			};
+		};
+
+		u32 width = 0;
+		u32 height = 0;	
+	};
+}

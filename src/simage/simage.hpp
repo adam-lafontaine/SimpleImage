@@ -62,40 +62,13 @@ namespace simage
 	void make_image(gray::Image& image, u32 width, u32 height);
 
 	void destroy_image(gray::Image& image);
+
+
+	void destroy_image(ImageYUV& image);
 }
 
 
-/* camera */
 
-namespace simage
-{
-    class YUV422
-	{
-	public:
-		u8 u;
-		u8 y1;
-		u8 v;
-		u8 y2;
-	};
-
-
-	class YUV2
-	{
-	public:
-		u8 uv;
-		u8 y;
-	};
-
-
-	class ImageYUV
-	{
-	public:
-		u32 width;
-		u32 height;
-
-		YUV2* data;
-	};
-}
 
 
 /* view */

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../defines.hpp"
+
 
 #define STBI_NO_GIF
 #define STBI_NO_PSD

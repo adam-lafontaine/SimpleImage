@@ -89,3 +89,13 @@ public:
 	u32 y_begin;
 	u32 y_end;   // one past last y
 };
+
+
+template <typename T>
+class MemoryBuffer
+{
+public:
+	T* data_ = nullptr;
+	size_t capacity_ = 0;
+	size_t size_ = 0;
+};

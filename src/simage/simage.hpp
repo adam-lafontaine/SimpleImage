@@ -63,7 +63,6 @@ namespace simage
 
 	void destroy_image(gray::Image& image);
 
-
 	void destroy_image(ImageYUV& image);
 }
 
@@ -308,32 +307,32 @@ namespace simage
 
 #include <filesystem>
 
-namespace fs = std::filesystem;
-
 
 namespace simage
 {
+	using path_t = std::filesystem::path;
 
-	inline void read_image_from_file(fs::path const& img_path_src, Image& image_dst)
+
+	inline void read_image_from_file(path_t const& img_path_src, Image& image_dst)
 	{
 		return read_image_from_file(img_path_src.string().c_str(), image_dst);
 	}
 
 
-	inline void read_image_from_file(fs::path const& img_path_src, gray::Image& image_dst)
+	inline void read_image_from_file(path_t const& img_path_src, gray::Image& image_dst)
 	{
 		return read_image_from_file(img_path_src.string().c_str(), image_dst);
 	}
 
 #ifndef SIMAGE_NO_WRITE
 
-	inline void write_image(Image const& image_src, fs::path const& file_path_dst)
+	inline void write_image(Image const& image_src, path_t const& file_path_dst)
 	{
 		write_image(image_src, file_path_dst.string().c_str());
 	}
 
 
-	inline void write_image(gray::Image const& image_src, fs::path const& file_path_dst)
+	inline void write_image(gray::Image const& image_src, path_t const& file_path_dst)
 	{
 		write_image(image_src, file_path_dst.string().c_str());
 	}
@@ -348,27 +347,28 @@ namespace simage
 
 namespace simage
 {
+	using path_t = std::string;
 
-	inline void read_image_from_file(std::string const& img_path_src, Image& image_dst)
+	inline void read_image_from_file(path_t const& img_path_src, Image& image_dst)
 	{
 		return read_image_from_file(img_path_src.c_str(), image_dst);
 	}
 
 
-	inline void read_image_from_file(std::string const& img_path_src, gray::Image& image_dst)
+	inline void read_image_from_file(path_t const& img_path_src, gray::Image& image_dst)
 	{
 		return read_image_from_file(img_path_src.c_str(), image_dst);
 	}
 
 #ifndef SIMAGE_NO_WRITE
 
-	inline void write_image(Image const& image_src, std::string const& file_path_dst)
+	inline void write_image(Image const& image_src, path_t const& file_path_dst)
 	{
 		write_image(image_src, file_path_dst.c_str());
 	}
 
 
-	inline void write_image(gray::Image const& image_src, std::string const& file_path_dst)
+	inline void write_image(gray::Image const& image_src, path_t const& file_path_dst)
 	{
 		write_image(image_src, file_path_dst.c_str());
 	}
@@ -378,15 +378,3 @@ namespace simage
 }
 
 #endif // !SIMAGE_NO_FILESYSTEM
-
-
-
-
-
-
-
-
-
-
-
-

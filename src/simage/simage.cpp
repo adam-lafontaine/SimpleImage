@@ -47,6 +47,16 @@ namespace simage
 			image.data = nullptr;
 		}
 	}
+
+
+	void destroy_image(ImageYUV& image)
+	{
+		if (image.data != nullptr)
+		{
+			free(image.data);
+			image.data = nullptr;
+		}
+	}
 }
 
 

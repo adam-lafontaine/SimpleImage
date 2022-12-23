@@ -1,37 +1,49 @@
 #pragma once
 
+#include "../defines.hpp"
 
-template <typename T>
-class MemoryBuffer
+
+namespace memory_buffer
 {
-private:
-	T* data_ = nullptr;
-	size_t capacity_ = 0;
-	size_t size_ = 0;
+	u8* malloc_bytes(size_t n_bytes);
 
-public:
-	MemoryBuffer(size_t n_elements)
+	void free_bytes(void* data);
+
+
+	template <typename T>
+	bool create_buffer(MemoryBuffer<T>& buffer, size_t n_elements)
 	{
-		auto data = std::malloc(sizeof(T) * n_elements);
-		assert(data);
-
-		data_ = (T*)data;
-		capacity_ = n_elements;
+		buffer.data_ = (T*)malloc_bytes(n_elements * sizeof(T));
 	}
 
 
-	T* push(size_t n_elements)
+	template <typename T>
+	void destroy_buffer(MemoryBuffer<T>& buffer)
 	{
-		assert(data_);
-		assert(capacity_);
-		assert(size_ < capacity_);
+		free_bytes(buffer.data_);
+	}
+
+
+	template <typename T>
+	void reset_buffer(MemoryBuffer<T>& buffer)
+	{
+		buffer.size_ = 0;
+	}
+
+
+	template <typename T>
+	T* push_elements(MemoryBuffer<T>& buffer, size_t n_elements)
+	{
+		assert(buffer.data_);
+		assert(buffer.capacity_);
+		assert(buffer.size_ < buffer.capacity_);
 
 		auto is_valid =
-			data_ &&
-			capacity_ &&
-			size_ < capacity_;
+			buffer.data_ &&
+			buffer.capacity_ &&
+			buffer.size_ < capacity_;
 
-		auto elements_available = (capacity_ - size_) >= n_elements;
+		auto elements_available = (buffer.capacity_ - buffer.size_) >= n_elements;
 		assert(elements_available);
 
 		if (!is_valid || !elements_available)
@@ -39,29 +51,10 @@ public:
 			return nullptr;
 		}
 
-		auto data = data_ + size_;
+		auto data = buffer.data_ + buffer.size_;
 
-		size_ += n_elements;
+		buffer.size_ += n_elements;
 
 		return data;
-	}
-
-
-	void reset()
-	{
-		size_ = 0;
-	}
-
-
-	void free()
-	{
-		if (data_)
-		{
-			std::free(data_);
-			data_ = nullptr;
-		}
-
-		capacity_ = 0;
-		size_ = 0;
-	}
-};
+	}	
+}

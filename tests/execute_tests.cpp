@@ -66,7 +66,7 @@ static  std::vector<std::function<void()>> make_func_vector()
 }
 
 
-static void execute_sequential_test()
+static bool execute_sequential_test()
 {
     console_print("\nexecute_sequential_test\n");
 
@@ -84,10 +84,12 @@ static void execute_sequential_test()
     sw.start();
     execute_sequential(f_vector);
     console_print("\ntime: %f\n", sw.get_time_milli());
+
+    return true;
 }
 
 
-static void execute_parallel_test()
+static bool execute_parallel_test()
 {
     console_print("\nexecute_parallel_test\n");
 
@@ -113,10 +115,12 @@ static void execute_parallel_test()
     console_print("NA\n");
 
 #endif
+
+    return true;
 }
 
 
-static void process_range_test()
+static bool process_range_test()
 {
     console_print("\nprocess_range_test\n");
 
@@ -129,12 +133,24 @@ static void process_range_test()
     sw.start();
     process_range(id_begin, id_end, id_func);
     console_print("\ntime: %f\n", sw.get_time_milli());
+
+    return true;
 }
 
 
-void execute_tests()
+bool execute_tests()
 {
-    execute_sequential_test();
-    execute_parallel_test();
-    process_range_test();
+    printf("\n*** execute tests ***\n");
+
+    auto result =
+        execute_sequential_test() &&
+        execute_parallel_test() &&
+        process_range_test();
+    
+    if (result)
+    {
+        printf("execute tests OK\n");
+    }
+
+    return result;
 }

@@ -8,6 +8,8 @@ namespace memory_buffer
 {
     u8* malloc_bytes(size_t n_bytes)
     {
+        assert(n_bytes);
+        
         auto data = std::malloc(n_bytes);
         assert(data);
 

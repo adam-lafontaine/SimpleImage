@@ -21,6 +21,10 @@ stopwatch_h := $(util)/stopwatch.hpp
 execute_h := $(util)/execute.hpp
 execute_h += $(defines_h)
 
+# memory buffer
+memory_buffer_h := $(util)/memory_buffer.hpp
+memory_buffer_h += $(defines_h)
+
 # stb
 stb_h := $(stb)/stb_include.hpp
 stb_h += $(stb)/stb_image_resize.h
@@ -54,6 +58,13 @@ execute_o := $(build)/execute.o
 object_files += $(execute_o)
 
 
+# memory buffer
+memory_buffer_c := $(util)/memory_buffer.cpp
+memory_buffer_c += $(memory_buffer_h)
+memory_buffer_o := $(build)/memory_buffer.o
+object_files += $(memory_buffer_o)
+
+
 # stb_simage
 stb_simage_c := $(stb)/stb_simage.cpp
 stb_simage_c += $(stb_h)
@@ -76,10 +87,17 @@ execute_tests_c += $(stopwatch_h)
 execute_tests_o := $(build)/execute_tests.o
 object_files += $(execute_tests_o)
 
+memory_buffer_tests_c := $(tests)/memory_buffer_tests.cpp
+memory_buffer_tests_c += $(memory_buffer_h);
+memory_buffer_tests_o := $(build)/memory_buffer_tests.o
+object_files += $(memory_buffer_tests_o)
+
 stb_simage_tests_c := $(tests)/stb_simage_tests.cpp
 stb_simage_tests_c += $(tests_include_h)
 stb_simage_tests_o := $(build)/stb_simage_tests.o
 object_files += $(stb_simage_tests_o)
+
+
 
 
 # flags
@@ -88,7 +106,7 @@ LIBRARIES := -ltbb
 CCFLAGS := -std=c++17
 
 CCFLAGS += -O3
-#CCFLAGS += -DNDEBUG
+CCFLAGS += -DNDEBUG
 
 
 # build rules
@@ -102,6 +120,11 @@ $(execute_o): $(execute_c)
 	@echo "\n execute"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
+$(memory_buffer_o): $(memory_buffer_c)
+	@echo "\n memory_buffer"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+
 $(stb_simage_o): $(stb_simage_c)
 	@echo "\n stb_simage"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
@@ -114,6 +137,10 @@ $(simage_o): $(simage_c)
 
 $(execute_tests_o): $(execute_tests_c)
 	@echo "\n execute_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(memory_buffer_tests_o): $(memory_buffer_tests_c)
+	@echo "\n memory_buffer_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 $(stb_simage_tests_o): $(stb_simage_tests_c)

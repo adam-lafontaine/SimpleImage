@@ -1,8 +1,7 @@
-#include "../src/simage/simage.hpp"
 #include "tests_include.hpp"
 
 
-static void read_write_image_test()
+static bool read_write_image_test()
 {
 	auto title = "read_write_test";
 	printf("\n%s:\n", title);
@@ -20,10 +19,12 @@ static void read_write_image_test()
 
 	img::destroy_image(image);
 	img::destroy_image(gray);
+
+	return true;
 }
 
 
-static void resize_test()
+static bool resize_test()
 {
 	auto title = "resize_test";
 	printf("\n%s:\n", title);
@@ -71,11 +72,23 @@ static void resize_test()
 	img::destroy_image(gray);
 	img::destroy_image(vertical_gray);
 	img::destroy_image(horizontal_gray);
+
+	return true;
 }
 
 
-void stb_simage_tests()
+bool stb_simage_tests()
 {
-    read_write_image_test();
-	resize_test();
+	printf("\n***stb_simage tests ***\n");
+
+	auto result = 
+		read_write_image_test() &&
+		resize_test();
+
+	if (result)
+	{
+		printf("stb_simage tests OK\n");
+	}
+	
+	return result;
 }

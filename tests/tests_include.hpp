@@ -28,9 +28,6 @@ constexpr auto ROOT_DIR = "../";
 #endif // _WIN32
 
 
-
-
-
 constexpr auto TEST_IMAGE_DIR = "TestImages/";
 constexpr auto IMAGE_IN_DIR = "in_files/";
 constexpr auto IMAGE_OUT_DIR = "out_files/";
@@ -97,6 +94,8 @@ inline bool directory_files_test()
 }
 
 
-void execute_tests();
+bool execute_tests();
 
-void stb_simage_tests();
+bool memory_buffer_tests();
+
+bool stb_simage_tests();

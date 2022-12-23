@@ -67,7 +67,7 @@ namespace simage
 	}
 
 
-	u8* row_begin(gray::View const& view, u32 y)
+	static u8* row_begin(gray::View const& view, u32 y)
 	{
 		assert(y < view.height);
 

@@ -55,11 +55,11 @@ namespace simage
 
 namespace simage
 {
-	void make_image(Image& image, u32 width, u32 height);
+	bool make_image(Image& image, u32 width, u32 height);
 
-	void destroy_image(Image& image);
+	bool make_image(ImageGray& image, u32 width, u32 height);
 
-	void make_image(ImageGray& image, u32 width, u32 height);
+	void destroy_image(Image& image);	
 
 	void destroy_image(ImageGray& image);
 
@@ -71,31 +71,6 @@ namespace simage
 
 namespace simage
 {
-    class View1r32
-	{
-	public:
-
-		r32* image_data = 0;
-		u32 image_width = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
-
-		u32 width = 0;
-		u32 height = 0;
-	};	
-
-
 	template <size_t N>
 	class ViewCHr32
 	{
@@ -133,6 +108,7 @@ namespace simage
 		r32* channels[N] = {};
 	};
 
+	using View1r32 = MatrixView<r32>;
 
     using View4r32 = ViewCHr32<4>;
 	using View3r32 = ViewCHr32<3>;

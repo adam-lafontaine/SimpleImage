@@ -108,6 +108,11 @@ stb_simage_tests_c += $(tests_include_h)
 stb_simage_tests_o := $(build)/stb_simage_tests.o
 object_files += $(stb_simage_tests_o)
 
+map_tests_c := $(tests)/map_tests.cpp
+map_tests_c += $(tests_include_h)
+map_tests_o := $(build)/map_tests.o
+object_files += $(map_tests_o)
+
 
 
 
@@ -164,6 +169,10 @@ $(create_image_tests_o): $(create_image_tests_c)
 
 $(make_view_tests_o): $(make_view_tests_c)
 	@echo "\n make_view_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(map_tests_o): $(map_tests_c)
+	@echo "\n map_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

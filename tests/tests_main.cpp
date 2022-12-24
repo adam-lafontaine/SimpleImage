@@ -8,7 +8,7 @@ static bool test_success()
         memory_buffer_tests() &&
         //stb_simage_tests() &&
         make_image_tests() &&
-        //make_view_tests() &&
+        make_view_tests() &&
         //map_tests() &&
         true;
 }

@@ -6,6 +6,7 @@
 namespace img = simage;
 namespace fs = std::filesystem;
 
+
 using Image = img::Image;
 using ImageView = img::View;
 using GrayImage = img::ImageGray;

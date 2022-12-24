@@ -98,6 +98,11 @@ make_image_tests_c += $(tests_include_h)
 make_image_tests_o := $(build)/make_image_tests.o
 object_files += $(make_image_tests_o)
 
+make_view_tests_c := $(tests)/make_view_tests.cpp
+make_view_tests_c += $(tests_include_h)
+make_view_tests_o := $(build)/make_view_tests.o
+object_files += $(make_view_tests_o)
+
 stb_simage_tests_c := $(tests)/stb_simage_tests.cpp
 stb_simage_tests_c += $(tests_include_h)
 stb_simage_tests_o := $(build)/stb_simage_tests.o
@@ -155,6 +160,10 @@ $(stb_simage_tests_o): $(stb_simage_tests_c)
 
 $(make_image_tests_o): $(make_image_tests_c)
 	@echo "\n make_image_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(make_view_tests_o): $(make_view_tests_c)
+	@echo "\n make_view_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

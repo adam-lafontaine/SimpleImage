@@ -258,6 +258,20 @@ namespace simage
 }
 
 
+/* map */
+
+namespace simage
+{
+	void map(ImageGray const& src, View1r32 const& dst);
+
+	void map(ViewGray const& src, View1r32 const& dst);
+
+	void map(View1r32 const& src, ImageGray const& dst);	
+
+	void map(View1r32 const& src, ViewGray const& dst);
+}
+
+
 /* sub_view */
 
 namespace simage

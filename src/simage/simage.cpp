@@ -1,8 +1,84 @@
 #include "simage.hpp"
 #include "../util/memory_buffer.hpp"
+#include "../util/execute.hpp"
 
 
 namespace mb = memory_buffer;
+
+
+
+static void process_rows(u32 n_rows, id_func_t const& row_func)
+{
+	auto const row_begin = 0;
+	auto const row_end = n_rows;
+
+	process_range(row_begin, row_end, row_func);
+}
+
+
+static constexpr std::array<r32, 256> channel_r32_lut()
+{
+	std::array<r32, 256> lut = {};
+
+	for (u32 i = 0; i < 256; ++i)
+	{
+		lut[i] = i / 255.0f;
+	}
+
+	return lut;
+}
+
+
+static constexpr r32 to_channel_r32(u8 value)
+{
+	constexpr auto lut = channel_r32_lut();
+
+	return lut[value];
+}
+
+
+static constexpr u8 to_channel_u8(r32 value)
+{
+	if (value < 0.0f)
+	{
+		value = 0.0f;
+	}
+	else if (value > 1.0f)
+	{
+		value = 1.0f;
+	}
+
+	return (u8)(u32)(value * 255 + 0.5f);
+}
+
+
+static constexpr r32 lerp_to_r32(u8 value, r32 min, r32 max)
+{
+	assert(min < max);
+
+	return min + (value / 255.0f) * (max - min);
+}
+
+
+static constexpr u8 lerp_to_u8(r32 value, r32 min, r32 max)
+{
+	assert(min < max);
+	assert(value >= min);
+	assert(value <= max);
+
+	if (value < min)
+	{
+		value = min;
+	}
+	else if (value > max)
+	{
+		value = max;
+	}
+
+	auto ratio = (value - min) / (max - min);
+
+	return (u8)(u32)(ratio * 255 + 0.5f);
+}
 
 
 /* verify */
@@ -63,80 +139,6 @@ namespace simage
 }
 
 #endif // !NDEBUG
-
-
-namespace simage
-{
-	template <typename T>
-	static bool do_make_image(Matrix2D<T>& image, u32 width, u32 height)
-	{
-		image.data = (T*)malloc(sizeof(T) * width * height);
-		if(!image.data)
-		{
-			return false;
-		}
-
-		image.width = width;
-		image.height = height;
-
-		return true;
-	}
-
-
-	template <typename T>
-	static void do_destroy_image(Matrix2D<T>& image)
-	{
-		if (image.data != nullptr)
-		{
-			free(image.data);
-			image.data = nullptr;
-		}
-	}
-
-
-	bool make_image(Image& image, u32 width, u32 height)
-	{
-		assert(width);
-		assert(height);
-
-		auto result = do_make_image(image, width, height);
-
-		assert(verify(image));
-
-		return result;
-	}
-
-
-    bool make_image(ImageGray& image, u32 width, u32 height)
-	{
-		assert(width);
-		assert(height);
-
-		auto result = do_make_image(image, width, height);
-
-		assert(verify(image));
-
-		return result;
-	}
-
-
-	void destroy_image(Image& image)
-	{
-		do_destroy_image(image);
-	}
-
-
-	void destroy_image(ImageGray& image)
-	{
-		do_destroy_image(image);
-	}
-
-
-	void destroy_image(ImageYUV& image)
-	{
-		do_destroy_image(image);
-	}
-}
 
 
 /* row begin */
@@ -292,6 +294,83 @@ namespace simage
 }
 
 
+
+/* platform */
+
+namespace simage
+{
+	template <typename T>
+	static bool do_make_image(Matrix2D<T>& image, u32 width, u32 height)
+	{
+		image.data = (T*)malloc(sizeof(T) * width * height);
+		if(!image.data)
+		{
+			return false;
+		}
+
+		image.width = width;
+		image.height = height;
+
+		return true;
+	}
+
+
+	template <typename T>
+	static void do_destroy_image(Matrix2D<T>& image)
+	{
+		if (image.data != nullptr)
+		{
+			free(image.data);
+			image.data = nullptr;
+		}
+	}
+
+
+	bool make_image(Image& image, u32 width, u32 height)
+	{
+		assert(width);
+		assert(height);
+
+		auto result = do_make_image(image, width, height);
+
+		assert(verify(image));
+
+		return result;
+	}
+
+
+    bool make_image(ImageGray& image, u32 width, u32 height)
+	{
+		assert(width);
+		assert(height);
+
+		auto result = do_make_image(image, width, height);
+
+		assert(verify(image));
+
+		return result;
+	}
+
+
+	void destroy_image(Image& image)
+	{
+		do_destroy_image(image);
+	}
+
+
+	void destroy_image(ImageGray& image)
+	{
+		do_destroy_image(image);
+	}
+
+
+	void destroy_image(ImageYUV& image)
+	{
+		do_destroy_image(image);
+	}
+}
+
+
 /* make view */
 
 namespace simage
@@ -425,6 +504,81 @@ namespace simage
 		assert(verify(view));
 
 		return view;
+	}
+}
+
+
+/* map */
+
+namespace simage
+{
+	using u8_to_r32_f = std::function<r32(u8)>;
+	using r32_to_u8_f = std::function<u8(r32)>;
+
+
+	template <class IMG_U8>
+	static void map_r32_to_u8(View1r32 const& src, IMG_U8 const& dst, r32_to_u8_f const& func)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[x]);
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	template <class IMG_U8>
+	static void map_u8_to_r32(IMG_U8 const& src, View1r32 const& dst, u8_to_r32_f const& func)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[x]);
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	void map(ImageGray const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		map_u8_to_r32(src, dst, to_channel_r32);
+	}
+
+
+	void map(ViewGray const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		map_u8_to_r32(src, dst, to_channel_r32);
+	}
+
+
+	void map(View1r32 const& src, ImageGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		map_r32_to_u8(src, dst, to_channel_u8);
+	}
+	
+
+	void map(View1r32 const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		map_r32_to_u8(src, dst, to_channel_u8);
 	}
 }
 

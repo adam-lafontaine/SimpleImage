@@ -295,6 +295,21 @@ namespace simage
 }
 
 
+/* map_rgb_hsv */
+
+namespace simage
+{
+	void map_rgb_hsv(View const& src, ViewHSVr32 const& dst);
+
+	void map_hsv_rgb(ViewHSVr32 const& src, View const& dst);
+
+
+	void map_rgb_hsv(ViewRGBr32 const& src, ViewHSVr32 const& dst);	
+
+	void map_hsv_rgb(ViewHSVr32 const& src, ViewRGBr32 const& dst);
+}
+
+
 /* sub_view */
 
 namespace simage

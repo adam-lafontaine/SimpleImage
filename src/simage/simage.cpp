@@ -2,6 +2,8 @@
 #include "../util/memory_buffer.hpp"
 #include "../util/execute.hpp"
 
+#include <cmath>
+
 
 namespace mb = memory_buffer;
 
@@ -306,7 +308,6 @@ namespace simage
 		return p;
 	}
 }
-
 
 
 /* platform */
@@ -698,6 +699,247 @@ namespace simage
 				d[x].channels[g] = to_channel_u8(sg[x]);
 				d[x].channels[b] = to_channel_u8(sb[x]);
 				d[x].channels[a] = ch_max;
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+}
+
+
+/* map_hsv */
+
+namespace simage
+{
+	class HSVr32
+	{
+	public:
+		r32 hue;
+		r32 sat;
+		r32 val;
+	};
+
+
+	class RGBr32
+	{
+	public:
+		r32 red;
+		r32 green;
+		r32 blue;
+	};
+
+
+	static constexpr HSVr32 rgb_hsv(u8 r, u8 g, u8 b)
+	{
+		auto max = std::max(r, std::max(g, b));
+		auto min = std::min(r, std::max(g, b));
+
+		auto& norm = to_channel_r32;
+
+		auto c = norm(max - min);
+
+		r32 value = norm(max);
+
+		r32 sat = max == 0 ? 0.0f : (c / value);
+
+		r32 hue = 60.0f;
+
+		if (max == min)
+		{
+			hue = 0.0f;
+		}
+		else if (max == r)
+		{
+			hue *= ((norm(g - b)) / c);
+		}
+		else if (max == g)
+		{
+			hue *= ((norm(b - r)) / c + 2);
+		}
+		else // max == b
+		{
+			hue *= ((norm(r - g)) / c + 4);
+		}
+
+		hue /= 360.0f;
+
+		return { hue, sat, value };
+	}
+
+
+	static constexpr HSVr32 rgb_hsv(r32 r, r32 g, r32 b)
+	{
+		auto max = std::max(r, std::max(g, b));
+		auto min = std::min(r, std::max(g, b));
+
+		auto const equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) < 0.001; };
+
+		auto c = max - min;
+		auto value = max;
+
+		auto sat = equals(max, 0.0f) ? 0.0f : (c / value);
+
+		auto hue = 60.0f;
+
+		if (equals(max, min))
+		{
+			hue = 0.0f;
+		}
+		else if (equals(max, r))
+		{
+			hue *= ((g - b) / c);
+		}
+		else if (equals(max, g))
+		{
+			hue *= ((b - r) / c + 2);
+		}
+		else
+		{
+			hue *= ((r - g) / c + 4);
+		}
+
+		hue /= 360.0f;
+
+		return { hue, sat, value };
+	}
+
+
+	static constexpr RGBr32 hsv_rgb(r32 h, r32 s, r32 v)
+	{
+		auto c = s * v;
+		auto m = v - c;
+
+		auto d = h * 6.0f; // 360.0f / 60.0f;
+
+		auto x = c * (1.0f - std::abs(std::fmod(d, 2.0f) - 1.0f));
+
+		auto r = m;
+		auto g = m;
+		auto b = m;
+
+		switch (int(d))
+		{
+		case 0:
+			r += c;
+			g += x;
+			break;
+		case 1:
+			r += x;
+			g += c;
+			break;
+		case 2:
+			g += c;
+			b += x;
+			break;
+		case 3:
+			g += x;
+			b += c;
+			break;
+		case 4:
+			r += x;
+			b += c;
+			break;
+		default:
+			r += c;
+			b += x;
+			break;
+		}
+
+		return { r, g, b };
+	}
+
+
+	void map_rgb_hsv(View const& src, ViewHSVr32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = hsv_row_begin(dst, y).hsv;
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = s[x].rgba;
+				auto hsv = rgb_hsv(rgba.red, rgba.green, rgba.blue);
+				d.H[x] = hsv.hue;
+				d.S[x] = hsv.sat;
+				d.V[x] = hsv.val;
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	void map_hsv_rgb(ViewHSVr32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		constexpr auto ch_max = to_channel_u8(1.0f);
+
+		auto const row_func = [&](u32 y) 
+		{
+			auto s = hsv_row_begin(src, y).hsv;
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgb = hsv_rgb(s.H[x], s.S[x], s.V[x]);
+
+				auto& rgba = d[x].rgba;				
+				rgba.red = to_channel_u8(rgb.red);
+				rgba.green = to_channel_u8(rgb.green);
+				rgba.blue = to_channel_u8(rgb.blue);
+				rgba.alpha = ch_max;
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	void map_rgb_hsv(ViewRGBr32 const& src, ViewHSVr32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = rgb_row_begin(src, y).rgb;
+			auto d = hsv_row_begin(dst, y).hsv;
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto r = s.R[x];
+				auto g = s.G[x];
+				auto b = s.B[x];
+
+				auto hsv = rgb_hsv(r, g, b);
+				d.H[x] = hsv.hue;
+				d.S[x] = hsv.sat;
+				d.V[x] = hsv.val;
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	void map_hsv_rgb(ViewHSVr32 const& src, ViewRGBr32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = hsv_row_begin(src, y).hsv;
+			auto d = rgb_row_begin(dst, y).rgb;
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgb = hsv_rgb(s.H[x], s.S[x], s.V[x]);
+				d.R[x] = rgb.red;
+				d.G[x] = rgb.green;
+				d.B[x] = rgb.blue;
 			}
 		};
 

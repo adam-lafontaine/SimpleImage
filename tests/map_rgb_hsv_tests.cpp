@@ -1,9 +1,9 @@
 #include "tests_include.hpp"
 
 
-static bool map_rgb_test()
+static bool map_hsv_test()
 {
-    auto title = "map_rgb_test";
+    auto title = "map_hsv_test";
 	printf("\n%s:\n", title);
 	auto out_dir = IMAGE_OUT_PATH / title;
 	empty_dir(out_dir);
@@ -30,16 +30,16 @@ static bool map_rgb_test()
 
     auto buffer = img::create_buffer(width * height * 3 * 2);
 
-    auto view_vette = img::make_view_3(width, height, buffer);
-    auto view_caddy = img::make_view_3(width, height, buffer);
+    auto hsv_vette = img::make_view_3(width, height, buffer);
+    auto hsv_caddy = img::make_view_3(width, height, buffer);
 
-    img::map_rgb(vette_v, view_vette);
-    img::map_rgb(caddy_v, view_caddy);
+    img::map_rgb_hsv(vette_v, hsv_vette);
+    img::map_rgb_hsv(caddy_v, hsv_caddy);
 
-    img::map_rgb(view_caddy, vette_v);
+    img::map_hsv_rgb(hsv_caddy, vette_v);
     write_image(vette, "vette_2.bmp");
 
-    img::map_rgb(view_vette, caddy_v);
+    img::map_hsv_rgb(hsv_vette, caddy_v);
     write_image(caddy, "caddy_2.bmp");
 
     img::destroy_image(vette);
@@ -51,9 +51,9 @@ static bool map_rgb_test()
 }
 
 
-static bool map_rgba_test()
+static bool map_hsv_planar_test()
 {
-    auto title = "map_rgba_test";
+    auto title = "map_hsv_planar_test";
 	printf("\n%s:\n", title);
 	auto out_dir = IMAGE_OUT_PATH / title;
 	empty_dir(out_dir);
@@ -78,18 +78,27 @@ static bool map_rgba_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
-    auto buffer = img::create_buffer(width * height * 4 * 2);
+    auto buffer = img::create_buffer(width * height * 3 * 4);
 
-    auto view_vette = img::make_view_4(width, height, buffer);
-    auto view_caddy = img::make_view_4(width, height, buffer);
+    auto rgb_vette = img::make_view_3(width, height, buffer);
+    auto rgb_caddy = img::make_view_3(width, height, buffer);
 
-    img::map_rgb(vette_v, view_vette);
-    img::map_rgb(caddy_v, view_caddy);
+    auto hsv_vette = img::make_view_3(width, height, buffer);
+    auto hsv_caddy = img::make_view_3(width, height, buffer);
 
-    img::map_rgb(view_caddy, vette_v);
+    img::map_rgb(vette_v, rgb_vette);
+    img::map_rgb(caddy_v, rgb_caddy);
+
+    img::map_rgb_hsv(rgb_vette, hsv_vette);
+    img::map_rgb_hsv(rgb_caddy, hsv_caddy);
+
+    img::map_hsv_rgb(hsv_vette, rgb_caddy);
+    img::map_hsv_rgb(hsv_caddy, rgb_vette);
+
+    img::map_rgb(rgb_vette, vette_v);
     write_image(vette, "vette_2.bmp");
 
-    img::map_rgb(view_vette, caddy_v);
+    img::map_rgb(rgb_caddy, caddy_v);
     write_image(caddy, "caddy_2.bmp");
 
     img::destroy_image(vette);
@@ -101,18 +110,17 @@ static bool map_rgba_test()
 }
 
 
-
-bool map_rgb_tests()
+bool map_rgb_hsv_tests()
 {
-    printf("\n*** map_rgb tests ***\n");
+    printf("\n*** map_rgb_hsv tests ***\n");
 
     auto result = 
-        map_rgb_test() &&
-        map_rgba_test();
+        map_hsv_test() &&
+        map_hsv_planar_test();
 
     if (result)
     {
-        printf("map_rgb tests OK\n");
+        printf("map_rgb_hsv tests OK\n");
     }
     
     return result;

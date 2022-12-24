@@ -118,6 +118,10 @@ map_rgb_tests_c += $(tests_include_h)
 map_rgb_tests_o := $(build)/map_rgb_tests.o
 object_files += $(map_rgb_tests_o)
 
+map_rgb_hsv_tests_c := $(tests)/map_rgb_hsv_tests.cpp
+map_rgb_hsv_tests_c += $(tests_include_h)
+map_rgb_hsv_tests_o := $(build)/map_rgb_hsv_tests.o
+object_files += $(map_rgb_hsv_tests_o)
 
 
 
@@ -127,7 +131,7 @@ LIBRARIES := -ltbb
 CCFLAGS := -std=c++17
 
 CCFLAGS += -O3
-CCFLAGS += -DNDEBUG
+#CCFLAGS += -DNDEBUG
 
 
 # build rules
@@ -182,6 +186,10 @@ $(map_tests_o): $(map_tests_c)
 
 $(map_rgb_tests_o): $(map_rgb_tests_c)
 	@echo "\n map_rgb_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(map_rgb_hsv_tests_o): $(map_rgb_hsv_tests_c)
+	@echo "\n map_rgb_hsv_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

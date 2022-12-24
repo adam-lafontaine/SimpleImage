@@ -28,7 +28,8 @@ static bool map_rgb_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
-    auto buffer = img::create_buffer(width * height * 3 * 2);
+    img::Buffer32 buffer;
+    mb::create_buffer(buffer, width * height * 3 * 2);
 
     auto view_vette = img::make_view_3(width, height, buffer);
     auto view_caddy = img::make_view_3(width, height, buffer);
@@ -78,7 +79,8 @@ static bool map_rgba_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
-    auto buffer = img::create_buffer(width * height * 4 * 2);
+    img::Buffer32 buffer;
+    mb::create_buffer(buffer, width * height * 4 * 2);
 
     auto view_vette = img::make_view_4(width, height, buffer);
     auto view_caddy = img::make_view_4(width, height, buffer);

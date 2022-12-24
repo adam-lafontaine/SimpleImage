@@ -26,7 +26,7 @@ namespace memory_buffer
 
 
 	template <typename T>
-	bool create_buffer(MemoryBuffer<T>& buffer, size_t n_elements)
+	bool create_buffer(MemoryBuffer<T>& buffer, u32 n_elements)
 	{
 		assert(n_elements);
 		assert(!buffer.data_);

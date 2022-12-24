@@ -767,7 +767,7 @@ namespace simage
 	}
 
 
-	static constexpr HSVr32 rgb_hsv(r32 r, r32 g, r32 b)
+	static HSVr32 rgb_hsv(r32 r, r32 g, r32 b)
 	{
 		auto max = std::max(r, std::max(g, b));
 		auto min = std::min(r, std::max(g, b));
@@ -804,7 +804,7 @@ namespace simage
 	}
 
 
-	static constexpr RGBr32 hsv_rgb(r32 h, r32 s, r32 v)
+	static RGBr32 hsv_rgb(r32 h, r32 s, r32 v)
 	{
 		auto c = s * v;
 		auto m = v - c;
@@ -865,6 +865,17 @@ namespace simage
 				d.H[x] = hsv.hue;
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
+
+				if (x == 600 && y == 270)
+				{
+					auto rgb = hsv_rgb(hsv.hue, hsv.sat, hsv.val);
+
+					auto r = to_channel_u8(rgb.red);
+					auto g = to_channel_u8(rgb.green);
+					auto b = to_channel_u8(rgb.blue);				
+					
+					int c = 1;
+				}
 			}
 		};
 
@@ -892,6 +903,18 @@ namespace simage
 				rgba.green = to_channel_u8(rgb.green);
 				rgba.blue = to_channel_u8(rgb.blue);
 				rgba.alpha = ch_max;
+
+				if (x == 600 && y == 270)
+				{
+					auto hue = s.H[x];
+					auto sat = s.S[x];
+					auto val = s.V[x];
+
+					auto hsv = rgb_hsv(rgba.red, rgba.green, rgba.blue);
+					auto hsv2 = rgb_hsv(rgb.red, rgb.green, rgb.blue);
+
+					int c = 1;
+				}
 			}
 		};
 

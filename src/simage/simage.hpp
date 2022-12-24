@@ -243,15 +243,6 @@ namespace simage
 {
 	using Buffer32 = MemoryBuffer<r32>;
 
-	inline Buffer32 create_buffer(size_t n_elements)
-	{
-		Buffer32 buffer;
-		auto result = mb::create_buffer(buffer, n_elements);
-		assert(result);
-
-		return buffer;
-	}
-
 
 	View make_view(Image const& image);
 

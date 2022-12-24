@@ -28,7 +28,8 @@ static bool map_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
-    auto buffer = img::create_buffer(width * height * 2);
+    img::Buffer32 buffer;
+    mb::create_buffer(buffer, width * height * 2);
 
     auto view_vette = img::make_view_1(width, height, buffer);
     auto view_caddy = img::make_view_1(width, height, buffer);

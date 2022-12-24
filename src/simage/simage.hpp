@@ -285,6 +285,31 @@ namespace simage
 }
 
 
+/* map_rgb */
+
+namespace simage
+{
+	void map_rgb(Image const& src, ViewRGBAr32 const& dst);
+
+	void map_rgb(ViewRGBAr32 const& src, Image const& dst);
+
+	
+	void map_rgb(View const& src, ViewRGBAr32 const& dst);
+
+	void map_rgb(ViewRGBAr32 const& src, View const& dst);
+
+	
+	void map_rgb(Image const& src, ViewRGBr32 const& dst);
+
+	void map_rgb(ViewRGBr32 const& src, Image const& dst);
+
+	
+	void map_rgb(View const& src, ViewRGBr32 const& dst);
+
+	void map_rgb(ViewRGBr32 const& src, View const& dst);
+}
+
+
 /* sub_view */
 
 namespace simage

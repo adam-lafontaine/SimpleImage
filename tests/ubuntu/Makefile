@@ -113,6 +113,11 @@ map_tests_c += $(tests_include_h)
 map_tests_o := $(build)/map_tests.o
 object_files += $(map_tests_o)
 
+map_rgb_tests_c := $(tests)/map_rgb_tests.cpp
+map_rgb_tests_c += $(tests_include_h)
+map_rgb_tests_o := $(build)/map_rgb_tests.o
+object_files += $(map_rgb_tests_o)
+
 
 
 
@@ -173,6 +178,10 @@ $(make_view_tests_o): $(make_view_tests_c)
 
 $(map_tests_o): $(map_tests_c)
 	@echo "\n map_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(map_rgb_tests_o): $(map_rgb_tests_c)
+	@echo "\n map_rgb_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

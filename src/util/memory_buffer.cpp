@@ -1,7 +1,7 @@
 #include "memory_buffer.hpp"
 
 #include <cstdlib>
-
+#include <cassert>
 
 
 namespace memory_buffer

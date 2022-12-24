@@ -3,10 +3,13 @@
 static bool test_success()
 {
     return 
-        directory_files_test() &&
-        execute_tests() &&
+        //directory_files_test() &&
+        //execute_tests() &&
         memory_buffer_tests() &&
-        stb_simage_tests() &&
+        //stb_simage_tests() &&
+        make_image_tests() &&
+        //make_view_tests() &&
+        //map_tests() &&
         true;
 }
 
@@ -16,4 +19,6 @@ int main()
 	{
 		return EXIT_FAILURE;
 	}
+
+    printf("\nAll tests OK\n");
 }

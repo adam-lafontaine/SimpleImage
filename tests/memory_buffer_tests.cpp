@@ -1,4 +1,5 @@
 #include "../src/util/memory_buffer.hpp"
+#include "../src/defines.hpp"
 
 #include <cstdio>
 

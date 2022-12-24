@@ -38,6 +38,7 @@ simage_platform_h += $(defines_h)
 
 simage_h := $(simage)/simage.hpp
 simage_h += $(simage_platform_h)
+simage_h += $(memory_buffer_h)
 
 #tests
 tests_include_h := $(tests)/tests_include.hpp
@@ -92,6 +93,11 @@ memory_buffer_tests_c += $(memory_buffer_h);
 memory_buffer_tests_o := $(build)/memory_buffer_tests.o
 object_files += $(memory_buffer_tests_o)
 
+make_image_tests_c := $(tests)/make_image_tests.cpp
+make_image_tests_c += $(tests_include_h)
+make_image_tests_o := $(build)/make_image_tests.o
+object_files += $(make_image_tests_o)
+
 stb_simage_tests_c := $(tests)/stb_simage_tests.cpp
 stb_simage_tests_c += $(tests_include_h)
 stb_simage_tests_o := $(build)/stb_simage_tests.o
@@ -145,6 +151,10 @@ $(memory_buffer_tests_o): $(memory_buffer_tests_c)
 
 $(stb_simage_tests_o): $(stb_simage_tests_c)
 	@echo "\n stb_simage_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(make_image_tests_o): $(make_image_tests_c)
+	@echo "\n make_image_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

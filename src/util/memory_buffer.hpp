@@ -2,6 +2,21 @@
 
 #include "../defines.hpp"
 
+template <typename T>
+class MemoryBuffer
+{
+public:
+	T* data_ = nullptr;
+	size_t capacity_ = 0;
+	size_t size_ = 0;
+
+#ifndef NDEBUG
+
+	~MemoryBuffer() { assert(!(bool)data_); }
+
+#endif // !NDEBUG
+};
+
 
 namespace memory_buffer
 {

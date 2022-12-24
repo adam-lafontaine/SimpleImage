@@ -1,6 +1,7 @@
 #pragma once
 
 #include "simage_platform.hpp"
+#include "../util/memory_buffer.hpp"
 
 
 namespace simage
@@ -58,6 +59,8 @@ namespace simage
 	bool make_image(Image& image, u32 width, u32 height);
 
 	bool make_image(ImageGray& image, u32 width, u32 height);
+
+	bool make_image(ImageYUV& image, u32 width, u32 height);
 
 	void destroy_image(Image& image);	
 

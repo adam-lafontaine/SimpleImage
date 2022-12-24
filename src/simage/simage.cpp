@@ -332,11 +332,14 @@ namespace simage
 	template <typename T>
 	static void do_destroy_image(Matrix2D<T>& image)
 	{
-		if (image.data_ != nullptr)
+		if (image.data_)
 		{
 			free(image.data_);
 			image.data_ = nullptr;
 		}
+
+		image.width = 0;
+		image.height = 0;
 	}
 
 
@@ -354,6 +357,19 @@ namespace simage
 
 
     bool make_image(ImageGray& image, u32 width, u32 height)
+	{
+		assert(width);
+		assert(height);
+
+		auto result = do_make_image(image, width, height);
+
+		assert(verify(image));
+
+		return result;
+	}
+
+
+	bool make_image(ImageYUV& image, u32 width, u32 height)
 	{
 		assert(width);
 		assert(height);

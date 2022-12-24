@@ -35,22 +35,12 @@ namespace simage
 	} Pixel;
 
 
-	class Image
+	template <typename T>
+    class MatrixView
 	{
 	public:
 
-		u32 width = 0;
-		u32 height = 0;
-
-		Pixel* data = nullptr;
-	};
-
-
-    class View
-	{
-	public:
-
-		Pixel* image_data = 0;
+		T* image_data = 0;
 		u32 image_width = 0;
 
 		union
@@ -71,7 +61,14 @@ namespace simage
 	};
 
 
-    namespace gray
+	using Image = Matrix2D<Pixel>;
+	using View = MatrixView<Pixel>;
+
+	using ImageGray = Matrix2D<u8>;
+	using ViewGray = MatrixView<u8>;
+
+
+    /*namespace gray
     {
         class Image
 		{
@@ -107,7 +104,7 @@ namespace simage
 			u32 width = 0;
 			u32 height = 0;
 		};
-    }
+    }*/
 }
 
 
@@ -133,36 +130,6 @@ namespace simage
 	};
 
 
-	class ImageYUV
-	{
-	public:
-		u32 width;
-		u32 height;
-
-		YUV2* data;
-	};
-
-
-	class ViewYUV
-	{
-	public:
-		YUV2* image_data = 0;
-		u32 image_width = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
-
-		u32 width = 0;
-		u32 height = 0;	
-	};
+	using ImageYUV = Matrix2D<YUV2>;
+	using ViewYUV = MatrixView<YUV2>;
 }

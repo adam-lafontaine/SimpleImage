@@ -164,12 +164,12 @@ static bool reset_test()
 
     printf("create_buffer()\n");
     mb::create_buffer(buffer, n_elements);
-    printf("capacity: %zu", buffer.capacity_);
-    printf("size: %zu", buffer.size_);
+    printf("capacity: %zu\n", buffer.capacity_);
+    printf("size: %zu\n", buffer.size_);
 
     printf("push_elements()\n");
     auto chunk1 = mb::push_elements(buffer, push);
-    printf("size: %zu", buffer.size_);
+    printf("size: %zu\n", buffer.size_);
 
     printf("reset_buffer()\n");
     mb::reset_buffer(buffer);

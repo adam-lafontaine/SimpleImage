@@ -120,7 +120,7 @@ namespace simage
 
 #endif // !SIMAGE_NO_RESIZE
 
-	void read_image_from_file(const char* file_path_src, gray::Image& image_dst)
+	void read_image_from_file(const char* file_path_src, ImageGray& image_dst)
 	{
 		int width = 0;
 		int height = 0;
@@ -140,7 +140,7 @@ namespace simage
 
 #ifndef SIMAGE_NO_WRITE
 
-	void write_image(gray::Image const& image_src, const char* file_path_dst)
+	void write_image(ImageGray const& image_src, const char* file_path_dst)
 	{
 		assert(image_src.width);
 		assert(image_src.height);
@@ -176,7 +176,7 @@ namespace simage
 
 #ifndef SIMAGE_NO_RESIZE
 
-	void resize_image(gray::Image const& image_src, gray::Image& image_dst)
+	void resize_image(ImageGray const& image_src, ImageGray& image_dst)
 	{
 		assert(image_src.width);
 		assert(image_src.height);

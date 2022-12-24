@@ -59,15 +59,12 @@ namespace simage
 
 	void destroy_image(Image& image);
 
-	void make_image(gray::Image& image, u32 width, u32 height);
+	void make_image(ImageGray& image, u32 width, u32 height);
 
-	void destroy_image(gray::Image& image);
+	void destroy_image(ImageGray& image);
 
 	void destroy_image(ImageYUV& image);
 }
-
-
-
 
 
 /* view */
@@ -260,6 +257,58 @@ namespace simage
 }
 
 
+/* make_view */
+
+namespace simage
+{
+	using Buffer32 = MemoryBuffer<r32>;
+
+
+	View make_view(Image const& image);
+
+	ViewGray make_view(ImageGray const& image);
+
+	ViewYUV make_view(ImageYUV const& image);
+
+
+	View1r32 make_view_1(u32 width, u32 height, Buffer32& buffer);
+
+	View2r32 make_view_2(u32 width, u32 height, Buffer32& buffer);
+
+	View3r32 make_view_3(u32 width, u32 height, Buffer32& buffer);
+
+	View4r32 make_view_4(u32 width, u32 height, Buffer32& buffer);
+
+}
+
+
+/* sub_view */
+
+namespace simage
+{
+	View sub_view(Image const& image, Range2Du32 const& range);
+
+	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
+
+	ViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range);
+
+	View sub_view(View const& view, Range2Du32 const& range);
+
+	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
+
+	ViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range);
+
+
+	View4r32 sub_view(View4r32 const& view, Range2Du32 const& range);
+
+	View3r32 sub_view(View3r32 const& view, Range2Du32 const& range);
+
+	View2r32 sub_view(View2r32 const& view, Range2Du32 const& range);
+
+	View1r32 sub_view(View1r32 const& view, Range2Du32 const& range);
+}
+
+
 namespace simage
 {
 	enum class GA : int
@@ -281,14 +330,14 @@ namespace simage
 {
 	void read_image_from_file(const char* img_path_src, Image& image_dst);
 
-	void read_image_from_file(const char* file_path_src, gray::Image& image_dst);
+	void read_image_from_file(const char* file_path_src, ImageGray& image_dst);
 
 
 #ifndef SIMAGE_NO_WRITE
 
 	void write_image(Image const& image_src, const char* file_path_dst);
 
-	void write_image(gray::Image const& image_src, const char* file_path_dst);
+	void write_image(ImageGray const& image_src, const char* file_path_dst);
 
 #endif // !SIMAGE_NO_WRITE
 
@@ -297,7 +346,7 @@ namespace simage
 
 	void resize_image(Image const& image_src, Image& image_dst);
 
-	void resize_image(gray::Image const& image_src, gray::Image& image_dst);
+	void resize_image(ImageGray const& image_src, ImageGray& image_dst);
 
 #endif // !SIMAGE_NO_RESIZE
 }
@@ -319,7 +368,7 @@ namespace simage
 	}
 
 
-	inline void read_image_from_file(path_t const& img_path_src, gray::Image& image_dst)
+	inline void read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
 	{
 		return read_image_from_file(img_path_src.string().c_str(), image_dst);
 	}
@@ -332,7 +381,7 @@ namespace simage
 	}
 
 
-	inline void write_image(gray::Image const& image_src, path_t const& file_path_dst)
+	inline void write_image(ImageGray const& image_src, path_t const& file_path_dst)
 	{
 		write_image(image_src, file_path_dst.string().c_str());
 	}
@@ -355,7 +404,7 @@ namespace simage
 	}
 
 
-	inline void read_image_from_file(path_t const& img_path_src, gray::Image& image_dst)
+	inline void read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
 	{
 		return read_image_from_file(img_path_src.c_str(), image_dst);
 	}
@@ -368,7 +417,7 @@ namespace simage
 	}
 
 
-	inline void write_image(gray::Image const& image_src, path_t const& file_path_dst)
+	inline void write_image(ImageGray const& image_src, path_t const& file_path_dst)
 	{
 		write_image(image_src, file_path_dst.c_str());
 	}

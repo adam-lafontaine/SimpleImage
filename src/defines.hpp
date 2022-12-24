@@ -80,6 +80,16 @@ public:
 };
 
 
+template <typename T>
+class Matrix2D
+{
+public:
+	T* data;
+	u32 width;
+	u32 height;
+};
+
+
 // region of interest in an image
 class Range2Du32
 {

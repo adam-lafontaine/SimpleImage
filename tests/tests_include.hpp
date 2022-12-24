@@ -8,8 +8,8 @@ namespace fs = std::filesystem;
 
 using Image = img::Image;
 using ImageView = img::View;
-using GrayImage = img::gray::Image;
-using GrayView = img::gray::View;
+using GrayImage = img::ImageGray;
+using GrayView = img::ViewGray;
 using Pixel = img::Pixel;
 
 using path_t = fs::path;

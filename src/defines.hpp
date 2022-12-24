@@ -95,13 +95,13 @@ template <typename T>
 class Matrix2D
 {
 public:
-	T* data = nullptr;
+	T* data_ = nullptr;
 	u32 width = 0;
 	u32 height = 0;	
 
 #ifndef NDEBUG
 
-	~Matrix2D() { assert(!(bool)data); }
+	~Matrix2D() { assert(!(bool)data_); }
 
 #endif // !NDEBUG
 };

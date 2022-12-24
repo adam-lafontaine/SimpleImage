@@ -47,7 +47,7 @@ namespace simage
 			return false;
 		}
 
-		image_dst.data = data;
+		image_dst.data_ = data;
 		image_dst.width = width;
 		image_dst.height = height;
 
@@ -60,12 +60,12 @@ namespace simage
 	{
 		assert(image_src.width);
 		assert(image_src.height);
-		assert(image_src.data);
+		assert(image_src.data_);
 
 		int width = (int)(image_src.width);
 		int height = (int)(image_src.height);
 		int channels = (int)(RGBA_CHANNELS);
-		auto const data = image_src.data;
+		auto const data = image_src.data_;
 
 		int result = 0;
 
@@ -98,7 +98,7 @@ namespace simage
 	{
 		assert(image_src.width);
 		assert(image_src.height);
-		assert(image_src.data);
+		assert(image_src.data_);
 		assert(image_dst.width);
 		assert(image_dst.height);
 
@@ -114,14 +114,14 @@ namespace simage
 
 		int result = 0;
 
-		if (!image_dst.data)
+		if (!image_dst.data_)
 		{
-			image_dst.data = (Pixel*)malloc(sizeof(Pixel) * image_dst.width * image_dst.height);
+			image_dst.data_ = (Pixel*)malloc(sizeof(Pixel) * image_dst.width * image_dst.height);
 		}		
 
 		result = stbir_resize_uint8(
-			(u8*)image_src.data, width_src, height_src, stride_bytes_src,
-			(u8*)image_dst.data, width_dst, height_dst, stride_bytes_dst,
+			(u8*)image_src.data_, width_src, height_src, stride_bytes_src,
+			(u8*)image_dst.data_, width_dst, height_dst, stride_bytes_dst,
 			channels);
 
 		assert(result);
@@ -149,7 +149,7 @@ namespace simage
 			return false;
 		}
 
-		image_dst.data = data;
+		image_dst.data_ = data;
 		image_dst.width = width;
 		image_dst.height = height;
 
@@ -162,12 +162,12 @@ namespace simage
 	{
 		assert(image_src.width);
 		assert(image_src.height);
-		assert(image_src.data);
+		assert(image_src.data_);
 
 		int width = (int)(image_src.width);
 		int height = (int)(image_src.height);
 		int channels = 1;
-		auto const data = image_src.data;
+		auto const data = image_src.data_;
 
 		int result = 0;
 		
@@ -200,7 +200,7 @@ namespace simage
 	{
 		assert(image_src.width);
 		assert(image_src.height);
-		assert(image_src.data);
+		assert(image_src.data_);
 		assert(image_dst.width);
 		assert(image_dst.height);
 
@@ -216,14 +216,14 @@ namespace simage
 
 		int result = 0;
 
-		if (!image_dst.data)
+		if (!image_dst.data_)
 		{
-			image_dst.data = (u8*)malloc(sizeof(u8) * image_dst.width * image_dst.height);
+			image_dst.data_ = (u8*)malloc(sizeof(u8) * image_dst.width * image_dst.height);
 		}
 
 		result = stbir_resize_uint8(
-			(u8*)image_src.data, width_src, height_src, stride_bytes_src,
-			(u8*)image_dst.data, width_dst, height_dst, stride_bytes_dst,
+			(u8*)image_src.data_, width_src, height_src, stride_bytes_src,
+			(u8*)image_dst.data_, width_dst, height_dst, stride_bytes_dst,
 			channels);
 
 		assert(result);

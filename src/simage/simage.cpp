@@ -90,7 +90,7 @@ namespace simage
 	template <typename T>
 	static bool verify(Matrix2D<T> const& image)
 	{
-		return image.width && image.height && image.data;
+		return image.width && image.height && image.data_;
 	}
 
 
@@ -152,7 +152,7 @@ namespace simage
 
 		auto offset = y * image.width;
 
-		auto ptr = image.data + (u64)(offset);
+		auto ptr = image.data_ + (u64)(offset);
 		assert(ptr);
 
 		return ptr;
@@ -316,8 +316,8 @@ namespace simage
 	template <typename T>
 	static bool do_make_image(Matrix2D<T>& image, u32 width, u32 height)
 	{
-		image.data = (T*)malloc(sizeof(T) * width * height);
-		if(!image.data)
+		image.data_ = (T*)malloc(sizeof(T) * width * height);
+		if(!image.data_)
 		{
 			return false;
 		}
@@ -332,10 +332,10 @@ namespace simage
 	template <typename T>
 	static void do_destroy_image(Matrix2D<T>& image)
 	{
-		if (image.data != nullptr)
+		if (image.data_ != nullptr)
 		{
-			free(image.data);
-			image.data = nullptr;
+			free(image.data_);
+			image.data_ = nullptr;
 		}
 	}
 
@@ -394,7 +394,7 @@ namespace simage
 	{
 		MatrixView<T> view;
 
-		view.image_data = image.data;
+		view.image_data = image.data_;
 		view.image_width = image.width;
 		view.x_begin = 0;
 		view.y_begin = 0;
@@ -606,7 +606,7 @@ namespace simage
 	{
 		MatrixView<T> sub_view;
 
-		sub_view.image_data = image.data;
+		sub_view.image_data = image.data_;
 		sub_view.image_width = image.width;
 		sub_view.x_begin = range.x_begin;
 		sub_view.y_begin = range.y_begin;

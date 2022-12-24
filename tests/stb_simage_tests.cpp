@@ -16,7 +16,7 @@ static bool read_write_image_test()
 	Image image;
 	printf("read rgb\n");
 	result = img::read_image_from_file(CORVETTE_PATH, image);    
-    printf("data: %p\n", (void*)image.data);
+    printf("data: %p\n", (void*)image.data_);
 	printf("width: %u\n", image.width);
     printf("height: %u\n", image.height);
     if (!result)
@@ -38,7 +38,7 @@ static bool read_write_image_test()
 	GrayImage gray;
 	printf("read gray\n");
 	result = img::read_image_from_file(CADILLAC_PATH, gray);
-	printf("data: %p\n", (void*)gray.data);
+	printf("data: %p\n", (void*)gray.data_);
 	printf("width: %u\n", gray.width);
     printf("height: %u\n", gray.height);
     if (!result)

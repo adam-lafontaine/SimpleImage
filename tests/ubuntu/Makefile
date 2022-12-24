@@ -106,7 +106,7 @@ LIBRARIES := -ltbb
 CCFLAGS := -std=c++17
 
 CCFLAGS += -O3
-#CCFLAGS += -DNDEBUG
+CCFLAGS += -DNDEBUG
 
 
 # build rules

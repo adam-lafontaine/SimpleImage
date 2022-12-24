@@ -546,61 +546,21 @@ namespace simage
 	using r32_to_u8_f = std::function<u8(r32)>;
 
 
-	template <class IMG_U8>
-	static void map_r32_to_u8(View1r32 const& src, IMG_U8 const& dst, r32_to_u8_f const& func)
-	{
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func(s[x]);
-			}
-		};
-
-		process_rows(src.height, row_func);
-	}
-
-
-	template <class IMG_U8>
-	static void map_u8_to_r32(IMG_U8 const& src, View1r32 const& dst, u8_to_r32_f const& func)
-	{
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func(s[x]);
-			}
-		};
-
-		process_rows(src.height, row_func);
-	}
-
-
-	void map(ImageGray const& src, View1r32 const& dst)
-	{
-		assert(verify(src, dst));
-
-		map_u8_to_r32(src, dst, to_channel_r32);
-	}
-
-
 	void map(ViewGray const& src, View1r32 const& dst)
 	{
 		assert(verify(src, dst));
 
-		map_u8_to_r32(src, dst, to_channel_r32);
-	}
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = to_channel_r32(s[x]);
+			}
+		};
 
-
-	void map(View1r32 const& src, ImageGray const& dst)
-	{
-		assert(verify(src, dst));
-
-		map_r32_to_u8(src, dst, to_channel_u8);
+		process_rows(src.height, row_func);
 	}
 	
 
@@ -608,7 +568,17 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		map_r32_to_u8(src, dst, to_channel_u8);
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = to_channel_u8(s[x]);
+			}
+		};
+
+		process_rows(src.height, row_func);
 	}
 }
 
@@ -616,10 +586,11 @@ namespace simage
 /* map_rgb */
 
 namespace simage
-{
-	template <class IMG_INT>
-	static void interleaved_to_planar(IMG_INT const& src, ViewRGBAr32 const& dst)
+{	
+	void map_rgb(View const& src, ViewRGBAr32 const& dst)
 	{
+		assert(verify(src, dst));
+
 		constexpr auto r = id_cast(RGBA::R);
 		constexpr auto g = id_cast(RGBA::G);
 		constexpr auto b = id_cast(RGBA::B);
@@ -646,35 +617,10 @@ namespace simage
 	}
 
 
-	template <class IMG_INT>
-	static void interleaved_to_planar(IMG_INT const& src, ViewRGBr32 const& dst)
+	void map_rgb(ViewRGBAr32 const& src, View const& dst)
 	{
-		constexpr auto r = id_cast(RGB::R);
-		constexpr auto g = id_cast(RGB::G);
-		constexpr auto b = id_cast(RGB::B);
+		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto dr = channel_row_begin(dst, y, r);
-			auto dg = channel_row_begin(dst, y, g);
-			auto db = channel_row_begin(dst, y, b);
-
-			for (u32 x = 0; x < src.width; ++x) // TODO: simd
-			{
-				dr[x] = to_channel_r32(s[x].channels[r]);
-				dg[x] = to_channel_r32(s[x].channels[g]);
-				db[x] = to_channel_r32(s[x].channels[b]);
-			}
-		};
-
-		process_rows(src.height, row_func);
-	}
-
-
-	template <class IMG_INT>
-	static void planar_to_interleaved(ViewRGBAr32 const& src, IMG_INT const& dst)
-	{
 		constexpr auto r = id_cast(RGBA::R);
 		constexpr auto g = id_cast(RGBA::G);
 		constexpr auto b = id_cast(RGBA::B);
@@ -700,10 +646,38 @@ namespace simage
 		process_rows(src.height, row_func);
 	}
 
-
-	template <class IMG_INT>
-	static void planar_to_interleaved(ViewRGBr32 const& src, IMG_INT const& dst)
+	
+	void map_rgb(View const& src, ViewRGBr32 const& dst)
 	{
+		assert(verify(src, dst));
+
+		constexpr auto r = id_cast(RGB::R);
+		constexpr auto g = id_cast(RGB::G);
+		constexpr auto b = id_cast(RGB::B);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto dr = channel_row_begin(dst, y, r);
+			auto dg = channel_row_begin(dst, y, g);
+			auto db = channel_row_begin(dst, y, b);
+
+			for (u32 x = 0; x < src.width; ++x) // TODO: simd
+			{
+				dr[x] = to_channel_r32(s[x].channels[r]);
+				dg[x] = to_channel_r32(s[x].channels[g]);
+				db[x] = to_channel_r32(s[x].channels[b]);
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	void map_rgb(ViewRGBr32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
 		constexpr auto r = id_cast(RGBA::R);
 		constexpr auto g = id_cast(RGBA::G);
 		constexpr auto b = id_cast(RGBA::B);
@@ -728,70 +702,6 @@ namespace simage
 		};
 
 		process_rows(src.height, row_func);
-	}
-
-
-	void map_rgb(Image const& src, ViewRGBAr32 const& dst)
-	{
-		assert(verify(src, dst));
-
-		interleaved_to_planar(src, dst);
-	}
-
-
-	void map_rgb(ViewRGBAr32 const& src, Image const& dst)
-	{
-		assert(verify(src, dst));
-
-		planar_to_interleaved(src, dst);
-	}
-
-	
-	void map_rgb(View const& src, ViewRGBAr32 const& dst)
-	{
-		assert(verify(src, dst));
-
-		interleaved_to_planar(src, dst);
-	}
-
-
-	void map_rgb(ViewRGBAr32 const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-
-		planar_to_interleaved(src, dst);
-	}
-
-	
-	void map_rgb(Image const& src, ViewRGBr32 const& dst)
-	{
-		assert(verify(src, dst));
-
-		interleaved_to_planar(src, dst);
-	}
-
-
-	void map_rgb(ViewRGBr32 const& src, Image const& dst)
-	{
-		assert(verify(src, dst));
-
-		planar_to_interleaved(src, dst);
-	}
-
-	
-	void map_rgb(View const& src, ViewRGBr32 const& dst)
-	{
-		assert(verify(src, dst));
-
-		interleaved_to_planar(src, dst);
-	}
-
-
-	void map_rgb(ViewRGBr32 const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-
-		planar_to_interleaved(src, dst);
 	}
 }
 

@@ -25,7 +25,7 @@ static bool map_test()
     write_image(vette, "vette_1.bmp");
     write_image(caddy, "caddy_1.bmp");
 
-    //auto vette_v = img::make_view(vette);
+    auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
     auto buffer = img::create_buffer(width * height * 2);
@@ -33,10 +33,10 @@ static bool map_test()
     auto view_vette = img::make_view_1(width, height, buffer);
     auto view_caddy = img::make_view_1(width, height, buffer);
 
-    img::map(vette, view_vette);
+    img::map(vette_v, view_vette);
     img::map(caddy_v, view_caddy);
 
-    img::map(view_caddy, vette);
+    img::map(view_caddy, vette_v);
     write_image(vette, "vette_2.bmp");
 
     img::map(view_vette, caddy_v);

@@ -275,11 +275,7 @@ namespace simage
 
 namespace simage
 {
-	void map(ImageGray const& src, View1r32 const& dst);
-
 	void map(ViewGray const& src, View1r32 const& dst);
-
-	void map(View1r32 const& src, ImageGray const& dst);	
 
 	void map(View1r32 const& src, ViewGray const& dst);
 }
@@ -288,21 +284,10 @@ namespace simage
 /* map_rgb */
 
 namespace simage
-{
-	void map_rgb(Image const& src, ViewRGBAr32 const& dst);
-
-	void map_rgb(ViewRGBAr32 const& src, Image const& dst);
-
-	
+{	
 	void map_rgb(View const& src, ViewRGBAr32 const& dst);
 
 	void map_rgb(ViewRGBAr32 const& src, View const& dst);
-
-	
-	void map_rgb(Image const& src, ViewRGBr32 const& dst);
-
-	void map_rgb(ViewRGBr32 const& src, Image const& dst);
-
 	
 	void map_rgb(View const& src, ViewRGBr32 const& dst);
 

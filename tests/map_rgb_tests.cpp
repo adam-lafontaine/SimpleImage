@@ -25,7 +25,7 @@ static bool map_rgb_test()
     write_image(vette, "vette_1.bmp");
     write_image(caddy, "caddy_1.bmp");
 
-    //auto vette_v = img::make_view(vette);
+    auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
     auto buffer = img::create_buffer(width * height * 3 * 2);
@@ -33,10 +33,10 @@ static bool map_rgb_test()
     auto view_vette = img::make_view_3(width, height, buffer);
     auto view_caddy = img::make_view_3(width, height, buffer);
 
-    img::map_rgb(vette, view_vette);
+    img::map_rgb(vette_v, view_vette);
     img::map_rgb(caddy_v, view_caddy);
 
-    img::map_rgb(view_caddy, vette);
+    img::map_rgb(view_caddy, vette_v);
     write_image(vette, "vette_2.bmp");
 
     img::map_rgb(view_vette, caddy_v);
@@ -75,7 +75,7 @@ static bool map_rgba_test()
     write_image(vette, "vette_1.bmp");
     write_image(caddy, "caddy_1.bmp");
 
-    //auto vette_v = img::make_view(vette);
+    auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
     auto buffer = img::create_buffer(width * height * 4 * 2);
@@ -83,10 +83,10 @@ static bool map_rgba_test()
     auto view_vette = img::make_view_4(width, height, buffer);
     auto view_caddy = img::make_view_4(width, height, buffer);
 
-    img::map_rgb(vette, view_vette);
+    img::map_rgb(vette_v, view_vette);
     img::map_rgb(caddy_v, view_caddy);
 
-    img::map_rgb(view_caddy, vette);
+    img::map_rgb(view_caddy, vette_v);
     write_image(vette, "vette_2.bmp");
 
     img::map_rgb(view_vette, caddy_v);

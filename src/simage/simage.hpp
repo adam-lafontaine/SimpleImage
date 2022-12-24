@@ -318,25 +318,25 @@ namespace simage
 
 namespace simage
 {
-	void read_image_from_file(const char* img_path_src, Image& image_dst);
+	bool read_image_from_file(const char* img_path_src, Image& image_dst);
 
-	void read_image_from_file(const char* file_path_src, ImageGray& image_dst);
+	bool read_image_from_file(const char* file_path_src, ImageGray& image_dst);
 
 
 #ifndef SIMAGE_NO_WRITE
 
-	void write_image(Image const& image_src, const char* file_path_dst);
+	bool write_image(Image const& image_src, const char* file_path_dst);
 
-	void write_image(ImageGray const& image_src, const char* file_path_dst);
+	bool write_image(ImageGray const& image_src, const char* file_path_dst);
 
 #endif // !SIMAGE_NO_WRITE
 
 
 #ifndef SIMAGE_NO_RESIZE
 
-	void resize_image(Image const& image_src, Image& image_dst);
+	bool resize_image(Image const& image_src, Image& image_dst);
 
-	void resize_image(ImageGray const& image_src, ImageGray& image_dst);
+	bool resize_image(ImageGray const& image_src, ImageGray& image_dst);
 
 #endif // !SIMAGE_NO_RESIZE
 }
@@ -352,28 +352,28 @@ namespace simage
 	using path_t = std::filesystem::path;
 
 
-	inline void read_image_from_file(path_t const& img_path_src, Image& image_dst)
+	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
 	{
 		return read_image_from_file(img_path_src.string().c_str(), image_dst);
 	}
 
 
-	inline void read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
+	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
 	{
 		return read_image_from_file(img_path_src.string().c_str(), image_dst);
 	}
 
 #ifndef SIMAGE_NO_WRITE
 
-	inline void write_image(Image const& image_src, path_t const& file_path_dst)
+	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
 	{
-		write_image(image_src, file_path_dst.string().c_str());
+		return write_image(image_src, file_path_dst.string().c_str());
 	}
 
 
-	inline void write_image(ImageGray const& image_src, path_t const& file_path_dst)
+	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
 	{
-		write_image(image_src, file_path_dst.string().c_str());
+		return write_image(image_src, file_path_dst.string().c_str());
 	}
 
 #endif // !SIMAGE_NO_WRITE
@@ -388,28 +388,28 @@ namespace simage
 {
 	using path_t = std::string;
 
-	inline void read_image_from_file(path_t const& img_path_src, Image& image_dst)
+	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
 	{
 		return read_image_from_file(img_path_src.c_str(), image_dst);
 	}
 
 
-	inline void read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
+	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
 	{
 		return read_image_from_file(img_path_src.c_str(), image_dst);
 	}
 
 #ifndef SIMAGE_NO_WRITE
 
-	inline void write_image(Image const& image_src, path_t const& file_path_dst)
+	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
 	{
-		write_image(image_src, file_path_dst.c_str());
+		return write_image(image_src, file_path_dst.c_str());
 	}
 
 
-	inline void write_image(ImageGray const& image_src, path_t const& file_path_dst)
+	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
 	{
-		write_image(image_src, file_path_dst.c_str());
+		return write_image(image_src, file_path_dst.c_str());
 	}
 
 #endif // !SIMAGE_NO_WRITE

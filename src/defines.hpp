@@ -80,16 +80,6 @@ public:
 };
 
 
-template <typename T>
-class Matrix2D
-{
-public:
-	T* data = nullptr;
-	u32 width = 0;
-	u32 height = 0;
-};
-
-
 // region of interest in an image
 class Range2Du32
 {
@@ -102,10 +92,32 @@ public:
 
 
 template <typename T>
+class Matrix2D
+{
+public:
+	T* data = nullptr;
+	u32 width = 0;
+	u32 height = 0;	
+
+#ifndef NDEBUG
+
+	~Matrix2D() { assert(!(bool)data); }
+
+#endif // !NDEBUG
+};
+
+
+template <typename T>
 class MemoryBuffer
 {
 public:
 	T* data_ = nullptr;
 	size_t capacity_ = 0;
 	size_t size_ = 0;
+
+#ifndef NDEBUG
+
+	~MemoryBuffer() { assert(!(bool)data_); }
+
+#endif // !NDEBUG
 };

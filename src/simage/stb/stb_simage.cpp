@@ -29,7 +29,7 @@ static bool is_png(const char* filename)
 
 namespace simage
 {
-    void read_image_from_file(const char* img_path_src, Image& image_dst)
+    bool read_image_from_file(const char* img_path_src, Image& image_dst)
 	{
 		int width = 0;
 		int height = 0;
@@ -42,14 +42,21 @@ namespace simage
 		assert(width);
 		assert(height);
 
+		if (!data)
+		{
+			return false;
+		}
+
 		image_dst.data = data;
 		image_dst.width = width;
 		image_dst.height = height;
+
+		return true;
 	}
 
 #ifndef SIMAGE_NO_WRITE
 
-	void write_image(Image const& image_src, const char* file_path_dst)
+	bool write_image(Image const& image_src, const char* file_path_dst)
 	{
 		assert(image_src.width);
 		assert(image_src.height);
@@ -65,19 +72,21 @@ namespace simage
 		if(is_bmp(file_path_dst))
 		{
 			result = stbi_write_bmp(file_path_dst, width, height, channels, data);
+			assert(result);
 		}
 		else if(is_png(file_path_dst))
 		{
 			int stride_in_bytes = width * channels;
 
 			result = stbi_write_png(file_path_dst, width, height, channels, data, stride_in_bytes);
+			assert(result);
 		}
 		else
 		{
 			assert(false);
 		}
 
-		assert(result);
+		return (bool)result;
 	}
 
 #endif // !SIMAGE_NO_WRITE
@@ -85,7 +94,7 @@ namespace simage
 
 #ifndef SIMAGE_NO_RESIZE
 
-	void resize_image(Image const& image_src, Image& image_dst)
+	bool resize_image(Image const& image_src, Image& image_dst)
 	{
 		assert(image_src.width);
 		assert(image_src.height);
@@ -116,11 +125,13 @@ namespace simage
 			channels);
 
 		assert(result);
+
+		return (bool)result;
 	}
 
 #endif // !SIMAGE_NO_RESIZE
 
-	void read_image_from_file(const char* file_path_src, ImageGray& image_dst)
+	bool read_image_from_file(const char* file_path_src, ImageGray& image_dst)
 	{
 		int width = 0;
 		int height = 0;
@@ -133,14 +144,21 @@ namespace simage
 		assert(width);
 		assert(height);
 
+		if (!data)
+		{
+			return false;
+		}
+
 		image_dst.data = data;
 		image_dst.width = width;
 		image_dst.height = height;
+
+		return true;
 	}
 
 #ifndef SIMAGE_NO_WRITE
 
-	void write_image(ImageGray const& image_src, const char* file_path_dst)
+	bool write_image(ImageGray const& image_src, const char* file_path_dst)
 	{
 		assert(image_src.width);
 		assert(image_src.height);
@@ -156,19 +174,21 @@ namespace simage
 		if(is_bmp(file_path_dst))
 		{
 			result = stbi_write_bmp(file_path_dst, width, height, channels, data);
+			assert(result);
 		}
 		else if(is_png(file_path_dst))
 		{
 			int stride_in_bytes = width * channels;
 
 			result = stbi_write_png(file_path_dst, width, height, channels, data, stride_in_bytes);
+			assert(result);
 		}
 		else
 		{
 			assert(false);
 		}
 
-		assert(result);
+		return (bool)result;
 	}
 
 #endif // !SIMAGE_NO_WRITE
@@ -176,7 +196,7 @@ namespace simage
 
 #ifndef SIMAGE_NO_RESIZE
 
-	void resize_image(ImageGray const& image_src, ImageGray& image_dst)
+	bool resize_image(ImageGray const& image_src, ImageGray& image_dst)
 	{
 		assert(image_src.width);
 		assert(image_src.height);
@@ -207,6 +227,8 @@ namespace simage
 			channels);
 
 		assert(result);
+
+		return (bool)result;
 	}
 
 #endif // !SIMAGE_NO_RESIZE

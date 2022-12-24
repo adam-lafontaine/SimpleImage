@@ -146,6 +146,20 @@ namespace simage
 namespace simage
 {
 	template <typename T>
+	static T* row_begin(Matrix2D<T> const& image, u32 y)
+	{
+		assert(y < image.height);
+
+		auto offset = y * image.width;
+
+		auto ptr = image.data + (u64)(offset);
+		assert(ptr);
+
+		return ptr;
+	}
+
+
+	template <typename T>
 	static T* row_begin(MatrixView<T> const& view, u32 y)
 	{
 		assert(verify(view));

@@ -8,13 +8,13 @@ static bool is_valid_ptr(T* ptr)
 
 
 template <class IMAGE>
-static bool make_test(IMAGE& image)
+static bool create_test(IMAGE& image)
 {
     bool result = false;
     u32 width = 400;
     u32 height = 200;
     
-    result = img::make_image(image, width, height);
+    result = img::create_image(image, width, height);
     result &= is_valid_ptr(image.data_);
     result &= (image.width == width);
     result &= (image.height == height);
@@ -43,13 +43,13 @@ static bool destroy_test(IMAGE& image)
 }
 
 
-static bool make_destroy_test()
+static bool create_destroy_test()
 {
     bool result = false;
 
     printf("make rgb\n");
     Image rgb;
-    result = make_test(rgb);
+    result = create_test(rgb);
     if (!result)
     {
         printf("FAIL\n");
@@ -68,7 +68,7 @@ static bool make_destroy_test()
 
     printf("make gray\n");
     GrayImage gray;
-    result = make_test(gray);
+    result = create_test(gray);
     if (!result)
     {
         printf("FAIL\n");
@@ -87,7 +87,7 @@ static bool make_destroy_test()
 
     printf("make yuv\n");
     img::ImageYUV yuv;
-    result = make_test(yuv);
+    result = create_test(yuv);
     if (!result)
     {
         printf("FAIL\n");
@@ -108,11 +108,11 @@ static bool make_destroy_test()
 }
 
 
-bool make_image_tests()
+bool create_image_tests()
 {
     printf("\n*** make_image tests ***\n");
 
-    auto result = make_destroy_test();
+    auto result = create_destroy_test();
 
     if (result)
     {

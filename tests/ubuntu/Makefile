@@ -93,10 +93,10 @@ memory_buffer_tests_c += $(memory_buffer_h);
 memory_buffer_tests_o := $(build)/memory_buffer_tests.o
 object_files += $(memory_buffer_tests_o)
 
-make_image_tests_c := $(tests)/make_image_tests.cpp
-make_image_tests_c += $(tests_include_h)
-make_image_tests_o := $(build)/make_image_tests.o
-object_files += $(make_image_tests_o)
+create_image_tests_c := $(tests)/create_image_tests.cpp
+create_image_tests_c += $(tests_include_h)
+create_image_tests_o := $(build)/create_image_tests.o
+object_files += $(create_image_tests_o)
 
 make_view_tests_c := $(tests)/make_view_tests.cpp
 make_view_tests_c += $(tests_include_h)
@@ -158,8 +158,8 @@ $(stb_simage_tests_o): $(stb_simage_tests_c)
 	@echo "\n stb_simage_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
-$(make_image_tests_o): $(make_image_tests_c)
-	@echo "\n make_image_tests"
+$(create_image_tests_o): $(create_image_tests_c)
+	@echo "\n create_image_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 $(make_view_tests_o): $(make_view_tests_c)

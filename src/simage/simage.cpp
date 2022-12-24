@@ -314,7 +314,7 @@ namespace simage
 namespace simage
 {
 	template <typename T>
-	static bool do_make_image(Matrix2D<T>& image, u32 width, u32 height)
+	static bool do_create_image(Matrix2D<T>& image, u32 width, u32 height)
 	{
 		image.data_ = (T*)malloc(sizeof(T) * width * height);
 		if(!image.data_)
@@ -343,12 +343,12 @@ namespace simage
 	}
 
 
-	bool make_image(Image& image, u32 width, u32 height)
+	bool create_image(Image& image, u32 width, u32 height)
 	{
 		assert(width);
 		assert(height);
 
-		auto result = do_make_image(image, width, height);
+		auto result = do_create_image(image, width, height);
 
 		assert(verify(image));
 
@@ -356,12 +356,12 @@ namespace simage
 	}
 
 
-    bool make_image(ImageGray& image, u32 width, u32 height)
+    bool create_image(ImageGray& image, u32 width, u32 height)
 	{
 		assert(width);
 		assert(height);
 
-		auto result = do_make_image(image, width, height);
+		auto result = do_create_image(image, width, height);
 
 		assert(verify(image));
 
@@ -369,12 +369,12 @@ namespace simage
 	}
 
 
-	bool make_image(ImageYUV& image, u32 width, u32 height)
+	bool create_image(ImageYUV& image, u32 width, u32 height)
 	{
 		assert(width);
 		assert(height);
 
-		auto result = do_make_image(image, width, height);
+		auto result = do_create_image(image, width, height);
 
 		assert(verify(image));
 

@@ -50,7 +50,7 @@ static bool test_from_image()
     };
 
     printf("view rgb\n");    
-    if (!img::make_image(rgb, width, height))
+    if (!img::create_image(rgb, width, height))
     {
         cleanup();
         return false;
@@ -65,7 +65,7 @@ static bool test_from_image()
     printf("OK\n");
 
     printf("view gray\n");    
-    if (!img::make_image(gray, width, height))
+    if (!img::create_image(gray, width, height))
     {
         cleanup();
         return false;
@@ -80,7 +80,7 @@ static bool test_from_image()
     printf("OK\n");
 
     printf("view yuv\n");
-    if (!img::make_image(yuv, width, height))
+    if (!img::create_image(yuv, width, height))
     {
         cleanup();
         return false;

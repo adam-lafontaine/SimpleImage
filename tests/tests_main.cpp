@@ -7,7 +7,7 @@ static bool test_success()
         //execute_tests() &&
         memory_buffer_tests() &&
         //stb_simage_tests() &&
-        make_image_tests() &&
+        create_image_tests() &&
         make_view_tests() &&
         //map_tests() &&
         true;

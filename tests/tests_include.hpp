@@ -101,7 +101,7 @@ bool memory_buffer_tests();
 
 bool stb_simage_tests();
 
-bool make_image_tests();
+bool create_image_tests();
 
 bool make_view_tests();
 

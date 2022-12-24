@@ -66,45 +66,6 @@ namespace simage
 
 	using ImageGray = Matrix2D<u8>;
 	using ViewGray = MatrixView<u8>;
-
-
-    /*namespace gray
-    {
-        class Image
-		{
-		public:
-
-			u32 width;
-			u32 height;
-
-			u8* data = nullptr;
-		};
-
-
-		class View
-		{
-		public:
-
-			u8* image_data = 0;
-			u32 image_width = 0;
-
-			union
-			{
-				Range2Du32 range = {};
-
-				struct
-				{
-					u32 x_begin;
-					u32 x_end;
-					u32 y_begin;
-					u32 y_end;
-				};
-			};
-
-			u32 width = 0;
-			u32 height = 0;
-		};
-    }*/
 }
 
 

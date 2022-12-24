@@ -63,6 +63,12 @@
     <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp">
       <Filter>Source Files\src\simage\stb</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\util\memory_buffer.cpp">
+      <Filter>Source Files\src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\memory_buffer_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\tests\tests_include.hpp">

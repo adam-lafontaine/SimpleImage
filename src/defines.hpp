@@ -84,9 +84,9 @@ template <typename T>
 class Matrix2D
 {
 public:
-	T* data;
-	u32 width;
-	u32 height;
+	T* data = nullptr;
+	u32 width = 0;
+	u32 height = 0;
 };
 
 

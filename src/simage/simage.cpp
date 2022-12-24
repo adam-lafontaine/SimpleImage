@@ -772,7 +772,7 @@ namespace simage
 		auto max = std::max(r, std::max(g, b));
 		auto min = std::min(r, std::max(g, b));
 
-		auto const equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) < 0.001; };
+		auto const equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) < (1.5f / 255.0f); };
 
 		auto c = max - min;
 		auto value = max;
@@ -802,6 +802,9 @@ namespace simage
 
 		return { hue, sat, value };
 	}
+
+
+
 
 
 	static RGBr32 hsv_rgb(r32 h, r32 s, r32 v)

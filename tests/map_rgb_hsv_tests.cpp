@@ -7,7 +7,6 @@
 
 namespace rng = std::ranges;
 
-
 static bool conversion_test()
 {
     printf("converstion_test\n");

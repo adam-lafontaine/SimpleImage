@@ -25,6 +25,10 @@ execute_h += $(defines_h)
 memory_buffer_h := $(util)/memory_buffer.hpp
 memory_buffer_h += $(defines_h)
 
+#hsv_rgb
+hsv_rgb_h := $(util)/hsv_rgb.hpp
+hsv_rgb_h += $(defines_h)
+
 # stb
 stb_h := $(stb)/stb_include.hpp
 stb_h += $(stb)/stb_image_resize.h
@@ -77,6 +81,9 @@ object_files += $(stb_simage_o)
 #simage
 simage_c := $(simage)/simage.cpp
 simage_c += $(simage_h)
+simage_c += $(memory_buffer_h)
+simage_c += $(execute_h)
+simage_c += $(hsv_rgb_h)
 simage_o := $(build)/simage.o
 object_files += $(simage_o)
 
@@ -128,10 +135,10 @@ object_files += $(map_rgb_hsv_tests_o)
 # flags
 INCLUDES  :=
 LIBRARIES := -ltbb
-CCFLAGS := -std=c++17
+CCFLAGS := -std=c++20
 
 CCFLAGS += -O3
-#CCFLAGS += -DNDEBUG
+CCFLAGS += -DNDEBUG
 
 
 # build rules

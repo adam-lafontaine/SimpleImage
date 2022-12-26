@@ -17,7 +17,7 @@ static bool create_destroy_test()
 {
     printf("\ncreate_destroy_test\n");
 
-    size_t n_elements = 100;
+    u32 n_elements = 100;
     bool result = false;
 
     MemoryBuffer<r32> buffer{};
@@ -75,7 +75,7 @@ static bool push_elements_test()
 {
     printf("\npush_elements_test\n");
 
-    size_t capacity = 100;
+    u32 capacity = 100;
     size_t push = 25;
     bool result = false;
 
@@ -157,7 +157,7 @@ static bool reset_test()
 {
     printf("\nreset_test\n");
 
-    size_t n_elements = 100;
+    u32 n_elements = 100;
     size_t push = 75;
     bool result = false;
 

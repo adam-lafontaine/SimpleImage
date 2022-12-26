@@ -113,10 +113,7 @@
     <ClInclude Include="..\..\src\simage\stb\stb_include.hpp">
       <Filter>Header Files\src\simage\stb</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\util\hsv_rgb.hpp">
-      <Filter>Header Files\src\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\util\yuv_rgb.hpp">
+    <ClInclude Include="..\..\src\util\color_space.hpp">
       <Filter>Header Files\src\util</Filter>
     </ClInclude>
   </ItemGroup>

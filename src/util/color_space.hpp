@@ -123,6 +123,16 @@ namespace hsv
     constexpr r32 zerof = 1.0f / HUE_MAX;
 
 
+    inline constexpr bool equals(r32 lhs, r32 rhs)
+    {
+        auto diff = lhs - rhs;
+
+        diff = diff < 0.0f ? -1.0f * diff : diff;
+
+        return diff < zerof;
+    }
+
+
     inline constexpr RGBr32 to_rgb(r32 h, r32 s, r32 v)
     {
         if (v <= zerof)
@@ -211,8 +221,6 @@ namespace hsv
         auto max = std::max(r, std::max(g, b));
         auto min = std::min(r, std::min(g, b));
 
-        auto constexpr equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) < zerof; };
-
         auto const r_max = equals(r, max);
         auto const r_min = equals(r, min);
         auto const g_max = equals(g, max);
@@ -236,25 +244,11 @@ namespace hsv
 
         s = range / v;
 
-        /*if (r_max && g_min && b_min)
-        {
-            h = 0.0f;
-            return { h, s, v };
-        }
+        int h_id =
+            (r_max && g_min && b_min) ? -3 :
+            (r_min && g_max && b_min) ? -2 :
+            (r_min && g_min && b_max) ? -1 :
 
-        if (r_min && g_max && b_min)
-        {
-            h = 120.0f / 360.0f;
-            return { h, s, v };
-        }
-
-        if (r_min && g_min && b_max)
-        {
-            h = 240.0f / 360.0f;
-            return { h, s, v };
-        }*/
-
-        u32 h_id =
             (r_max && b_min) ? 0 :
             (g_max && b_min) ? 1 :
             (g_max && r_min) ? 2 :
@@ -266,6 +260,16 @@ namespace hsv
 
         switch (h_id)
         {
+        case -3:
+            h_360 = 0.0f;
+            break;
+        case -2:
+            h_360 = 120.0f;
+            break;
+        case -1:
+            h_360 = 240.0f;
+            break;
+
         case 0:
             h_360 += 60.0f * (g - min) / range;
             break;

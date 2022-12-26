@@ -804,9 +804,6 @@ namespace simage
 	}
 
 
-
-
-
 	static RGBr32 hsv_rgb(r32 h, r32 s, r32 v)
 	{
 		auto c = s * v;

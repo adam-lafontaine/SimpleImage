@@ -151,6 +151,7 @@
     <ClInclude Include="..\..\src\simage\simage_platform.hpp" />
     <ClInclude Include="..\..\src\simage\stb\stb_include.hpp" />
     <ClInclude Include="..\..\src\util\execute.hpp" />
+    <ClInclude Include="..\..\src\util\hsv_rgb.hpp" />
     <ClInclude Include="..\..\src\util\memory_buffer.hpp" />
     <ClInclude Include="..\..\src\util\stopwatch.hpp" />
     <ClInclude Include="..\..\tests\tests_include.hpp" />

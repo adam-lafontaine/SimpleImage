@@ -2,8 +2,6 @@
 #include "../src/util/hsv_rgb.hpp"
 
 
-
-
 static bool conversion_test()
 {
     printf("converstion_test\n");
@@ -60,7 +58,7 @@ static bool map_hsv_test()
     img::resize_image(caddy_read, caddy);
 
     write_image(vette, "vette_1.bmp");
-    //write_image(caddy, "caddy_1.bmp");
+    write_image(caddy, "caddy_1.bmp");
 
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
@@ -69,13 +67,13 @@ static bool map_hsv_test()
     mb::create_buffer(buffer, width * height * 3 * 2);
 
     auto hsv_vette = img::make_view_3(width, height, buffer);
-    //auto hsv_caddy = img::make_view_3(width, height, buffer);
+    auto hsv_caddy = img::make_view_3(width, height, buffer);
 
     img::map_rgb_hsv(vette_v, hsv_vette);
-    //img::map_rgb_hsv(caddy_v, hsv_caddy);
+    img::map_rgb_hsv(caddy_v, hsv_caddy);
 
-    //img::map_hsv_rgb(hsv_caddy, vette_v);
-    //write_image(vette, "vette_2.bmp");
+    img::map_hsv_rgb(hsv_caddy, vette_v);
+    write_image(vette, "vette_2.bmp");
 
     img::map_hsv_rgb(hsv_vette, caddy_v);
     write_image(caddy, "caddy_2.bmp");

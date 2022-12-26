@@ -361,9 +361,24 @@ namespace yuv
     }
 
 
-    static constexpr r32 to_uv_channel_r32(u8 value)
+    static constexpr std::array<r32, 256> uv_channel_r32_lut()
     {
-        return cs::to_channel_r32(value) - 0.5f;
+        std::array<r32, 256> lut = {};
+
+        for (u32 i = 0; i < 256; ++i)
+        {
+            lut[i] = cs::to_channel_r32((u8)i) - 0.5f;
+        }
+
+        return lut;
+    }
+
+
+    inline constexpr r32 to_uv_channel_r32(u8 value)
+    {
+        constexpr auto lut = uv_channel_r32_lut();
+
+        return lut[value];
     }
 
 
@@ -375,4 +390,5 @@ namespace yuv
 
         return to_rgb(Y, U, V);
     }
+
 }

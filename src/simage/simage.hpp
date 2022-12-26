@@ -20,6 +20,24 @@ namespace simage
 	};
 
 
+	enum class HSV : int
+	{
+		H = 0, S = 1, V = 2
+	};
+
+
+	enum class GA : int
+	{
+		G = 0, A = 1
+	};
+
+
+	enum class XY : int
+	{
+		X = 0, Y = 1
+	};
+
+
 	template <typename T>
 	constexpr inline int id_cast(T channel)
 	{
@@ -124,124 +142,16 @@ namespace simage
 }
 
 
-/* RGBA */
-
-namespace simage
-{
-	// platform dependent, endianness
-	class RGBAr32p
-	{
-	public:
-		r32* R;
-		r32* G;
-		r32* B;
-		r32* A;
-	};
-
-
-	class RGBr32p
-	{
-	public:
-		r32* R;
-		r32* G;
-		r32* B;
-	};
-
-
-	class PixelRGBAr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 4;
-
-		union 
-		{
-			RGBAr32p rgba;
-
-			r32* channels[4] = {};
-		};
-
-		// for_each_xy
-		r32& red() { return *rgba.R; }
-		r32& green() { return *rgba.G; }
-		r32& blue() { return *rgba.B; }
-		r32& alpha() { return *rgba.A; }
-	};
-
-
-	class PixelRGBr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 3;
-
-		union 
-		{
-			RGBr32p rgb;
-
-			r32* channels[3] = {};
-		};
-
-		// for_each_xy
-		r32& red() { return *rgb.R; }
-		r32& green() { return *rgb.G; }
-		r32& blue() { return *rgb.B; }
-	};
-
-
-	using ViewRGBAr32 = View4r32;
-	using ViewRGBr32 = View3r32;
-
-}
-
-
-/* HSV */
-
-namespace simage
-{
-	class HSVr32p
-	{
-	public:
-		r32* H;
-		r32* S;
-		r32* V;
-	};
-
-
-	class PixelHSVr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 3;
-
-		union
-		{
-			HSVr32p hsv;
-
-			r32* channels[3] = {};
-		};
-
-		r32& hue() { return *hsv.H; }
-		r32& sat() { return *hsv.S; }
-		r32& val() { return *hsv.V; }
-	};
-
-
-	using ViewHSVr32 = View3r32;
-
-
-	enum class HSV : int
-	{
-		H = 0, S = 1, V = 2
-	};
-}
-
-
 /* make_view */
 
 namespace simage
 {
 	using Buffer32 = MemoryBuffer<r32>;
+
+
+	using ViewRGBAr32 = View4r32;
+	using ViewRGBr32 = View3r32;
+	using ViewHSVr32 = View3r32;
 
 
 	View make_view(Image const& image);
@@ -258,7 +168,6 @@ namespace simage
 	View3r32 make_view_3(u32 width, u32 height, Buffer32& buffer);
 
 	View4r32 make_view_4(u32 width, u32 height, Buffer32& buffer);
-
 }
 
 
@@ -336,18 +245,22 @@ namespace simage
 }
 
 
+/* select_channel */
+
 namespace simage
 {
-	enum class GA : int
-	{
-		G = 0, A = 1
-	};
+	View1r32 select_channel(ViewRGBAr32 const& view, RGBA channel);
+
+	View1r32 select_channel(ViewRGBr32 const& view, RGB channel);
+
+	View1r32 select_channel(ViewHSVr32 const& view, HSV channel);
+
+	View1r32 select_channel(View2r32 const& view, GA channel);
+
+	View1r32 select_channel(View2r32 const& view, XY channel);
 
 
-	enum class XY : int
-	{
-		X = 0, Y = 1
-	};
+	ViewRGBr32 select_rgb(ViewRGBAr32 const& view);
 }
 
 

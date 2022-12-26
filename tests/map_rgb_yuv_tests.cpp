@@ -16,7 +16,7 @@ static bool yuv_conversion_test()
 
     auto const red_func = [&](u32 r)
     {
-         auto red = r / 255.0f;
+        auto red = r / 255.0f;
 
         for (u32 g = 0; g < 256; ++g)
         {

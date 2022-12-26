@@ -84,6 +84,96 @@ namespace simage
 
 namespace simage
 {
+	// platform dependent, endianness
+	class RGBAr32p
+	{
+	public:
+		r32* R;
+		r32* G;
+		r32* B;
+		r32* A;
+	};
+
+
+	class RGBr32p
+	{
+	public:
+		r32* R;
+		r32* G;
+		r32* B;
+	};
+
+
+	class PixelRGBAr32
+	{
+	public:
+
+		static constexpr u32 n_channels = 4;
+
+		union 
+		{
+			RGBAr32p rgba;
+
+			r32* channels[4] = {};
+		};
+
+		// for_each_xy
+		r32& red() { return *rgba.R; }
+		r32& green() { return *rgba.G; }
+		r32& blue() { return *rgba.B; }
+		r32& alpha() { return *rgba.A; }
+	};
+
+
+	class PixelRGBr32
+	{
+	public:
+
+		static constexpr u32 n_channels = 3;
+
+		union 
+		{
+			RGBr32p rgb;
+
+			r32* channels[3] = {};
+		};
+
+		// for_each_xy
+		r32& red() { return *rgb.R; }
+		r32& green() { return *rgb.G; }
+		r32& blue() { return *rgb.B; }
+	};
+
+
+	class HSVr32p
+	{
+	public:
+		r32* H;
+		r32* S;
+		r32* V;
+	};
+
+
+	class PixelHSVr32
+	{
+	public:
+
+		static constexpr u32 n_channels = 3;
+
+		union
+		{
+			HSVr32p hsv;
+
+			r32* channels[3] = {};
+		};
+
+		r32& hue() { return *hsv.H; }
+		r32& sat() { return *hsv.S; }
+		r32& val() { return *hsv.V; }
+	};
+
+
+
 	template <typename T>
 	static T* row_begin(Matrix2D<T> const& image, u32 y)
 	{
@@ -753,7 +843,35 @@ namespace simage
 {
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
 	{
+		assert(verify(src, dst));
+		assert(src.width % 2 == 0);
+		static_assert(sizeof(YUV2) == 2);
 
+		auto const row_func = [&](u32 y)
+		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422*)s2;
+			auto d = rgb_row_begin(dst, y).rgb;
+
+			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
+			{
+				auto yuv = s422[x422];
+				
+				auto x = 2 * x422;
+				auto rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
+				d.R[x] = rgb.red;
+				d.G[x] = rgb.green;
+				d.B[x] = rgb.blue;
+
+				++x;
+				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
+				d.R[x] = rgb.red;
+				d.G[x] = rgb.green;
+				d.B[x] = rgb.blue;
+			}
+		};
+
+		process_rows(src.height, row_func);
 	}
 }
 
@@ -937,5 +1055,123 @@ namespace simage
 		assert(verify(sub_view));
 
 		return sub_view;
+	}
+}
+
+
+/* select_channel */
+
+namespace simage
+{
+	template <size_t N>
+	static View1r32 select_channel(ViewCHr32<N> const& view, u32 ch)
+	{
+		View1r32 view1{};
+
+		view1.image_width = view.image_width;
+		view1.range = view.range;
+		view1.width = view.width;
+		view1.height = view.height;
+
+		view1.image_data = view.image_channel_data[ch];
+
+		return view1;
+	}
+
+
+	View1r32 select_channel(ViewRGBAr32 const& view, RGBA channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1r32 select_channel(ViewRGBr32 const& view, RGB channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1r32 select_channel(ViewHSVr32 const& view, HSV channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1r32 select_channel(View2r32 const& view, GA channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1r32 select_channel(View2r32 const& view, XY channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	ViewRGBr32 select_rgb(ViewRGBAr32 const& view)
+	{
+		assert(verify(view));
+
+		constexpr auto r4 = id_cast(RGBA::R);
+		constexpr auto g4 = id_cast(RGBA::G);
+		constexpr auto b4 = id_cast(RGBA::B);
+
+		constexpr auto r3 = id_cast(RGB::R);
+		constexpr auto g3 = id_cast(RGB::G);
+		constexpr auto b3 = id_cast(RGB::B);
+
+		ViewRGBr32 rgb;
+
+		rgb.image_width = view.image_width;
+		rgb.width = view.width;
+		rgb.height = view.height;
+		rgb.range = view.range;
+
+		rgb.image_channel_data[r3] = view.image_channel_data[r4];
+		rgb.image_channel_data[g3] = view.image_channel_data[g4];
+		rgb.image_channel_data[b3] = view.image_channel_data[b4];
+
+		return rgb;
 	}
 }

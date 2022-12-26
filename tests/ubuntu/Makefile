@@ -25,9 +25,13 @@ execute_h += $(defines_h)
 memory_buffer_h := $(util)/memory_buffer.hpp
 memory_buffer_h += $(defines_h)
 
-#hsv_rgb
+# hsv_rgb
 hsv_rgb_h := $(util)/hsv_rgb.hpp
 hsv_rgb_h += $(defines_h)
+
+# yuv_rgb
+yuv_rgb_h := $(util)/yuv_rgb.hpp
+yuv_rgb_h += $(defines_h)
 
 # stb
 stb_h := $(stb)/stb_include.hpp
@@ -84,6 +88,7 @@ simage_c += $(simage_h)
 simage_c += $(memory_buffer_h)
 simage_c += $(execute_h)
 simage_c += $(hsv_rgb_h)
+simage_c += $(yuv_rgb_h)
 simage_o := $(build)/simage.o
 object_files += $(simage_o)
 
@@ -129,6 +134,11 @@ map_rgb_hsv_tests_c := $(tests)/map_rgb_hsv_tests.cpp
 map_rgb_hsv_tests_c += $(tests_include_h)
 map_rgb_hsv_tests_o := $(build)/map_rgb_hsv_tests.o
 object_files += $(map_rgb_hsv_tests_o)
+
+map_rgb_yuv_tests_c := $(tests)/map_rgb_yuv_tests.cpp
+map_rgb_yuv_tests_c += $(tests_include_h)
+map_rgb_yuv_tests_o := $(build)/map_rgb_yuv_tests.o
+object_files += $(map_rgb_yuv_tests_o)
 
 
 
@@ -197,6 +207,10 @@ $(map_rgb_tests_o): $(map_rgb_tests_c)
 
 $(map_rgb_hsv_tests_o): $(map_rgb_hsv_tests_c)
 	@echo "\n map_rgb_hsv_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(map_rgb_yuv_tests_o): $(map_rgb_yuv_tests_c)
+	@echo "\n map_rgb_yuv_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

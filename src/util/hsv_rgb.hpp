@@ -9,26 +9,29 @@
 // https://www.youtube.com/watch?v=I8i0W8ve-JI
 
 
-class HSVr32
-{
-public:
-    r32 hue;
-    r32 sat;
-    r32 val;
-};
 
-
-class RGBr32
-{
-public:
-    r32 red;
-    r32 green;
-    r32 blue;
-};
 
 
 namespace hsv
 {
+    class HSVr32
+    {
+    public:
+        r32 hue;
+        r32 sat;
+        r32 val;
+    };
+
+
+    class RGBr32
+    {
+    public:
+        r32 red;
+        r32 green;
+        r32 blue;
+    };
+
+
     constexpr r32 HUE_MAX = 360.0f;
     constexpr r32 zerof = 1.0f / HUE_MAX;
 

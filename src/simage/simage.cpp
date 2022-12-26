@@ -814,6 +814,17 @@ namespace simage
 }
 
 
+/* map_yuv_rgb */
+
+namespace simage
+{
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	{
+		
+	}
+}
+
+
 /* sub_view */
 
 namespace simage

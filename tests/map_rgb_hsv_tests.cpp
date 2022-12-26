@@ -7,9 +7,9 @@
 
 namespace rng = std::ranges;
 
-static bool conversion_test()
+static bool hsv_conversion_test()
 {
-    printf("converstion_test\n");
+    printf("hsv converstion_test\n");
     auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.0f / 255.0f); };
 
     std::vector<int> results(255, 1);
@@ -167,7 +167,7 @@ bool map_rgb_hsv_tests()
     printf("\n*** map_rgb_hsv tests ***\n");
 
     auto result = 
-        conversion_test() &&
+        hsv_conversion_test() &&
         map_hsv_test() &&
         map_hsv_planar_test();
 

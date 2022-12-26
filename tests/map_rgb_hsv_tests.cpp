@@ -1,21 +1,29 @@
 #include "tests_include.hpp"
 #include "../src/util/hsv_rgb.hpp"
+#include "../src/util/execute.hpp"
+
+#include <vector>
+#include <algorithm>
+
+namespace rng = std::ranges;
 
 
 static bool conversion_test()
 {
     printf("converstion_test\n");
-    auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.5f / 255.0f); };   
+    auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.0f / 255.0f); };
 
-    for (u32 r = 0; r < 255; ++r)
+    std::vector<int> results(255, 1);
+
+    auto const red_func = [&](u32 r) 
     {
         auto red = r / 255.0f;
 
-        for (u32 g = 0; g < 255; ++g)
+        for (u32 g = 0; g < 256; ++g)
         {
             auto green = g / 255.0f;
 
-            for (u32 b = 0; b < 255; ++b)
+            for (u32 b = 0; b < 256; ++b)
             {
                 auto blue = b / 255.0f;
 
@@ -24,11 +32,19 @@ static bool conversion_test()
 
                 if (not_equals(red, rgb.red) || not_equals(green, rgb.green) || not_equals(blue, rgb.blue))
                 {
-                    printf("FAIL\n");
-                    return false;
+                    results[r] = false;
+                    return;
                 }
             }
         }
+    };
+
+    process_range(0, 256, red_func);
+
+    if (rng::any_of(results, [](int r) { return !r; }))
+    {
+        printf("FAIL\n");
+        return false;
     }
 
     printf("OK\n");

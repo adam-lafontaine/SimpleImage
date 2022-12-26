@@ -9,9 +9,6 @@
 // https://www.youtube.com/watch?v=I8i0W8ve-JI
 
 
-
-
-
 namespace hsv
 {
     class HSVr32

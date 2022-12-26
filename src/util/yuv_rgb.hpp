@@ -62,8 +62,8 @@ namespace yuv
         constexpr r32 vb = 0.0f;
 
         r32 r = yr * y + ur * u + vr * v;
-        r32 g = yg * y + ug * g + vg * v;
-        r32 b = yb * y + ub * b + vb * b;
+        r32 g = yg * y + ug * u + vg * v;
+        r32 b = yb * y + ub * u + vb * v;
 
         return { r, g, b };
     }

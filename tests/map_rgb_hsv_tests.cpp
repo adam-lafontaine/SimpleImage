@@ -1,5 +1,8 @@
 #include "tests_include.hpp"
 
+
+#include <array>
+
 class HSVr32
 {
 public:
@@ -18,81 +21,78 @@ public:
 };
 
 
-static HSVr32 rgb_hsv(r32 r, r32 g, r32 b)
+constexpr r32 zerof = 1.0f / 360.0f;
+
+
+// https://github.com/QuantitativeBytes/qbColor/blob/main/qbColor.cpp
+// https://www.youtube.com/watch?v=I8i0W8ve-JI
+
+
+
+static constexpr RGBr32 hsv_rgb(r32 h, r32 s, r32 v)
 {
-    auto max = std::max(r, std::max(g, b));
-    auto min = std::min(r, std::max(g, b));
-
-    auto const equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) < (1.5f / 255.0f); };
-
-    auto c = max - min;
-    auto value = max;
-
-    auto sat = equals(max, 0.0f) ? 0.0f : (c / value);
-
-    auto hue = 60.0f;
-
-    if (equals(max, min))
+    if (v <= zerof)
     {
-        hue = 0.0f;
-    }
-    else if (equals(max, r))
-    {
-        hue *= ((g - b) / c);
-    }
-    else if (equals(max, g))
-    {
-        hue *= ((b - r) / c + 2);
-    }
-    else
-    {
-        hue *= ((r - g) / c + 4);
+        return { 0.0f, 0.0f, 0.0f };
     }
 
-    hue /= 360.0f;
+    if (s <= zerof)
+    {
+        return { v, v, v };
+    }
 
-    return { hue, sat, value };
-}
+    if (h < 0)
+    {
+        //assert(false);
+        return { 0.0f, 0.0f, 0.0f };
+    }
 
-
-static RGBr32 hsv_rgb(r32 h, r32 s, r32 v)
-{
-    auto c = s * v;
-    auto m = v - c;
+    auto max = v;
+    auto range = s * v;
+    auto min = max - range;
 
     auto d = h * 6.0f; // 360.0f / 60.0f;
 
-    auto x = c * (1.0f - std::abs(std::fmod(d, 2.0f) - 1.0f));
+    auto h_id = (int)d;
 
-    auto r = m;
-    auto g = m;
-    auto b = m;
+    auto rise = min + (d - h_id) * range;
+    auto fall = max - (d - h_id) * range;
 
-    switch (int(d))
+    r32 r = 0.0f;
+    r32 g = 0.0f;
+    r32 b = 0.0f;
+
+    switch (h_id)
     {
     case 0:
-        r += c;
-        g += x;
+        r = max;
+        g = rise;
+        b = min;
         break;
     case 1:
-        r += x;
-        g += c;
+        r = fall;
+        g = max;
+        b = min;
         break;
     case 2:
-        g += c;
-        b += x;
+        r = min;
+        g = max;
+        b = rise;
         break;
     case 3:
-        g += x;
-        b += c;
+        r = min;
+        g = fall;
+        b = max;
         break;
     case 4:
-        r += x;
-        b += c;
+        r = rise;
+        g = min;
+        b = max;
         break;
     default:
-        r += c;
-        b += x;
+        r = max;
+        g = min;
+        b = fall;
         break;
     }
 
@@ -100,10 +100,119 @@ static RGBr32 hsv_rgb(r32 h, r32 s, r32 v)
 }
 
 
+//constexpr size_t H_PRECISION = 360;
+//
+//constexpr std::array<RGBr32, H_PRECISION> make_max_rgb_values()
+//{
+//    std::array<RGBr32, H_PRECISION> rgb_values = {};
+//
+//    for (int i = 0; i < H_PRECISION; ++i)
+//    {
+//        auto h = (r32)i / H_PRECISION;
+//        rgb_values[i] = hsv_rgb(h, 1.0f, 1.0f);
+//    }
+//
+//    return rgb_values;
+//}
+
+
+static HSVr32 rgb_hsv(r32 r, r32 g, r32 b)
+{
+    //constexpr auto rgb_values = make_max_rgb_values();
+
+    auto max = std::max(r, std::max(g, b));
+    auto min = std::min(r, std::min(g, b));
+
+    auto constexpr equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) < zerof; };
+
+    auto const r_max = equals(r, max);
+    auto const r_min = equals(r, min);
+    auto const g_max = equals(g, max);
+    auto const g_min = equals(g, min);
+    auto const b_max = equals(b, max);
+    auto const b_min = equals(b, min);
+
+    r32 h = 0.0f;
+    r32 s = 0.0f;
+    r32 v = max;
+
+    if (equals(max, min))
+    {
+        h = -1.0f;
+        s = 0.0f;
+
+        return { h, s, v };
+    }
+
+    auto range = max - min;
+
+    s = range / v;        
+
+    if (r_max && g_min && b_min)
+    {
+        h = 0.0f;
+        return { h, s, v };
+    }
+
+    if (r_min && g_max && b_min)
+    {
+        h = 120.0f / 360.0f;
+        return { h, s, v };
+    }
+
+    if (r_min && g_min && b_max)
+    {
+        h = 240.0f / 360.0f;
+        return { h, s, v };
+    }
+
+    u32 h_id =
+        (r_max && b_min) ? 0 :
+        (g_max && b_min) ? 1 :
+        (g_max && r_min) ? 2 :
+        (b_max && r_min) ? 3 :
+        (b_max && g_min) ? 4 : 5;
+        //(g_min && r_max) ? 5;
+
+    auto h_360 = h_id * 60.0f;
+
+    switch (h_id)
+    {
+    case 0:
+        h_360 += 60.0f * (g - min) / range;
+        break;
+    case 1:
+        h_360 += 60.0f * (max - r) / range;
+        break;
+    case 2:
+        h_360 += 60.0f * (b - min) / range;
+        break;
+    case 3:
+        h_360 += 60.0f * (max - g) / range;
+        break;
+    case 4:
+        h_360 += 60.0f * (r - min) / range;
+        break;
+    case 5:
+        h_360 += 60.0f * (max - b) / range;
+        break;
+    default:
+        h_360 = -360.0f;
+    }
+
+    h = h_360 / 360.0f;
+
+    return { h, s, v };
+}
+
+
+
 static bool conversion_test()
 {
     printf("converstion_test\n");
     auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.5f / 255.0f); };
+
+    
 
     for (u32 r = 0; r < 255; ++r)
     {

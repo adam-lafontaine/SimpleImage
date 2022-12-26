@@ -962,18 +962,6 @@ namespace simage
 	}
 
 
-	ViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range)
-	{
-		assert(verify(image, range));
-
-		auto sub_view = do_sub_view(image, range);
-
-		assert(verify(sub_view));
-
-		return sub_view;
-	}
-
-
 	View sub_view(View const& view, Range2Du32 const& range)
 	{
 		assert(verify(view, range));
@@ -987,18 +975,6 @@ namespace simage
 
 
 	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range)
-	{
-		assert(verify(view, range));
-
-		auto sub_view = do_sub_view(view, range);
-
-		assert(verify(sub_view));
-
-		return sub_view;
-	}
-
-
-	ViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range)
 	{
 		assert(verify(view, range));
 

@@ -226,13 +226,9 @@ namespace simage
 
 	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
 
-	ViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range);
-
 	View sub_view(View const& view, Range2Du32 const& range);
 
 	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
-
-	ViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range);
 
 
 	View4r32 sub_view(View4r32 const& view, Range2Du32 const& range);

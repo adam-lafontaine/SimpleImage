@@ -112,3 +112,5 @@ bool map_rgb_tests();
 bool map_rgb_hsv_tests();
 
 bool map_rgb_yuv_tests();
+
+bool sub_view_tests();

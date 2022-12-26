@@ -139,6 +139,11 @@ map_rgb_yuv_tests_c += $(execute_h)
 map_rgb_yuv_tests_o := $(build)/map_rgb_yuv_tests.o
 object_files += $(map_rgb_yuv_tests_o)
 
+sub_view_tests_c := $(tests)/sub_view_tests.cpp
+sub_view_tests_c += $(tests_include_h)
+sub_view_tests_o := $(build)/sub_view_tests.o
+object_files += $(sub_view_tests_o)
+
 
 
 # flags
@@ -210,6 +215,10 @@ $(map_rgb_hsv_tests_o): $(map_rgb_hsv_tests_c)
 
 $(map_rgb_yuv_tests_o): $(map_rgb_yuv_tests_c)
 	@echo "\n map_rgb_yuv_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(sub_view_tests_o): $(sub_view_tests_c)
+	@echo "\n sub_view_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

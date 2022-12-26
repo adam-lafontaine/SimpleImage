@@ -13,6 +13,7 @@ static bool test_success()
         //map_rgb_tests() &&
         map_rgb_hsv_tests() &&
         map_rgb_yuv_tests() &&
+        sub_view_tests() &&
         true;
 }
 

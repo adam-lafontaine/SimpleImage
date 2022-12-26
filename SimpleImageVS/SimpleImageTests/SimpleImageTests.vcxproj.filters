@@ -84,6 +84,9 @@
     <ClCompile Include="..\..\tests\map_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\tests\map_rgb_yuv_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\tests\tests_include.hpp">
@@ -111,6 +114,9 @@
       <Filter>Header Files\src\simage\stb</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\util\hsv_rgb.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\yuv_rgb.hpp">
       <Filter>Header Files\src\util</Filter>
     </ClInclude>
   </ItemGroup>

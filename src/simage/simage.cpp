@@ -1,12 +1,13 @@
 #include "simage.hpp"
 #include "../util/memory_buffer.hpp"
 #include "../util/execute.hpp"
-#include "../util/hsv_rgb.hpp"
+#include "../util/color_space.hpp"
 
 #include <cmath>
 
 
 namespace mb = memory_buffer;
+namespace cs = color_space;
 
 
 
@@ -16,71 +17,6 @@ static void process_rows(u32 n_rows, id_func_t const& row_func)
 	auto const row_end = n_rows;
 
 	process_range(row_begin, row_end, row_func);
-}
-
-
-static constexpr std::array<r32, 256> channel_r32_lut()
-{
-	std::array<r32, 256> lut = {};
-
-	for (u32 i = 0; i < 256; ++i)
-	{
-		lut[i] = i / 255.0f;
-	}
-
-	return lut;
-}
-
-
-static constexpr r32 to_channel_r32(u8 value)
-{
-	constexpr auto lut = channel_r32_lut();
-
-	return lut[value];
-}
-
-
-static constexpr u8 to_channel_u8(r32 value)
-{
-	if (value < 0.0f)
-	{
-		value = 0.0f;
-	}
-	else if (value > 1.0f)
-	{
-		value = 1.0f;
-	}
-
-	return (u8)(u32)(value * 255 + 0.5f);
-}
-
-
-static constexpr r32 lerp_to_r32(u8 value, r32 min, r32 max)
-{
-	assert(min < max);
-
-	return min + (value / 255.0f) * (max - min);
-}
-
-
-static constexpr u8 lerp_to_u8(r32 value, r32 min, r32 max)
-{
-	assert(min < max);
-	assert(value >= min);
-	assert(value <= max);
-
-	if (value < min)
-	{
-		value = min;
-	}
-	else if (value > max)
-	{
-		value = max;
-	}
-
-	auto ratio = (value - min) / (max - min);
-
-	return (u8)(u32)(ratio * 255 + 0.5f);
 }
 
 
@@ -558,7 +494,7 @@ namespace simage
 			auto d = row_begin(dst, y);
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = to_channel_r32(s[x]);
+				d[x] = cs::to_channel_r32(s[x]);
 			}
 		};
 
@@ -576,7 +512,7 @@ namespace simage
 			auto d = row_begin(dst, y);
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = to_channel_u8(s[x]);
+				d[x] = cs::to_channel_u8(s[x]);
 			}
 		};
 
@@ -608,10 +544,10 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x) // TODO: simd
 			{
-				dr[x] = to_channel_r32(s[x].channels[r]);
-				dg[x] = to_channel_r32(s[x].channels[g]);
-				db[x] = to_channel_r32(s[x].channels[b]);
-				da[x] = to_channel_r32(s[x].channels[a]);
+				dr[x] = cs::to_channel_r32(s[x].channels[r]);
+				dg[x] = cs::to_channel_r32(s[x].channels[g]);
+				db[x] = cs::to_channel_r32(s[x].channels[b]);
+				da[x] = cs::to_channel_r32(s[x].channels[a]);
 			}
 		};
 
@@ -638,10 +574,10 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x) // TODO: simd
 			{
-				d[x].channels[r] = to_channel_u8(sr[x]);
-				d[x].channels[g] = to_channel_u8(sg[x]);
-				d[x].channels[b] = to_channel_u8(sb[x]);
-				d[x].channels[a] = to_channel_u8(sa[x]);
+				d[x].channels[r] = cs::to_channel_u8(sr[x]);
+				d[x].channels[g] = cs::to_channel_u8(sg[x]);
+				d[x].channels[b] = cs::to_channel_u8(sb[x]);
+				d[x].channels[a] = cs::to_channel_u8(sa[x]);
 			}
 		};
 
@@ -666,9 +602,9 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x) // TODO: simd
 			{
-				dr[x] = to_channel_r32(s[x].channels[r]);
-				dg[x] = to_channel_r32(s[x].channels[g]);
-				db[x] = to_channel_r32(s[x].channels[b]);
+				dr[x] = cs::to_channel_r32(s[x].channels[r]);
+				dg[x] = cs::to_channel_r32(s[x].channels[g]);
+				db[x] = cs::to_channel_r32(s[x].channels[b]);
 			}
 		};
 
@@ -685,7 +621,7 @@ namespace simage
 		constexpr auto b = id_cast(RGBA::B);
 		constexpr auto a = id_cast(RGBA::A);
 
-		constexpr auto ch_max = to_channel_u8(1.0f);
+		constexpr auto ch_max = cs::to_channel_u8(1.0f);
 
 		auto const row_func = [&](u32 y)
 		{
@@ -696,9 +632,9 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x) // TODO: simd
 			{
-				d[x].channels[r] = to_channel_u8(sr[x]);
-				d[x].channels[g] = to_channel_u8(sg[x]);
-				d[x].channels[b] = to_channel_u8(sb[x]);
+				d[x].channels[r] = cs::to_channel_u8(sr[x]);
+				d[x].channels[g] = cs::to_channel_u8(sg[x]);
+				d[x].channels[b] = cs::to_channel_u8(sb[x]);
 				d[x].channels[a] = ch_max;
 			}
 		};
@@ -724,10 +660,7 @@ namespace simage
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto rgba = s[x].rgba;
-				auto r = to_channel_r32(rgba.red);
-				auto g = to_channel_r32(rgba.green);
-				auto b = to_channel_r32(rgba.blue);
-				auto hsv = hsv::from_rgb(r, g, b);
+				auto hsv = hsv::from_rgb(rgba.red, rgba.green, rgba.blue);
 				d.H[x] = hsv.hue;
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
@@ -742,7 +675,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		constexpr auto ch_max = to_channel_u8(1.0f);
+		constexpr auto ch_max = cs::to_channel_u8(1.0f);
 
 		auto const row_func = [&](u32 y) 
 		{
@@ -751,12 +684,12 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgb = hsv::to_rgb(s.H[x], s.S[x], s.V[x]);
+				auto rgb = hsv::to_rgb_u8(s.H[x], s.S[x], s.V[x]);
 
 				auto& rgba = d[x].rgba;				
-				rgba.red = to_channel_u8(rgb.red);
-				rgba.green = to_channel_u8(rgb.green);
-				rgba.blue = to_channel_u8(rgb.blue);
+				rgba.red = rgb.red;
+				rgba.green = rgb.green;
+				rgba.blue = rgb.blue;
 				rgba.alpha = ch_max;
 			}
 		};
@@ -820,7 +753,7 @@ namespace simage
 {
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
 	{
-		
+
 	}
 }
 

@@ -9,9 +9,9 @@ static bool test_success()
         //stb_simage_tests() &&
         //create_image_tests() &&
         //make_view_tests() &&
-        //map_tests() &&
-        //map_rgb_tests() &&
-        //map_rgb_hsv_tests() &&
+        map_tests() &&
+        map_rgb_tests() &&
+        map_rgb_hsv_tests() &&
         map_rgb_yuv_tests() &&
         true;
 }

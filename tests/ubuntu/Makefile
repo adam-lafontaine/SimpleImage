@@ -132,11 +132,15 @@ object_files += $(map_rgb_tests_o)
 
 map_rgb_hsv_tests_c := $(tests)/map_rgb_hsv_tests.cpp
 map_rgb_hsv_tests_c += $(tests_include_h)
+map_rgb_hsv_tests_c += $(hsv_rgb_h)
+map_rgb_hsv_tests_c += $(execute_h)
 map_rgb_hsv_tests_o := $(build)/map_rgb_hsv_tests.o
 object_files += $(map_rgb_hsv_tests_o)
 
 map_rgb_yuv_tests_c := $(tests)/map_rgb_yuv_tests.cpp
 map_rgb_yuv_tests_c += $(tests_include_h)
+map_rgb_yuv_tests_c += $(hsv_rgb_h)
+map_rgb_yuv_tests_c += $(execute_h)
 map_rgb_yuv_tests_o := $(build)/map_rgb_yuv_tests.o
 object_files += $(map_rgb_yuv_tests_o)
 
@@ -147,7 +151,7 @@ INCLUDES  :=
 LIBRARIES := -ltbb
 CCFLAGS := -std=c++20
 
-CCFLAGS += -O3
+#CCFLAGS += -O3
 CCFLAGS += -DNDEBUG
 
 

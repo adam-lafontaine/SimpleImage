@@ -23,6 +23,8 @@ static bool create_destroy_test()
     MemoryBuffer<r32> buffer{};
 
     printf("create_buffer() - zero elements\n");
+#ifdef NDEBUG
+    
     result = !mb::create_buffer(buffer, 0);
     result &= !is_valid_ptr(buffer.data_);
     result &= (buffer.capacity_ == 0);
@@ -36,6 +38,10 @@ static bool create_destroy_test()
         return false;
     }
     printf("OK\n");
+
+#else
+    printf("Skipped\n");
+#endif // !NDEBUG
 
     printf("create_buffer()\n");
     result = mb::create_buffer(buffer, n_elements);
@@ -92,7 +98,10 @@ static bool push_elements_test()
     }
     printf("OK\n");
 
+
     printf("push_elements() - zero elements\n");
+#ifdef NDEBUG
+
     auto ptr = mb::push_elements(buffer, 0);
     result = !is_valid_ptr(ptr);
     printf("ptr: %p\n", (void*)ptr);
@@ -103,6 +112,10 @@ static bool push_elements_test()
         return false;
     }
     printf("OK\n");
+
+#else
+    printf("Skipped\n");
+#endif // !NDEBUG
 
     printf("push_elements()\n");
     auto chunk1 = mb::push_elements(buffer, push);
@@ -132,7 +145,10 @@ static bool push_elements_test()
     }
     printf("OK\n");
 
+
     printf("push_elements() - too many elements\n");
+#ifdef NDEBUG
+    
     auto size = buffer.size_;
     auto chunk3 = mb::push_elements(buffer, buffer.capacity_ - buffer.size_ + 1);
     result = !is_valid_ptr(chunk3);
@@ -146,6 +162,10 @@ static bool push_elements_test()
         return false;
     }
     printf("OK\n");
+
+#else
+    printf("Skipped\n");
+#endif // !NDEBUG
 
     mb::destroy_buffer(buffer);
 

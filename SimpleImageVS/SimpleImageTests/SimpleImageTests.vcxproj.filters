@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\tests">
+      <UniqueIdentifier>{2bd164ea-c908-4e30-895f-0ad91b65e5f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\tests">
+      <UniqueIdentifier>{8480712d-942e-451c-a290-45994715a516}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src">
+      <UniqueIdentifier>{0d2dcadc-d1a5-4648-97eb-c30efecf833b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\util">
+      <UniqueIdentifier>{1c9922fb-8d3a-499c-a7f2-b7696b4ce065}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\simage">
+      <UniqueIdentifier>{e2d071f1-3b35-4358-a8d0-76b577a1c90a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src">
+      <UniqueIdentifier>{b9ebd6a6-35b4-4573-8d71-43831554a303}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\util">
+      <UniqueIdentifier>{9924c84e-ba95-40a5-814b-e2a136e17646}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\simage">
+      <UniqueIdentifier>{f8569776-1343-47b3-bd1b-fb6e096aeda7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\simage\stb">
+      <UniqueIdentifier>{9ba45df8-d0ba-452b-a574-98750ad224a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\simage\stb">
+      <UniqueIdentifier>{b98b7769-03b5-4583-9a0e-3de136421aea}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\tests\execute_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\stb_simage_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\tests_main.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util\execute.cpp">
+      <Filter>Source Files\src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\simage\simage.cpp">
+      <Filter>Source Files\src\simage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp">
+      <Filter>Source Files\src\simage\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util\memory_buffer.cpp">
+      <Filter>Source Files\src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\memory_buffer_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\create_image_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\make_view_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\map_rgb_hsv_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\map_rgb_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\map_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\map_rgb_yuv_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\sub_view_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\tests\tests_include.hpp">
+      <Filter>Header Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\execute.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\memory_buffer.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\stopwatch.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\defines.hpp">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\simage\simage.hpp">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\simage\simage_platform.hpp">
+      <Filter>Header Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\simage\stb\stb_include.hpp">
+      <Filter>Header Files\src\simage\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\color_space.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\win32_leak_check.h">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

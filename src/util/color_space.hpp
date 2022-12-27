@@ -82,15 +82,6 @@ namespace color_space
     };
 
 
-    class RGBu8
-    {
-    public:
-        u8 red;
-        u8 green;
-        u8 blue;
-    };
-
-
     class HSVr32
     {
     public:
@@ -115,7 +106,7 @@ namespace hsv
     namespace cs = color_space;
 
     using RGBr32 = cs::RGBr32;
-    using RGBu8 = cs::RGBu8;
+    //using RGBu8 = cs::RGBu8;
     using HSVr32 = cs::HSVr32;
 
 
@@ -201,18 +192,6 @@ namespace hsv
         }
 
         return { r, g, b };
-    }
-
-
-    inline constexpr RGBu8 to_rgb_u8(r32 h, r32 s, r32 v)
-    {
-        auto rgb = to_rgb(h, s, v);
-
-        return {
-            cs::to_channel_u8(rgb.red),
-            cs::to_channel_u8(rgb.green),
-            cs::to_channel_u8(rgb.blue)
-        };
     }
 
 
@@ -315,6 +294,7 @@ namespace yuv
 
     using YUVr32 = cs::YUVr32;
     using RGBr32 = cs::RGBr32;
+    using HSVr32 = cs::HSVr32;
 
 
     inline constexpr YUVr32 from_rgb(r32 r, r32 g, r32 b)
@@ -389,6 +369,14 @@ namespace yuv
         auto V = to_uv_channel_r32(v);
 
         return to_rgb(Y, U, V);
+    }
+
+
+    inline constexpr HSVr32 to_hsv(u8 y, u8 u, u8 v)
+    {
+        auto rgb = to_rgb(y, u, v);
+
+        return hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
     }
 
 }

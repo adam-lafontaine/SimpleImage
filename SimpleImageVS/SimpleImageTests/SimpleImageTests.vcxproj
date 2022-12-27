@@ -156,6 +156,7 @@
     <ClInclude Include="..\..\src\util\execute.hpp" />
     <ClInclude Include="..\..\src\util\memory_buffer.hpp" />
     <ClInclude Include="..\..\src\util\stopwatch.hpp" />
+    <ClInclude Include="..\..\src\util\win32_leak_check.h" />
     <ClInclude Include="..\..\tests\tests_include.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

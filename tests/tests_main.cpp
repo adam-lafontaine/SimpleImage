@@ -1,8 +1,8 @@
 #include "tests_include.hpp"
 
 
-
-#if defined(_WIN32)
+//#define LEAK_CHECK
+#if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
 #include "../src/util/win32_leak_check.h"
 #endif
 
@@ -25,7 +25,7 @@ static bool test_success()
 
 int main()
 {
-#if defined(_WIN32) && defined(_DEBUG)
+#if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
     int dbgFlags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
     dbgFlags |= _CRTDBG_CHECK_ALWAYS_DF;   // check block integrity
     dbgFlags |= _CRTDBG_DELAY_FREE_MEM_DF; // don't recycle memory

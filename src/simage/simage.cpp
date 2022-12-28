@@ -1213,10 +1213,67 @@ namespace simage
 	}
 
 
-	class Count256CHu32
+	template <typename T>
+	class ChannelMatrix
 	{
 	public:
-		u32* count_channel_data[3] = {};
+		T* channel_data[3] = {};
+
+		u32 width = 0;
+		u32 height = 0;
+	};
+
+
+	template <typename T>
+	class ChannelMatrixRow
+	{
+	public:
+		T* channels[3];
+	};
+
+
+	template <typename T>
+	ChannelMatrixRow<T> row_begin(ChannelMatrix<T> const& mat, u32 y)
+	{
+		assert(y < mat.height);
+
+		ChannelMatrixRow<T> row;
+
+		auto offset = y * mat.width;
+
+		for (u32 i = 0; i < 3; ++i)
+		{
+			row.channels[i] = mat.channel_data[i] + offset;
+		}
+
+		return row;
+	}
+
+
+	using Count256CHu32 = ChannelMatrix<u32>;
+	using Hist256Chr32 = ChannelMatrix<r32>;
+
+	static Count256CHu32 make_row_count(u32 height, Buffer32& buffer)
+	{
+		constexpr u32 n_bins = 256;
+
+		Count256CHu32 counts;
+
+		static_assert(sizeof(u32) == sizeof(r32));
+
+		for (u32 i = 0; i < 3; ++i)
+		{
+			counts.channel_data[i] = (u32*)mb::push_elements(buffer, n_bins * height);
+		}
+
+		return counts;
+	}
+
+
+	/*class Count256CHu32
+	{
+	public:
+		u32* channel_data[3] = {};
 
 		static constexpr u32 n_bins = 256;
 		u32 height = 0;
@@ -1229,7 +1286,10 @@ namespace simage
 
 		u32* channels[3] = {};
 
-	};
+	};*/
+
+
+	/*
 
 
 	static Row256CHu32 row_begin(Count256CHu32 const& counts, u32 y)
@@ -1242,14 +1302,11 @@ namespace simage
 
 		for (u32 i = 0; i < 3; ++i)
 		{
-			row.channels[i] = counts.count_channel_data[i] + offset;
+			row.channels[i] = counts.channel_data[i] + offset;
 		}
 
 		return row;
-	}
-
-
-	
+	}*/	
 
 
 	static void count_by_row(View const& src, Count256CHu32& c_rgb, Count256CHu32& c_hsv, Count256CHu32& c_yuv)
@@ -1288,16 +1345,63 @@ namespace simage
 	}
 
 
+	static void total_counts(Count256CHu32 const& src, Count256CHu32& dst)
+	{
+		assert(dst.height == 1);
+		assert(dst.width == src.width);
+
+		auto d = row_begin(dst, 0);
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			for (u32 i = 0; i < 3; ++i)
+			{
+				for (u32 bin = 0; bin < src.width; ++bin)
+				{
+					d.channels[i][bin] += s.channels[i][bin];
+				}
+			}
+		}
+	}
 
 
+	static void generate_histogram(Count256CHu32 const& src, Hist256Chr32& dst)
+	{
+		// TODO
+	}
 
-	void do_stuff(View const& src, HistRGB& h_rgb, HistHSV& h_hsv, HistYUV& h_yuv)
+
+	void do_stuff(View const& src, HistRGB& h_rgb, HistHSV& h_hsv, HistYUV& h_yuv, Buffer32& buffer)
 	{
 		assert(verify(src));
 
+		constexpr u32 hist_width = 256;
+		auto const height = src.height;
+		auto const total_count_elements = 3 * hist_width * (height + 1);
+
+		assert(verify(buffer, hist_width * height * 3));
+
+		auto count_rgb = make_row_count(height, buffer);
+		auto count_hsv = make_row_count(height, buffer);
+		auto count_yuv = make_row_count(height, buffer);
+
+		count_by_row(src, count_rgb, count_hsv, count_yuv);
+
+		auto total_rgb = make_row_count(1, buffer);
+		auto total_hsv = make_row_count(1, buffer);
+		auto total_yuv = make_row_count(1, buffer);
 		
+		std::array<std::function<void()>, 3> f_list = 
+		{
+			[&](){ total_counts(count_rgb, total_rgb); },
+			[&](){ total_counts(count_hsv, total_hsv); },
+			[&](){ total_counts(count_yuv, total_yuv); },
+		};
 
+		execute(f_list);
 
+		mb::pop_elements(buffer, total_count_elements);
 	}
 }
 

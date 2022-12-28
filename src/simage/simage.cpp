@@ -1254,8 +1254,6 @@ namespace simage
 
 	static void count_by_row(View const& src, Count256CHu32& c_rgb, Count256CHu32& c_hsv, Count256CHu32& c_yuv)
 	{
-		assert(verify(src));
-
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
@@ -1280,9 +1278,9 @@ namespace simage
 				hsv_row[id_cast(HSV::S)][cs::to_channel_u8(hsv.sat)]++;
 				hsv_row[id_cast(HSV::V)][cs::to_channel_u8(hsv.val)]++;
 
-				yuv_row[id_cast(YUV::Y)][cs::to_channel_u8(yuv.y)];
-				yuv_row[id_cast(YUV::U)][cs::to_channel_u8(yuv.u)];
-				yuv_row[id_cast(YUV::V)][cs::to_channel_u8(yuv.v)];
+				yuv_row[id_cast(YUV::Y)][cs::to_channel_u8(yuv.y)]++;
+				yuv_row[id_cast(YUV::U)][cs::to_channel_u8(yuv.u)]++;
+				yuv_row[id_cast(YUV::V)][cs::to_channel_u8(yuv.v)]++;
 			}
 		};
 
@@ -1290,48 +1288,14 @@ namespace simage
 	}
 
 
+
+
+
 	void do_stuff(View const& src, HistRGB& h_rgb, HistHSV& h_hsv, HistYUV& h_yuv)
 	{
 		assert(verify(src));
 
-		u32 c_rgb_R[256] = { 0 };
-		u32 c_rgb_G[256] = { 0 };
-		u32 c_rgb_B[256] = { 0 };
-
-		u32 c_hsv_H[256] = { 0 };
-		u32 c_hsv_S[256] = { 0 };
-		u32 c_hsv_V[256] = { 0 };
-
-		u32 c_yuv_Y[256] = { 0 };
-		u32 c_yuv_U[256] = { 0 };
-		u32 c_yuv_V[256] = { 0 };
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto rgba = s[x].rgba;
-				auto red = cs::to_channel_r32(rgba.red);
-				auto green = cs::to_channel_r32(rgba.green);
-				auto blue = cs::to_channel_r32(rgba.blue);
-
-				auto hsv = hsv::from_rgb(red, green, blue);
-				auto yuv = yuv::from_rgb(red, green, blue);
-
-				c_rgb_R[rgba.red]++;
-				c_rgb_G[rgba.green]++;
-				c_rgb_B[rgba.blue]++;
-
-				c_hsv_H[cs::to_channel_u8(hsv.hue)]++;
-				c_hsv_S[cs::to_channel_u8(hsv.sat)]++;
-				c_hsv_V[cs::to_channel_u8(hsv.val)]++;
-
-				c_yuv_Y[cs::to_channel_u8(yuv.y)]++;
-				c_yuv_U[cs::to_channel_u8(yuv.u)]++;				
-				c_yuv_V[cs::to_channel_u8(yuv.v)]++;
-			}
-		}
+		
 
 
 	}

@@ -7,8 +7,8 @@ class MemoryBuffer
 {
 public:
 	T* data_ = nullptr;
-	size_t capacity_ = 0;
-	size_t size_ = 0;
+	u32 capacity_ = 0;
+	u32 size_ = 0;
 
 #ifndef NDEBUG
 
@@ -70,7 +70,7 @@ namespace memory_buffer
 
 
 	template <typename T>
-	T* push_elements(MemoryBuffer<T>& buffer, size_t n_elements)
+	T* push_elements(MemoryBuffer<T>& buffer, u32 n_elements)
 	{
 		assert(n_elements);
 
@@ -81,7 +81,6 @@ namespace memory_buffer
 
 		assert(buffer.data_);
 		assert(buffer.capacity_);
-		assert(buffer.size_ < buffer.capacity_);
 
 		auto is_valid =
 			buffer.data_ &&
@@ -101,5 +100,28 @@ namespace memory_buffer
 		buffer.size_ += n_elements;
 
 		return data;
-	}	
+	}
+
+
+	template <typename T>
+	void pop_elements(MemoryBuffer<T>& buffer, u32 n_elements)
+	{
+		if (!n_elements)
+		{
+			return;
+		}
+
+		assert(buffer.data_);
+		assert(buffer.capacity_);
+		assert(n_elements <= buffer.size_);
+
+		if(n_elements > buffer.size_)
+		{
+			buffer.size_ = 0;
+		}
+		else
+		{
+			buffer.size_ -= n_elements;
+		}
+	}
 }

@@ -4,7 +4,7 @@
 #include "../util/color_space.hpp"
 
 #include <cmath>
-#include <array>
+#include <algorithm>
 
 
 namespace mb = memory_buffer;
@@ -119,10 +119,10 @@ namespace simage
 		};
 
 		// for_each_xy
-		r32& red() { return *rgba.R; }
+		/*r32& red() { return *rgba.R; }
 		r32& green() { return *rgba.G; }
 		r32& blue() { return *rgba.B; }
-		r32& alpha() { return *rgba.A; }
+		r32& alpha() { return *rgba.A; }*/
 	};
 
 
@@ -1167,6 +1167,173 @@ namespace simage
 		rgb.image_channel_data[b3] = view.image_channel_data[b4];
 
 		return rgb;
+	}
+}
+
+
+/* histogram */
+
+namespace simage
+{
+	template <size_t N>
+	static void normalize_hist(std::array<u32, N> const& counts, std::array<r32, N> const& dst)
+	{
+		auto total_count = std::accumulate(counts.begin(), counts.end(), 0);
+
+		auto const bin_func = [&](u32 bin)
+		{
+			dst[bin] = (r32) * counts[bin] / total_count;
+		};
+
+		process_range(0, N, bin_func);
+
+		// std::transform...
+	}
+
+
+	HistRGB hist_rgb(View const& view)
+	{
+		HistRGB hist;
+
+		for (u32 y = 0; y < view.height; ++y)
+		{
+			auto s = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				auto p = s[x].rgba;
+
+				hist.R[p.red]++;
+				hist.G[p.green]++;
+				hist.B[p.blue]++;
+			}
+		}
+
+
+		return hist;
+	}
+
+
+	class Count256CHu32
+	{
+	public:
+		u32* count_channel_data[3] = {};
+
+		static constexpr u32 n_bins = 256;
+		u32 height = 0;
+	};
+
+
+	class Row256CHu32
+	{
+	public:
+
+		u32* channels[3] = {};
+
+	};
+
+
+	static Row256CHu32 row_begin(Count256CHu32 const& counts, u32 y)
+	{
+		assert(y < counts.height);
+
+		auto offset = y * counts.n_bins;
+
+		Row256CHu32 row;
+
+		for (u32 i = 0; i < 3; ++i)
+		{
+			row.channels[i] = counts.count_channel_data[i] + offset;
+		}
+
+		return row;
+	}
+
+
+	
+
+
+	static void count_by_row(View const& src, Count256CHu32& c_rgb, Count256CHu32& c_hsv, Count256CHu32& c_yuv)
+	{
+		assert(verify(src));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto rgb_row = row_begin(c_rgb, y).channels;
+			auto hsv_row = row_begin(c_rgb, y).channels;
+			auto yuv_row = row_begin(c_rgb, y).channels;
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = s[x].rgba;
+				auto red = cs::to_channel_r32(rgba.red);
+				auto green = cs::to_channel_r32(rgba.green);
+				auto blue = cs::to_channel_r32(rgba.blue);
+
+				auto hsv = hsv::from_rgb(red, green, blue);
+				auto yuv = yuv::from_rgb(red, green, blue);
+				
+				rgb_row[id_cast(RGB::R)][rgba.red]++;
+				rgb_row[id_cast(RGB::G)][rgba.green]++;
+				rgb_row[id_cast(RGB::B)][rgba.blue]++;
+
+				hsv_row[id_cast(HSV::H)][cs::to_channel_u8(hsv.hue)]++;
+				hsv_row[id_cast(HSV::S)][cs::to_channel_u8(hsv.sat)]++;
+				hsv_row[id_cast(HSV::V)][cs::to_channel_u8(hsv.val)]++;
+
+				yuv_row[id_cast(YUV::Y)][cs::to_channel_u8(yuv.y)];
+				yuv_row[id_cast(YUV::U)][cs::to_channel_u8(yuv.u)];
+				yuv_row[id_cast(YUV::V)][cs::to_channel_u8(yuv.v)];
+			}
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	void do_stuff(View const& src, HistRGB& h_rgb, HistHSV& h_hsv, HistYUV& h_yuv)
+	{
+		assert(verify(src));
+
+		u32 c_rgb_R[256] = { 0 };
+		u32 c_rgb_G[256] = { 0 };
+		u32 c_rgb_B[256] = { 0 };
+
+		u32 c_hsv_H[256] = { 0 };
+		u32 c_hsv_S[256] = { 0 };
+		u32 c_hsv_V[256] = { 0 };
+
+		u32 c_yuv_Y[256] = { 0 };
+		u32 c_yuv_U[256] = { 0 };
+		u32 c_yuv_V[256] = { 0 };
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = s[x].rgba;
+				auto red = cs::to_channel_r32(rgba.red);
+				auto green = cs::to_channel_r32(rgba.green);
+				auto blue = cs::to_channel_r32(rgba.blue);
+
+				auto hsv = hsv::from_rgb(red, green, blue);
+				auto yuv = yuv::from_rgb(red, green, blue);
+
+				c_rgb_R[rgba.red]++;
+				c_rgb_G[rgba.green]++;
+				c_rgb_B[rgba.blue]++;
+
+				c_hsv_H[cs::to_channel_u8(hsv.hue)]++;
+				c_hsv_S[cs::to_channel_u8(hsv.sat)]++;
+				c_hsv_V[cs::to_channel_u8(hsv.val)]++;
+
+				c_yuv_Y[cs::to_channel_u8(yuv.y)]++;
+				c_yuv_U[cs::to_channel_u8(yuv.u)]++;				
+				c_yuv_V[cs::to_channel_u8(yuv.v)]++;
+			}
+		}
+
+
 	}
 }
 

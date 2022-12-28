@@ -3,6 +3,8 @@
 #include "simage_platform.hpp"
 #include "../util/memory_buffer.hpp"
 
+#include <array>
+
 namespace mb = memory_buffer;
 
 
@@ -23,6 +25,12 @@ namespace simage
 	enum class HSV : int
 	{
 		H = 0, S = 1, V = 2
+	};
+
+
+	enum class YUV : int
+	{
+		Y = 0, U = 1, V = 2
 	};
 
 
@@ -129,6 +137,7 @@ namespace simage
 
 		r32* channels[N] = {};
 	};
+
 
 	using View1r32 = MatrixView<r32>;
 
@@ -257,6 +266,41 @@ namespace simage
 
 
 	ViewRGBr32 select_rgb(ViewRGBAr32 const& view);
+}
+
+
+/* histogram */
+
+namespace simage
+{
+	class HistRGB
+	{
+	public:
+		r32 R[256] = { 0 };
+		r32 G[256] = { 0 };
+		r32 B[256] = { 0 };
+	};
+
+
+	class HistHSV
+	{
+	public:
+		r32 H[256] = { 0 };
+		r32 S[256] = { 0 };
+		r32 V[256] = { 0 };
+	};
+
+
+	class HistYUV
+	{
+	public:
+		r32 Y[256] = { 0 };
+		r32 U[256] = { 0 };
+		r32 V[256] = { 0 };
+	};
+
+
+	
 }
 
 

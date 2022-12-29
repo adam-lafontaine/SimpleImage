@@ -1542,7 +1542,7 @@ namespace simage
 		{
 			h_rgb.R[bin] = rgb_r_counts[bin] / total;
 			h_rgb.G[bin] = rgb_g_counts[bin] / total;
-			h_rgb.R[bin] = rgb_b_counts[bin] / total;
+			h_rgb.B[bin] = rgb_b_counts[bin] / total;
 
 			h_hsv.H[bin] = hsv_h_counts[bin] / total;
 			h_hsv.S[bin] = hsv_s_counts[bin] / total;
@@ -1557,51 +1557,11 @@ namespace simage
 
 	void histograms(View const& src, HistRGB& h_rgb, HistHSV& h_hsv, HistYUV& h_yuv)
 	{
-		constexpr size_t N = 16;
-		auto sub_views = split_view<N>(src);
+		h_rgb = { 0 };
+		h_hsv = { 0 };
+		h_yuv = { 0 };
 
-		std::array<HistRGB, N> rgb;
-		std::array<HistHSV, N> hsv;
-		std::array<HistYUV, N> yuv;
-
-		auto const hist_func = [&](u32 i)
-		{
-			make_histograms(sub_views[i], rgb[i], hsv[i], yuv[i]);
-		};
-
-		process_range(0, N, hist_func);
-
-		auto const bin_func = [&](u32 bin)
-		{
-			for (u32 i = 0; i < N; ++i)
-			{
-				h_rgb.R[bin] += rgb[i].R[bin];
-				h_rgb.G[bin] += rgb[i].G[bin];
-				h_rgb.B[bin] += rgb[i].B[bin];
-
-				h_hsv.H[bin] += hsv[i].H[bin];
-				h_hsv.S[bin] += hsv[i].S[bin];
-				h_hsv.V[bin] += hsv[i].V[bin];
-
-				h_yuv.Y[bin] += yuv[i].Y[bin];
-				h_yuv.U[bin] += yuv[i].U[bin];
-				h_yuv.V[bin] += yuv[i].V[bin];
-			}
-
-			h_rgb.R[bin] /= N;
-			h_rgb.G[bin] /= N;
-			h_rgb.B[bin] /= N;
-
-			h_hsv.H[bin] /= N;
-			h_hsv.S[bin] /= N;
-			h_hsv.V[bin] /= N;
-
-			h_yuv.Y[bin] /= N;
-			h_yuv.U[bin] /= N;
-			h_yuv.V[bin] /= N;
-		};
-
-		process_range(0, 256, bin_func);
+		make_histograms(src, h_rgb, h_hsv, h_yuv);
 	}
 }
 

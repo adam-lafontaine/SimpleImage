@@ -90,6 +90,12 @@
     <ClCompile Include="..\..\tests\sub_view_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\tests\fill_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\histogram_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\tests\tests_include.hpp">

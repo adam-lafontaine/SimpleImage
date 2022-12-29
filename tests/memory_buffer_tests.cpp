@@ -134,7 +134,8 @@ static bool push_elements_test()
     auto ptr_diff = int(chunk2 - chunk1);
     result = is_valid_ptr(chunk2);
     result &= (buffer.size_ == 2 * push);
-    result &= (ptr_diff >= push);
+    result &= (ptr_diff > 0);
+    result &= ((u32)ptr_diff >= push);
     printf("chunk2: %p\n", (void*)chunk2);
     printf("size: %u\n", buffer.size_);
     printf("ptr_diff: %d\n", ptr_diff);

@@ -1570,42 +1570,65 @@ namespace simage
 	}
 
 
-	static void make_histograms_from_yuv(ViewYUV const& src, HistRGBr32& h_rgb, HistHSVr32& h_hsv, HistYUVr32& h_yuv, u32 n_bins)
+	static void make_histograms_from_yuv(ViewYUV const& src, Histogram9r32& dst)
 	{
-		u32 rgb_r_counts[MAX_HIST_BINS] = { 0 };
-		u32 rgb_g_counts[MAX_HIST_BINS] = { 0 };
-		u32 rgb_b_counts[MAX_HIST_BINS] = { 0 };
+		constexpr u32 PIXEL_STEP = 2;
 
-		u32 hsv_h_counts[MAX_HIST_BINS] = { 0 };
-		u32 hsv_s_counts[MAX_HIST_BINS] = { 0 };
-		u32 hsv_v_counts[MAX_HIST_BINS] = { 0 };
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
 
-		u32 yuv_y_counts[MAX_HIST_BINS] = { 0 };
-		u32 yuv_u_counts[MAX_HIST_BINS] = { 0 };
-		u32 yuv_v_counts[MAX_HIST_BINS] = { 0 };
-
-		for (u32 y = 0; y < src.height; y += 2)
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422*)s2;
+			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
+			{
+				auto yuv = s422[x422];
 
+				auto x = 2 * x422;
+				auto rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
+				auto hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+
+				h_rgb.R[to_hist_bin_u8(rgb.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgb.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgb.blue, n_bins)]++;
+
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+				h_yuv.Y[to_hist_bin_u8(yuv.y1, n_bins)]++;
+				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;				
+
+				++x;
+				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
+				hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+
+				h_rgb.R[to_hist_bin_u8(rgb.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgb.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgb.blue, n_bins)]++;
+
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+				h_yuv.Y[to_hist_bin_u8(yuv.y2, n_bins)]++;
+				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;				
+			}
 		}
-
-
 
 		auto const total = (r32)src.width * src.height;
 
-		for (u32 bin = 0; bin < n_bins; ++bin)
+		for (u32 i = 0; i < 9; ++i)
 		{
-			h_rgb.R[bin] = rgb_r_counts[bin] / total;
-			h_rgb.G[bin] = rgb_g_counts[bin] / total;
-			h_rgb.B[bin] = rgb_b_counts[bin] / total;
-
-			h_hsv.H[bin] = hsv_h_counts[bin] / total;
-			h_hsv.S[bin] = hsv_s_counts[bin] / total;
-			h_hsv.V[bin] = hsv_v_counts[bin] / total;
-
-			h_yuv.Y[bin] = yuv_y_counts[bin] / total;
-			h_yuv.U[bin] = yuv_u_counts[bin] / total;
-			h_yuv.V[bin] = yuv_v_counts[bin] / total;
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
 		}
 	}
 
@@ -1634,7 +1657,7 @@ namespace simage
 		dst.hsv = { 0 };
 		dst.yuv = { 0 };
 
-		make_histograms_from_yuv(src, dst.rgb, dst.hsv, dst.yuv, dst.n_bins);
+		make_histograms_from_yuv(src, dst);
 	}
 }
 

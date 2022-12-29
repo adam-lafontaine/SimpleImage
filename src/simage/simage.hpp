@@ -306,45 +306,48 @@ namespace simage
 	constexpr u32 MAX_HIST_BINS = 256;
 
 
-	typedef union HistRGB_t
+	class HistRGBr32
 	{
-		struct
-		{
-			r32 R[MAX_HIST_BINS];
-			r32 G[MAX_HIST_BINS];
-			r32 B[MAX_HIST_BINS];
-		};
-
-		r32 channels[3][MAX_HIST_BINS] = { 0 };
-		
-	} HistRGBr32;
-	
+	public:
+		r32 R[MAX_HIST_BINS];
+		r32 G[MAX_HIST_BINS];
+		r32 B[MAX_HIST_BINS];
+	};	
 
 
 	class HistHSVr32
 	{
 	public:
-		r32 H[MAX_HIST_BINS] = { 0 };
-		r32 S[MAX_HIST_BINS] = { 0 };
-		r32 V[MAX_HIST_BINS] = { 0 };
+		r32 H[MAX_HIST_BINS];
+		r32 S[MAX_HIST_BINS];
+		r32 V[MAX_HIST_BINS];
 	};
 
 
 	class HistYUVr32
 	{
 	public:
-		r32 Y[MAX_HIST_BINS] = { 0 };
-		r32 U[MAX_HIST_BINS] = { 0 };
-		r32 V[MAX_HIST_BINS] = { 0 };
+		r32 Y[MAX_HIST_BINS];
+		r32 U[MAX_HIST_BINS];
+		r32 V[MAX_HIST_BINS];
 	};
 
 
 	class Histogram9r32
 	{
 	public:
-		HistRGBr32 rgb;
-		HistHSVr32 hsv;
-		HistYUVr32 yuv;
+		
+		union
+		{
+			struct
+			{
+				HistRGBr32 rgb;
+				HistHSVr32 hsv;
+				HistYUVr32 yuv;
+			};
+
+			r32 list[9][MAX_HIST_BINS] = { 0 };
+		};
 
 		u32 n_bins = MAX_HIST_BINS;
 	};

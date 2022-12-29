@@ -67,29 +67,16 @@ static void draw(img::Histogram9r32& hists, img::View1r32 const& dst)
     u32 space_px = HIST_SPACE;
     auto height = HIST_HEIGHT;
 
-    std::array<const r32*, 9> list = 
-    {
-        hists.rgb.R,
-        hists.rgb.G,
-        hists.rgb.B,
-        hists.hsv.H,
-        hists.hsv.S,
-        hists.hsv.V,
-        hists.yuv.Y,
-        hists.yuv.U,
-        hists.yuv.V
-    };
-
     auto r = make_range(dst.width, height);
     r.x_begin = space_px;
     r.x_end -= space_px;
 
-    for (auto hist : list)
+    for (u32 i = 0; i < 9; ++i)
     {
         r.y_begin += space_px;
         r.y_end += space_px;
 
-        draw_histogram(hist, N_BINS, img::sub_view(dst, r));
+        draw_histogram(hists.list[i], N_BINS, img::sub_view(dst, r));
 
         r.y_begin += height;
         r.y_end += height;

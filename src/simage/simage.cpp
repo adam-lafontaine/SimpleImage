@@ -1571,6 +1571,7 @@ namespace simage
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(hist.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % hist.n_bins == 0);
 
 		hist.rgb = { 0 };
 		hist.hsv = { 0 };

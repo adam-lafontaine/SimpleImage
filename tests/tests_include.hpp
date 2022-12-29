@@ -116,3 +116,5 @@ bool map_rgb_yuv_tests();
 bool sub_view_tests();
 
 bool fill_tests();
+
+bool histogram_tests();

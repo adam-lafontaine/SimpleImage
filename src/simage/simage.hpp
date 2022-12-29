@@ -303,19 +303,6 @@ namespace simage
 
 namespace simage
 {
-	template <typename T, size_t N, size_t DIM>
-	class StackArray
-	{
-	public:
-		static constexpr u32 length = N;
-
-		T data[DIM][N];
-	};
-
-
-	using Hist3r32 = StackArray<r32, 256, 3>;
-
-
 	typedef union HistRGB_t
 	{
 		struct
@@ -325,7 +312,7 @@ namespace simage
 			r32 B[256];
 		};
 
-		Hist3r32 channels = { 0 };
+		r32 channels[3][256] = { 0 };
 		
 	} HistRGB;
 	

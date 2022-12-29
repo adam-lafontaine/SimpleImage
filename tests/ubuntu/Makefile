@@ -149,6 +149,11 @@ fill_tests_c += $(tests_include_h)
 fill_tests_o := $(build)/fill_tests.o
 object_files += $(fill_tests_o)
 
+histogram_tests_c := $(tests)/histogram_tests.cpp
+histogram_tests_c += $(tests_include_h)
+histogram_tests_o := $(build)/histogram_tests.o
+object_files += $(histogram_tests_o)
+
 
 
 # flags
@@ -228,6 +233,10 @@ $(sub_view_tests_o): $(sub_view_tests_c)
 
 $(fill_tests_o): $(fill_tests_c)
 	@echo "\n fill_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(histogram_tests_o): $(histogram_tests_c)
+	@echo "\n histogram_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

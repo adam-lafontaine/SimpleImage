@@ -269,6 +269,22 @@ namespace simage
 }
 
 
+/* fill */
+
+namespace simage
+{
+	void fill(View const& view, Pixel color);
+
+	void fill(ViewGray const& view, u8 gray);
+
+	void fill(View4r32 const& view, Pixel color);
+
+	void fill(View3r32 const& view, Pixel color);
+
+	void fill(View1r32 const& view, r32 gray32);
+}
+
+
 /* shrink */
 
 namespace simage
@@ -287,13 +303,32 @@ namespace simage
 
 namespace simage
 {
-	class HistRGB
+	template <typename T, size_t N, size_t DIM>
+	class StackArray
 	{
 	public:
-		r32 R[256] = { 0 };
-		r32 G[256] = { 0 };
-		r32 B[256] = { 0 };
+		static constexpr u32 length = N;
+
+		T data[DIM][N];
 	};
+
+
+	using Hist3r32 = StackArray<r32, 256, 3>;
+
+
+	typedef union HistRGB_t
+	{
+		struct
+		{
+			r32 R[256];
+			r32 G[256];
+			r32 B[256];
+		};
+
+		Hist3r32 channels = { 0 };
+		
+	} HistRGB;
+	
 
 
 	class HistHSV

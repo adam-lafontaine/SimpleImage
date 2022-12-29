@@ -1171,6 +1171,103 @@ namespace simage
 }
 
 
+/* fill */
+
+namespace simage
+{
+	template <size_t N>
+	static void fill_n_channels(ViewCHr32<N> const& view, Pixel color)
+	{
+		r32 channels[N] = {};
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			channels[ch] = cs::to_channel_r32(color.channels[ch]);
+		}
+
+		auto const row_func = [&](u32 y)
+		{
+			for (u32 ch = 0; ch < N; ++ch)
+			{
+				auto d = channel_row_begin(view, y, ch);
+				for (u32 x = 0; x < view.width; ++x)
+				{
+					d[x] = channels[ch];
+				}
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	void fill(View const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				d[x] = color;
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	void fill(ViewGray const& view, u8 gray)
+	{
+		assert(verify(view));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				d[x] = gray;
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	void fill(View4r32 const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		fill_n_channels(view, color);
+	}
+
+
+	void fill(View3r32 const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		fill_n_channels(view, color);
+	}
+
+
+	void fill(View1r32 const& view, r32 gray32)
+	{
+		assert(verify(view));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				d[x] = gray32;
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+}
+
+
 /* shrink_view */
 
 namespace simage
@@ -1380,15 +1477,15 @@ namespace simage
 
 		Range2Du32 r;
 		r.x_begin = 0;
-		r.x_end = src.width;
+		r.x_end = view.width;
 
 		for (u32 i = 0; i < N_THREADS; ++i)
 		{
-			r.y_begin = i * src.height / N_THREADS;
-			r.y_end = r.y_begin + src.height / N_THREADS;
-			sub_views[i] = sub_view(src, r);
+			r.y_begin = i * view.height / N_THREADS;
+			r.y_end = r.y_begin + view.height / N_THREADS;
+			sub_views[i] = sub_view(view, r);
 		}
-		sub_views.back().y_end = src.height;
+		sub_views.back().y_end = view.height;
 
 		return sub_views;
 	}
@@ -1407,6 +1504,7 @@ namespace simage
 		u32 yuv_y_counts[256] = { 0 };
 		u32 yuv_u_counts[256] = { 0 };
 		u32 yuv_v_counts[256] = { 0 };
+
 
 		for (u32 y = 0; y < src.height; ++y)
 		{

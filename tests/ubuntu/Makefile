@@ -144,6 +144,11 @@ sub_view_tests_c += $(tests_include_h)
 sub_view_tests_o := $(build)/sub_view_tests.o
 object_files += $(sub_view_tests_o)
 
+fill_tests_c := $(tests)/fill_tests.cpp
+fill_tests_c += $(tests_include_h)
+fill_tests_o := $(build)/fill_tests.o
+object_files += $(fill_tests_o)
+
 
 
 # flags
@@ -219,6 +224,10 @@ $(map_rgb_yuv_tests_o): $(map_rgb_yuv_tests_c)
 
 $(sub_view_tests_o): $(sub_view_tests_c)
 	@echo "\n sub_view_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(fill_tests_o): $(fill_tests_c)
+	@echo "\n fill_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

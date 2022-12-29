@@ -87,17 +87,23 @@ public:
 };
 
 
-template <class T>
-inline Range2Du32 make_range(T const& c)
+inline Range2Du32 make_range(u32 width, u32 height)
 {
 	Range2Du32 r;
 
 	r.x_begin = 0;
 	r.y_begin = 0;
-	r.x_end = c.width;
-	r.y_end = c.height;
+	r.x_end = width;
+	r.y_end = height;
 
 	return r;
+}
+
+
+template <class T>
+inline Range2Du32 make_range(T const& c)
+{
+	return make_range(c.width, c.height);
 }
 
 

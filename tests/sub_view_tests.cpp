@@ -107,7 +107,8 @@ static bool gray_test()
 	printf("\n%s:\n", title);
 	auto out_dir = IMAGE_OUT_PATH / title;
 	empty_dir(out_dir);
-	auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
+	auto const write_image = [&out_dir](auto const& image, const char* name) 
+        { img::write_image(image, out_dir / name); };
 
     bool result = false;
 

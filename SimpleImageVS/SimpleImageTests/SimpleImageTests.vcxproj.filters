@@ -113,12 +113,6 @@
     <ClInclude Include="..\..\src\defines.hpp">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\simage\simage.hpp">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\simage\simage_platform.hpp">
-      <Filter>Header Files\src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\simage\stb\stb_include.hpp">
       <Filter>Header Files\src\simage\stb</Filter>
     </ClInclude>
@@ -127,6 +121,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\util\win32_leak_check.h">
       <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\simage\simage.hpp">
+      <Filter>Header Files\src\simage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\simage\simage_platform.hpp">
+      <Filter>Header Files\src\simage</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

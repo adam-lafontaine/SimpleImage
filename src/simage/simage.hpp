@@ -240,6 +240,9 @@ namespace simage
 	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
 
 
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range);
+
+
 	View4r32 sub_view(View4r32 const& view, Range2Du32 const& range);
 
 	View3r32 sub_view(View3r32 const& view, Range2Du32 const& range);

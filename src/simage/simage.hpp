@@ -303,43 +303,54 @@ namespace simage
 
 namespace simage
 {
-	constexpr u32 N_HIST_BINS = 64;
+	constexpr u32 MAX_HIST_BINS = 256;
 
 
 	typedef union HistRGB_t
 	{
 		struct
 		{
-			r32 R[N_HIST_BINS];
-			r32 G[N_HIST_BINS];
-			r32 B[N_HIST_BINS];
+			r32 R[MAX_HIST_BINS];
+			r32 G[MAX_HIST_BINS];
+			r32 B[MAX_HIST_BINS];
 		};
 
-		r32 channels[3][N_HIST_BINS] = { 0 };
+		r32 channels[3][MAX_HIST_BINS] = { 0 };
 		
-	} HistRGB;
+	} HistRGBr32;
 	
 
 
-	class HistHSV
+	class HistHSVr32
 	{
 	public:
-		r32 H[N_HIST_BINS] = { 0 };
-		r32 S[N_HIST_BINS] = { 0 };
-		r32 V[N_HIST_BINS] = { 0 };
+		r32 H[MAX_HIST_BINS] = { 0 };
+		r32 S[MAX_HIST_BINS] = { 0 };
+		r32 V[MAX_HIST_BINS] = { 0 };
 	};
 
 
-	class HistYUV
+	class HistYUVr32
 	{
 	public:
-		r32 Y[N_HIST_BINS] = { 0 };
-		r32 U[N_HIST_BINS] = { 0 };
-		r32 V[N_HIST_BINS] = { 0 };
+		r32 Y[MAX_HIST_BINS] = { 0 };
+		r32 U[MAX_HIST_BINS] = { 0 };
+		r32 V[MAX_HIST_BINS] = { 0 };
 	};
 
 
-	void histograms(View const& src, HistRGB& h_rgb, HistHSV& h_hsv, HistYUV& h_yuv);
+	class Histogram9r32
+	{
+	public:
+		HistRGBr32 rgb;
+		HistHSVr32 hsv;
+		HistYUVr32 yuv;
+
+		u32 n_bins = MAX_HIST_BINS;
+	};
+
+
+	void histograms(View const& src, Histogram9r32& hist);
 }
 
 

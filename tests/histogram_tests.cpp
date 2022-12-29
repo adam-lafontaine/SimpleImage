@@ -8,7 +8,7 @@ constexpr u32 BIN_WIDTH = 5;
 constexpr u32 BIN_SPACE = 1;
 constexpr u32 HIST_HEIGHT = 100;
 constexpr u32 HIST_SPACE = 5;
-constexpr auto N_BINS = img::N_HIST_BINS;
+constexpr auto N_BINS = 64;
 
 
 static void fill_to_top(img::View1r32 const& view, r32 value, u8 color)
@@ -24,7 +24,7 @@ static void fill_to_top(img::View1r32 const& view, r32 value, u8 color)
     {
         r.y_begin = 0;
     }
-    else if (y_begin >= view.height)
+    else if ((u32)y_begin >= view.height)
     {
         return;
     }
@@ -60,31 +60,31 @@ static void draw_histogram(const r32* values, u32 n_bins, img::View1r32 const& d
 }
 
 
-static void draw(img::HistRGB const& rgb, img::HistHSV const& hsv, img::HistYUV const& yuv, img::View1r32 const& dst)
+static void draw(img::Histogram9r32& hists, img::View1r32 const& dst)
 {
     img::fill(dst, 255);
 
     u32 space_px = HIST_SPACE;
     auto height = HIST_HEIGHT;
 
-    std::array<const r32*, 9> hists = 
+    std::array<const r32*, 9> list = 
     {
-        rgb.R,
-        rgb.G,
-        rgb.B,
-        hsv.H,
-        hsv.S,
-        hsv.V,
-        yuv.Y,
-        yuv.U,
-        yuv.V
+        hists.rgb.R,
+        hists.rgb.G,
+        hists.rgb.B,
+        hists.hsv.H,
+        hists.hsv.S,
+        hists.hsv.V,
+        hists.yuv.Y,
+        hists.yuv.U,
+        hists.yuv.V
     };
 
     auto r = make_range(dst.width, height);
     r.x_begin = space_px;
     r.x_end -= space_px;
 
-    for (auto hist : hists)
+    for (auto hist : list)
     {
         r.y_begin += space_px;
         r.y_end += space_px;
@@ -118,9 +118,8 @@ static bool histogram_fill_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::HistRGB h_rgb;
-    img::HistHSV h_hsv;
-    img::HistYUV h_yuv;
+    img::Histogram9r32 hists;
+    hists.n_bins = N_BINS;
 
     Image image;
     img::create_image(image, 256, 64);
@@ -128,8 +127,8 @@ static bool histogram_fill_test()
 
     auto const do_hist = [&](const char* filename) 
     {
-        img::histograms(view, h_rgb, h_hsv, h_yuv);
-        draw(h_rgb, h_hsv, h_yuv, hist_view);
+        img::histograms(view, hists);
+        draw(hists, hist_view);
         img::map(hist_view, dst);
         write_image(hist_image, filename);
     };
@@ -185,14 +184,13 @@ static bool histogram_images_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::HistRGB h_rgb;
-    img::HistHSV h_hsv;
-    img::HistYUV h_yuv;
+    img::Histogram9r32 hists;
+    hists.n_bins = N_BINS;
 
     auto const do_hist = [&](Image const& image, const char* filename)
     {
-        img::histograms(img::make_view(image), h_rgb, h_hsv, h_yuv);
-        draw(h_rgb, h_hsv, h_yuv, hist_view);
+        img::histograms(img::make_view(image), hists);
+        draw(hists, hist_view);
         img::map(hist_view, dst);
         write_image(hist_image, filename);
     };

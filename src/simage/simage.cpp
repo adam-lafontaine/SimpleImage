@@ -1530,19 +1530,23 @@ namespace simage
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
+		RGBAu8 rgba{};
+		cs::HSVr32 hsv{};
+		cs::YUVr32 yuv{};
+
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
 			auto s = row_begin(src, y);
 			for (u32 x = 0; x < src.width; x += PIXEL_STEP)
 			{
-				auto rgba = s[x].rgba;
+				rgba = s[x].rgba;
 
 				auto red = cs::to_channel_r32(rgba.red);
 				auto green = cs::to_channel_r32(rgba.green);
 				auto blue = cs::to_channel_r32(rgba.blue);
 
-				auto hsv = hsv::from_rgb(red, green, blue);
-				auto yuv = yuv::from_rgb(red, green, blue);
+				hsv = hsv::from_rgb(red, green, blue);
+				yuv = yuv::from_rgb(red, green, blue);
 
 				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
 				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
@@ -1579,17 +1583,20 @@ namespace simage
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
+		cs::RGBr32 rgb{};
+		cs::HSVr32 hsv{};
+		YUV422 yuv{};
+
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
 			auto s2 = row_begin(src, y);
 			auto s422 = (YUV422*)s2;
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
 			{
-				auto yuv = s422[x422];
+				yuv = s422[x422];
 
-				auto x = 2 * x422;
-				auto rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
-				auto hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+				rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
+				hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
 
 				h_rgb.R[to_hist_bin_u8(rgb.red, n_bins)]++;
 				h_rgb.G[to_hist_bin_u8(rgb.green, n_bins)]++;
@@ -1601,9 +1608,8 @@ namespace simage
 
 				h_yuv.Y[to_hist_bin_u8(yuv.y1, n_bins)]++;
 				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
-				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;				
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
 
-				++x;
 				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
 				hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
 

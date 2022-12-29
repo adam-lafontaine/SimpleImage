@@ -269,6 +269,20 @@ namespace simage
 }
 
 
+/* shrink */
+
+namespace simage
+{
+	void shrink(View1r32 const& src, View1r32 const& dst);
+
+	void shrink(View3r32 const& src, View3r32 const& dst);
+
+	void shrink(ViewGray const& src, View1r32 const& dst);
+
+	void shrink(View const& src, ViewRGBr32 const& dst);
+}
+
+
 /* histogram */
 
 namespace simage
@@ -300,22 +314,9 @@ namespace simage
 	};
 
 
-	
+	void histograms(View const& src, HistRGB& h_rgb, HistHSV& h_hsv, HistYUV& h_yuv);
 }
 
-
-/* shrink */
-
-namespace simage
-{
-	void shrink(View1r32 const& src, View1r32 const& dst);
-
-	void shrink(View3r32 const& src, View3r32 const& dst);
-
-	void shrink(ViewGray const& src, View1r32 const& dst);
-
-	void shrink(View const& src, ViewRGBr32 const& dst);
-}
 
 /* stb_simage.cpp */
 

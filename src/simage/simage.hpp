@@ -303,16 +303,19 @@ namespace simage
 
 namespace simage
 {
+	constexpr u32 N_HIST_BINS = 64;
+
+
 	typedef union HistRGB_t
 	{
 		struct
 		{
-			r32 R[256];
-			r32 G[256];
-			r32 B[256];
+			r32 R[N_HIST_BINS];
+			r32 G[N_HIST_BINS];
+			r32 B[N_HIST_BINS];
 		};
 
-		r32 channels[3][256] = { 0 };
+		r32 channels[3][N_HIST_BINS] = { 0 };
 		
 	} HistRGB;
 	
@@ -321,18 +324,18 @@ namespace simage
 	class HistHSV
 	{
 	public:
-		r32 H[256] = { 0 };
-		r32 S[256] = { 0 };
-		r32 V[256] = { 0 };
+		r32 H[N_HIST_BINS] = { 0 };
+		r32 S[N_HIST_BINS] = { 0 };
+		r32 V[N_HIST_BINS] = { 0 };
 	};
 
 
 	class HistYUV
 	{
 	public:
-		r32 Y[256] = { 0 };
-		r32 U[256] = { 0 };
-		r32 V[256] = { 0 };
+		r32 Y[N_HIST_BINS] = { 0 };
+		r32 U[N_HIST_BINS] = { 0 };
+		r32 V[N_HIST_BINS] = { 0 };
 	};
 
 

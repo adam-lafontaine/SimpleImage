@@ -8,6 +8,7 @@ constexpr u32 BIN_WIDTH = 5;
 constexpr u32 BIN_SPACE = 1;
 constexpr u32 HIST_HEIGHT = 100;
 constexpr u32 HIST_SPACE = 5;
+constexpr auto N_BINS = img::N_HIST_BINS;
 
 
 static void fill_to_top(img::View1r32 const& view, r32 value, u8 color)
@@ -88,7 +89,7 @@ static void draw(img::HistRGB const& rgb, img::HistHSV const& hsv, img::HistYUV 
         r.y_begin += space_px;
         r.y_end += space_px;
 
-        draw_histogram(hist, 256, img::sub_view(dst, r));
+        draw_histogram(hist, N_BINS, img::sub_view(dst, r));
 
         r.y_begin += height;
         r.y_end += height;
@@ -105,7 +106,7 @@ static bool histogram_fill_test()
     auto const write_image = [&out_dir](auto const& image, const char* name)
     { img::write_image(image, out_dir / name); };
 
-    u32 width = 256 * (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
+    u32 width = N_BINS * (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
     u32 height = 9 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
 
     GrayImage hist_image;
@@ -172,7 +173,7 @@ static bool histogram_images_test()
 	auto const write_image = [&out_dir](auto const& image, const char* name) 
         { img::write_image(image, out_dir / name); };
 
-    u32 width = 256 * (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
+    u32 width = N_BINS * (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
     u32 height = 9 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
 
     GrayImage hist_image;

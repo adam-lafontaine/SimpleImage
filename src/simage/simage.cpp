@@ -1484,7 +1484,7 @@ namespace simage
 }
 
 
-/* histogram */
+/* make_histograms */
 
 namespace simage
 {
@@ -1521,7 +1521,56 @@ namespace simage
 	}
 
 
-	static void make_histograms(View const& src, HistRGBr32& h_rgb, HistHSVr32& h_hsv, HistYUVr32& h_yuv, u32 n_bins)
+	static void make_histograms_from_rgb(View const& src, Histogram9r32& dst)
+	{
+		constexpr u32 PIXEL_STEP = 2;
+
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; x += PIXEL_STEP)
+			{
+				auto rgba = s[x].rgba;
+
+				auto red = cs::to_channel_r32(rgba.red);
+				auto green = cs::to_channel_r32(rgba.green);
+				auto blue = cs::to_channel_r32(rgba.blue);
+
+				auto hsv = hsv::from_rgb(red, green, blue);
+				auto yuv = yuv::from_rgb(red, green, blue);
+
+				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
+
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+				h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
+				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+			}
+		}
+
+		auto const total = (r32)src.width * src.height;
+
+		for (u32 i = 0; i < 9; ++i)
+		{
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
+		}
+	}
+
+
+	static void make_histograms_from_yuv(ViewYUV const& src, HistRGBr32& h_rgb, HistHSVr32& h_hsv, HistYUVr32& h_yuv, u32 n_bins)
 	{
 		u32 rgb_r_counts[MAX_HIST_BINS] = { 0 };
 		u32 rgb_g_counts[MAX_HIST_BINS] = { 0 };
@@ -1535,38 +1584,16 @@ namespace simage
 		u32 yuv_u_counts[MAX_HIST_BINS] = { 0 };
 		u32 yuv_v_counts[MAX_HIST_BINS] = { 0 };
 
-
 		for (u32 y = 0; y < src.height; y += 2)
 		{
-			auto s = row_begin(src, y);
-			for (u32 x = 0; x < src.width; x += 2)
-			{
-				auto rgba = s[x].rgba;
 
-				rgb_r_counts[to_hist_bin_u8(rgba.red, n_bins)]++;
-				rgb_g_counts[to_hist_bin_u8(rgba.green, n_bins)]++;
-				rgb_b_counts[to_hist_bin_u8(rgba.blue, n_bins)]++;
-
-				auto red = cs::to_channel_r32(rgba.red);
-				auto green = cs::to_channel_r32(rgba.green);
-				auto blue = cs::to_channel_r32(rgba.blue);
-
-				auto hsv = hsv::from_rgb(red, green, blue);
-				auto yuv = yuv::from_rgb(red, green, blue);				
-
-				hsv_h_counts[to_hist_bin_u8(hsv.hue, n_bins)]++;
-				hsv_s_counts[to_hist_bin_u8(hsv.sat, n_bins)]++;
-				hsv_v_counts[to_hist_bin_u8(hsv.val, n_bins)]++;
-
-				yuv_y_counts[to_hist_bin_u8(yuv.y, n_bins)]++;
-				yuv_u_counts[to_hist_bin_u8(yuv.u, n_bins)]++;
-				yuv_v_counts[to_hist_bin_u8(yuv.v, n_bins)]++;
-			}
 		}
+
+
 
 		auto const total = (r32)src.width * src.height;
 
-		for (u32 bin = 0; bin < MAX_HIST_BINS; ++bin)
+		for (u32 bin = 0; bin < n_bins; ++bin)
 		{
 			h_rgb.R[bin] = rgb_r_counts[bin] / total;
 			h_rgb.G[bin] = rgb_g_counts[bin] / total;
@@ -1583,17 +1610,31 @@ namespace simage
 	}
 
 
-	void histograms(View const& src, Histogram9r32& hist)
+	void make_histograms(View const& src, Histogram9r32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
-		assert(hist.n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % hist.n_bins == 0);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
 
-		hist.rgb = { 0 };
-		hist.hsv = { 0 };
-		hist.yuv = { 0 };
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.yuv = { 0 };
 
-		make_histograms(src, hist.rgb, hist.hsv, hist.yuv, hist.n_bins);
+		make_histograms_from_rgb(src, dst);
+	}
+
+
+	void make_histograms(ViewYUV const& src, Histogram9r32& dst)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
+
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.yuv = { 0 };
+
+		make_histograms_from_yuv(src, dst.rgb, dst.hsv, dst.yuv, dst.n_bins);
 	}
 }
 

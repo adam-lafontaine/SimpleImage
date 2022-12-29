@@ -356,7 +356,9 @@ namespace simage
 	};
 
 
-	void histograms(View const& src, Histogram9r32& hist);
+	void make_histograms(View const& src, Histogram9r32& dst);
+
+	void make_histograms(ViewYUV const& src, Histogram9r32& dst);
 }
 
 

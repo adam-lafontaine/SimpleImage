@@ -114,7 +114,7 @@ static bool histogram_fill_test()
 
     auto const do_hist = [&](const char* filename) 
     {
-        img::histograms(view, hists);
+        img::make_histograms(view, hists);
         draw(hists, hist_view);
         img::map(hist_view, dst);
         write_image(hist_image, filename);
@@ -176,7 +176,7 @@ static bool histogram_images_test()
 
     auto const do_hist = [&](Image const& image, const char* filename)
     {
-        img::histograms(img::make_view(image), hists);
+        img::make_histograms(img::make_view(image), hists);
         draw(hists, hist_view);
         img::map(hist_view, dst);
         write_image(hist_image, filename);

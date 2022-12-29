@@ -1250,9 +1250,11 @@ namespace simage
 	}
 
 
-	void fill(View1r32 const& view, r32 gray32)
+	void fill(View1r32 const& view, u8 gray)
 	{
 		assert(verify(view));
+
+		auto const gray32 = cs::to_channel_r32(gray);
 
 		auto const row_func = [&](u32 y)
 		{

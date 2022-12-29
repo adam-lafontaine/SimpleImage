@@ -281,7 +281,7 @@ namespace simage
 
 	void fill(View3r32 const& view, Pixel color);
 
-	void fill(View1r32 const& view, r32 gray32);
+	void fill(View1r32 const& view, u8 gray);
 }
 
 

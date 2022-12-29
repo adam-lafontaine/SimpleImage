@@ -80,10 +80,10 @@ using Point2Dr32 = Point2D<r32>;
 class Range2Du32
 {
 public:
-	u32 x_begin = 0;
-	u32 x_end = 0;   // one past last x
-	u32 y_begin = 0;
-	u32 y_end = 0;   // one past last y
+	u32 x_begin;
+	u32 x_end;  // one past last x
+	u32 y_begin;
+	u32 y_end;   // one past last y
 };
 
 

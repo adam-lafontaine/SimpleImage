@@ -932,6 +932,107 @@ namespace simage
 				d[x].rgba.red = 255;
 			}
 		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	void map_yuv_rgb2(ViewYUV const& src, ViewRGBr32 const& dst)
+	{		
+		static_assert(sizeof(YUV2) == 2);
+		assert(verify(src));
+		assert(verify(dst));
+		assert(src.width % 2 == 0);
+		assert(dst.width == src.width / 2);
+		assert(dst.height == src.height / 2);
+
+		constexpr auto avg4 = [](u8 a, u8 b, u8 c, u8 d) 
+		{
+			auto val = 0.25f * ((r32)a + b + c + d);
+			return (u8)(u32)(val + 0.5f);
+		};
+
+		constexpr auto avg2 = [](u8 a, u8 b)
+		{
+			auto val = 0.5f * ((r32)a + b);
+			return (u8)(u32)(val + 0.5f);
+		};
+
+		auto const row_func = [&](u32 y)
+		{
+			auto src_y1 = y * 2;
+			auto src_y2 = src_y1 + 1;
+
+			auto s1 = (YUV422*)row_begin(src, src_y1);
+			auto s2 = (YUV422*)row_begin(src, src_y2);
+			auto d = rgb_row_begin(dst, y).rgb;
+
+			for (u32 x = 0; x < dst.width; ++x)
+			{
+				auto yuv1 = s1[x];
+				auto yuv2 = s2[x];
+				auto y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
+				auto u_avg = avg2(yuv1.u, yuv2.u);
+				auto v_avg = avg2(yuv1.v, yuv2.v);
+
+				auto rgb = yuv::to_rgb(y_avg, u_avg, v_avg);
+				d.R[x] = rgb.red;
+				d.G[x] = rgb.green;
+				d.B[x] = rgb.blue;
+			}
+		};
+
+		process_rows(dst.height, row_func);
+	}
+
+
+	void map_yuv_rgb2(ViewYUV const& src, View const& dst)
+	{
+		static_assert(sizeof(YUV2) == 2);
+		assert(verify(src));
+		assert(verify(dst));
+		assert(src.width % 2 == 0);
+		assert(dst.width == src.width / 2);
+		assert(dst.height == src.height / 2);
+
+		constexpr auto avg4 = [](u8 a, u8 b, u8 c, u8 d)
+		{
+			auto val = 0.25f * ((r32)a + b + c + d);
+			return (u8)(u32)(val + 0.5f);
+		};
+
+		constexpr auto avg2 = [](u8 a, u8 b)
+		{
+			auto val = 0.5f * ((r32)a + b);
+			return (u8)(u32)(val + 0.5f);
+		};
+
+		auto const row_func = [&](u32 y)
+		{
+			auto src_y1 = y * 2;
+			auto src_y2 = src_y1 + 1;
+
+			auto s1 = (YUV422*)row_begin(src, src_y1);
+			auto s2 = (YUV422*)row_begin(src, src_y2);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < dst.width; ++x)
+			{
+				auto yuv1 = s1[x];
+				auto yuv2 = s2[x];
+				auto y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
+				auto u_avg = avg2(yuv1.u, yuv2.u);
+				auto v_avg = avg2(yuv1.v, yuv2.v);
+
+				auto rgb = yuv::to_rgb(y_avg, u_avg, v_avg);
+				d[x].rgba.red = cs::to_channel_u8(rgb.red);
+				d[x].rgba.green = cs::to_channel_u8(rgb.green);
+				d[x].rgba.blue = cs::to_channel_u8(rgb.blue);
+				d[x].rgba.red = 255;
+			}
+		};
+
+		process_rows(dst.height, row_func);
 	}
 }
 

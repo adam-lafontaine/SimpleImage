@@ -30,8 +30,8 @@ static bool create_destroy_test()
     result &= (buffer.capacity_ == 0);
     result &= (buffer.size_ == 0);
     printf("data: %p\n", (void*)buffer.data_);
-    printf("capacity: %zu\n", buffer.capacity_);
-    printf("size: %zu\n", buffer.size_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
     if (!result)
     {
         printf("FAIL\n");
@@ -49,8 +49,8 @@ static bool create_destroy_test()
     result &= (buffer.capacity_ == n_elements);
     result &= (buffer.size_ == 0);
     printf("data: %p\n", (void*)buffer.data_);
-    printf("capacity: %zu\n", buffer.capacity_);
-    printf("size: %zu\n", buffer.size_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
     if (!result)
     {
         printf("FAIL\n");
@@ -64,8 +64,8 @@ static bool create_destroy_test()
     result &= (buffer.capacity_ == 0);
     result &= (buffer.size_ == 0);
     printf("data: %p\n", (void*)buffer.data_);
-    printf("capacity: %zu\n", buffer.capacity_);
-    printf("size: %zu\n", buffer.size_);   
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);   
     if (!result)
     {
         printf("FAIL\n");
@@ -82,15 +82,15 @@ static bool push_elements_test()
     printf("\npush_elements_test\n");
 
     u32 capacity = 100;
-    size_t push = 25;
+    u32 push = 25;
     bool result = false;
 
     MemoryBuffer<u32> buffer{};
 
     printf("create_buffer()\n");
     result = mb::create_buffer(buffer, capacity);
-    printf("capacity: %zu\n", buffer.capacity_);
-    printf("size: %zu\n", buffer.size_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
     if (!result)
     {
         printf("FAIL\n");
@@ -105,7 +105,7 @@ static bool push_elements_test()
     auto ptr = mb::push_elements(buffer, 0);
     result = !is_valid_ptr(ptr);
     printf("ptr: %p\n", (void*)ptr);
-    printf("size: %zu\n", buffer.size_);
+    printf("size: %u\n", buffer.size_);
     if (!result)
     {
         printf("FAIL\n");
@@ -122,7 +122,7 @@ static bool push_elements_test()
     result = is_valid_ptr(chunk1);
     result &= (buffer.size_ == push);
     printf("chunk1: %p\n", (void*)chunk1);
-    printf("size: %zu\n", buffer.size_);
+    printf("size: %u\n", buffer.size_);
     if (!result)
     {
         printf("FAIL\n");
@@ -134,9 +134,10 @@ static bool push_elements_test()
     auto ptr_diff = int(chunk2 - chunk1);
     result = is_valid_ptr(chunk2);
     result &= (buffer.size_ == 2 * push);
-    result &= (ptr_diff >= push);
+    result &= (ptr_diff > 0);
+    result &= ((u32)ptr_diff >= push);
     printf("chunk2: %p\n", (void*)chunk2);
-    printf("size: %zu\n", buffer.size_);
+    printf("size: %u\n", buffer.size_);
     printf("ptr_diff: %d\n", ptr_diff);
     if (!result)
     {
@@ -154,8 +155,78 @@ static bool push_elements_test()
     result = !is_valid_ptr(chunk3);
     result &= (buffer.size_ == size);
     result &= (buffer.capacity_ == capacity);
-    printf("capacity: %zu\n", buffer.capacity_);
-    printf("size: %zu\n", buffer.size_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
+    if (!result)
+    {
+        printf("FAIL\n");
+        return false;
+    }
+    printf("OK\n");
+
+#else
+    printf("Skipped\n");
+#endif // !NDEBUG
+
+    mb::destroy_buffer(buffer);
+
+    return true;
+}
+
+
+static bool pop_elements_test()
+{
+    printf("\npop_elements_test\n");
+
+    u32 capacity = 100;
+    u32 push = 25;
+    u32 pop = 10;
+
+    bool result = false;
+
+    MemoryBuffer<u32> buffer{};
+
+    printf("create_buffer()\n");
+    result = mb::create_buffer(buffer, capacity);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
+    if (!result)
+    {
+        printf("FAIL\n");
+        return false;
+    }
+    printf("OK\n");
+
+    printf("push_elements()\n");
+    auto chunk1 = mb::push_elements(buffer, push);
+    result = is_valid_ptr(chunk1);
+    result &= (buffer.size_ == push);
+    printf("chunk1: %p\n", (void*)chunk1);
+    printf("size: %u\n", buffer.size_);
+    if (!result)
+    {
+        printf("FAIL\n");
+        return false;
+    }
+    printf("OK\n");
+
+    printf("pop_elements()\n");
+    mb::pop_elements(buffer, pop);
+    printf("size: %u\n", buffer.size_);
+    result = (buffer.size_ == push - pop);
+    if (!result)
+    {
+        printf("FAIL\n");
+        return false;
+    }
+    printf("OK\n");
+
+    printf("pop_elements() - too many elements\n");
+#ifdef NDEBUG
+
+    mb::pop_elements(buffer, buffer.size_ + 1);
+    result = (buffer.size_ == 0);
+    printf("size: %u\n", buffer.size_);
     if (!result)
     {
         printf("FAIL\n");
@@ -178,19 +249,19 @@ static bool reset_test()
     printf("\nreset_test\n");
 
     u32 n_elements = 100;
-    size_t push = 75;
+    u32 push = 75;
     bool result = false;
 
     MemoryBuffer<r32> buffer{};
 
     printf("create_buffer()\n");
     mb::create_buffer(buffer, n_elements);
-    printf("capacity: %zu\n", buffer.capacity_);
-    printf("size: %zu\n", buffer.size_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
 
     printf("push_elements()\n");
     auto chunk1 = mb::push_elements(buffer, push);
-    printf("size: %zu\n", buffer.size_);
+    printf("size: %u\n", buffer.size_);
 
     printf("reset_buffer()\n");
     mb::reset_buffer(buffer);
@@ -198,8 +269,8 @@ static bool reset_test()
     result &= (buffer.capacity_ == n_elements);
     result &= (buffer.size_ == 0);
     printf("data: %p\n", (void*)buffer.data_);
-    printf("capacity: %zu\n", buffer.capacity_);
-    printf("size: %zu\n", buffer.size_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
     if (!result)
     {
         printf("FAIL\n");
@@ -220,6 +291,7 @@ bool memory_buffer_tests()
     auto result = 
         create_destroy_test() &&
         push_elements_test() &&
+        pop_elements_test() &&
         reset_test();
 
     if (result)

@@ -4,6 +4,7 @@
 #include "../util/color_space.hpp"
 
 #include <cmath>
+#include <algorithm>
 
 
 namespace mb = memory_buffer;
@@ -118,10 +119,10 @@ namespace simage
 		};
 
 		// for_each_xy
-		r32& red() { return *rgba.R; }
+		/*r32& red() { return *rgba.R; }
 		r32& green() { return *rgba.G; }
 		r32& blue() { return *rgba.B; }
-		r32& alpha() { return *rgba.A; }
+		r32& alpha() { return *rgba.A; }*/
 	};
 
 
@@ -139,9 +140,9 @@ namespace simage
 		};
 
 		// for_each_xy
-		r32& red() { return *rgb.R; }
+		/*r32& red() { return *rgb.R; }
 		r32& green() { return *rgb.G; }
-		r32& blue() { return *rgb.B; }
+		r32& blue() { return *rgb.B; }*/
 	};
 
 
@@ -167,9 +168,26 @@ namespace simage
 			r32* channels[3] = {};
 		};
 
-		r32& hue() { return *hsv.H; }
+		/*r32& hue() { return *hsv.H; }
 		r32& sat() { return *hsv.S; }
-		r32& val() { return *hsv.V; }
+		r32& val() { return *hsv.V; }*/
+	};
+
+
+	class Pixel3CHr32
+	{
+	public:
+		static constexpr u32 n_channels = 3;
+
+		union 
+		{
+			RGBr32p rgb;
+
+			HSVr32p hsv;
+
+			r32* channels[3] = {};
+		};
+
 	};
 
 
@@ -774,12 +792,12 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgb = hsv::to_rgb_u8(s.H[x], s.S[x], s.V[x]);
+				auto rgb = hsv::to_rgb(s.H[x], s.S[x], s.V[x]);
 
 				auto& rgba = d[x].rgba;				
-				rgba.red = rgb.red;
-				rgba.green = rgb.green;
-				rgba.blue = rgb.blue;
+				rgba.red = cs::to_channel_u8(rgb.red);
+				rgba.green = cs::to_channel_u8(rgb.green);
+				rgba.blue = cs::to_channel_u8(rgb.blue);
 				rgba.alpha = ch_max;
 			}
 		};
@@ -986,6 +1004,22 @@ namespace simage
 	}
 
 
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range)
+	{
+		auto width = image_range.x_end - image_range.x_begin;
+		Range2Du32 camera_range = image_range;
+		camera_range.x_end = camera_range.x_begin + width / 2;
+
+		assert(verify(camera_src, camera_range));
+
+		auto sub_view = do_sub_view(camera_src, camera_range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
 	View4r32 sub_view(View4r32 const& view, Range2Du32 const& range)
 	{
 		assert(verify(view, range));
@@ -1151,3 +1185,485 @@ namespace simage
 		return rgb;
 	}
 }
+
+
+/* fill */
+
+namespace simage
+{
+	template <size_t N>
+	static void fill_n_channels(ViewCHr32<N> const& view, Pixel color)
+	{
+		r32 channels[N] = {};
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			channels[ch] = cs::to_channel_r32(color.channels[ch]);
+		}
+
+		auto const row_func = [&](u32 y)
+		{
+			for (u32 ch = 0; ch < N; ++ch)
+			{
+				auto d = channel_row_begin(view, y, ch);
+				for (u32 x = 0; x < view.width; ++x)
+				{
+					d[x] = channels[ch];
+				}
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	void fill(View const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				d[x] = color;
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	void fill(ViewGray const& view, u8 gray)
+	{
+		assert(verify(view));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				d[x] = gray;
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	void fill(View4r32 const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		fill_n_channels(view, color);
+	}
+
+
+	void fill(View3r32 const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		fill_n_channels(view, color);
+	}
+
+
+	void fill(View1r32 const& view, u8 gray)
+	{
+		assert(verify(view));
+
+		auto const gray32 = cs::to_channel_r32(gray);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				d[x] = gray32;
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+}
+
+
+/* shrink_view */
+
+namespace simage
+{
+	static r32 average(View1r32 const& view)
+	{
+		r32 total = 0.0f;
+
+		for (u32 y = 0; y < view.height; ++y)
+		{
+			auto s = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				total += s[x];
+			}
+		}
+
+		return total / (view.width * view.height);
+	}
+
+
+	static r32 average(ViewGray const& view)
+	{
+		r32 total = 0.0f;
+
+		for (u32 y = 0; y < view.height; ++y)
+		{
+			auto s = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				total += cs::to_channel_r32(s[x]);
+			}
+		}
+
+		return total / (view.width * view.height);
+	}
+
+
+	template <size_t N>
+	static std::array<r32, N> average(ViewCHr32<N> const& view)
+	{
+		std::array<r32, N> results = { 0 };
+		for (u32 i = 0; i < N; ++i) { results[i] = 0.0f; }
+
+		for (u32 y = 0; y < view.height; ++y)
+		{
+			PixelCHr32<N> s = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				for (u32 i = 0; i < N; ++i)
+				{
+					results[i] += s.channels[i][x];
+				}
+			}
+		}
+
+		for (u32 i = 0; i < N; ++i)
+		{
+			results[i] /= (view.width * view.height);
+		}
+
+		return results;
+	}
+	
+
+	static cs::RGBr32 average(View const& view)
+	{	
+		r32 red = 0.0f;
+		r32 green = 0.0f;
+		r32 blue = 0.0f;
+
+		for (u32 y = 0; y < view.height; ++y)
+		{
+			auto s = row_begin(view, y);
+			for (u32 x = 0; x < view.width; ++x)
+			{
+				auto p = s[x].rgba;
+				red += cs::to_channel_r32(p.red);
+				green += cs::to_channel_r32(p.green);
+				blue += cs::to_channel_r32(p.blue);
+			}
+		}
+
+		red /= (view.width * view.height);
+		green /= (view.width * view.height);
+		blue /= (view.width * view.height);
+
+		return { red, green, blue };
+	}
+
+
+	template <class VIEW>
+	static void do_shrink_1D(VIEW const& src, View1r32 const& dst)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(dst, y);
+
+			Range2Du32 r;
+			r.y_begin = y * src.height / dst.height;
+			r.y_end = r.y_begin + src.height / dst.height;
+			for (u32 x = 0; x < dst.width; ++x)
+			{
+				r.x_begin = x * src.width / dst.width;
+				r.x_end = r.x_begin + src.width / dst.width;
+				
+				d[x] = average(sub_view(src, r));
+			}
+		};
+
+		process_rows(dst.height, row_func);
+	}
+
+
+	void shrink(View1r32 const& src, View1r32 const& dst)
+	{
+		assert(verify(src));
+		assert(verify(dst));
+		assert(dst.width <= src.width);
+		assert(dst.height <= src.height);
+
+		do_shrink_1D(src, dst);
+	}
+
+
+	void shrink(View3r32 const& src, View3r32 const& dst)
+	{
+		assert(verify(src));
+		assert(verify(dst));
+		assert(dst.width <= src.width);
+		assert(dst.height <= src.height);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(dst, y);
+
+			Range2Du32 r;
+			r.y_begin = y * src.height / dst.height;
+			r.y_end = r.y_begin + src.height / dst.height;
+			for (u32 x = 0; x < dst.width; ++x)
+			{
+				r.x_begin = x * src.width / dst.width;
+				r.x_end = r.x_begin + src.width / dst.width;
+
+				auto avg = average(sub_view(src, r));
+
+				d.channels[0][x] = avg[0];
+				d.channels[1][x] = avg[1];
+				d.channels[2][x] = avg[2];
+			}
+		};
+
+		process_rows(dst.height, row_func);
+	}
+
+
+	void shrink(ViewGray const& src, View1r32 const& dst)
+	{
+		assert(verify(src));
+		assert(verify(dst));
+		assert(dst.width <= src.width);
+		assert(dst.height <= src.height);
+
+		do_shrink_1D(src, dst);
+	}
+
+
+	void shrink(View const& src, ViewRGBr32 const& dst)
+	{
+		assert(verify(src));
+		assert(verify(dst));
+		assert(dst.width <= src.width);
+		assert(dst.height <= src.height);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = rgb_row_begin(dst, y).rgb;
+
+			Range2Du32 r;
+			r.y_begin = y * src.height / dst.height;
+			r.y_end = r.y_begin + src.height / dst.height;
+			for (u32 x = 0; x < dst.width; ++x)
+			{
+				r.x_begin = x * src.width / dst.width;
+				r.x_end = r.x_begin + src.width / dst.width;
+
+				auto avg = average(sub_view(src, r));
+				d.R[x] = avg.red;
+				d.G[x] = avg.green;
+				d.B[x] = avg.blue;				
+			}
+		};
+
+		process_rows(dst.height, row_func);
+	}
+}
+
+
+/* make_histograms */
+
+namespace simage
+{
+	/*template <size_t N>
+	static std::array<View, N> split_view(View const& view)
+	{
+		std::array<View, N> sub_views;
+
+		Range2Du32 r;
+		r.x_begin = 0;
+		r.x_end = view.width;
+
+		for (u32 i = 0; i < N_THREADS; ++i)
+		{
+			r.y_begin = i * view.height / N_THREADS;
+			r.y_end = r.y_begin + view.height / N_THREADS;
+			sub_views[i] = sub_view(view, r);
+		}
+		sub_views.back().y_end = view.height;
+
+		return sub_views;
+	}*/
+
+
+	inline constexpr u8 to_hist_bin_u8(u8 val, u32 n_bins)
+	{
+		return val * n_bins / 256;
+	}
+
+
+	inline constexpr u8 to_hist_bin_u8(r32 val, u32 n_bins)
+	{
+		return cs::to_channel_u8(val) * n_bins / 256;
+	}
+
+
+	static void make_histograms_from_rgb(View const& src, Histogram9r32& dst)
+	{
+		constexpr u32 PIXEL_STEP = 2;
+
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
+
+		RGBAu8 rgba{};
+		cs::HSVr32 hsv{};
+		cs::YUVr32 yuv{};
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; x += PIXEL_STEP)
+			{
+				rgba = s[x].rgba;
+
+				auto red = cs::to_channel_r32(rgba.red);
+				auto green = cs::to_channel_r32(rgba.green);
+				auto blue = cs::to_channel_r32(rgba.blue);
+
+				hsv = hsv::from_rgb(red, green, blue);
+				yuv = yuv::from_rgb(red, green, blue);
+
+				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
+
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+				h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
+				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+			}
+		}
+
+		auto const total = (r32)src.width * src.height;
+
+		for (u32 i = 0; i < 9; ++i)
+		{
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
+		}
+	}
+
+
+	static void make_histograms_from_yuv(ViewYUV const& src, Histogram9r32& dst)
+	{
+		constexpr u32 PIXEL_STEP = 2;
+
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
+
+		cs::RGBr32 rgb{};
+		cs::HSVr32 hsv{};
+		YUV422 yuv{};
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422*)s2;
+			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
+			{
+				yuv = s422[x422];
+
+				rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
+				hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+
+				h_rgb.R[to_hist_bin_u8(rgb.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgb.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgb.blue, n_bins)]++;
+
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+				h_yuv.Y[to_hist_bin_u8(yuv.y1, n_bins)]++;
+				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+
+				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
+				hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+
+				h_rgb.R[to_hist_bin_u8(rgb.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgb.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgb.blue, n_bins)]++;
+
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+				h_yuv.Y[to_hist_bin_u8(yuv.y2, n_bins)]++;
+				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;				
+			}
+		}
+
+		auto const total = (r32)src.width * src.height;
+
+		for (u32 i = 0; i < 9; ++i)
+		{
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
+		}
+	}
+
+
+	void make_histograms(View const& src, Histogram9r32& dst)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
+
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.yuv = { 0 };
+
+		make_histograms_from_rgb(src, dst);
+	}
+
+
+	void make_histograms(ViewYUV const& src, Histogram9r32& dst)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
+
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.yuv = { 0 };
+
+		make_histograms_from_yuv(src, dst);
+	}
+}
+

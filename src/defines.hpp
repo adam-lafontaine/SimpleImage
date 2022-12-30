@@ -64,20 +64,16 @@ constexpr u32 N_THREADS = 16;
 #endif //!SIMAGE_NO_PARALLEL
 
 
-class Point2Du32
+template <typename T>
+class Point2D
 {
 public:
-	u32 x;
-	u32 y;
+	T x;
+	T y;
 };
 
-
-class Point2Dr32
-{
-public:
-	r32 x;
-	r32 y;
-};
+using Point2Du32 = Point2D<u32>;
+using Point2Dr32 = Point2D<r32>;
 
 
 // region of interest in an image
@@ -85,9 +81,38 @@ class Range2Du32
 {
 public:
 	u32 x_begin;
-	u32 x_end;   // one past last x
+	u32 x_end;  // one past last x
 	u32 y_begin;
 	u32 y_end;   // one past last y
+};
+
+
+inline Range2Du32 make_range(u32 width, u32 height)
+{
+	Range2Du32 r;
+
+	r.x_begin = 0;
+	r.y_begin = 0;
+	r.x_end = width;
+	r.y_end = height;
+
+	return r;
+}
+
+
+template <class T>
+inline Range2Du32 make_range(T const& c)
+{
+	return make_range(c.width, c.height);
+}
+
+
+template <typename T>
+class Matrix1D
+{
+public:
+	T* data_ = nullptr;
+	u32 length = 0;
 };
 
 

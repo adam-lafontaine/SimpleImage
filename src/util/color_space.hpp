@@ -82,15 +82,6 @@ namespace color_space
     };
 
 
-    class RGBu8
-    {
-    public:
-        u8 red;
-        u8 green;
-        u8 blue;
-    };
-
-
     class HSVr32
     {
     public:
@@ -115,7 +106,7 @@ namespace hsv
     namespace cs = color_space;
 
     using RGBr32 = cs::RGBr32;
-    using RGBu8 = cs::RGBu8;
+    //using RGBu8 = cs::RGBu8;
     using HSVr32 = cs::HSVr32;
 
 
@@ -204,18 +195,6 @@ namespace hsv
     }
 
 
-    inline constexpr RGBu8 to_rgb_u8(r32 h, r32 s, r32 v)
-    {
-        auto rgb = to_rgb(h, s, v);
-
-        return {
-            cs::to_channel_u8(rgb.red),
-            cs::to_channel_u8(rgb.green),
-            cs::to_channel_u8(rgb.blue)
-        };
-    }
-
-
     inline constexpr HSVr32 from_rgb(r32 r, r32 g, r32 b)
     {
         auto max = std::max(r, std::max(g, b));
@@ -298,14 +277,14 @@ namespace hsv
     }
 
 
-    inline constexpr HSVr32 from_rgb(u8 r, u8 g, u8 b)
+    /*inline constexpr HSVr32 from_rgb(u8 r, u8 g, u8 b)
     {
         auto R = cs::to_channel_r32(r);
         auto G = cs::to_channel_r32(g);
         auto B = cs::to_channel_r32(b);
 
         return from_rgb(R, G, B);
-    }
+    }*/
 }
 
 
@@ -315,6 +294,7 @@ namespace yuv
 
     using YUVr32 = cs::YUVr32;
     using RGBr32 = cs::RGBr32;
+    using HSVr32 = cs::HSVr32;
 
 
     inline constexpr YUVr32 from_rgb(r32 r, r32 g, r32 b)
@@ -335,12 +315,18 @@ namespace yuv
         r32 u = (ru * r) + (gu * g) + (bu * b);
         r32 v = (rv * r) + (gv * g) + (bv * b);
 
+        u += 0.5f;
+        v += 0.5f;
+
         return { y, u, v };
     }
 
 
     inline constexpr RGBr32 to_rgb(r32 y, r32 u, r32 v)
     {
+        u -= 0.5f;
+        v -= 0.5f;
+
         constexpr r32 yr = 1.0f;
         constexpr r32 ur = 0.0f;
         constexpr r32 vr = 1.13983f;
@@ -361,7 +347,7 @@ namespace yuv
     }
 
 
-    static constexpr std::array<r32, 256> uv_channel_r32_lut()
+    /*static constexpr std::array<r32, 256> uv_channel_r32_lut()
     {
         std::array<r32, 256> lut = {};
 
@@ -379,16 +365,34 @@ namespace yuv
         constexpr auto lut = uv_channel_r32_lut();
 
         return lut[value];
-    }
+    }*/
 
 
-    inline constexpr RGBr32 to_rgb(u8 y, u8 u, u8 v)
+    /*inline constexpr RGBr32 to_rgb(u8 y, u8 u, u8 v)
     {
         auto Y = cs::to_channel_r32(y);
-        auto U = to_uv_channel_r32(u);
-        auto V = to_uv_channel_r32(v);
+        auto U = cs::to_channel_r32(u);
+        auto V = cs::to_channel_r32(v);
 
         return to_rgb(Y, U, V);
     }
+
+
+    inline constexpr HSVr32 to_hsv(u8 y, u8 u, u8 v)
+    {
+        auto rgb = to_rgb(y, u, v);
+
+        return hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+    }*/
+
+
+    /*inline constexpr YUVr32 from_rgb(u8 r, u8 g, u8 b)
+    {
+        auto R = cs::to_channel_r32(r);
+        auto G = cs::to_channel_r32(g);
+        auto B = cs::to_channel_r32(b);
+
+        return from_rgb(R, G, B);
+    }*/
 
 }

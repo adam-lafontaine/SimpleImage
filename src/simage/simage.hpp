@@ -3,6 +3,8 @@
 #include "simage_platform.hpp"
 #include "../util/memory_buffer.hpp"
 
+#include <array>
+
 namespace mb = memory_buffer;
 
 
@@ -23,6 +25,12 @@ namespace simage
 	enum class HSV : int
 	{
 		H = 0, S = 1, V = 2
+	};
+
+
+	enum class YUV : int
+	{
+		Y = 0, U = 1, V = 2
 	};
 
 
@@ -130,6 +138,7 @@ namespace simage
 		r32* channels[N] = {};
 	};
 
+
 	using View1r32 = MatrixView<r32>;
 
     using View4r32 = ViewCHr32<4>;
@@ -231,6 +240,9 @@ namespace simage
 	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
 
 
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range);
+
+
 	View4r32 sub_view(View4r32 const& view, Range2Du32 const& range);
 
 	View3r32 sub_view(View3r32 const& view, Range2Du32 const& range);
@@ -257,6 +269,96 @@ namespace simage
 
 
 	ViewRGBr32 select_rgb(ViewRGBAr32 const& view);
+}
+
+
+/* fill */
+
+namespace simage
+{
+	void fill(View const& view, Pixel color);
+
+	void fill(ViewGray const& view, u8 gray);
+
+	void fill(View4r32 const& view, Pixel color);
+
+	void fill(View3r32 const& view, Pixel color);
+
+	void fill(View1r32 const& view, u8 gray);
+}
+
+
+/* shrink */
+
+namespace simage
+{
+	void shrink(View1r32 const& src, View1r32 const& dst);
+
+	void shrink(View3r32 const& src, View3r32 const& dst);
+
+	void shrink(ViewGray const& src, View1r32 const& dst);
+
+	void shrink(View const& src, ViewRGBr32 const& dst);
+}
+
+
+/* histogram */
+
+namespace simage
+{
+	constexpr u32 MAX_HIST_BINS = 256;
+
+
+	class HistRGBr32
+	{
+	public:
+		r32 R[MAX_HIST_BINS];
+		r32 G[MAX_HIST_BINS];
+		r32 B[MAX_HIST_BINS];
+	};	
+
+
+	class HistHSVr32
+	{
+	public:
+		r32 H[MAX_HIST_BINS];
+		r32 S[MAX_HIST_BINS];
+		r32 V[MAX_HIST_BINS];
+	};
+
+
+	class HistYUVr32
+	{
+	public:
+		r32 Y[MAX_HIST_BINS];
+		r32 U[MAX_HIST_BINS];
+		r32 V[MAX_HIST_BINS];
+	};
+
+
+	class Histogram9r32
+	{
+	public:
+		
+		union
+		{
+			struct
+			{
+				HistRGBr32 rgb;
+				HistHSVr32 hsv;
+				HistYUVr32 yuv;
+			};
+
+			r32 list[9][MAX_HIST_BINS] = { 0 };
+		};
+
+		u32 n_bins = MAX_HIST_BINS;
+	};
+
+
+	void make_histograms(View const& src, Histogram9r32& dst);
+
+	void make_histograms(ViewYUV const& src, Histogram9r32& dst);
 }
 
 

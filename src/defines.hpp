@@ -19,6 +19,11 @@
 //#define JETSON_NANO
 
 
+#define SIMD_INTEL_256
+//#define SIMD_INTEL_128
+//#define SIMD_ARM_NEON
+
+
 #ifdef RPI_3B_PLUS
 
 #define SIMAGE_NO_CPP17
@@ -89,7 +94,7 @@ public:
 
 inline Range2Du32 make_range(u32 width, u32 height)
 {
-	Range2Du32 r;
+	Range2Du32 r{};
 
 	r.x_begin = 0;
 	r.y_begin = 0;

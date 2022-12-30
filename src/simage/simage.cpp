@@ -3,6 +3,14 @@
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
 
+//#define SIMAGE_NO_SIMD
+
+#ifndef SIMAGE_NO_SIMD
+#include "../util/simd.hpp"
+#endif // !SIMAGE_NO_SIMD
+
+
+
 #include <cmath>
 #include <algorithm>
 
@@ -1191,8 +1199,24 @@ namespace simage
 
 namespace simage
 {
+	template <class VIEW, typename COLOR>
+	static void fill_no_simd(VIEW const& view, COLOR color)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 i = 0; i < view.width; ++i)
+			{
+				d[i] = color;
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
 	template <size_t N>
-	static void fill_n_channels(ViewCHr32<N> const& view, Pixel color)
+	static void fill_n_channels_no_simd(ViewCHr32<N> const& view, Pixel color)
 	{
 		r32 channels[N] = {};
 		for (u32 ch = 0; ch < N; ++ch)
@@ -1216,31 +1240,89 @@ namespace simage
 	}
 
 
-	void fill(View const& view, Pixel color)
-	{
-		assert(verify(view));
+#ifdef SIMAGE_NO_SIMD
 
+	template <class VIEW, typename COLOR>
+	static void do_fill(VIEW const& view, COLOR color)
+	{
+		fill_no_simd(view, color);
+	}
+
+
+	template <size_t N>
+	static void do_fill_n_channels(ViewCHr32<N> const& view, Pixel color)
+	{
+		fill_n_channels_no_simd(view, color);
+	}
+
+#else
+
+	static void fill_row_simd(r32* dst_begin, r32 value, u32 length)
+	{
+		constexpr u32 STEP = simd::VEC_LEN;
+
+		r32* dst = 0;
+		r32* val = &value;
+		simd::vec_t vec{};
+
+		auto const do_simd = [&](u32 i) 
+		{
+			dst = dst_begin + i;
+			vec = simd::load_broadcast(val);
+			simd::store(dst, vec);
+		};
+
+		for (u32 i = 0; i < length - STEP; i += STEP)
+		{
+			do_simd(i);
+		}
+
+		do_simd(length - STEP);
+	}
+
+
+	static void fill_simd(View1r32 const& view, r32 gray32)
+	{
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(view, y);
-			for (u32 x = 0; x < view.width; ++x)
-			{
-				d[x] = color;
-			}
+			fill_row_simd(d, gray32, view.width);
 		};
 
 		process_rows(view.height, row_func);
 	}
 
 
-	void fill(ViewGray const& view, u8 gray)
+	static void fill_simd(View const& view, Pixel color)
 	{
-		assert(verify(view));
+		static_assert(sizeof(Pixel) == sizeof(r32));
+
+		auto ptr = (r32*)(&color);
 
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(view, y);
-			for (u32 x = 0; x < view.width; ++x)
+			fill_row_simd((r32*)d, *ptr, view.width);
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	static void fill_simd(ViewGray const& view, u8 gray)
+	{
+		static_assert(4 * sizeof(u8) == sizeof(r32));
+
+		u8 bytes[4] = { gray, gray, gray, gray };
+		auto ptr = (r32*)bytes;
+		auto len32 = view.width / 4;
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			fill_row_simd((r32*)d, *ptr, len32);
+
+			for (u32 x = len32 * 4; x < view.width; ++x)
 			{
 				d[x] = gray;
 			}
@@ -1250,11 +1332,80 @@ namespace simage
 	}
 
 
+	template <size_t N>
+	static void fill_n_channels_simd(ViewCHr32<N> const& view, Pixel color)
+	{
+		r32 channels[N] = {};
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			channels[ch] = cs::to_channel_r32(color.channels[ch]);
+		}
+
+		auto const row_func = [&](u32 y)
+		{
+			for (u32 ch = 0; ch < N; ++ch)
+			{
+				auto d = channel_row_begin(view, y, ch);
+				fill_row_simd(d, channels[ch], view.width);
+			}
+		};
+
+		process_rows(view.height, row_func);
+	}
+
+
+	template <class VIEW, typename COLOR>
+	static void do_fill(VIEW const& view, COLOR color)
+	{
+		auto len32 = view.width * sizeof(COLOR) / sizeof(r32);
+		if (len32 < simd::VEC_LEN)
+		{
+			fill_no_simd(view, color);
+		}
+		else
+		{
+			fill_simd(view, color);
+		}		
+	}
+
+
+	template <size_t N>
+	static void do_fill_n_channels(ViewCHr32<N> const& view, Pixel color)
+	{
+		if (view.width < simd::VEC_LEN)
+		{
+			fill_n_channels_no_simd(view, color);
+		}
+		else
+		{
+			fill_n_channels_simd(view, color);
+		}		
+	}
+
+#endif	
+
+
+	void fill(View const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		do_fill(view, color);
+	}
+
+
+	void fill(ViewGray const& view, u8 gray)
+	{
+		assert(verify(view));
+
+		do_fill(view, gray);
+	}
+
+
 	void fill(View4r32 const& view, Pixel color)
 	{
 		assert(verify(view));
 
-		fill_n_channels(view, color);
+		do_fill_n_channels(view, color);
 	}
 
 
@@ -1262,26 +1413,17 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_n_channels(view, color);
+		do_fill_n_channels(view, color);
 	}
 
 
 	void fill(View1r32 const& view, u8 gray)
 	{
-		assert(verify(view));
+		assert(verify(view));		
 
 		auto const gray32 = cs::to_channel_r32(gray);
 
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			for (u32 x = 0; x < view.width; ++x)
-			{
-				d[x] = gray32;
-			}
-		};
-
-		process_rows(view.height, row_func);
+		do_fill(view, gray32);
 	}
 }
 
@@ -1667,3 +1809,13 @@ namespace simage
 	}
 }
 
+
+#ifdef SIMAGE_NO_SIMD
+
+
+
+#else
+
+
+
+#endif

@@ -11,7 +11,7 @@ bool fill_platform_view_test()
 
     bool result = false;
 
-    u32 width = 800;
+    u32 width = 799;
 	u32 height = 800;
 
     GrayImage gray;

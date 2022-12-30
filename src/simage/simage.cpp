@@ -899,6 +899,40 @@ namespace simage
 
 		process_rows(src.height, row_func);
 	}
+
+
+	void map_yuv_rgb(ViewYUV const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+		assert(src.width % 2 == 0);
+		static_assert(sizeof(YUV2) == 2);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422*)s2;
+			auto d = row_begin(dst, y);
+
+			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
+			{
+				auto yuv = s422[x422];
+
+				auto x = 2 * x422;
+				auto rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
+				d[x].rgba.red = cs::to_channel_u8(rgb.red);
+				d[x].rgba.green = cs::to_channel_u8(rgb.green);
+				d[x].rgba.blue = cs::to_channel_u8(rgb.blue);
+				d[x].rgba.red = 255;
+
+				++x;
+				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
+				d[x].rgba.red = cs::to_channel_u8(rgb.red);
+				d[x].rgba.green = cs::to_channel_u8(rgb.green);
+				d[x].rgba.blue = cs::to_channel_u8(rgb.blue);
+				d[x].rgba.red = 255;
+			}
+		};
+	}
 }
 
 

@@ -224,6 +224,8 @@ namespace simage
 namespace simage
 {
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst);
+
+	void map_yuv_rgb(ViewYUV const& src, View const& dst);
 }
 
 

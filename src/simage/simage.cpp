@@ -3,6 +3,14 @@
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
 
+//#define SIMAGE_NO_SIMD
+
+#ifndef SIMAGE_NO_SIMD
+#include "../util/simd.hpp"
+#endif // !SIMAGE_NO_SIMD
+
+
+
 #include <cmath>
 #include <algorithm>
 
@@ -1191,6 +1199,44 @@ namespace simage
 
 namespace simage
 {
+#ifdef SIMAGE_NO_SIMD
+
+	static void fill_row(r32* dst_begin, r32 value, u32 length)
+	{
+		for (u32 i = 0; i < length; ++i)
+		{
+			dst_begin[i] = value;
+		}
+	}
+
+#else
+
+	static void fill_row(r32* dst_begin, r32 value, u32 length)
+	{
+		constexpr u32 STEP = simd::VEC_LEN;
+
+		r32* dst = 0;
+		simd::vec_t vec{};
+
+		auto const do_simd = [&](u32 i) 
+		{
+			dst = dst_begin + i;
+			vec = simd::load_broadcast(&value);
+			simd::store(dst, vec);
+		};
+
+		for (u32 i = 0; i < length - STEP; i += STEP)
+		{
+			do_simd(i);
+		}
+
+		do_simd(length - STEP);
+	}
+
+#endif
+	
+
+
 	template <size_t N>
 	static void fill_n_channels(ViewCHr32<N> const& view, Pixel color)
 	{
@@ -1205,10 +1251,7 @@ namespace simage
 			for (u32 ch = 0; ch < N; ++ch)
 			{
 				auto d = channel_row_begin(view, y, ch);
-				for (u32 x = 0; x < view.width; ++x)
-				{
-					d[x] = channels[ch];
-				}
+				fill_row(d, channels[ch], view.width);
 			}
 		};
 
@@ -1667,3 +1710,13 @@ namespace simage
 	}
 }
 
+
+#ifdef SIMAGE_NO_SIMD
+
+
+
+#else
+
+
+
+#endif

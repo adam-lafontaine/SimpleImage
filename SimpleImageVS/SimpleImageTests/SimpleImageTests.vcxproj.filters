@@ -128,5 +128,8 @@
     <ClInclude Include="..\..\src\simage\simage_platform.hpp">
       <Filter>Header Files\src\simage</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\util\simd.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

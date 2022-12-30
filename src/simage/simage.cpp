@@ -1171,14 +1171,6 @@ namespace simage
 	{
 		assert(verify(view));
 
-		constexpr auto r4 = id_cast(RGBA::R);
-		constexpr auto g4 = id_cast(RGBA::G);
-		constexpr auto b4 = id_cast(RGBA::B);
-
-		constexpr auto r3 = id_cast(RGB::R);
-		constexpr auto g3 = id_cast(RGB::G);
-		constexpr auto b3 = id_cast(RGB::B);
-
 		ViewRGBr32 rgb;
 
 		rgb.image_width = view.image_width;
@@ -1186,9 +1178,9 @@ namespace simage
 		rgb.height = view.height;
 		rgb.range = view.range;
 
-		rgb.image_channel_data[r3] = view.image_channel_data[r4];
-		rgb.image_channel_data[g3] = view.image_channel_data[g4];
-		rgb.image_channel_data[b3] = view.image_channel_data[b4];
+		rgb.image_channel_data[id_cast(RGB::R)] = view.image_channel_data[id_cast(RGB::R)];
+		rgb.image_channel_data[id_cast(RGB::G)] = view.image_channel_data[id_cast(RGB::G)];
+		rgb.image_channel_data[id_cast(RGB::B)] = view.image_channel_data[id_cast(RGB::B)];
 
 		return rgb;
 	}

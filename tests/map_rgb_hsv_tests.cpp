@@ -26,8 +26,8 @@ static bool hsv_conversion_test()
             {
                 auto blue = b / 255.0f;
 
-                auto hsv = hsv::from_rgb(red, green, blue);
-                auto rgb = hsv::to_rgb(hsv.hue, hsv.sat, hsv.val);
+                auto hsv = hsv::r32_from_rgb_r32(red, green, blue);
+                auto rgb = hsv::r32_to_rgb_r32(hsv.hue, hsv.sat, hsv.val);
 
                 if (not_equals(red, rgb.red) || not_equals(green, rgb.green) || not_equals(blue, rgb.blue))
                 {

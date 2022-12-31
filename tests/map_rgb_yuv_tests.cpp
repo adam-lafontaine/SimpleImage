@@ -12,7 +12,7 @@ static bool yuv_conversion_test()
     printf("yuv converstion_test\n");
     auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.0f / 255.0f); };
 
-    std::vector<int> results(255, 1);
+    std::vector<int> results(256, 1);
 
     auto const red_func = [&](u32 r)
     {
@@ -26,8 +26,8 @@ static bool yuv_conversion_test()
             {
                 auto blue = b / 255.0f;
 
-                auto yuv = yuv::from_rgb(red, green, blue);
-                auto rgb = yuv::to_rgb(yuv.y, yuv.u, yuv.v);
+                auto yuv = yuv::r32_from_rgb_r32(red, green, blue);
+                auto rgb = yuv::r32_to_rgb_r32(yuv.y, yuv.u, yuv.v);
 
                 if (not_equals(red, rgb.red) || not_equals(green, rgb.green) || not_equals(blue, rgb.blue))
                 {

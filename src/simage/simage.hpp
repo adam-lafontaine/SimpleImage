@@ -201,6 +201,24 @@ namespace simage
 	void map_rgb(View const& src, ViewRGBr32 const& dst);
 
 	void map_rgb(ViewRGBr32 const& src, View const& dst);
+
+
+	/*inline ViewRGBAr32 make_rgba_view(View const& src, Buffer32& buffer)
+	{
+		auto view = make_view_4(src.width, src.height, buffer);
+		map_rgb(src, view);
+
+		return view;
+	}
+
+
+	inline ViewRGBr32 make_rgb_view(View const& src, Buffer32& buffer)
+	{
+		auto view = make_view_3(src.width, src.height, buffer);
+		map_rgb(src, view);
+
+		return view;
+	}*/
 }
 
 

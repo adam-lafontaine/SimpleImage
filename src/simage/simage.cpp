@@ -776,7 +776,7 @@ namespace simage
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto rgba = s[x].rgba;
-				auto hsv = hsv::from_rgb(rgba.red, rgba.green, rgba.blue);
+				auto hsv = hsv::r32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 				d.H[x] = hsv.hue;
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
@@ -791,8 +791,6 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		constexpr auto ch_max = cs::to_channel_u8(1.0f);
-
 		auto const row_func = [&](u32 y) 
 		{
 			auto s = hsv_row_begin(src, y).hsv;
@@ -800,13 +798,12 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgb = hsv::to_rgb(s.H[x], s.S[x], s.V[x]);
+				auto rgba = hsv::r32_to_rgba_u8(s.H[x], s.S[x], s.V[x]);
 
-				auto& rgba = d[x].rgba;				
-				rgba.red = cs::to_channel_u8(rgb.red);
-				rgba.green = cs::to_channel_u8(rgb.green);
-				rgba.blue = cs::to_channel_u8(rgb.blue);
-				rgba.alpha = ch_max;
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.alpha = 255;
 			}
 		};
 
@@ -829,7 +826,7 @@ namespace simage
 				auto g = s.G[x];
 				auto b = s.B[x];
 
-				auto hsv = hsv::from_rgb(r, g, b);
+				auto hsv = hsv::r32_from_rgb_r32(r, g, b);
 				d.H[x] = hsv.hue;
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
@@ -851,7 +848,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgb = hsv::to_rgb(s.H[x], s.S[x], s.V[x]);
+				auto rgb = hsv::r32_to_rgb_r32(s.H[x], s.S[x], s.V[x]);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
@@ -884,13 +881,13 @@ namespace simage
 				auto yuv = s422[x422];
 				
 				auto x = 2 * x422;
-				auto rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
+				auto rgb = yuv::u8_to_rgb_r32(yuv.y1, yuv.u, yuv.v);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
 
 				++x;
-				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
+				rgb = rgb = yuv::u8_to_rgb_r32(yuv.y2, yuv.u, yuv.v);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
@@ -918,17 +915,17 @@ namespace simage
 				auto yuv = s422[x422];
 
 				auto x = 2 * x422;
-				auto rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
-				d[x].rgba.red = cs::to_channel_u8(rgb.red);
-				d[x].rgba.green = cs::to_channel_u8(rgb.green);
-				d[x].rgba.blue = cs::to_channel_u8(rgb.blue);
+				auto rgba = yuv::u8_to_rgba_u8(yuv.y1, yuv.u, yuv.v);
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
 				d[x].rgba.red = 255;
 
 				++x;
-				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
-				d[x].rgba.red = cs::to_channel_u8(rgb.red);
-				d[x].rgba.green = cs::to_channel_u8(rgb.green);
-				d[x].rgba.blue = cs::to_channel_u8(rgb.blue);
+				rgba = yuv::u8_to_rgba_u8(yuv.y2, yuv.u, yuv.v);
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
 				d[x].rgba.red = 255;
 			}
 		};
@@ -937,7 +934,7 @@ namespace simage
 	}
 
 
-	void map_yuv_rgb2(ViewYUV const& src, ViewRGBr32 const& dst)
+	void mipmap_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
 	{		
 		static_assert(sizeof(YUV2) == 2);
 		assert(verify(src));
@@ -971,11 +968,11 @@ namespace simage
 			{
 				auto yuv1 = s1[x];
 				auto yuv2 = s2[x];
-				auto y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
-				auto u_avg = avg2(yuv1.u, yuv2.u);
-				auto v_avg = avg2(yuv1.v, yuv2.v);
+				u8 y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
+				u8 u_avg = avg2(yuv1.u, yuv2.u);
+				u8 v_avg = avg2(yuv1.v, yuv2.v);
 
-				auto rgb = yuv::to_rgb(y_avg, u_avg, v_avg);
+				auto rgb = yuv::u8_to_rgb_r32(y_avg, u_avg, v_avg);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
@@ -1020,15 +1017,15 @@ namespace simage
 			{
 				auto yuv1 = s1[x];
 				auto yuv2 = s2[x];
-				auto y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
-				auto u_avg = avg2(yuv1.u, yuv2.u);
-				auto v_avg = avg2(yuv1.v, yuv2.v);
+				u8 y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
+				u8 u_avg = avg2(yuv1.u, yuv2.u);
+				u8 v_avg = avg2(yuv1.v, yuv2.v);
 
-				auto rgb = yuv::to_rgb(y_avg, u_avg, v_avg);
-				d[x].rgba.red = cs::to_channel_u8(rgb.red);
-				d[x].rgba.green = cs::to_channel_u8(rgb.green);
-				d[x].rgba.blue = cs::to_channel_u8(rgb.blue);
-				d[x].rgba.red = 255;
+				auto rgba = yuv::u8_to_rgba_u8(y_avg, u_avg, v_avg);
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.alpha = 255;
 			}
 		};
 
@@ -1653,7 +1650,7 @@ namespace simage
 		{
 			auto d = row_begin(dst, y);
 
-			Range2Du32 r;
+			Range2Du32 r{};
 			r.y_begin = y * src.height / dst.height;
 			r.y_end = r.y_begin + src.height / dst.height;
 			for (u32 x = 0; x < dst.width; ++x)
@@ -1784,12 +1781,6 @@ namespace simage
 	}
 
 
-	inline constexpr u8 to_hist_bin_u8(r32 val, u32 n_bins)
-	{
-		return cs::to_channel_u8(val) * n_bins / 256;
-	}
-
-
 	static void make_histograms_from_rgb(View const& src, Histogram9r32& dst)
 	{
 		constexpr u32 PIXEL_STEP = 2;
@@ -1800,8 +1791,8 @@ namespace simage
 		auto n_bins = dst.n_bins;
 
 		RGBAu8 rgba{};
-		cs::HSVr32 hsv{};
-		cs::YUVr32 yuv{};
+		cs::HSVu8 hsv{};
+		cs::YUVu8 yuv{};
 
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
@@ -1810,12 +1801,8 @@ namespace simage
 			{
 				rgba = s[x].rgba;
 
-				auto red = cs::to_channel_r32(rgba.red);
-				auto green = cs::to_channel_r32(rgba.green);
-				auto blue = cs::to_channel_r32(rgba.blue);
-
-				hsv = hsv::from_rgb(red, green, blue);
-				yuv = yuv::from_rgb(red, green, blue);
+				hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				yuv = yuv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
 				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
@@ -1852,8 +1839,8 @@ namespace simage
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
-		cs::RGBr32 rgb{};
-		cs::HSVr32 hsv{};
+		cs::RGBAu8 rgba{};
+		cs::HSVu8 hsv{};
 		YUV422 yuv{};
 
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
@@ -1864,12 +1851,12 @@ namespace simage
 			{
 				yuv = s422[x422];
 
-				rgb = yuv::to_rgb(yuv.y1, yuv.u, yuv.v);
-				hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+				rgba = yuv::u8_to_rgba_u8(yuv.y1, yuv.u, yuv.v);
+				hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
-				h_rgb.R[to_hist_bin_u8(rgb.red, n_bins)]++;
-				h_rgb.G[to_hist_bin_u8(rgb.green, n_bins)]++;
-				h_rgb.B[to_hist_bin_u8(rgb.blue, n_bins)]++;
+				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
 
 				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
 				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
@@ -1879,20 +1866,20 @@ namespace simage
 				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
 				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
 
-				rgb = rgb = yuv::to_rgb(yuv.y2, yuv.u, yuv.v);
-				hsv = hsv::from_rgb(rgb.red, rgb.green, rgb.blue);
+				rgba = yuv::u8_to_rgba_u8(yuv.y2, yuv.u, yuv.v);
+				hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
-				h_rgb.R[to_hist_bin_u8(rgb.red, n_bins)]++;
-				h_rgb.G[to_hist_bin_u8(rgb.green, n_bins)]++;
-				h_rgb.B[to_hist_bin_u8(rgb.blue, n_bins)]++;
+				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
 
 				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
 				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
 				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
 
-				h_yuv.Y[to_hist_bin_u8(yuv.y2, n_bins)]++;
+				h_yuv.Y[to_hist_bin_u8(yuv.y1, n_bins)]++;
 				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
-				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;				
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
 			}
 		}
 

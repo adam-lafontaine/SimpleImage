@@ -1791,7 +1791,7 @@ namespace simage
 		auto n_bins = dst.n_bins;
 
 		RGBAu8 rgba{};
-		cs::HSVu8 hsv{};
+		cs::HSVAu8 hsva{};
 		cs::YUVu8 yuv{};
 
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
@@ -1801,16 +1801,19 @@ namespace simage
 			{
 				rgba = s[x].rgba;
 
-				hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				hsva = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 				yuv = yuv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
 				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
 				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
 
-				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
-				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
-				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+				if (hsva.alpha)
+				{
+					h_hsv.H[to_hist_bin_u8(hsva.hue, n_bins)]++;
+					h_hsv.S[to_hist_bin_u8(hsva.sat, n_bins)]++;
+					h_hsv.V[to_hist_bin_u8(hsva.val, n_bins)]++;
+				}				
 
 				h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
 				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
@@ -1842,15 +1845,18 @@ namespace simage
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v) 
 		{
 			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
-			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+			auto hsva = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 			h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
 			h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
 			h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
 
-			h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
-			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
-			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+			if (hsva.alpha)
+			{
+				h_hsv.H[to_hist_bin_u8(hsva.hue, n_bins)]++;
+				h_hsv.S[to_hist_bin_u8(hsva.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsva.val, n_bins)]++;
+			}
 
 			h_yuv.Y[to_hist_bin_u8(yuv_y, n_bins)]++;
 			h_yuv.U[to_hist_bin_u8(yuv_u, n_bins)]++;

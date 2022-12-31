@@ -8,22 +8,31 @@
 
 namespace color_space
 {
-    static constexpr std::array<r32, 256> channel_r32_lut()
+    namespace lut
     {
-        std::array<r32, 256> lut = {};
-
-        for (u32 i = 0; i < 256; ++i)
+        static constexpr std::array<r32, 256> channel_r32()
         {
-            lut[i] = i / 255.0f;
-        }
+            std::array<r32, 256> lut = {};
 
-        return lut;
+            for (u32 i = 0; i < 256; ++i)
+            {
+                lut[i] = i / 255.0f;
+            }
+
+            return lut;
+        }
     }
+}
+
+
+namespace color_space
+{
+    
 
 
     static constexpr r32 to_channel_r32(u8 value)
     {
-        constexpr auto lut = channel_r32_lut();
+        constexpr auto lut = lut::channel_r32();
 
         return lut[value];
     }
@@ -39,6 +48,10 @@ namespace color_space
         {
             value = 1.0f;
         }
+
+        constexpr auto val = (u8)513;
+
+        constexpr auto val2 = 513 % 256;
 
         return value;
     }
@@ -113,13 +126,13 @@ namespace color_space
     };
 
 
-    class HSVu8
+    class HSVAu8
     {
     public:
         u8 hue;
         u8 sat;
         u8 val;
-        u8 pad;
+        u8 alpha;
     };
 
 
@@ -350,25 +363,41 @@ namespace hsv
     }
 
 
-    inline constexpr cs::HSVu8 u8_from_rgb_r32(r32 r, r32 g, r32 b)
+    inline constexpr cs::HSVAu8 u8_from_rgb_r32(r32 r, r32 g, r32 b)
     {
-        auto hsv = r32_from_rgb_r32(r, g, b);
+        auto R = cs::clamp(r);
+        auto G = cs::clamp(g);
+        auto B = cs::clamp(b);
+        
+        auto hsv = r32_from_rgb_r32(R, G, B);
 
         auto h = cs::round_to_u8(hsv.hue * 255);
         auto s = cs::round_to_u8(hsv.sat * 255);
         auto v = cs::round_to_u8(hsv.val * 255);
+        u8 a = hsv.hue < 0.0f ? 0 : 255;
 
-        return { h, s, v, 0 };
+        return { h, s, v, a };
     }
 
 
-    inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    inline constexpr cs::HSVAu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
     {
-        auto R = cs::to_channel_r32(r);
-        auto G = cs::to_channel_r32(g);
-        auto B = cs::to_channel_r32(b);
+        auto min = std::min({ r, g, b });
+        auto max = std::max({ r, g, b });
 
-        return u8_from_rgb_r32(R, G, B);
+        auto v = max;
+        auto s = cs::round_to_u8(255.0f * (max - min) / max);
+        u8 a = max == min ? 0 : 255;
+
+        auto R = (r32)(r - min) / (max - min);
+        auto G = (r32)(g - min) / (max - min);
+        auto B = (r32)(b - min) / (max - min);
+
+        auto hsv = r32_from_rgb_r32(R, G, B);
+
+        auto h = cs::round_to_u8(hsv.hue * 255);
+
+        return { h, s, v, a };
     }
 }
 

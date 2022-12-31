@@ -102,6 +102,67 @@ static bool map_hsv_test()
 }
 
 
+static bool map_hsv_gray_test()
+{
+    auto title = "map_hsv_gray_test";
+    printf("\n%s:\n", title);
+    auto out_dir = IMAGE_OUT_PATH / title;
+    empty_dir(out_dir);
+    auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
+
+    GrayImage vette_gray;
+    img::read_image_from_file(CORVETTE_PATH, vette_gray);
+    auto width = vette_gray.width;
+    auto height = vette_gray.height;
+
+    GrayImage caddy_read;
+    img::read_image_from_file(CADILLAC_PATH, caddy_read);
+
+    GrayImage caddy_gray;
+    caddy_gray.width = width;
+    caddy_gray.height = height;
+    img::resize_image(caddy_read, caddy_gray);
+
+    Image vette;
+    img::create_image(vette, width, height);
+    Image caddy;
+    img::create_image(caddy, width, height);
+
+    auto vette_v = img::make_view(vette);
+    auto caddy_v = img::make_view(caddy);
+
+    img::map(img::make_view(vette_gray), vette_v);
+    img::map(img::make_view(caddy_gray), caddy_v);
+
+    write_image(vette, "vette_1.bmp");
+    write_image(caddy, "caddy_1.bmp");    
+
+    img::Buffer32 buffer;
+    mb::create_buffer(buffer, width * height * 3 * 2);
+
+    auto hsv_vette = img::make_view_3(width, height, buffer);
+    auto hsv_caddy = img::make_view_3(width, height, buffer);
+
+    img::map_rgb_hsv(vette_v, hsv_vette);
+    img::map_rgb_hsv(caddy_v, hsv_caddy);
+
+    img::map_hsv_rgb(hsv_caddy, vette_v);
+    write_image(vette, "vette_2.bmp");
+
+    img::map_hsv_rgb(hsv_vette, caddy_v);
+    write_image(caddy, "caddy_2.bmp");
+
+    img::destroy_image(vette_gray);
+    img::destroy_image(caddy_gray);
+    img::destroy_image(vette);
+    img::destroy_image(caddy_read);
+    img::destroy_image(caddy);
+    mb::destroy_buffer(buffer);
+
+    return true;
+}
+
+
 static bool map_hsv_planar_test()
 {
     auto title = "map_hsv_planar_test";
@@ -169,6 +230,7 @@ bool map_rgb_hsv_tests()
     auto result = 
         hsv_conversion_test() &&
         map_hsv_test() &&
+        map_hsv_gray_test() &&
         map_hsv_planar_test();
 
     if (result)

@@ -9,7 +9,9 @@ namespace simage
 	constexpr auto RGBA_CHANNELS = 4u;
 
 
-    class RGBAu8
+#if IS_BIG_ENDIAN
+
+	class RGBAu8
 	{
 	public:
 		u8 red;
@@ -17,6 +19,20 @@ namespace simage
 		u8 blue;
 		u8 alpha;
 	};
+
+#else
+
+	class RGBAu8
+	{
+	public:
+		u8 alpha;
+		u8 blue;
+		u8 green;
+		u8 red;
+	};
+
+#endif
+    
 }
 
 
@@ -73,7 +89,7 @@ namespace simage
 
 namespace simage
 {
-    class YUV422
+	class YUV422
 	{
 	public:
 		u8 u;

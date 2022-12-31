@@ -27,8 +27,6 @@ namespace color_space
 
 namespace color_space
 {
-    
-
 
     static constexpr r32 to_channel_r32(u8 value)
     {
@@ -95,9 +93,14 @@ namespace color_space
         auto ratio = (value - min) / (max - min);
 
         return round_to_u8(ratio * 255);
-    }
+    }    
+}
 
 
+/* types */
+
+namespace color_space
+{   
     class RGBr32
     {
     public:
@@ -126,13 +129,13 @@ namespace color_space
     };
 
 
-    class HSVAu8
+    class HSVu8
     {
     public:
         u8 hue;
         u8 sat;
         u8 val;
-        u8 alpha;
+        u8 pad;
     };
 
 
@@ -160,10 +163,6 @@ namespace hsv
 {
     namespace cs = color_space;
 
-    using RGBr32 = cs::RGBr32;
-    using HSVr32 = cs::HSVr32;
-
-
     constexpr r32 HUE_MAX = 360.0f;
     constexpr r32 zerof = 1.0f / HUE_MAX;
 
@@ -178,22 +177,16 @@ namespace hsv
     }
 
 
-    inline constexpr RGBr32 r32_to_rgb_r32(r32 h, r32 s, r32 v)
+    inline constexpr cs::RGBr32 r32_to_rgb_r32(r32 h, r32 s, r32 v)
     {
         if (v <= zerof)
         {
             return { 0.0f, 0.0f, 0.0f };
         }
 
-        if (s <= zerof)
+        if (s <= zerof || h < 0.0f)
         {
             return { v, v, v };
-        }
-
-        if (h < 0)
-        {
-            //assert(false);
-            return { 0.0f, 0.0f, 0.0f };
         }
 
         auto max = v;
@@ -251,11 +244,22 @@ namespace hsv
 
     inline constexpr cs::RGBAu8 r32_to_rgba_u8(r32 h, r32 s, r32 v)
     {
+        if (v <= zerof)
+        {
+            return { 0, 0, 0, 255 };
+        }
+
+        if (s <= zerof || h < 0.0f)
+        {
+            auto gray = cs::round_to_u8(v * 255);
+            return { gray, gray, gray, 255 };
+        }
+        
         auto rgb = r32_to_rgb_r32(h, s, v);
 
-        auto r = cs::round_to_u8(rgb.red);
-        auto g = cs::round_to_u8(rgb.green);
-        auto b = cs::round_to_u8(rgb.blue);
+        auto r = cs::round_to_u8(rgb.red * 255);
+        auto g = cs::round_to_u8(rgb.green * 255);
+        auto b = cs::round_to_u8(rgb.blue * 255);
 
         return { r, g, b, 255 };
     }
@@ -263,6 +267,11 @@ namespace hsv
 
     inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 h, u8 s, u8 v)
     {
+        if (!s)
+        {
+            return { v, v, v, 255 };
+        }
+
         auto H = cs::to_channel_r32(h);
         auto S = cs::to_channel_r32(s);
         auto V = cs::to_channel_r32(v);
@@ -271,7 +280,7 @@ namespace hsv
     }
 
 
-    inline constexpr HSVr32 r32_from_rgb_r32(r32 r, r32 g, r32 b)
+    inline constexpr cs::HSVr32 r32_from_rgb_r32(r32 r, r32 g, r32 b)
     {
         auto max = std::max({r, g, b});
         auto min = std::min({r, g, b});
@@ -363,7 +372,7 @@ namespace hsv
     }
 
 
-    inline constexpr cs::HSVAu8 u8_from_rgb_r32(r32 r, r32 g, r32 b)
+    inline constexpr cs::HSVu8 u8_from_rgb_r32(r32 r, r32 g, r32 b)
     {
         auto R = cs::clamp(r);
         auto G = cs::clamp(g);
@@ -374,20 +383,18 @@ namespace hsv
         auto h = cs::round_to_u8(hsv.hue * 255);
         auto s = cs::round_to_u8(hsv.sat * 255);
         auto v = cs::round_to_u8(hsv.val * 255);
-        u8 a = hsv.hue < 0.0f ? 0 : 255;
 
-        return { h, s, v, a };
+        return { h, s, v };
     }
 
 
-    inline constexpr cs::HSVAu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
     {
         auto min = std::min({ r, g, b });
         auto max = std::max({ r, g, b });
 
         auto v = max;
-        auto s = cs::round_to_u8(255.0f * (max - min) / max);
-        u8 a = max == min ? 0 : 255;
+        u8 s = max == min ? 0 : cs::round_to_u8(255.0f * (max - min) / max);
 
         auto R = (r32)(r - min) / (max - min);
         auto G = (r32)(g - min) / (max - min);
@@ -397,7 +404,7 @@ namespace hsv
 
         auto h = cs::round_to_u8(hsv.hue * 255);
 
-        return { h, s, v, a };
+        return { h, s, v };
     }
 }
 
@@ -406,12 +413,8 @@ namespace yuv
 {
     namespace cs = color_space;
 
-    using YUVr32 = cs::YUVr32;
-    using RGBr32 = cs::RGBr32;
-    using HSVr32 = cs::HSVr32;
 
-
-    inline constexpr YUVr32 r32_from_rgb_r32(r32 r, r32 g, r32 b)
+    inline constexpr cs::YUVr32 r32_from_rgb_r32(r32 r, r32 g, r32 b)
     {
         constexpr r32 ry = 0.299f;
         constexpr r32 gy = 0.587f;
@@ -433,7 +436,7 @@ namespace yuv
     }
 
 
-    inline constexpr RGBr32 r32_to_rgb_r32(r32 y, r32 u, r32 v)
+    inline constexpr cs::RGBr32 r32_to_rgb_r32(r32 y, r32 u, r32 v)
     {
         u -= 0.5f;
         v -= 0.5f;
@@ -501,7 +504,7 @@ namespace yuv
     }
 
 
-    inline constexpr RGBr32 u8_to_rgb_r32(u8 y, u8 u, u8 v)
+    inline constexpr cs::RGBr32 u8_to_rgb_r32(u8 y, u8 u, u8 v)
     {
         auto rgba = u8_to_rgba_u8(y, u, v);
 

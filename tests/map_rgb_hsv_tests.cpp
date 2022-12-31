@@ -7,9 +7,9 @@
 
 namespace rng = std::ranges;
 
-static bool hsv_conversion_test()
+static bool hsv_conversion_r32_test()
 {
-    printf("hsv converstion_test\n");
+    printf("hsv converstion_r32_test\n");
     auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.0f / 255.0f); };
 
     std::vector<int> results(256, 1);
@@ -30,6 +30,50 @@ static bool hsv_conversion_test()
                 auto rgb = hsv::r32_to_rgb_r32(hsv.hue, hsv.sat, hsv.val);
 
                 if (not_equals(red, rgb.red) || not_equals(green, rgb.green) || not_equals(blue, rgb.blue))
+                {
+                    results[r] = false;
+                    return;
+                }
+            }
+        }
+    };
+
+    process_range(0, 256, red_func);
+
+    if (rng::any_of(results, [](int r) { return !r; }))
+    {
+        printf("FAIL\n");
+        return false;
+    }
+
+    printf("OK\n");
+    return true;
+}
+
+
+static bool hsv_conversion_u8_test()
+{
+    printf("hsv converstion_u8_test\n");
+    auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.0f / 255.0f); };
+
+    std::vector<int> results(256, 1);
+
+    auto const red_func = [&](u32 r)
+    {
+        auto red = u8(r);
+
+        for (u32 g = 0; g < 256; ++g)
+        {
+            auto green = (u8)g;
+
+            for (u32 b = 0; b < 256; ++b)
+            {
+                auto blue = (u8)b;
+
+                auto hsv = hsv::u8_from_rgb_u8(red, green, blue);
+                auto rgba = hsv::u8_to_rgba_u8(hsv.hue, hsv.sat, hsv.val);
+
+                if (red != rgba.red || green != rgba.green || blue != rgba.blue)
                 {
                     results[r] = false;
                     return;
@@ -228,7 +272,8 @@ bool map_rgb_hsv_tests()
     printf("\n*** map_rgb_hsv tests ***\n");
 
     auto result = 
-        hsv_conversion_test() &&
+        hsv_conversion_r32_test() &&
+        hsv_conversion_u8_test() &&
         map_hsv_test() &&
         map_hsv_gray_test() &&
         map_hsv_planar_test();

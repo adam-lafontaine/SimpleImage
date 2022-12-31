@@ -12,7 +12,7 @@ static bool hsv_conversion_test()
     printf("hsv converstion_test\n");
     auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.0f / 255.0f); };
 
-    std::vector<int> results(255, 1);
+    std::vector<int> results(256, 1);
 
     auto const red_func = [&](u32 r) 
     {

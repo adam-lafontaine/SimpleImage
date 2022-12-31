@@ -1839,9 +1839,23 @@ namespace simage
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
-		cs::RGBAu8 rgba{};
-		cs::HSVu8 hsv{};
-		YUV422 yuv{};
+		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v) 
+		{
+			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+
+			h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+			h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+			h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
+
+			h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+			h_yuv.Y[to_hist_bin_u8(yuv_y, n_bins)]++;
+			h_yuv.U[to_hist_bin_u8(yuv_u, n_bins)]++;
+			h_yuv.V[to_hist_bin_u8(yuv_v, n_bins)]++;
+		};
 
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
@@ -1849,37 +1863,10 @@ namespace simage
 			auto s422 = (YUV422*)s2;
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
 			{
-				yuv = s422[x422];
+				auto yuv = s422[x422];
 
-				rgba = yuv::u8_to_rgba_u8(yuv.y1, yuv.u, yuv.v);
-				hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-
-				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
-				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
-				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
-
-				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
-				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
-				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
-
-				h_yuv.Y[to_hist_bin_u8(yuv.y1, n_bins)]++;
-				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
-				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
-
-				rgba = yuv::u8_to_rgba_u8(yuv.y2, yuv.u, yuv.v);
-				hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-
-				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
-				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
-				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
-
-				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
-				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
-				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
-
-				h_yuv.Y[to_hist_bin_u8(yuv.y1, n_bins)]++;
-				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
-				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+				update_bins(yuv.y1, yuv.u, yuv.v);
+				update_bins(yuv.y2, yuv.u, yuv.v);
 			}
 		}
 

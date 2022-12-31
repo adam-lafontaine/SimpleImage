@@ -260,8 +260,8 @@ namespace hsv
 
     inline constexpr HSVr32 r32_from_rgb_r32(r32 r, r32 g, r32 b)
     {
-        auto max = std::max(r, std::max(g, b));
-        auto min = std::min(r, std::min(g, b));
+        auto max = std::max({r, g, b});
+        auto min = std::min({r, g, b});
 
         auto const r_max = equals(r, max);
         auto const r_min = equals(r, min);

@@ -662,10 +662,8 @@ namespace simage
 
 namespace simage
 {	
-	void map_rgb(View const& src, ViewRGBAr32 const& dst)
+	static void map_rgba_no_simd(View const& src, ViewRGBAr32 const& dst)
 	{
-		assert(verify(src, dst));
-
 		constexpr auto r = id_cast(RGBA::R);
 		constexpr auto g = id_cast(RGBA::G);
 		constexpr auto b = id_cast(RGBA::B);
@@ -692,7 +690,124 @@ namespace simage
 	}
 
 
-	void map_rgb(ViewRGBAr32 const& src, View const& dst)
+#ifdef SIMAGE_NO_SIMD
+
+	static void do_map_rgb(View const& src, ViewRGBAr32 const& dst)
+	{
+		map_rgb_no_simd(src, dst);
+	}
+
+#else
+
+	class Pixelr32Planar
+	{
+	public:
+		r32 red[simd::VEC_LEN] = { 0 };
+		r32 green[simd::VEC_LEN] = { 0 };
+		r32 blue[simd::VEC_LEN] = { 0 };
+		r32 alpha[simd::VEC_LEN] = { 0 };
+	};
+
+
+	Pixelr32Planar to_planar(Pixel* p_begin)
+	{
+		Pixelr32Planar planar;
+
+		for (u32 i = 0; i < simd::VEC_LEN; ++i)
+		{
+			auto rgba = p_begin[i].rgba;
+
+			planar.red[i] = cs::to_channel_r32(rgba.red);
+			planar.green[i] = cs::to_channel_r32(rgba.green);
+			planar.blue[i] = cs::to_channel_r32(rgba.blue);
+			planar.alpha[i] = cs::to_channel_r32(rgba.alpha);
+		}
+
+		return planar;
+	}
+
+
+	static void map_rgba_row_simd(Pixel* src, r32* dr, r32* dg, r32* db, r32* da, u32 length)
+	{
+		constexpr u32 STEP = simd::VEC_LEN;
+
+		auto const do_simd = [&](u32 i)
+		{
+			auto p = to_planar(src + i);
+
+			auto vec = simd::load(p.red);
+			simd::store(dr + i, vec);
+
+			vec = simd::load(p.green);
+			simd::store(dg + i, vec);
+
+			vec = simd::load(p.blue);
+			simd::store(db + i, vec);
+
+			vec = simd::load(p.alpha);
+			simd::store(da + i, vec);
+		};
+
+		for (u32 i = 0; i < length - STEP; i += STEP)
+		{
+			do_simd(i);
+		}
+
+		do_simd(length - STEP);
+	}
+
+
+	static void map_rgba_simd(View const& src, ViewRGBAr32 const& dst)
+	{
+		constexpr auto r = id_cast(RGBA::R);
+		constexpr auto g = id_cast(RGBA::G);
+		constexpr auto b = id_cast(RGBA::B);
+		constexpr auto a = id_cast(RGBA::A);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto dr = channel_row_begin(dst, y, r);
+			auto dg = channel_row_begin(dst, y, g);
+			auto db = channel_row_begin(dst, y, b);
+			auto da = channel_row_begin(dst, y, a);
+
+			map_rgba_row_simd(s, dr, dg, db, da, src.width);
+		};
+
+		process_rows(src.height, row_func);
+	}
+
+
+	static void do_map_rgba(View const& src, ViewRGBAr32 const& dst)
+	{
+		if (src.width < simd::VEC_LEN)
+		{
+			map_rgba_no_simd(src, dst);
+		}
+		else
+		{
+			map_rgba_simd(src, dst);
+		}
+	}
+
+#endif
+
+	
+
+
+	
+
+
+	void map_rgba(View const& src, ViewRGBAr32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		do_map_rgba(src, dst);
+	}
+
+
+	void map_rgba(ViewRGBAr32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 

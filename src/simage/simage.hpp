@@ -197,9 +197,9 @@ namespace simage
 
 namespace simage
 {	
-	void map_rgb(View const& src, ViewRGBAr32 const& dst);
+	void map_rgba(View const& src, ViewRGBAr32 const& dst);
 
-	void map_rgb(ViewRGBAr32 const& src, View const& dst);
+	void map_rgba(ViewRGBAr32 const& src, View const& dst);
 	
 	void map_rgb(View const& src, ViewRGBr32 const& dst);
 

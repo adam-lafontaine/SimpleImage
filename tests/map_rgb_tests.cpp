@@ -85,13 +85,13 @@ static bool map_rgba_test()
     auto view_vette = img::make_view_4(width, height, buffer);
     auto view_caddy = img::make_view_4(width, height, buffer);
 
-    img::map_rgb(vette_v, view_vette);
-    img::map_rgb(caddy_v, view_caddy);
+    img::map_rgba(vette_v, view_vette);
+    img::map_rgba(caddy_v, view_caddy);
 
-    img::map_rgb(view_caddy, vette_v);
+    img::map_rgba(view_caddy, vette_v);
     write_image(vette, "vette_2.bmp");
 
-    img::map_rgb(view_vette, caddy_v);
+    img::map_rgba(view_vette, caddy_v);
     write_image(caddy, "caddy_2.bmp");
 
     img::destroy_image(vette);

@@ -16,12 +16,12 @@ static bool test_success()
         //create_image_tests() &&
         //make_view_tests() &&
         //map_tests() &&
-        //map_rgb_tests() &&
-        map_rgb_hsv_tests() &&
+        map_rgb_tests() &&
+        //map_rgb_hsv_tests() &&
         //map_rgb_yuv_tests() &&        
         //sub_view_tests() &&
         //fill_tests() &&
-        histogram_tests() &&
+        //histogram_tests() &&
         true;
 }
 

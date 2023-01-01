@@ -1125,13 +1125,33 @@ namespace simage
 		{
 			auto yuv = begin[i];
 
-			planar.y1[i] = cs::to_channel_r32(yuv.y1);
-			planar.y2[i] = cs::to_channel_r32(yuv.y2);
-			planar.u[i] = cs::to_channel_r32(yuv.u);
-			planar.v[i] = cs::to_channel_r32(yuv.v);
+			planar.y1[i] = (r32)yuv.y1;
+			planar.y2[i] = (r32)yuv.y2;
+			planar.u[i] = (r32)yuv.u;
+			planar.v[i] = (r32)yuv.v;
 		}
 
 		return planar;
+	}
+
+
+	static void map_yuv422_rgb_row(YUV422* yuv, r32* dr, r32* dg, r32* db, u32 length)
+	{
+		constexpr u32 STEP = simd::VEC_LEN;
+
+		auto const do_simd = [&](u32 i)
+		{
+			auto p = to_planar(yuv);
+
+
+		};
+
+		for (u32 i = 0; i < length - STEP; i += STEP)
+		{
+			do_simd(i);
+		}
+
+		do_simd(length - STEP);
 	}
 
 

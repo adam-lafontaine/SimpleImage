@@ -723,7 +723,7 @@ namespace simage
 	}
 
 
-	static void do_map_rgb(View const& src, ViewRGBAr32 const& dst)
+	static void do_map_rgb(View const& src, ViewRGBr32 const& dst)
 	{
 		map_rgb_no_simd(src, dst);
 }
@@ -1068,12 +1068,8 @@ namespace simage
 
 namespace simage
 {
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	void map_yuv_rgb_no_simd(ViewYUV const& src, ViewRGBr32 const& dst)
 	{
-		assert(verify(src, dst));
-		assert(src.width % 2 == 0);
-		static_assert(sizeof(YUV2) == 2);
-
 		auto const row_func = [&](u32 y)
 		{
 			auto s2 = row_begin(src, y);
@@ -1083,7 +1079,7 @@ namespace simage
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
 			{
 				auto yuv = s422[x422];
-				
+
 				auto x = 2 * x422;
 				auto rgb = yuv::u8_to_rgb_r32(yuv.y1, yuv.u, yuv.v);
 				d.R[x] = rgb.red;
@@ -1099,6 +1095,71 @@ namespace simage
 		};
 
 		process_rows(src.height, row_func);
+	}
+
+
+#ifdef SIMAGE_NO_SIMD
+
+	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	{
+		map_yuv_rgb_no_simd(src, dst);
+	}
+
+#else
+
+	class YUV422r32Planar
+	{
+	public:
+		r32 y1[simd::VEC_LEN] = { 0 };
+		r32 y2[simd::VEC_LEN] = { 0 };
+		r32 u[simd::VEC_LEN] = { 0 };
+		r32 v[simd::VEC_LEN] = { 0 };
+	};
+
+
+	static YUV422r32Planar to_planar(YUV422* begin)
+	{
+		YUV422r32Planar planar;
+
+		for (u32 i = 0; i < simd::VEC_LEN; ++i)
+		{
+			auto yuv = begin[i];
+
+			planar.y1[i] = cs::to_channel_r32(yuv.y1);
+			planar.y2[i] = cs::to_channel_r32(yuv.y2);
+			planar.u[i] = cs::to_channel_r32(yuv.u);
+			planar.v[i] = cs::to_channel_r32(yuv.v);
+		}
+
+		return planar;
+	}
+
+
+	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	{
+		if (src.width < simd::VEC_LEN)
+		{
+			map_yuv_rgb_no_simd(src, dst);
+		}
+		else
+		{
+			map_yuv_rgb_no_simd(src, dst);
+		}		
+	}
+
+
+#endif
+
+
+	
+
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	{
+		assert(verify(src, dst));
+		assert(src.width % 2 == 0);
+		static_assert(sizeof(YUV2) == 2);
+
+		do_map_yuv_rgb(src, dst);
 	}
 
 

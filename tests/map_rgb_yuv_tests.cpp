@@ -51,12 +51,23 @@ static bool yuv_conversion_test()
 }
 
 
+static bool yuv_camera_test()
+{
+    printf("yuv_camera_test\n");
+
+
+    printf("NOT IMPLEMENTED\n");
+    return true;
+}
+
+
 bool map_rgb_yuv_tests()
 {
     printf("\n*** map_rgb_yuv tests ***\n");
 
     auto result = 
-        yuv_conversion_test();
+        yuv_conversion_test() &&
+        yuv_camera_test();
 
     if (result)
     {

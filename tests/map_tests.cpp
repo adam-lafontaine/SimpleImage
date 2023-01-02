@@ -28,6 +28,11 @@ static bool map_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
+    Image image;
+    img::create_image(image, width, height);
+    img::map(vette_v, img::make_view(image));
+    write_image(image, "vette_gray_4ch.bmp");
+
     img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height * 2);
 
@@ -41,11 +46,12 @@ static bool map_test()
     write_image(vette, "vette_2.bmp");
 
     img::map(view_vette, caddy_v);
-    write_image(caddy, "caddy_2.bmp");
+    write_image(caddy, "caddy_2.bmp");    
 
     img::destroy_image(vette);
     img::destroy_image(caddy_read);
     img::destroy_image(caddy);
+    img::destroy_image(image);
     mb::destroy_buffer(buffer);
 
     return true;

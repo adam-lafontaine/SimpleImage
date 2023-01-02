@@ -5,6 +5,10 @@
 #include <cstdint>
 #include <cstdlib>
 
+//#define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
+
+#define IS_BIG_ENDIAN 1
+
 #define SIMAGE_PNG
 #define SIMAGE_BMP
 

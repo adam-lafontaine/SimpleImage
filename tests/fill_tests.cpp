@@ -111,7 +111,7 @@ bool fill_view_test()
 
     auto view4 = img::make_view_4(width, height, buffer);
     img::fill(view4, img::to_pixel(255, 255, 255, 128));
-    img::map_rgb(view4, img::make_view(image));
+    img::map_rgba(view4, img::make_view(image));
     write_image(image, "all_white_with_alpha.bmp");
 
     img::destroy_image(gray);

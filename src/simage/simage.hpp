@@ -187,6 +187,9 @@ namespace simage
 	void map(ViewGray const& src, View1r32 const& dst);
 
 	void map(View1r32 const& src, ViewGray const& dst);
+
+
+	void map(ViewGray const& src, View const& dst);
 }
 
 
@@ -194,13 +197,31 @@ namespace simage
 
 namespace simage
 {	
-	void map_rgb(View const& src, ViewRGBAr32 const& dst);
+	void map_rgba(View const& src, ViewRGBAr32 const& dst);
 
-	void map_rgb(ViewRGBAr32 const& src, View const& dst);
+	void map_rgba(ViewRGBAr32 const& src, View const& dst);
 	
 	void map_rgb(View const& src, ViewRGBr32 const& dst);
 
 	void map_rgb(ViewRGBr32 const& src, View const& dst);
+
+
+	/*inline ViewRGBAr32 make_rgba_view(View const& src, Buffer32& buffer)
+	{
+		auto view = make_view_4(src.width, src.height, buffer);
+		map_rgb(src, view);
+
+		return view;
+	}
+
+
+	inline ViewRGBr32 make_rgb_view(View const& src, Buffer32& buffer)
+	{
+		auto view = make_view_3(src.width, src.height, buffer);
+		map_rgb(src, view);
+
+		return view;
+	}*/
 }
 
 
@@ -224,6 +245,8 @@ namespace simage
 namespace simage
 {
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst);
+
+	void map_yuv_rgb(ViewYUV const& src, View const& dst);
 }
 
 

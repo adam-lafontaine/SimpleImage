@@ -3,6 +3,62 @@
 #include "../defines.hpp"
 
 
+// region of interest in an image
+class Range2Du32
+{
+public:
+	u32 x_begin;
+	u32 x_end;  // one past last x
+	u32 y_begin;
+	u32 y_end;   // one past last y
+};
+
+
+inline Range2Du32 make_range(u32 width, u32 height)
+{
+	Range2Du32 r{};
+
+	r.x_begin = 0;
+	r.y_begin = 0;
+	r.x_end = width;
+	r.y_end = height;
+
+	return r;
+}
+
+
+template <class T>
+inline Range2Du32 make_range(T const& c)
+{
+	return make_range(c.width, c.height);
+}
+
+
+template <typename T>
+class Matrix1D
+{
+public:
+	T* data_ = nullptr;
+	u32 length = 0;
+};
+
+
+template <typename T>
+class Matrix2D
+{
+public:
+	T* data_ = nullptr;
+	u32 width = 0;
+	u32 height = 0;
+
+#ifndef NDEBUG
+
+	~Matrix2D() { assert(!(bool)data_); }
+
+#endif // !NDEBUG
+};
+
+
 namespace simage
 {
 	constexpr auto RGB_CHANNELS = 3u;

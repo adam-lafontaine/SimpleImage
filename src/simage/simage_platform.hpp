@@ -244,6 +244,16 @@ namespace simage
 }
 
 
+/* copy */
+
+namespace simage
+{
+	void copy(View const& src, View const& dst);
+
+	void copy(ViewGray const& src, ViewGray const& dst);
+}
+
+
 /* row begin */
 
 namespace simage

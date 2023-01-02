@@ -1,7 +1,7 @@
 #include "tests_include.hpp"
 
 
-bool fill_platform_view_test(img::View const& out_view)
+void fill_platform_view_test(img::View const& out_view)
 {
     bool result = false;
 
@@ -23,6 +23,4 @@ bool fill_platform_view_test(img::View const& out_view)
     img::fill(img::sub_view(out_view, top), red);
     img::fill(img::sub_view(out_view, mid), green);
     img::fill(img::sub_view(out_view, bottom), blue);
-
-    return true;
 }

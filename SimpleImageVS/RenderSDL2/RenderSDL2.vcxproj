@@ -153,6 +153,7 @@
     <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
     <ClCompile Include="..\..\tests_render\fill_tests.cpp" />
+    <ClCompile Include="..\..\tests_render\image_tests.cpp" />
     <ClCompile Include="..\..\tests_render\tests_render_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

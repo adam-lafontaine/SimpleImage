@@ -18,7 +18,9 @@ constexpr auto APP_VERSION = "1.0";
 
 static void run_tests(img::View const& screen_out)
 {
-	fill_platform_view_test(screen_out);
+	//fill_platform_view_test(screen_out);
+	//copy_image_test(screen_out);
+	resize_image_test(screen_out);
 }
 
 

@@ -1830,4 +1830,4 @@ namespace simage
 
 
 
-#endif
+#endif // SIMAGE_NO_SIMD

@@ -461,7 +461,7 @@ namespace simage
 	}
 
 
-#endif
+#endif SIMAGE_NO_SIMD
 
 
 	void fill(View const& view, Pixel color)
@@ -486,7 +486,7 @@ namespace simage
 namespace simage
 {
 	template <class IMG_SRC, class IMG_DST>
-	static void copy_1_channel(IMG_SRC const& src, IMG_DST const& dst)
+	static void copy_no_simd(IMG_SRC const& src, IMG_DST const& dst)
 	{
 		auto const row_func = [&](u32 y)
 		{
@@ -502,11 +502,107 @@ namespace simage
 	}
 
 
+#ifdef SIMAGE_NO_SIMD
+
+	template <class IMG_SRC, class IMG_DST>
+	static void do_copy(IMG_SRC const& src, IMG_DST const& dst)
+	{
+		copy_no_simd(view, color);
+	}
+
+#else
+
+	static void simd_copy_row(Pixel* src_begin, Pixel* dst_begin, u32 length)
+	{
+		static_assert(sizeof(Pixel) == sizeof(r32));
+
+		constexpr u32 STEP = simd::VEC_LEN;
+
+		r32* src = 0;
+		r32* dst = 0;
+		simd::vec_t vec{};
+
+		auto const do_simd = [&](u32 i)
+		{
+			src = (r32*)(src_begin + i);
+			dst = (r32*)(dst_begin + i);
+
+			vec = simd::load(src);
+			simd::store(dst, vec);
+		};
+
+		for (u32 i = 0; i < length - STEP; i += STEP)
+		{
+			do_simd(i);
+		}
+
+		do_simd(length - STEP);
+	}
+
+
+	static void simd_copy_row(u8* src_begin, u8* dst_begin, u32 length)
+	{
+		static_assert(sizeof(u8) * 4 == sizeof(r32));
+
+		constexpr u32 STEP = simd::VEC_LEN * sizeof(r32) / sizeof(u8);
+
+		r32* src = 0;
+		r32* dst = 0;
+		simd::vec_t vec{};
+
+		auto const do_simd = [&](u32 i)
+		{
+			src = (r32*)(src_begin + i);
+			dst = (r32*)(dst_begin + i);
+
+			vec = simd::load(src);
+			simd::store(dst, vec);
+		};
+
+		for (u32 i = 0; i < length - STEP; i += STEP)
+		{
+			do_simd(i);
+		}
+
+		do_simd(length - STEP);
+	}
+
+
+	template <class IMG>
+	static void copy_simd(IMG const& src, IMG const& dst)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			simd_copy_row(s, d, src.width);
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	template <class IMG>
+	static void do_copy(IMG const& src, IMG const& dst)
+	{
+		if (src.width < simd::VEC_LEN)
+		{
+			copy_no_simd(src, dst);
+		}
+		else
+		{
+			copy_simd(src, dst);
+		}
+	}
+
+#endif // SIMAGE_NO_SIMD
+
+
 	void copy(View const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
-		copy_1_channel(src, dst);
+		do_copy(src, dst);
 	}
 
 
@@ -514,7 +610,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		copy_1_channel(src, dst);
+		do_copy(src, dst);
 	}
 }
 

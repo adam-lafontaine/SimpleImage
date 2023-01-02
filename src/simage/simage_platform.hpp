@@ -244,6 +244,16 @@ namespace simage
 }
 
 
+/* fill */
+
+namespace simage
+{
+	void fill(View const& view, Pixel color);
+
+	void fill(ViewGray const& view, u8 gray);
+}
+
+
 /* copy */
 
 namespace simage

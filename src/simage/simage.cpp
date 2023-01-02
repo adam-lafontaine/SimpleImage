@@ -3,7 +3,6 @@
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
 
-//#define SIMAGE_NO_SIMD
 
 #ifndef SIMAGE_NO_SIMD
 #include "../util/simd.hpp"
@@ -20,7 +19,7 @@ namespace cs = color_space;
 
 
 
-static void process_rows(u32 n_rows, id_func_t const& row_func)
+static void process_image_rows(u32 n_rows, id_func_t const& row_func)
 {
 	auto const row_begin = 0;
 	auto const row_end = n_rows;
@@ -394,7 +393,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 	
 
@@ -412,7 +411,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}	
 }
 
@@ -445,7 +444,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -470,7 +469,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -592,7 +591,7 @@ namespace simage
 			map_rgba_row_simd(s, dr, dg, db, da, src.width);
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -612,7 +611,7 @@ namespace simage
 			map_rgb_row_simd(s, dr, dg, db, src.width);
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -679,7 +678,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 	
@@ -718,7 +717,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 }
 
@@ -746,7 +745,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -770,7 +769,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -796,7 +795,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -818,7 +817,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 }
 
@@ -853,7 +852,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -974,7 +973,7 @@ namespace simage
 			}
 		};
 
-		process_rows(src.height, row_func);
+		process_image_rows(src.height, row_func);
 	}
 
 
@@ -1023,7 +1022,7 @@ namespace simage
 			}
 		};
 
-		process_rows(dst.height, row_func);
+		process_image_rows(dst.height, row_func);
 	}
 
 
@@ -1073,7 +1072,7 @@ namespace simage
 			}
 		};
 
-		process_rows(dst.height, row_func);
+		process_image_rows(dst.height, row_func);
 	}
 }
 
@@ -1288,7 +1287,7 @@ namespace simage
 			}
 		};
 
-		process_rows(view.height, row_func);
+		process_image_rows(view.height, row_func);
 	}
 
 
@@ -1313,7 +1312,7 @@ namespace simage
 			}
 		};
 
-		process_rows(view.height, row_func);
+		process_image_rows(view.height, row_func);
 	}
 
 
@@ -1366,47 +1365,11 @@ namespace simage
 			fill_row_simd(d, gray32, view.width);
 		};
 
-		process_rows(view.height, row_func);
+		process_image_rows(view.height, row_func);
 	}
 
 
-	static void fill_simd(View const& view, Pixel color)
-	{
-		static_assert(sizeof(Pixel) == sizeof(r32));
-
-		auto ptr = (r32*)(&color);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			fill_row_simd((r32*)d, *ptr, view.width);
-		};
-
-		process_rows(view.height, row_func);
-	}
-
-
-	static void fill_simd(ViewGray const& view, u8 gray)
-	{
-		static_assert(4 * sizeof(u8) == sizeof(r32));
-
-		u8 bytes[4] = { gray, gray, gray, gray };
-		auto ptr = (r32*)bytes;
-		auto len32 = view.width / 4;
-
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			fill_row_simd((r32*)d, *ptr, len32);
-
-			for (u32 x = len32 * 4; x < view.width; ++x)
-			{
-				d[x] = gray;
-			}
-		};
-
-		process_rows(view.height, row_func);
-	}
+	
 
 
 	template <size_t N>
@@ -1427,7 +1390,7 @@ namespace simage
 			}
 		};
 
-		process_rows(view.height, row_func);
+		process_image_rows(view.height, row_func);
 	}
 
 
@@ -1462,20 +1425,7 @@ namespace simage
 #endif	
 
 
-	void fill(View const& view, Pixel color)
-	{
-		assert(verify(view));
-
-		do_fill(view, color);
-	}
-
-
-	void fill(ViewGray const& view, u8 gray)
-	{
-		assert(verify(view));
-
-		do_fill(view, gray);
-	}
+	
 
 
 	void fill(View4r32 const& view, Pixel color)
@@ -1615,7 +1565,7 @@ namespace simage
 			}
 		};
 
-		process_rows(dst.height, row_func);
+		process_image_rows(dst.height, row_func);
 	}
 
 
@@ -1657,7 +1607,7 @@ namespace simage
 			}
 		};
 
-		process_rows(dst.height, row_func);
+		process_image_rows(dst.height, row_func);
 	}
 
 
@@ -1698,7 +1648,7 @@ namespace simage
 			}
 		};
 
-		process_rows(dst.height, row_func);
+		process_image_rows(dst.height, row_func);
 	}
 }
 

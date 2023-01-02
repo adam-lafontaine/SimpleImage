@@ -2,6 +2,12 @@
 #include "../util/execute.hpp"
 
 
+#ifndef SIMAGE_NO_SIMD
+#include "../util/simd.hpp"
+#endif // !SIMAGE_NO_SIMD
+
+
+
 static void process_image_rows(u32 n_rows, id_func_t const& row_func)
 {
 	auto const row_begin = 0;
@@ -344,6 +350,133 @@ namespace simage
 		assert(verify(sub_view));
 
 		return sub_view;
+	}
+}
+
+
+/* fill */
+
+namespace simage
+{
+	template <class VIEW, typename COLOR>
+	static void fill_no_simd(VIEW const& view, COLOR color)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 i = 0; i < view.width; ++i)
+			{
+				d[i] = color;
+			}
+		};
+
+		process_image_rows(view.height, row_func);
+	}
+
+#ifdef SIMAGE_NO_SIMD
+
+	template <class VIEW, typename COLOR>
+	static void do_fill(VIEW const& view, COLOR color)
+	{
+		fill_no_simd(view, color);
+	}
+
+#else
+
+	static void fill_row_simd(r32* dst_begin, r32 value, u32 length)
+	{
+		constexpr u32 STEP = simd::VEC_LEN;
+
+		r32* dst = 0;
+		r32* val = &value;
+		simd::vec_t vec{};
+
+		auto const do_simd = [&](u32 i)
+		{
+			dst = dst_begin + i;
+			vec = simd::load_broadcast(val);
+			simd::store(dst, vec);
+		};
+
+		for (u32 i = 0; i < length - STEP; i += STEP)
+		{
+			do_simd(i);
+		}
+
+		do_simd(length - STEP);
+	}
+
+
+	static void fill_simd(View const& view, Pixel color)
+	{
+		static_assert(sizeof(Pixel) == sizeof(r32));
+
+		auto ptr = (r32*)(&color);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			fill_row_simd((r32*)d, *ptr, view.width);
+		};
+
+		process_image_rows(view.height, row_func);
+	}
+
+
+	static void fill_simd(ViewGray const& view, u8 gray)
+	{
+		static_assert(4 * sizeof(u8) == sizeof(r32));
+
+		u8 bytes[4] = { gray, gray, gray, gray };
+		auto ptr = (r32*)bytes;
+		auto len32 = view.width / 4;
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(view, y);
+			fill_row_simd((r32*)d, *ptr, len32);
+
+			for (u32 x = len32 * 4; x < view.width; ++x)
+			{
+				d[x] = gray;
+			}
+		};
+
+		process_image_rows(view.height, row_func);
+	}
+
+
+	template <class VIEW, typename COLOR>
+	static void do_fill(VIEW const& view, COLOR color)
+	{
+		auto len32 = view.width * sizeof(COLOR) / sizeof(r32);
+		if (len32 < simd::VEC_LEN)
+		{
+			fill_no_simd(view, color);
+		}
+		else
+		{
+			fill_simd(view, color);
+		}
+	}
+
+
+#endif
+
+
+	void fill(View const& view, Pixel color)
+	{
+		assert(verify(view));
+
+		do_fill(view, color);
+	}
+
+
+	void fill(ViewGray const& view, u8 gray)
+	{
+		assert(verify(view));
+
+		do_fill(view, gray);
 	}
 }
 

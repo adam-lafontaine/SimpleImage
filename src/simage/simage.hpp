@@ -55,9 +55,6 @@ namespace simage
 }
 
 
-
-
-
 /* view */
 
 namespace simage

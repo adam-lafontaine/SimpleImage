@@ -22,6 +22,8 @@
 //#define RPI_3B_PLUS
 //#define JETSON_NANO
 
+//#define SIMAGE_NO_SIMD
+
 
 #define SIMD_INTEL_256
 //#define SIMD_INTEL_128

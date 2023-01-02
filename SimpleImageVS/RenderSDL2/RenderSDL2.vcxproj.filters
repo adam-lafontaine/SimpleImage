@@ -22,10 +22,57 @@
     <Filter Include="Header Files\src\simage">
       <UniqueIdentifier>{d51e9d98-1b2a-4d6c-b571-210b7a82bc49}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\simage">
+      <UniqueIdentifier>{ec7c5764-01f5-4b64-bc31-deab36678033}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{ed409038-5ca7-4cf0-9e91-cf0bf73f3486}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\sdl">
+      <UniqueIdentifier>{6e35e46f-fa1d-4178-b229-63385489900e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sdl">
+      <UniqueIdentifier>{12044d22-5807-4b88-8937-5c4d76321c5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\input">
+      <UniqueIdentifier>{f90819a6-e5ef-48f9-857d-84f4f946af41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\defines.hpp">
       <Filter>Header Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\simage\simage_platform.hpp">
+      <Filter>Header Files\src\simage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\execute.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\stopwatch.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\input\input.hpp">
+      <Filter>Header Files\src\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\input\input_state.hpp">
+      <Filter>Header Files\src\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sdl\sdl_include.hpp">
+      <Filter>Header Files\src\sdl</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\simage\simage_platform.cpp">
+      <Filter>Source Files\simage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util\execute.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\sdl_run.cpp">
+      <Filter>Source Files\sdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\sdl_input.cpp">
+      <Filter>Source Files\sdl</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

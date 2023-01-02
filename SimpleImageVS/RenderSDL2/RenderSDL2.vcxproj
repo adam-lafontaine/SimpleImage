@@ -128,6 +128,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\defines.hpp" />
+    <ClInclude Include="..\..\src\input\input.hpp" />
+    <ClInclude Include="..\..\src\input\input_state.hpp" />
+    <ClInclude Include="..\..\src\sdl\sdl_include.hpp" />
+    <ClInclude Include="..\..\src\simage\simage_platform.hpp" />
+    <ClInclude Include="..\..\src\util\execute.hpp" />
+    <ClInclude Include="..\..\src\util\stopwatch.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\sdl\sdl_input.cpp" />
+    <ClCompile Include="..\..\src\sdl\sdl_run.cpp" />
+    <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
+    <ClCompile Include="..\..\src\util\execute.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

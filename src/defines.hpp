@@ -5,9 +5,9 @@
 #include <cstdint>
 #include <cstdlib>
 
-//#define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
-
-#define IS_BIG_ENDIAN 1
+#ifndef IS_LITTLE_ENDIAN
+#define IS_LITTLE_ENDIAN 1
+#endif
 
 #define SIMAGE_PNG
 #define SIMAGE_BMP

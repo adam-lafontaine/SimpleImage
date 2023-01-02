@@ -65,7 +65,7 @@ namespace simage
 	constexpr auto RGBA_CHANNELS = 4u;
 
 
-#if IS_BIG_ENDIAN
+#if IS_LITTLE_ENDIAN
 
 	class RGBAu8
 	{

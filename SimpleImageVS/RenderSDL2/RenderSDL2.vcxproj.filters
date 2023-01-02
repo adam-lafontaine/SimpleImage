@@ -22,20 +22,35 @@
     <Filter Include="Header Files\src\simage">
       <UniqueIdentifier>{d51e9d98-1b2a-4d6c-b571-210b7a82bc49}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\simage">
-      <UniqueIdentifier>{ec7c5764-01f5-4b64-bc31-deab36678033}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\util">
-      <UniqueIdentifier>{ed409038-5ca7-4cf0-9e91-cf0bf73f3486}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\src\sdl">
       <UniqueIdentifier>{6e35e46f-fa1d-4178-b229-63385489900e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\sdl">
-      <UniqueIdentifier>{12044d22-5807-4b88-8937-5c4d76321c5a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\src\input">
       <UniqueIdentifier>{f90819a6-e5ef-48f9-857d-84f4f946af41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\tests_render">
+      <UniqueIdentifier>{1638d0e8-0c6d-46cb-ba02-e548b103383c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src">
+      <UniqueIdentifier>{f26f0ee6-342b-4081-95fd-eabbe236866f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\sdl">
+      <UniqueIdentifier>{12044d22-5807-4b88-8937-5c4d76321c5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\simage">
+      <UniqueIdentifier>{ec7c5764-01f5-4b64-bc31-deab36678033}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\util">
+      <UniqueIdentifier>{ed409038-5ca7-4cf0-9e91-cf0bf73f3486}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\tests_render">
+      <UniqueIdentifier>{15ae6053-58db-4688-9d10-c627e20cd62f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\app">
+      <UniqueIdentifier>{4b7adb42-9280-4c55-bd43-c7a533ad1074}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\app">
+      <UniqueIdentifier>{e20c84c4-ffdf-4929-88f4-bc325145e4f2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,19 +75,31 @@
     <ClInclude Include="..\..\src\sdl\sdl_include.hpp">
       <Filter>Header Files\src\sdl</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\tests_render\test_app.hpp">
+      <Filter>Header Files\tests_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\app\app.hpp">
+      <Filter>Header Files\app</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\simage\simage_platform.cpp">
-      <Filter>Source Files\simage</Filter>
+      <Filter>Source Files\src\simage</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\util\execute.cpp">
-      <Filter>Source Files\util</Filter>
+      <Filter>Source Files\src\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sdl\sdl_run.cpp">
-      <Filter>Source Files\sdl</Filter>
+    <ClCompile Include="..\..\src\sdl\sdl_render_run.cpp">
+      <Filter>Source Files\src\sdl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\sdl\sdl_input.cpp">
-      <Filter>Source Files\sdl</Filter>
+      <Filter>Source Files\src\sdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests_render\tests_render_main.cpp">
+      <Filter>Source Files\tests_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\app\app.cpp.cpp">
+      <Filter>Source Files\src\app</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

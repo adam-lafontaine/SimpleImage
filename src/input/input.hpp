@@ -2,6 +2,9 @@
 
 //#include "../utils/types.hpp"
 
+using u32 = unsigned;
+using r32 = float;
+
 typedef union button_state_t
 {
 	bool states[3];

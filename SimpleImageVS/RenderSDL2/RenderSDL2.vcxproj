@@ -76,6 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -90,6 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,6 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,6 +121,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\app\app.hpp" />
     <ClInclude Include="..\..\src\defines.hpp" />
     <ClInclude Include="..\..\src\input\input.hpp" />
     <ClInclude Include="..\..\src\input\input_state.hpp" />
@@ -134,12 +139,15 @@
     <ClInclude Include="..\..\src\simage\simage_platform.hpp" />
     <ClInclude Include="..\..\src\util\execute.hpp" />
     <ClInclude Include="..\..\src\util\stopwatch.hpp" />
+    <ClInclude Include="..\..\tests_render\test_app.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\app\app.cpp.cpp" />
     <ClCompile Include="..\..\src\sdl\sdl_input.cpp" />
-    <ClCompile Include="..\..\src\sdl\sdl_run.cpp" />
+    <ClCompile Include="..\..\src\sdl\sdl_render_run.cpp" />
     <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
+    <ClCompile Include="..\..\tests_render\tests_render_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -136,6 +136,7 @@
     <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
     <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
+    <ClCompile Include="..\..\tests\copy_tests.cpp" />
     <ClCompile Include="..\..\tests\create_image_tests.cpp" />
     <ClCompile Include="..\..\tests\execute_tests.cpp" />
     <ClCompile Include="..\..\tests\fill_tests.cpp" />

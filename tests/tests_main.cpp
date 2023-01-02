@@ -21,6 +21,7 @@ static bool test_success()
         //map_rgb_yuv_tests() &&        
         //sub_view_tests() &&
         //fill_tests() &&
+        copy_tests() &&
         //histogram_tests() &&
         true;
 }

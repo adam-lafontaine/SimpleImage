@@ -99,6 +99,9 @@
     <ClCompile Include="..\..\src\simage\simage_platform.cpp">
       <Filter>Source Files\src\simage</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\tests\copy_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\tests\tests_include.hpp">

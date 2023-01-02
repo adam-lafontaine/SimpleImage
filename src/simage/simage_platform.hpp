@@ -166,3 +166,88 @@ namespace simage
 	using ImageYUV = Matrix2D<YUV2>;
 	using ViewYUV = MatrixView<YUV2>;
 }
+
+
+/* create destroy */
+
+namespace simage
+{
+	bool create_image(Image& image, u32 width, u32 height);
+
+	bool create_image(ImageGray& image, u32 width, u32 height);
+
+	bool create_image(ImageYUV& image, u32 width, u32 height);
+
+	void destroy_image(Image& image);
+
+	void destroy_image(ImageGray& image);
+
+	void destroy_image(ImageYUV& image);
+}
+
+
+/* make_view */
+
+namespace simage
+{
+	View make_view(Image const& image);
+
+	ViewGray make_view(ImageGray const& image);
+
+	ViewYUV make_view(ImageYUV const& image);
+}
+
+
+/* sub_view */
+
+namespace simage
+{
+	View sub_view(Image const& image, Range2Du32 const& range);
+
+	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
+
+	View sub_view(View const& view, Range2Du32 const& range);
+
+	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
+
+
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range);
+}
+
+
+/* row begin */
+
+namespace simage
+{
+	template <typename T>
+	inline T* row_begin(Matrix2D<T> const& image, u32 y)
+	{
+		/*assert(y < image.height);
+
+		auto offset = y * image.width;
+
+		auto ptr = image.data_ + (u64)(offset);
+		assert(ptr);
+
+		return ptr;*/
+
+		return image.data_ + (u64)(y * image.width);
+	}
+
+
+	template <typename T>
+	inline T* row_begin(MatrixView<T> const& view, u32 y)
+	{
+		/*assert(verify(view));
+		assert(y < view.height);
+
+		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+
+		auto ptr = view.image_data + (u64)(offset);
+		assert(ptr);
+
+		return ptr;*/
+
+		return view.image_data + (u64)((view.y_begin + y) * view.image_width + view.x_begin);
+	}
+}

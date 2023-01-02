@@ -168,6 +168,35 @@ namespace simage
 }
 
 
+/* to_pixel */
+
+namespace simage
+{
+	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b, u8 a)
+	{
+		Pixel p{};
+		p.rgba.red = r;
+		p.rgba.green = g;
+		p.rgba.blue = b;
+		p.rgba.alpha = a;
+
+		return p;
+	}
+
+
+	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b)
+	{
+		return to_pixel(r, g, b, 255);
+	}
+
+
+	constexpr inline Pixel to_pixel(u8 value)
+	{
+		return to_pixel(value, value, value, 255);
+	}
+}
+
+
 /* create destroy */
 
 namespace simage

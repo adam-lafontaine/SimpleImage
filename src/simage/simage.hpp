@@ -52,30 +52,6 @@ namespace simage
 		return static_cast<int>(channel);
 	}
 
-
-    constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b, u8 a)
-	{
-		Pixel p{};
-		p.channels[id_cast(RGBA::R)] = r;
-		p.channels[id_cast(RGBA::G)] = g;
-		p.channels[id_cast(RGBA::B)] = b;
-		p.channels[id_cast(RGBA::A)] = a;
-
-		return p;
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b)
-	{
-		return to_pixel(r, g, b, 255);
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 value)
-	{
-		return to_pixel(value, value, value, 255);
-	}
-
 }
 
 

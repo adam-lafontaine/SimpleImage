@@ -22,7 +22,7 @@ namespace app
     class DebugInfo
     {
     public:
-        u32 n_controllers;
+        u32 n_controllers = 0;
     };
 
 

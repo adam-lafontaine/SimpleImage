@@ -22,7 +22,10 @@
 //#define RPI_3B_PLUS
 //#define JETSON_NANO
 
-//#define SIMAGE_NO_SIMD
+// simd works on Windows only
+#ifndef _WIN32
+#define SIMAGE_NO_SIMD
+#endif
 
 
 #define SIMD_INTEL_256

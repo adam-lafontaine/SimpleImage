@@ -154,7 +154,7 @@ INCLUDES  :=
 LIBRARIES := $(SDL2) $(TBB)
 CCFLAGS := -std=c++20 -mavx -mavx2
 
-CCFLAGS += -O3
+#CCFLAGS += -O3
 #CCFLAGS += -DNDEBUG
 
 

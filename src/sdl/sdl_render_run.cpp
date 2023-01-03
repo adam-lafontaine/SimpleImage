@@ -69,7 +69,7 @@ static void handle_sdl_event(SDL_Event const& event)
 
 bool render_init(app::WindowSettings const& window_settings, app::AppSettings& app_settings)
 {
-    snprintf(WINDOW_TITLE, 50, "%s v%s", window_settings.app_title, window_settings.version);
+    //snprintf(WINDOW_TITLE, 50, "%s v%s", window_settings.app_title, window_settings.version);
 
     if (!init_sdl())
     {
@@ -122,7 +122,7 @@ void render_run(app::AppSettings& app_settings)
         {
             ms_elapsed = 0.0;
             #ifndef NDEBUG
-            snprintf(dbg_title, 50, "%s (%d)", WINDOW_TITLE, (int)frame_ms_elapsed);
+            //snprintf(dbg_title, 50, "%s (%d)", WINDOW_TITLE, (int)frame_ms_elapsed);
             SDL_SetWindowTitle(g_screen.window, dbg_title);
             #endif
         }

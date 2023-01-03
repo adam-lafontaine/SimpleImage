@@ -461,7 +461,7 @@ namespace simage
 	}
 
 
-#endif SIMAGE_NO_SIMD
+#endif // SIMAGE_NO_SIMD
 
 
 	void fill(View const& view, Pixel color)

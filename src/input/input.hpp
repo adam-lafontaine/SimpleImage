@@ -1,6 +1,7 @@
 #pragma once
 
 //#include "../utils/types.hpp"
+#include <cstddef>
 
 using u32 = unsigned;
 using r32 = float;

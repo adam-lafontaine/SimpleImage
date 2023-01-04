@@ -13,10 +13,14 @@ input  := $(src)/input
 sdl    := $(src)/sdl
 simage := $(src)/simage
 stb    := $(simage)/stb
+res    := $(src)/resources
 
 
 render_exe := $(build)/render_exe
 
+
+# resources
+icon_h := $(res)/icon_64.h
 
 # headers
 defines_h := $(src)/defines.hpp
@@ -58,6 +62,7 @@ input_state += $(input_h)
 # sdl
 sdl_include_h := $(sdl)/sdl_include.hpp
 sdl_include_h += $(input_h)
+sdl_include_h += $(icon_h)
 
 # app
 app_h := $(app)/app.hpp
@@ -152,7 +157,8 @@ object_files += $(image_tests_o)
 # flags
 INCLUDES  :=
 LIBRARIES := $(SDL2) $(TBB)
-CCFLAGS := -std=c++20 -mavx -mavx2
+CCFLAGS := -std=c++20 
+#-mavx -mavx2
 
 #CCFLAGS += -O3
 #CCFLAGS += -DNDEBUG

@@ -507,7 +507,7 @@ namespace simage
 	template <class IMG_SRC, class IMG_DST>
 	static void do_copy(IMG_SRC const& src, IMG_DST const& dst)
 	{
-		copy_no_simd(view, color);
+		copy_no_simd(src, dst);
 	}
 
 #else

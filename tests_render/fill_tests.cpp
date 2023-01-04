@@ -3,8 +3,6 @@
 
 void fill_platform_view_test(img::View const& out_view)
 {
-    bool result = false;
-
     auto full = make_range(out_view);
 
     auto top = make_range(out_view.width, out_view.height / 3);

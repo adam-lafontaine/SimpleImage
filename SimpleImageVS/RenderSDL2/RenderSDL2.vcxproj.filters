@@ -46,9 +46,6 @@
     <Filter Include="Header Files\tests_render">
       <UniqueIdentifier>{15ae6053-58db-4688-9d10-c627e20cd62f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\app">
-      <UniqueIdentifier>{4b7adb42-9280-4c55-bd43-c7a533ad1074}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\src\app">
       <UniqueIdentifier>{e20c84c4-ffdf-4929-88f4-bc325145e4f2}</UniqueIdentifier>
     </Filter>
@@ -60,6 +57,9 @@
     </Filter>
     <Filter Include="Header Files\src\resources">
       <UniqueIdentifier>{f8b68955-89c7-4321-bb64-8eab1681f86c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\app">
+      <UniqueIdentifier>{4b7adb42-9280-4c55-bd43-c7a533ad1074}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -88,7 +88,7 @@
       <Filter>Header Files\tests_render</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\app\app.hpp">
-      <Filter>Header Files\app</Filter>
+      <Filter>Header Files\src\app</Filter>
     </ClInclude>
     <ClInclude Include="..\..\tests_render\tests_def.hpp">
       <Filter>Header Files\tests_render</Filter>

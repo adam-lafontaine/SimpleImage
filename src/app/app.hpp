@@ -1,6 +1,10 @@
 #pragma once
 
 #include "../simage/simage_platform.hpp"
+#include "../input/input.hpp"
+
+
+#include <functional>
 
 
 namespace img = simage;
@@ -26,10 +30,10 @@ namespace app
     };
 
 
-    class AppSettings
+    class AppState
     {
     public:
-        img::View screen_pixels;
+        img::View screen_pixels;        
 
         bool signal_stop = false;
 
@@ -38,6 +42,6 @@ namespace app
 }
 
 
-bool render_init(app::WindowSettings const& window_settings, app::AppSettings& app_settings);
+bool render_init(app::WindowSettings const& window_settings, app::AppState& app_settings);
 
-void render_run(app::AppSettings& app_settings);
+void render_run(app::AppState& app_state, std::function<void(Input const&)> const& on_input);

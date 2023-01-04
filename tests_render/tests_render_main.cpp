@@ -15,12 +15,54 @@ constexpr auto APP_VERSION = "1.0";
 
 
 
-
-static void run_tests(img::View const& screen_out)
+static void do_nothing()
 {
-	fill_platform_view_test(screen_out);
-	//copy_image_test(screen_out);
-	//resize_image_test(screen_out);
+
+}
+
+
+static void run_selected_test(Input const& input, app::AppState& app_state)
+{
+	static int test_id = 0;
+
+	if (!input.keyboard.space_key.pressed)
+	{
+		return;
+	}
+
+	auto& screen_out = app_state.screen_pixels;
+
+	test_id++;
+
+	switch (test_id)
+	{
+	case 0:
+		break; 
+
+	case 1:
+		fill_platform_view_test(screen_out);
+		break;
+	case 2:
+		copy_image_test(screen_out);
+		break;
+	case 3:
+		resize_image_test(screen_out);
+		break;
+	case 4:
+		test_id = 0;
+		break;
+	default:		
+		break;
+	}
+}
+
+
+static void process_input(Input const& input, app::AppState& app_state)
+{
+	execute({
+		[&]() { run_selected_test(input, app_state); },
+		do_nothing
+	});
 }
 
 
@@ -40,20 +82,14 @@ int main()
 	window_settings.screen_width = 800;
 	window_settings.screen_height = 600;
 
-	app::AppSettings app_settings;
+	app::AppState app_state;
 
-	if (!render_init(window_settings, app_settings))
+	if (!render_init(window_settings, app_state))
 	{
 		return EXIT_FAILURE;
 	}
 
-	std::array<std::function<void()>, 2> f_list = 
-	{
-		[&]() { render_run(app_settings); },
-		[&]() { run_tests(app_settings.screen_pixels); }
-	};
-
-	execute_parallel(f_list);
+	render_run(app_state, [&](auto const& input) { process_input(input, app_state); });
 
 	return EXIT_SUCCESS;
 }

@@ -26,7 +26,7 @@ typedef union button_state_t
 #define KEYBOARD_A 0
 #define KEYBOARD_B 0
 #define KEYBOARD_C 0
-#define KEYBOARD_D 1
+#define KEYBOARD_D 0
 #define KEYBOARD_E 0
 #define KEYBOARD_F 0
 #define KEYBOARD_G 0
@@ -45,7 +45,7 @@ typedef union button_state_t
 #define KEYBOARD_T 0
 #define KEYBOARD_U 0
 #define KEYBOARD_V 0
-#define KEYBOARD_W 1
+#define KEYBOARD_W 0
 #define KEYBOARD_X 0
 #define KEYBOARD_Y 0
 #define KEYBOARD_Z 0
@@ -65,7 +65,7 @@ typedef union button_state_t
 #define KEYBOARD_RIGHT 0
 #define KEYBOARD_RETURN 0
 #define KEYBOARD_ESCAPE 0
-#define KEYBOARD_SPACE 0
+#define KEYBOARD_SPACE 1
 #define KEYBOARD_SHIFT 0
 #define KEYBOARD_PLUS 0
 #define KEYBOARD_MINUS 0

@@ -507,12 +507,31 @@ namespace lch
         auto A = 1.9779984951f * l_ - 2.4285922050f * m_ + 0.4505937099f * s_;
         auto B = 0.0259040371f * l_ + 0.7827717662f * m_ - 0.8086757660f * s_;
 
+        auto C = std::hypotf(A, B);
         auto H = std::atan2f(B, A) / (2 * 3.1415926536f) + 0.5f;
 
+        return { L, C, H };
+    }
+
+
+    inline cs::RGBr32 r32_to_rgb_r32(r32 l, r32 c, r32 h)
+    {
+        auto H = (h - 0.5f) * 2 * 3.1415926536f;
+        auto A = c * std::cosf(H);
+        auto B = c * std::sinf(H);
+
+        auto l_ = l + 0.3963377774f * A + 0.2158037573f * B;
+        auto m_ = l - 0.1055613458f * A - 0.0638541728f * B;
+        auto s_ = l - 0.0894841775f * A - 1.2914855480f * B;
+
+        l_ = l_ * l_ * l_;
+        m_ = m_ * m_ * m_;
+        s_ = s_ * s_ * s_;
+
         return {
-            L,
-            std::hypotf(A, B),
-            H
+            4.0767416621f * l_ - 3.3077115913f * m_ + 0.2309699292f * s_,
+            -1.2684380046f * l_ + 2.6097574011f * m_ - 0.3413193965f * s_,
+            -0.0041960863f * l_ - 0.7034186147f * m_ + 1.7076147010f * s_,
         };
     }
 }
@@ -619,6 +638,8 @@ namespace yuv
     {
         auto U = (r32)u - 128.0f;
         auto V = (r32)v - 128.0f;
+
+        // TODO: lut
 
         auto R = y + 1.402f * V;
         auto G = y - 0.344f * U - 0.714f * V;

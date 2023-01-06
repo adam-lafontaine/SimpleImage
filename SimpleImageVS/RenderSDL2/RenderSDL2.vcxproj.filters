@@ -102,6 +102,9 @@
     <ClInclude Include="..\..\src\resources\icon_64.h">
       <Filter>Header Files\src\resources</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\util\memory_buffer.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\simage\simage_platform.cpp">
@@ -130,6 +133,12 @@
     </ClCompile>
     <ClCompile Include="..\..\tests_render\image_tests.cpp">
       <Filter>Source Files\tests_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests_render\histogram_tests.cpp">
+      <Filter>Source Files\tests_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util\memory_buffer.cpp">
+      <Filter>Source Files\src\util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

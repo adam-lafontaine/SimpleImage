@@ -23,37 +23,31 @@ static void do_nothing()
 
 static void run_selected_test(Input const& input, app::AppState& app_state)
 {
-	static int test_id = 0;
+	static int test_id = -1;
+
+	static std::vector<std::function<void(img::View const&)>> funcs = 
+	{
+		//fill_platform_view_test,
+		//copy_image_test,
+		//resize_image_test,
+		histogram_image_test,
+	};
 
 	if (!input.keyboard.space_key.pressed)
 	{
 		return;
 	}
 
-	auto& screen_out = app_state.screen_pixels;
-
 	test_id++;
 
-	switch (test_id)
+	if (test_id >= funcs.size())
 	{
-	case 0:
-		break; 
-
-	case 1:
-		fill_platform_view_test(screen_out);
-		break;
-	case 2:
-		copy_image_test(screen_out);
-		break;
-	case 3:
-		resize_image_test(screen_out);
-		break;
-	case 4:
 		test_id = 0;
-		break;
-	default:		
-		break;
 	}
+
+	auto& screen_out = app_state.screen_pixels;
+
+	funcs[test_id](screen_out);
 }
 
 
@@ -79,8 +73,8 @@ int main()
 	app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
-	window_settings.screen_width = 800;
-	window_settings.screen_height = 600;
+	window_settings.screen_width = 900;
+	window_settings.screen_height = 700;
 
 	app::AppState app_state;
 

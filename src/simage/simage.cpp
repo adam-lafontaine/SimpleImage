@@ -719,6 +719,37 @@ namespace simage
 
 		process_image_rows(src.height, row_func);
 	}
+
+
+	void map_rgb(View1r32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		constexpr auto r = id_cast(RGBA::R);
+		constexpr auto g = id_cast(RGBA::G);
+		constexpr auto b = id_cast(RGBA::B);
+		constexpr auto a = id_cast(RGBA::A);
+
+		constexpr auto ch_max = cs::to_channel_u8(1.0f);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(dst, y);
+			auto s = row_begin(src, y);			
+
+			for (u32 x = 0; x < src.width; ++x) // TODO: simd
+			{
+				auto const gray = cs::to_channel_u8(s[x]);
+
+				d[x].channels[r] = gray;
+				d[x].channels[g] = gray;
+				d[x].channels[b] = gray;
+				d[x].channels[a] = ch_max;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
 }
 
 

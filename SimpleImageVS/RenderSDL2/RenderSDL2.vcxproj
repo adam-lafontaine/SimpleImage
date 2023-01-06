@@ -141,6 +141,7 @@
     <ClInclude Include="..\..\src\simage\simage_platform.hpp" />
     <ClInclude Include="..\..\src\simage\stb\stb_include.hpp" />
     <ClInclude Include="..\..\src\util\execute.hpp" />
+    <ClInclude Include="..\..\src\util\memory_buffer.hpp" />
     <ClInclude Include="..\..\src\util\stopwatch.hpp" />
     <ClInclude Include="..\..\tests_render\tests_def.hpp" />
     <ClInclude Include="..\..\tests_render\tests_include.hpp" />
@@ -152,7 +153,9 @@
     <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
     <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
+    <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
     <ClCompile Include="..\..\tests_render\fill_tests.cpp" />
+    <ClCompile Include="..\..\tests_render\histogram_tests.cpp" />
     <ClCompile Include="..\..\tests_render\image_tests.cpp" />
     <ClCompile Include="..\..\tests_render\tests_render_main.cpp" />
   </ItemGroup>

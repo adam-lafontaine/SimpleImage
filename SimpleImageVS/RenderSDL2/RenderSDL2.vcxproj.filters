@@ -105,6 +105,9 @@
     <ClInclude Include="..\..\src\util\memory_buffer.hpp">
       <Filter>Header Files\src\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\util\color_space.hpp">
+      <Filter>Header Files\src\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\simage\simage_platform.cpp">

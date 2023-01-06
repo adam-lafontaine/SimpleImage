@@ -97,8 +97,8 @@ static void draw(img::Histogram9r32& hists, img::View1r32 const& dst, HistParams
 
 void histogram_image_test(img::View const& out)
 {
-    u32 width = out.width; // N_BINS* (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
-    u32 height = out.height; // 9 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
+    u32 width = out.width;
+    u32 height = out.height;
 
     HistParams params{};
     params.n_bins = N_BINS;
@@ -106,7 +106,6 @@ void histogram_image_test(img::View const& out)
     params.hist_space = HIST_SPACE;
     params.bin_width = (width + BIN_SPACE - 2 * HIST_SPACE) / N_BINS - BIN_SPACE;
     params.hist_height = (height - HIST_SPACE) / 9 - HIST_SPACE;
-
 
     img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height);

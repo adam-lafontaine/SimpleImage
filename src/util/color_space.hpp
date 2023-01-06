@@ -528,14 +528,14 @@ namespace lch
         m_ = m_ * m_ * m_;
         s_ = s_ * s_ * s_;
 
-        auto R = 4.0767416621f * l_ - 3.3077115913f * m_ + 0.2309699292f * s_;
-        auto G = -1.2684380046f * l_ + 2.6097574011f * m_ - 0.3413193965f * s_;
-        auto B = -0.0041960863f * l_ - 0.7034186147f * m_ + 1.7076147010f * s_;
+        auto red = 4.0767416621f * l_ - 3.3077115913f * m_ + 0.2309699292f * s_;
+        auto green = -1.2684380046f * l_ + 2.6097574011f * m_ - 0.3413193965f * s_;
+        auto blue = -0.0041960863f * l_ - 0.7034186147f * m_ + 1.7076147010f * s_;
 
         return {
-            cs::clamp(R),
-            cs::clamp(G),
-            cs::clamp(B)
+            cs::clamp(red),
+            cs::clamp(green),
+            cs::clamp(blue)
         };
     }
 
@@ -547,7 +547,8 @@ namespace lch
         return {
             cs::to_channel_u8(rgb.red),
             cs::to_channel_u8(rgb.green),
-            cs::to_channel_u8(rgb.blue)
+            cs::to_channel_u8(rgb.blue),
+            255
         };
     }
 
@@ -624,18 +625,17 @@ namespace yuv
 
     inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 y, u8 u, u8 v)
     {
-        auto U = (r32)u - 128.0f;
-        auto V = (r32)v - 128.0f;
+        auto Y = cs::to_channel_r32(y);
+        auto U = cs::to_channel_r32(u) - 0.5f;
+        auto V = cs::to_channel_r32(v) - 0.5f;
 
-        auto R = y + 1.402f * V;
-        auto G = y - 0.344f * U - 0.714f * V;
-        auto B = y + 1.722f * U;
+        auto rgb = r32_to_rgb_r32(Y, U, V);
 
-        return { 
-            cs::round_to_u8(R),
-            cs::round_to_u8(G),
-            cs::round_to_u8(B),
-            255 
+        return {
+            cs::to_channel_u8(rgb.red),
+            cs::to_channel_u8(rgb.green),
+            cs::to_channel_u8(rgb.blue),
+            255
         };
     }
 

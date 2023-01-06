@@ -528,10 +528,42 @@ namespace lch
         m_ = m_ * m_ * m_;
         s_ = s_ * s_ * s_;
 
+        auto R = 4.0767416621f * l_ - 3.3077115913f * m_ + 0.2309699292f * s_;
+        auto G = -1.2684380046f * l_ + 2.6097574011f * m_ - 0.3413193965f * s_;
+        auto B = -0.0041960863f * l_ - 0.7034186147f * m_ + 1.7076147010f * s_;
+
         return {
-            4.0767416621f * l_ - 3.3077115913f * m_ + 0.2309699292f * s_,
-            -1.2684380046f * l_ + 2.6097574011f * m_ - 0.3413193965f * s_,
-            -0.0041960863f * l_ - 0.7034186147f * m_ + 1.7076147010f * s_,
+            cs::clamp(R),
+            cs::clamp(G),
+            cs::clamp(B)
+        };
+    }
+
+
+    inline cs::RGBAu8 r32_to_rgb_u8(r32 l, r32 c, r32 h)
+    {
+        auto rgb = r32_to_rgb_r32(l, c, h);
+
+        return {
+            cs::to_channel_u8(rgb.red),
+            cs::to_channel_u8(rgb.green),
+            cs::to_channel_u8(rgb.blue)
+        };
+    }
+
+
+    inline cs::LCHu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto R = cs::to_channel_r32(r);
+        auto G = cs::to_channel_r32(g);
+        auto B = cs::to_channel_r32(b);
+
+        auto lch = r32_from_rgb_r32(R, G, B);
+
+        return {
+            cs::to_channel_u8(lch.light),
+            cs::to_channel_u8(lch.chroma),
+            cs::to_channel_u8(lch.hue)
         };
     }
 }
@@ -638,8 +670,6 @@ namespace yuv
     {
         auto U = (r32)u - 128.0f;
         auto V = (r32)v - 128.0f;
-
-        // TODO: lut
 
         auto R = y + 1.402f * V;
         auto G = y - 0.344f * U - 0.714f * V;

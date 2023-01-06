@@ -9,7 +9,7 @@ namespace rng = std::ranges;
 
 static bool yuv_conversion_test()
 {
-    printf("yuv converstion_test\n");
+    printf("yuv_converstion_test\n");
     auto const not_equals = [](r32 lhs, r32 rhs) { return std::abs(lhs - rhs) > (1.0f / 255.0f); };
 
     std::vector<int> results(256, 1);
@@ -45,6 +45,15 @@ static bool yuv_conversion_test()
         printf("FAIL\n");
         return false;
     }
+
+    printf("OK\n");
+    return true;
+}
+
+
+static bool yuv_draw_test()
+{
+    printf("yuv_draw_test\n");
 
     printf("OK\n");
     return true;

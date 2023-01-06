@@ -52,48 +52,6 @@ namespace simage
 		return static_cast<int>(channel);
 	}
 
-
-    constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b, u8 a)
-	{
-		Pixel p{};
-		p.channels[id_cast(RGBA::R)] = r;
-		p.channels[id_cast(RGBA::G)] = g;
-		p.channels[id_cast(RGBA::B)] = b;
-		p.channels[id_cast(RGBA::A)] = a;
-
-		return p;
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b)
-	{
-		return to_pixel(r, g, b, 255);
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 value)
-	{
-		return to_pixel(value, value, value, 255);
-	}
-
-}
-
-
-/* platform */
-
-namespace simage
-{
-	bool create_image(Image& image, u32 width, u32 height);
-
-	bool create_image(ImageGray& image, u32 width, u32 height);
-
-	bool create_image(ImageYUV& image, u32 width, u32 height);
-
-	void destroy_image(Image& image);	
-
-	void destroy_image(ImageGray& image);
-
-	void destroy_image(ImageYUV& image);
 }
 
 
@@ -157,17 +115,9 @@ namespace simage
 {
 	using Buffer32 = MemoryBuffer<r32>;
 
-
 	using ViewRGBAr32 = View4r32;
 	using ViewRGBr32 = View3r32;
 	using ViewHSVr32 = View3r32;
-
-
-	View make_view(Image const& image);
-
-	ViewGray make_view(ImageGray const& image);
-
-	ViewYUV make_view(ImageYUV const& image);
 
 
 	View1r32 make_view_1(u32 width, u32 height, Buffer32& buffer);
@@ -204,6 +154,8 @@ namespace simage
 	void map_rgb(View const& src, ViewRGBr32 const& dst);
 
 	void map_rgb(ViewRGBr32 const& src, View const& dst);
+
+	void map_rgb(View1r32 const& src, View const& dst);
 
 
 	/*inline ViewRGBAr32 make_rgba_view(View const& src, Buffer32& buffer)
@@ -254,18 +206,6 @@ namespace simage
 
 namespace simage
 {
-	View sub_view(Image const& image, Range2Du32 const& range);
-
-	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
-
-	View sub_view(View const& view, Range2Du32 const& range);
-
-	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
-
-
-	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range);
-
-
 	View4r32 sub_view(View4r32 const& view, Range2Du32 const& range);
 
 	View3r32 sub_view(View3r32 const& view, Range2Du32 const& range);

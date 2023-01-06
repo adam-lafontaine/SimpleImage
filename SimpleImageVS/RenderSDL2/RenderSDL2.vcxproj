@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{b25a5fef-38d0-4faf-a481-2fedfaf26aaa}</ProjectGuid>
-    <RootNamespace>SimpleImageTests</RootNamespace>
+    <ProjectGuid>{6d8f3b10-1534-4019-8676-a4853a324691}</ProjectGuid>
+    <RootNamespace>RenderSDL2</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -131,38 +131,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\simage\simage.cpp" />
-    <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
-    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp" />
-    <ClCompile Include="..\..\src\util\execute.cpp" />
-    <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
-    <ClCompile Include="..\..\tests\copy_tests.cpp" />
-    <ClCompile Include="..\..\tests\create_image_tests.cpp" />
-    <ClCompile Include="..\..\tests\execute_tests.cpp" />
-    <ClCompile Include="..\..\tests\fill_tests.cpp" />
-    <ClCompile Include="..\..\tests\histogram_tests.cpp" />
-    <ClCompile Include="..\..\tests\make_view_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_rgb_hsv_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_rgb_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_rgb_yuv_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_tests.cpp" />
-    <ClCompile Include="..\..\tests\memory_buffer_tests.cpp" />
-    <ClCompile Include="..\..\tests\stb_simage_tests.cpp" />
-    <ClCompile Include="..\..\tests\sub_view_tests.cpp" />
-    <ClCompile Include="..\..\tests\tests_main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\..\src\app\app.hpp" />
     <ClInclude Include="..\..\src\defines.hpp" />
+    <ClInclude Include="..\..\src\input\input.hpp" />
+    <ClInclude Include="..\..\src\input\input_state.hpp" />
+    <ClInclude Include="..\..\src\resources\icon_64.h" />
+    <ClInclude Include="..\..\src\sdl\sdl_include.hpp" />
     <ClInclude Include="..\..\src\simage\simage.hpp" />
     <ClInclude Include="..\..\src\simage\simage_platform.hpp" />
     <ClInclude Include="..\..\src\simage\stb\stb_include.hpp" />
     <ClInclude Include="..\..\src\util\color_space.hpp" />
     <ClInclude Include="..\..\src\util\execute.hpp" />
     <ClInclude Include="..\..\src\util\memory_buffer.hpp" />
-    <ClInclude Include="..\..\src\util\simd.hpp" />
     <ClInclude Include="..\..\src\util\stopwatch.hpp" />
-    <ClInclude Include="..\..\src\util\win32_leak_check.h" />
-    <ClInclude Include="..\..\tests\tests_include.hpp" />
+    <ClInclude Include="..\..\tests_render\tests_def.hpp" />
+    <ClInclude Include="..\..\tests_render\tests_include.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\sdl\sdl_input.cpp" />
+    <ClCompile Include="..\..\src\sdl\sdl_render_run.cpp" />
+    <ClCompile Include="..\..\src\simage\simage.cpp" />
+    <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
+    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp" />
+    <ClCompile Include="..\..\src\util\execute.cpp" />
+    <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
+    <ClCompile Include="..\..\tests_render\fill_tests.cpp" />
+    <ClCompile Include="..\..\tests_render\histogram_tests.cpp" />
+    <ClCompile Include="..\..\tests_render\image_tests.cpp" />
+    <ClCompile Include="..\..\tests_render\tests_render_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

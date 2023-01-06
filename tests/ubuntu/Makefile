@@ -78,7 +78,15 @@ stb_simage_o := $(build)/stb_simage.object_files
 object_files += $(stb_simage_o)
 
 
-#simage
+# simage_platform
+simage_platform_c := $(simage)/simage_platform.cpp
+simage_platform_c += $(simage_platform_h)
+simage_platform_c += $(execute_h)
+simage_platform_o := $(build)/simage_platform.o
+object_files += $(simage_platform_o)
+
+
+# simage
 simage_c := $(simage)/simage.cpp
 simage_c += $(simage_h)
 simage_c += $(memory_buffer_h)
@@ -144,6 +152,11 @@ sub_view_tests_c += $(tests_include_h)
 sub_view_tests_o := $(build)/sub_view_tests.o
 object_files += $(sub_view_tests_o)
 
+copy_tests_c := $(tests)/copy_tests.cpp
+copy_tests_c += $(tests_include_h)
+copy_tests_o := $(build)/copy_tests.o
+object_files += $(copy_tests_o)
+
 fill_tests_c := $(tests)/fill_tests.cpp
 fill_tests_c += $(tests_include_h)
 fill_tests_o := $(build)/fill_tests.o
@@ -159,7 +172,7 @@ object_files += $(histogram_tests_o)
 # flags
 INCLUDES  :=
 LIBRARIES := -ltbb
-CCFLAGS := -std=c++20
+CCFLAGS := -std=c++20 -mavx -mavx2
 
 CCFLAGS += -O3
 CCFLAGS += -DNDEBUG
@@ -185,10 +198,13 @@ $(stb_simage_o): $(stb_simage_c)
 	@echo "\n stb_simage"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
+$(simage_platform_o): $(simage_platform_c)
+	@echo "\n simage_platform"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
 $(simage_o): $(simage_c)
 	@echo "\n simage"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
-
 
 
 $(execute_tests_o): $(execute_tests_c)
@@ -229,6 +245,10 @@ $(map_rgb_yuv_tests_o): $(map_rgb_yuv_tests_c)
 
 $(sub_view_tests_o): $(sub_view_tests_c)
 	@echo "\n sub_view_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(copy_tests_o): $(copy_tests_c)
+	@echo "\n copy_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 $(fill_tests_o): $(fill_tests_c)

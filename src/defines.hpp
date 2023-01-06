@@ -5,9 +5,9 @@
 #include <cstdint>
 #include <cstdlib>
 
-//#define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
-
-#define IS_BIG_ENDIAN 1
+#ifndef IS_LITTLE_ENDIAN
+#define IS_LITTLE_ENDIAN 1
+#endif
 
 #define SIMAGE_PNG
 #define SIMAGE_BMP
@@ -21,6 +21,11 @@
 
 //#define RPI_3B_PLUS
 //#define JETSON_NANO
+
+// simd works on Windows only
+#ifndef _WIN32
+#define SIMAGE_NO_SIMD
+#endif
 
 
 #define SIMD_INTEL_256
@@ -85,57 +90,3 @@ using Point2Du32 = Point2D<u32>;
 using Point2Dr32 = Point2D<r32>;
 
 
-// region of interest in an image
-class Range2Du32
-{
-public:
-	u32 x_begin;
-	u32 x_end;  // one past last x
-	u32 y_begin;
-	u32 y_end;   // one past last y
-};
-
-
-inline Range2Du32 make_range(u32 width, u32 height)
-{
-	Range2Du32 r{};
-
-	r.x_begin = 0;
-	r.y_begin = 0;
-	r.x_end = width;
-	r.y_end = height;
-
-	return r;
-}
-
-
-template <class T>
-inline Range2Du32 make_range(T const& c)
-{
-	return make_range(c.width, c.height);
-}
-
-
-template <typename T>
-class Matrix1D
-{
-public:
-	T* data_ = nullptr;
-	u32 length = 0;
-};
-
-
-template <typename T>
-class Matrix2D
-{
-public:
-	T* data_ = nullptr;
-	u32 width = 0;
-	u32 height = 0;	
-
-#ifndef NDEBUG
-
-	~Matrix2D() { assert(!(bool)data_); }
-
-#endif // !NDEBUG
-};

@@ -117,4 +117,6 @@ bool sub_view_tests();
 
 bool fill_tests();
 
+bool copy_tests();
+
 bool histogram_tests();

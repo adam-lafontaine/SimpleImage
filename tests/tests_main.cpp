@@ -17,8 +17,8 @@ static bool test_success()
         //make_view_tests() &&
         //map_tests() &&
         //map_rgb_tests() &&
-        //map_rgb_hsv_tests() &&
-        map_rgb_yuv_tests() &&        
+        map_rgb_hsv_tests() &&
+        //map_rgb_yuv_tests() &&        
         //sub_view_tests() &&
         //fill_tests() &&
         //copy_tests() &&

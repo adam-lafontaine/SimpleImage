@@ -278,6 +278,49 @@ static bool map_hsv_planar_test()
 }
 
 
+static bool hsv_draw_test()
+{
+    auto title = "hsv_draw_test";
+    printf("\n%s:\n", title);
+    auto out_dir = IMAGE_OUT_PATH / title;
+    empty_dir(out_dir);
+    auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
+
+    u8 V = 255;
+
+    img::Image image;
+    img::create_image(image, 256, 256);
+
+    auto const row_func = [&](u32 y)
+    {
+        auto s = (u8)y;
+        auto d = img::row_begin(image, y);
+        for (u32 x = 0; x < 256; ++x)
+        {
+            auto h = (u8)x;
+            auto rgba = hsv::u8_to_rgba_u8(h, s, V);
+            auto& p = d[x].rgba;
+            p.red = rgba.red;
+            p.green = rgba.green;
+            p.blue = rgba.blue;
+            p.alpha = 255;
+        }
+    };
+
+    process_range(0, 256, row_func);
+    write_image(image, "hsv_255.bmp");
+
+    V = 128;
+    process_range(0, 256, row_func);
+    write_image(image, "hsv_128.bmp");
+
+    img::destroy_image(image);
+
+    printf("OK\n");
+    return true;
+}
+
+
 bool map_rgb_hsv_tests()
 {
     printf("\n*** map_rgb_hsv tests ***\n");
@@ -287,7 +330,8 @@ bool map_rgb_hsv_tests()
         //hsv_conversion_u8_test() &&
         map_hsv_test() &&
         map_hsv_gray_test() &&
-        map_hsv_planar_test();
+        map_hsv_planar_test() &&
+        hsv_draw_test();
 
     if (result)
     {

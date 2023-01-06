@@ -339,80 +339,27 @@ namespace hsv
 }
 
 
-namespace hsv 
-{
-namespace lut
-{
-    /*class H_RGB_LUT
-    {
-    public:
-        std::array<r32, 256> red;
-        std::array<r32, 256> green;
-        std::array<r32, 256> blue;
-    };
-
-
-    static constexpr H_RGB_LUT h_rgb()
-    {
-        H_RGB_LUT lut = {};
-
-        auto sat = 1.0f;
-        auto val = 1.0f;
-
-        for (u32 h = 0; h < 256; ++h)
-        {
-            auto hue = cs::to_channel_r32(h);
-
-            auto rgba = r32_to_rgb_r32(hue, sat, val);
-
-            lut.red[h] = rgba.red;
-            lut.green[h] = rgba.green;
-            lut.blue[h] = rgba.blue;
-        }
-
-        return lut;
-    }*/
-}
-}
-
-
 namespace hsv
 {
-    //inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 h, u8 s, u8 v)
-    //{
-    //    if (!s || !v)
-    //    {
-    //        return { v, v, v, 255 };
-    //    }
+    inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 h, u8 s, u8 v)
+    {
+        if (!s || !v)
+        {
+            return { v, v, v, 255 };
+        }
 
-    //    /*constexpr auto lut = lut::h_rgb();
+        auto H = cs::to_channel_r32(h);
+        auto S = cs::to_channel_r32(s);
+        auto V = cs::to_channel_r32(v);
 
-    //    auto R = lut.red[h];
-    //    auto G = lut.green[h];
-    //    auto B = lut.blue[h];
+        auto rgb = r32_to_rgb_r32(H, S, V);
 
-    //    auto S = cs::to_channel_r32(s);
-    //    auto V = cs::to_channel_r32(v);
+        auto r = cs::round_to_u8(rgb.red * 255);
+        auto g = cs::round_to_u8(rgb.green * 255);
+        auto b = cs::round_to_u8(rgb.blue * 255);
 
-    //    auto min = V * (1.0f - S) * 255;
-    //    auto range = S * V * 255;
-
-    //    auto r = cs::round_to_u8(min + R * range);
-    //    auto g = cs::round_to_u8(min + G * range);
-    //    auto b = cs::round_to_u8(min + B * range);*/
-
-    //    auto H = cs::to_channel_r32(h);
-    //    auto S = cs::to_channel_r32(s);
-    //    auto V = cs::to_channel_r32(v);
-
-    //    auto rgb = r32_to_rgb_r32(H, S, V);
-
-    //    auto r = cs::round_to_u8(rgb.red * 255);
-    //    auto g = cs::round_to_u8(rgb.green * 255);
-    //    auto b = cs::round_to_u8(rgb.blue * 255);
-
-    //    return { r, g, b, 255 };
-    //}
+        return { r, g, b, 255 };
+    }
 
 
     inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)

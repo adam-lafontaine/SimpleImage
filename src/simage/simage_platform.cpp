@@ -688,6 +688,8 @@ namespace simage
 		cs::HSVu8 hsv{};
 		cs::YUVu8 yuv{};
 
+		r32 total = 0.0f;
+
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
 			auto s = row_begin(src, y);
@@ -713,10 +715,10 @@ namespace simage
 				h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
 				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
 				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+
+				total++;
 			}
 		}
-
-		auto const total = (r32)src.width * src.height;
 
 		for (u32 i = 0; i < 9; ++i)
 		{
@@ -759,6 +761,8 @@ namespace simage
 			h_yuv.V[to_hist_bin_u8(yuv_v, n_bins)]++;
 		};
 
+		r32 total = 0.0f;
+
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
 			auto s2 = row_begin(src, y);
@@ -769,10 +773,10 @@ namespace simage
 
 				update_bins(yuv.y1, yuv.u, yuv.v);
 				update_bins(yuv.y2, yuv.u, yuv.v);
+
+				total++;
 			}
 		}
-
-		auto const total = (r32)src.width * src.height;
 
 		for (u32 i = 0; i < 9; ++i)
 		{

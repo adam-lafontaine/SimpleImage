@@ -14,19 +14,13 @@ static bool equals(r32 lhs, r32 rhs)
 }
 
 
-static bool equals(u8 lhs, u8 rhs)
+static bool lch_conversion_r32_test()
 {
-    return std::abs((int)lhs - (int)rhs) <= 2;
-}
-
-
-static bool hsv_conversion_r32_test()
-{
-    printf("hsv converstion_r32_test\n");
+    printf("lch converstion_r32_test\n");
 
     std::vector<int> results(256, 1);
 
-    auto const red_func = [&](u32 r) 
+    auto const red_func = [&](u32 r)
     {
         auto red = r / 255.0f;
 
@@ -38,8 +32,8 @@ static bool hsv_conversion_r32_test()
             {
                 auto blue = b / 255.0f;
 
-                auto hsv = hsv::r32_from_rgb_r32(red, green, blue);
-                auto rgb = hsv::r32_to_rgb_r32(hsv.hue, hsv.sat, hsv.val);
+                auto lch = lch::r32_from_rgb_r32(red, green, blue);
+                auto rgb = lch::r32_to_rgb_r32(lch.light, lch.chroma, lch.hue);
 
                 if (!equals(red, rgb.red) || !equals(green, rgb.green) || !equals(blue, rgb.blue))
                 {
@@ -63,13 +57,13 @@ static bool hsv_conversion_r32_test()
 }
 
 
-static bool map_hsv_test()
+static bool map_lch_test()
 {
-    auto title = "map_hsv_test";
-	printf("\n%s:\n", title);
-	auto out_dir = IMAGE_OUT_PATH / title;
-	empty_dir(out_dir);
-	auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
+    auto title = "map_lch_test";
+    printf("\n%s:\n", title);
+    auto out_dir = IMAGE_OUT_PATH / title;
+    empty_dir(out_dir);
+    auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
 
     Image vette;
     img::read_image_from_file(CORVETTE_PATH, vette);
@@ -93,16 +87,16 @@ static bool map_hsv_test()
     img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height * 3 * 2);
 
-    auto hsv_vette = img::make_view_3(width, height, buffer);
-    auto hsv_caddy = img::make_view_3(width, height, buffer);
+    auto lch_vette = img::make_view_3(width, height, buffer);
+    auto lch_caddy = img::make_view_3(width, height, buffer);
 
-    img::map_rgb_hsv(vette_v, hsv_vette);
-    img::map_rgb_hsv(caddy_v, hsv_caddy);
+    img::map_rgb_lch(vette_v, lch_vette);
+    img::map_rgb_lch(caddy_v, lch_caddy);
 
-    img::map_hsv_rgb(hsv_caddy, vette_v);
+    img::map_lch_rgb(lch_caddy, vette_v);
     write_image(vette, "vette_2.bmp");
 
-    img::map_hsv_rgb(hsv_vette, caddy_v);
+    img::map_lch_rgb(lch_vette, caddy_v);
     write_image(caddy, "caddy_2.bmp");
 
     img::destroy_image(vette);
@@ -114,9 +108,9 @@ static bool map_hsv_test()
 }
 
 
-static bool map_hsv_gray_test()
+static bool map_lch_gray_test()
 {
-    auto title = "map_hsv_gray_test";
+    auto title = "map_lch_gray_test";
     printf("\n%s:\n", title);
     auto out_dir = IMAGE_OUT_PATH / title;
     empty_dir(out_dir);
@@ -147,21 +141,21 @@ static bool map_hsv_gray_test()
     img::map(img::make_view(caddy_gray), caddy_v);
 
     write_image(vette, "vette_1.bmp");
-    write_image(caddy, "caddy_1.bmp");    
+    write_image(caddy, "caddy_1.bmp");
 
     img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height * 3 * 2);
 
-    auto hsv_vette = img::make_view_3(width, height, buffer);
-    auto hsv_caddy = img::make_view_3(width, height, buffer);
+    auto lch_vette = img::make_view_3(width, height, buffer);
+    auto lch_caddy = img::make_view_3(width, height, buffer);
 
-    img::map_rgb_hsv(vette_v, hsv_vette);
-    img::map_rgb_hsv(caddy_v, hsv_caddy);
+    img::map_rgb_lch(vette_v, lch_vette);
+    img::map_rgb_lch(caddy_v, lch_caddy);
 
-    img::map_hsv_rgb(hsv_caddy, vette_v);
+    img::map_lch_rgb(lch_caddy, vette_v);
     write_image(vette, "vette_2.bmp");
 
-    img::map_hsv_rgb(hsv_vette, caddy_v);
+    img::map_lch_rgb(lch_vette, caddy_v);
     write_image(caddy, "caddy_2.bmp");
 
     img::destroy_image(vette_gray);
@@ -175,13 +169,13 @@ static bool map_hsv_gray_test()
 }
 
 
-static bool map_hsv_planar_test()
+static bool map_lch_planar_test()
 {
-    auto title = "map_hsv_planar_test";
-	printf("\n%s:\n", title);
-	auto out_dir = IMAGE_OUT_PATH / title;
-	empty_dir(out_dir);
-	auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
+    auto title = "map_lch_planar_test";
+    printf("\n%s:\n", title);
+    auto out_dir = IMAGE_OUT_PATH / title;
+    empty_dir(out_dir);
+    auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
 
     Image vette;
     img::read_image_from_file(CORVETTE_PATH, vette);
@@ -208,17 +202,17 @@ static bool map_hsv_planar_test()
     auto rgb_vette = img::make_view_3(width, height, buffer);
     auto rgb_caddy = img::make_view_3(width, height, buffer);
 
-    auto hsv_vette = img::make_view_3(width, height, buffer);
-    auto hsv_caddy = img::make_view_3(width, height, buffer);
+    auto lch_vette = img::make_view_3(width, height, buffer);
+    auto lch_caddy = img::make_view_3(width, height, buffer);
 
     img::map_rgb(vette_v, rgb_vette);
     img::map_rgb(caddy_v, rgb_caddy);
 
-    img::map_rgb_hsv(rgb_vette, hsv_vette);
-    img::map_rgb_hsv(rgb_caddy, hsv_caddy);
+    img::map_rgb_lch(rgb_vette, lch_vette);
+    img::map_rgb_lch(rgb_caddy, lch_caddy);
 
-    img::map_hsv_rgb(hsv_vette, rgb_caddy);
-    img::map_hsv_rgb(hsv_caddy, rgb_vette);
+    img::map_lch_rgb(lch_vette, rgb_caddy);
+    img::map_lch_rgb(lch_caddy, rgb_vette);
 
     img::map_rgb(rgb_vette, vette_v);
     write_image(vette, "vette_2.bmp");
@@ -235,27 +229,27 @@ static bool map_hsv_planar_test()
 }
 
 
-static bool hsv_draw_test()
+static bool lch_draw_test()
 {
-    auto title = "hsv_draw_test";
+    auto title = "lch_draw_test";
     printf("\n%s:\n", title);
     auto out_dir = IMAGE_OUT_PATH / title;
     empty_dir(out_dir);
     auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
 
-    u8 V = 255;
+    u8 L = 255;
 
     img::Image image;
     img::create_image(image, 256, 256);
 
     auto const row_func = [&](u32 y)
     {
-        auto s = (u8)y;
+        auto c = (u8)y;
         auto d = img::row_begin(image, y);
         for (u32 x = 0; x < 256; ++x)
         {
             auto h = (u8)x;
-            auto rgba = hsv::u8_to_rgba_u8(h, s, V);
+            auto rgba = lch::u8_to_rgba_u8(L, c, h);
             auto& p = d[x].rgba;
             p.red = rgba.red;
             p.green = rgba.green;
@@ -265,11 +259,11 @@ static bool hsv_draw_test()
     };
 
     process_range(0, 256, row_func);
-    write_image(image, "hsv_255.bmp");
+    write_image(image, "lch_255.bmp");
 
-    V = 128;
+    L = 128;
     process_range(0, 256, row_func);
-    write_image(image, "hsv_128.bmp");
+    write_image(image, "lch_128.bmp");
 
     img::destroy_image(image);
 
@@ -278,21 +272,21 @@ static bool hsv_draw_test()
 }
 
 
-bool map_rgb_hsv_tests()
+bool map_rgb_lch_tests()
 {
-    printf("\n*** map_rgb_hsv tests ***\n");
+    printf("\n*** map_rgb_lch tests ***\n");
 
-    auto result = 
-        hsv_conversion_r32_test() &&
-        map_hsv_test() &&
-        map_hsv_gray_test() &&
-        map_hsv_planar_test() &&
-        hsv_draw_test();
+    auto result =
+        lch_conversion_r32_test() &&
+        map_lch_test() &&
+        map_lch_gray_test() &&
+        map_lch_planar_test() &&
+        lch_draw_test();
 
     if (result)
     {
-        printf("map_rgb_hsv tests OK\n");
+        printf("map_rgb_lch tests OK\n");
     }
-    
+
     return result;
 }

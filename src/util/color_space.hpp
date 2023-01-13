@@ -8,6 +8,8 @@
 
 namespace color_space
 {
+    constexpr auto PI = 3.1415926536f;
+
     namespace lut
     {
         static constexpr std::array<r32, 256> channel_r32()
@@ -173,6 +175,8 @@ namespace color_space
 }
 
 
+/* hsv r32 */
+
 namespace hsv
 {
     namespace cs = color_space;
@@ -183,6 +187,7 @@ namespace hsv
 
     inline constexpr bool equals(r32 lhs, r32 rhs)
     {
+        // no constexpr std::abs
         auto diff = lhs - rhs;
 
         diff = diff < 0.0f ? -1.0f * diff : diff;
@@ -210,9 +215,10 @@ namespace hsv
         auto d = h * 6.0f; // 360.0f / 60.0f;
 
         auto h_id = (int)d;
+        auto ratio = d - h_id;
 
-        auto rise = min + (d - h_id) * range;
-        auto fall = max - (d - h_id) * range;
+        auto rise = min + ratio * range;
+        auto fall = max - ratio * range;
 
         r32 r = 0.0f;
         r32 g = 0.0f;
@@ -339,6 +345,8 @@ namespace hsv
 }
 
 
+/* hsv overloads */
+
 namespace hsv
 {
     inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 h, u8 s, u8 v)
@@ -435,6 +443,8 @@ namespace hsv
 }
 
 
+/* LCH r32 */
+
 namespace lch
 {
     namespace cs = color_space;
@@ -455,7 +465,7 @@ namespace lch
         auto B = 0.0259040371f * l_ + 0.7827717662f * m_ - 0.8086757660f * s_;
 
         auto C = std::hypotf(A, B);
-        auto H = std::atan2f(B, A) / (2 * 3.1415926536f) + 0.5f;
+        auto H = std::atan2f(B, A) / (2 * cs::PI) + 0.5f;
 
         return { L, C, H };
     }
@@ -463,7 +473,7 @@ namespace lch
 
     inline cs::RGBr32 r32_to_rgb_r32(r32 l, r32 c, r32 h)
     {
-        auto H = (h - 0.5f) * 2 * 3.1415926536f;
+        auto H = (h - 0.5f) * 2 * cs::PI;
         auto A = c * std::cosf(H);
         auto B = c * std::sinf(H);
 
@@ -485,9 +495,14 @@ namespace lch
             cs::clamp(blue)
         };
     }
+}
 
 
-    inline cs::RGBAu8 r32_to_rgb_u8(r32 l, r32 c, r32 h)
+/* LCH overloads */
+
+namespace lch
+{
+    inline cs::RGBAu8 r32_to_rgba_u8(r32 l, r32 c, r32 h)
     {
         auto rgb = r32_to_rgb_r32(l, c, h);
 
@@ -500,13 +515,19 @@ namespace lch
     }
 
 
-    inline cs::LCHu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    inline cs::LCHr32 r32_from_rgb_u8(u8 r, u8 g, u8 b)
     {
         auto R = cs::to_channel_r32(r);
         auto G = cs::to_channel_r32(g);
         auto B = cs::to_channel_r32(b);
 
-        auto lch = r32_from_rgb_r32(R, G, B);
+        return r32_from_rgb_r32(R, G, B);
+    }
+
+
+    inline cs::LCHu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto lch = r32_from_rgb_u8(r, g, b);
 
         return {
             cs::to_channel_u8(lch.light),
@@ -514,8 +535,20 @@ namespace lch
             cs::to_channel_u8(lch.hue)
         };
     }
+
+
+    inline cs::RGBAu8 u8_to_rgba_u8(u8 l, u8 c, u8 h)
+    {
+        auto L = cs::to_channel_r32(l);
+        auto C = cs::to_channel_r32(c);
+        auto H = cs::to_channel_r32(h);
+
+        return r32_to_rgba_u8(L, C, H);
+    }
 }
 
+
+/* YUV r32 */
 
 namespace yuv
 {
@@ -568,8 +601,13 @@ namespace yuv
             cs::clamp(B)
         };
     }
+}
 
 
+/* YUV overloads */
+
+namespace yuv
+{
     inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 y, u8 u, u8 v)
     {
         auto Y = cs::to_channel_r32(y);

@@ -28,6 +28,12 @@ namespace simage
 	};
 
 
+	enum class LCH : int
+	{
+		L = 0, C = 1, H = 2
+	};
+
+
 	enum class YUV : int
 	{
 		Y = 0, U = 1, V = 2
@@ -118,6 +124,7 @@ namespace simage
 	using ViewRGBAr32 = View4r32;
 	using ViewRGBr32 = View3r32;
 	using ViewHSVr32 = View3r32;
+	using ViewLCHr32 = View3r32;
 
 
 	View1r32 make_view_1(u32 width, u32 height, Buffer32& buffer);
@@ -189,6 +196,20 @@ namespace simage
 	void map_rgb_hsv(ViewRGBr32 const& src, ViewHSVr32 const& dst);	
 
 	void map_hsv_rgb(ViewHSVr32 const& src, ViewRGBr32 const& dst);
+}
+
+
+/* map_rgb_lch */
+
+namespace simage
+{
+	void map_rgb_lch(View const& src, ViewLCHr32 const& dst);
+
+	void map_lch_rgb(ViewLCHr32 const& src, View const& dst);
+
+	void map_rgb_lch(ViewRGBr32 const& src, ViewLCHr32 const& dst);
+
+	void map_lch_rgb(ViewLCHr32 const& src, ViewRGBr32 const& dst);
 }
 
 

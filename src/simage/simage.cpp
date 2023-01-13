@@ -166,6 +166,30 @@ namespace simage
 	};
 
 
+	class LCHr32p
+	{
+	public:
+		r32* L;
+		r32* C;
+		r32* H;
+	};
+
+
+	class PixelLCHr32
+	{
+	public:
+
+		static constexpr u32 n_channels = 3;
+
+		union
+		{
+			LCHr32p lch;
+
+			r32* channels[3] = {};
+		};
+	};
+
+
 	class Pixel3CHr32
 	{
 	public:
@@ -231,6 +255,23 @@ namespace simage
 		p.hsv.H = view.image_channel_data[id_cast(HSV::H)] + offset;
 		p.hsv.S = view.image_channel_data[id_cast(HSV::S)] + offset;
 		p.hsv.V = view.image_channel_data[id_cast(HSV::V)] + offset;
+
+		return p;
+	}
+
+
+	static PixelLCHr32 lch_row_begin(ViewLCHr32 const& view, u32 y)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+
+		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+
+		PixelLCHr32 p{};
+
+		p.lch.L = view.image_channel_data[id_cast(LCH::L)] + offset;
+		p.lch.C = view.image_channel_data[id_cast(LCH::C)] + offset;
+		p.lch.H = view.image_channel_data[id_cast(LCH::H)] + offset;
 
 		return p;
 	}
@@ -842,6 +883,106 @@ namespace simage
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto rgb = hsv::r32_to_rgb_r32(s.H[x], s.S[x], s.V[x]);
+				d.R[x] = rgb.red;
+				d.G[x] = rgb.green;
+				d.B[x] = rgb.blue;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+}
+
+
+/* map_lch */
+
+namespace simage
+{
+	void map_rgb_lch(View const& src, ViewLCHr32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = lch_row_begin(dst, y).lch;
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = s[x].rgba;
+				auto lch = lch::r32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				d.L[x] = lch.light;
+				d.C[x] = lch.chroma;
+				d.H[x] = lch.hue;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void map_lch_rgb(ViewLCHr32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = lch_row_begin(src, y).lch;
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = lch::r32_to_rgba_u8(s.L[x], s.C[x], s.H[x]);
+
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.alpha = 255;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void map_rgb_lch(ViewRGBr32 const& src, ViewLCHr32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = rgb_row_begin(src, y).rgb;
+			auto d = lch_row_begin(dst, y).lch;
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto r = s.R[x];
+				auto g = s.G[x];
+				auto b = s.B[x];
+
+				auto lch = lch::r32_from_rgb_r32(r, g, b);
+				d.L[x] = lch.light;
+				d.C[x] = lch.chroma;
+				d.H[x] = lch.hue;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void map_lch_rgb(ViewLCHr32 const& src, ViewRGBr32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = lch_row_begin(src, y).lch;
+			auto d = rgb_row_begin(dst, y).rgb;
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgb = lch::r32_to_rgb_r32(s.L[x], s.C[x], s.H[x]);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;

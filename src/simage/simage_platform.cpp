@@ -810,4 +810,41 @@ namespace simage
 
 		make_histograms_from_yuv(src, dst);
 	}
+
+
+	void make_histograms(View const& src, HistRGBr32& dst, u32 n_bins)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % n_bins == 0);
+
+		dst = { 0 };
+
+		constexpr u32 PIXEL_STEP = 2;
+		r32 total = 0.0f;
+
+		RGBAu8 rgba{};
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; x += PIXEL_STEP)
+			{
+				rgba = s[x].rgba;
+
+				dst.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+				dst.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+				dst.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
+
+				total++;
+			}
+		}
+
+		for (u32 bin = 0; bin < n_bins; ++bin)
+		{
+			dst.R[bin] /= total;
+			dst.G[bin] /= total;
+			dst.B[bin] /= total;
+		}
+	}
 }

@@ -60,7 +60,7 @@ static void draw_histogram(const r32* values, u32 n_bins, img::View1r32 const& d
 }
 
 
-static void draw(img::Histogram9r32& hists, img::View1r32 const& dst)
+static void draw(img::Histogram12r32& hists, img::View1r32 const& dst)
 {
     img::fill(dst, 255);
 
@@ -71,7 +71,7 @@ static void draw(img::Histogram9r32& hists, img::View1r32 const& dst)
     r.x_begin = space_px;
     r.x_end -= space_px;
 
-    for (u32 i = 0; i < 9; ++i)
+    for (u32 i = 0; i < 12; ++i)
     {
         r.y_begin += space_px;
         r.y_end += space_px;
@@ -94,7 +94,7 @@ static bool histogram_fill_test()
     { img::write_image(image, out_dir / name); };
 
     u32 width = N_BINS * (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
-    u32 height = 9 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
+    u32 height = 12 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
 
     GrayImage hist_image;
     img::create_image(hist_image, width, height);
@@ -105,7 +105,7 @@ static bool histogram_fill_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::Histogram9r32 hists;
+    img::Histogram12r32 hists;
     hists.n_bins = N_BINS;
 
     Image image;
@@ -160,7 +160,7 @@ static bool histogram_images_test()
         { img::write_image(image, out_dir / name); };
 
     u32 width = N_BINS * (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
-    u32 height = 9 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
+    u32 height = 12 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
 
     GrayImage hist_image;
     img::create_image(hist_image, width, height);
@@ -171,62 +171,7 @@ static bool histogram_images_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::Histogram9r32 hists;
-    hists.n_bins = N_BINS;
-
-    auto const do_hist = [&](Image const& image, const char* filename)
-    {
-        img::make_histograms(img::make_view(image), hists);
-        draw(hists, hist_view);
-        img::map(hist_view, dst);
-        write_image(hist_image, filename);
-    };
-
-    Image vette;
-    img::read_image_from_file(CORVETTE_PATH, vette);
-
-    Image caddy;
-    img::read_image_from_file(CADILLAC_PATH, caddy);
-
-    Image chess;
-    img::read_image_from_file(CHESS_PATH, chess);
-
-    do_hist(vette, "vette.bmp");
-    do_hist(caddy, "caddy.bmp");
-    do_hist(chess, "chess.bmp");
-
-    img::destroy_image(hist_image);
-    mb::destroy_buffer(buffer);
-    img::destroy_image(vette);
-    img::destroy_image(caddy);
-    img::destroy_image(chess);
-
-    return true;
-}
-
-
-static bool histogram_gray_images_test()
-{
-    auto title = "histogram_gray_images_test";
-    printf("\n%s:\n", title);
-    auto out_dir = IMAGE_OUT_PATH / title;
-    empty_dir(out_dir);
-    auto const write_image = [&out_dir](auto const& image, const char* name)
-    { img::write_image(image, out_dir / name); };
-
-    u32 width = N_BINS * (BIN_WIDTH + BIN_SPACE) - BIN_SPACE + 2 * HIST_SPACE;
-    u32 height = 9 * (HIST_HEIGHT + HIST_SPACE) + HIST_SPACE;
-
-    GrayImage hist_image;
-    img::create_image(hist_image, width, height);
-    auto dst = img::make_view(hist_image);
-
-    img::Buffer32 buffer;
-    mb::create_buffer(buffer, width * height);
-
-    auto hist_view = img::make_view_1(width, height, buffer);
-
-    img::Histogram9r32 hists;
+    img::Histogram12r32 hists;
     hists.n_bins = N_BINS;
 
     auto const do_hist = [&](Image const& image, const char* filename)

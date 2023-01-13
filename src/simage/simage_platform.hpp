@@ -315,7 +315,7 @@ namespace simage
 	};
 
 
-	class Histogram9r32
+	class Histogram12r32
 	{
 	public:
 
@@ -325,19 +325,20 @@ namespace simage
 			{
 				HistRGBr32 rgb;
 				HistHSVr32 hsv;
+				HistLCHr32 lch;
 				HistYUVr32 yuv;
 			};
 
-			r32 list[9][MAX_HIST_BINS] = { 0 };
+			r32 list[12][MAX_HIST_BINS] = { 0 };
 		};
 
 		u32 n_bins = MAX_HIST_BINS;
 	};
 
 
-	void make_histograms(View const& src, Histogram9r32& dst);
+	void make_histograms(View const& src, Histogram12r32& dst);
 
-	void make_histograms(ViewYUV const& src, Histogram9r32& dst);
+	void make_histograms(ViewYUV const& src, Histogram12r32& dst);
 
 
 	void make_histograms(View const& src, HistRGBr32& dst, u32 n_bins);

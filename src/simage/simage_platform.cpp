@@ -711,10 +711,11 @@ namespace simage
 	}
 
 
-	static void make_histograms_from_rgb(View const& src, Histogram9r32& dst)
+	static void make_histograms_from_rgb(View const& src, Histogram12r32& dst)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
+		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
@@ -723,6 +724,7 @@ namespace simage
 		auto const update_bins = [&](u8 red, u8 green, u8 blue) 
 		{
 			auto hsv = hsv::u8_from_rgb_u8(red, green, blue);
+			auto lch = lch::u8_from_rgb_u8(red, green, blue);
 			auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
 
 			h_rgb.R[to_hist_bin_u8(red, n_bins)]++;
@@ -737,6 +739,10 @@ namespace simage
 			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
 			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
 
+			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
+
 			h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
 			h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
 			h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
@@ -746,7 +752,7 @@ namespace simage
 
 		for_each_rgb(src, update_bins);
 
-		for (u32 i = 0; i < 9; ++i)
+		for (u32 i = 0; i < 12; ++i)
 		{
 			for (u32 bin = 0; bin < n_bins; ++bin)
 			{
@@ -756,10 +762,11 @@ namespace simage
 	}
 
 
-	static void make_histograms_from_yuv(ViewYUV const& src, Histogram9r32& dst)
+	static void make_histograms_from_yuv(ViewYUV const& src, Histogram12r32& dst)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
+		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
@@ -767,6 +774,7 @@ namespace simage
 		{
 			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
 			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+			auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 			h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
 			h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
@@ -780,6 +788,10 @@ namespace simage
 			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
 			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
 
+			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
+
 			h_yuv.Y[to_hist_bin_u8(yuv_y, n_bins)]++;
 			h_yuv.U[to_hist_bin_u8(yuv_u, n_bins)]++;
 			h_yuv.V[to_hist_bin_u8(yuv_v, n_bins)]++;
@@ -789,7 +801,7 @@ namespace simage
 
 		for_each_yuv(src, update_bins);
 
-		for (u32 i = 0; i < 9; ++i)
+		for (u32 i = 0; i < 12; ++i)
 		{
 			for (u32 bin = 0; bin < n_bins; ++bin)
 			{
@@ -799,7 +811,7 @@ namespace simage
 	}
 
 
-	void make_histograms(View const& src, Histogram9r32& dst)
+	void make_histograms(View const& src, Histogram12r32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(dst.n_bins <= MAX_HIST_BINS);
@@ -813,7 +825,7 @@ namespace simage
 	}
 
 
-	void make_histograms(ViewYUV const& src, Histogram9r32& dst)
+	void make_histograms(ViewYUV const& src, Histogram12r32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(dst.n_bins <= MAX_HIST_BINS);

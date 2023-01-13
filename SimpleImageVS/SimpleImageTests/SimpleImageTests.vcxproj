@@ -142,6 +142,7 @@
     <ClCompile Include="..\..\tests\fill_tests.cpp" />
     <ClCompile Include="..\..\tests\histogram_tests.cpp" />
     <ClCompile Include="..\..\tests\make_view_tests.cpp" />
+    <ClCompile Include="..\..\tests\map_lch_rgb_tests.cpp" />
     <ClCompile Include="..\..\tests\map_rgb_hsv_tests.cpp" />
     <ClCompile Include="..\..\tests\map_rgb_tests.cpp" />
     <ClCompile Include="..\..\tests\map_rgb_yuv_tests.cpp" />

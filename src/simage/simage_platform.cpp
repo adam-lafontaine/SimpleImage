@@ -1,10 +1,13 @@
 #include "simage_platform.hpp"
 #include "../util/execute.hpp"
+#include "../util/color_space.hpp"
 
 
 #ifndef SIMAGE_NO_SIMD
 #include "../util/simd.hpp"
 #endif // !SIMAGE_NO_SIMD
+
+namespace cs = color_space;
 
 
 
@@ -637,5 +640,174 @@ namespace simage
 		};
 
 		process_image_rows(src.height, row_func);
+	}
+}
+
+
+/* make_histograms */
+
+namespace simage
+{
+	/*template <size_t N>
+	static std::array<View, N> split_view(View const& view)
+	{
+		std::array<View, N> sub_views;
+
+		Range2Du32 r;
+		r.x_begin = 0;
+		r.x_end = view.width;
+
+		for (u32 i = 0; i < N_THREADS; ++i)
+		{
+			r.y_begin = i * view.height / N_THREADS;
+			r.y_end = r.y_begin + view.height / N_THREADS;
+			sub_views[i] = sub_view(view, r);
+		}
+		sub_views.back().y_end = view.height;
+
+		return sub_views;
+	}*/
+
+
+	inline constexpr u8 to_hist_bin_u8(u8 val, u32 n_bins)
+	{
+		return val * n_bins / 256;
+	}
+
+
+	static void make_histograms_from_rgb(View const& src, Histogram9r32& dst)
+	{
+		constexpr u32 PIXEL_STEP = 2;
+
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
+
+		RGBAu8 rgba{};
+		cs::HSVu8 hsv{};
+		cs::YUVu8 yuv{};
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; x += PIXEL_STEP)
+			{
+				rgba = s[x].rgba;
+
+				hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				yuv = yuv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+
+				h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+				h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+				h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
+
+				if (hsv.sat)
+				{
+					h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				}
+
+				h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+				h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+				h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
+				h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+				h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+			}
+		}
+
+		auto const total = (r32)src.width * src.height;
+
+		for (u32 i = 0; i < 9; ++i)
+		{
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
+		}
+	}
+
+
+	static void make_histograms_from_yuv(ViewYUV const& src, Histogram9r32& dst)
+	{
+		constexpr u32 PIXEL_STEP = 2;
+
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
+
+		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
+		{
+			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+
+			h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+			h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+			h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
+
+			if (hsv.sat)
+			{
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+			}
+
+			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+			h_yuv.Y[to_hist_bin_u8(yuv_y, n_bins)]++;
+			h_yuv.U[to_hist_bin_u8(yuv_u, n_bins)]++;
+			h_yuv.V[to_hist_bin_u8(yuv_v, n_bins)]++;
+		};
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422*)s2;
+			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
+			{
+				auto yuv = s422[x422];
+
+				update_bins(yuv.y1, yuv.u, yuv.v);
+				update_bins(yuv.y2, yuv.u, yuv.v);
+			}
+		}
+
+		auto const total = (r32)src.width * src.height;
+
+		for (u32 i = 0; i < 9; ++i)
+		{
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
+		}
+	}
+
+
+	void make_histograms(View const& src, Histogram9r32& dst)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
+
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.yuv = { 0 };
+
+		make_histograms_from_rgb(src, dst);
+	}
+
+
+	void make_histograms(ViewYUV const& src, Histogram9r32& dst)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
+
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.yuv = { 0 };
+
+		make_histograms_from_yuv(src, dst);
 	}
 }

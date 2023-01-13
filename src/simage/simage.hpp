@@ -163,24 +163,6 @@ namespace simage
 	void map_rgb(ViewRGBr32 const& src, View const& dst);
 
 	void map_rgb(View1r32 const& src, View const& dst);
-
-
-	/*inline ViewRGBAr32 make_rgba_view(View const& src, Buffer32& buffer)
-	{
-		auto view = make_view_4(src.width, src.height, buffer);
-		map_rgb(src, view);
-
-		return view;
-	}
-
-
-	inline ViewRGBr32 make_rgb_view(View const& src, Buffer32& buffer)
-	{
-		auto view = make_view_3(src.width, src.height, buffer);
-		map_rgb(src, view);
-
-		return view;
-	}*/
 }
 
 
@@ -260,10 +242,6 @@ namespace simage
 
 namespace simage
 {
-	void fill(View const& view, Pixel color);
-
-	void fill(ViewGray const& view, u8 gray);
-
 	void fill(View4r32 const& view, Pixel color);
 
 	void fill(View3r32 const& view, Pixel color);
@@ -286,64 +264,7 @@ namespace simage
 }
 
 
-/* histogram */
 
-namespace simage
-{
-	constexpr u32 MAX_HIST_BINS = 256;
-
-
-	class HistRGBr32
-	{
-	public:
-		r32 R[MAX_HIST_BINS];
-		r32 G[MAX_HIST_BINS];
-		r32 B[MAX_HIST_BINS];
-	};	
-
-
-	class HistHSVr32
-	{
-	public:
-		r32 H[MAX_HIST_BINS];
-		r32 S[MAX_HIST_BINS];
-		r32 V[MAX_HIST_BINS];
-	};
-
-
-	class HistYUVr32
-	{
-	public:
-		r32 Y[MAX_HIST_BINS];
-		r32 U[MAX_HIST_BINS];
-		r32 V[MAX_HIST_BINS];
-	};
-
-
-	class Histogram9r32
-	{
-	public:
-		
-		union
-		{
-			struct
-			{
-				HistRGBr32 rgb;
-				HistHSVr32 hsv;
-				HistYUVr32 yuv;
-			};
-
-			r32 list[9][MAX_HIST_BINS] = { 0 };
-		};
-
-		u32 n_bins = MAX_HIST_BINS;
-	};
-
-
-	void make_histograms(View const& src, Histogram9r32& dst);
-
-	void make_histograms(ViewYUV const& src, Histogram9r32& dst);
-}
 
 
 /* stb_simage.cpp */

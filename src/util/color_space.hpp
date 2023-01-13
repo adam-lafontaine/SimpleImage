@@ -384,9 +384,6 @@ namespace hsv
 
         auto hsv = r32_from_rgb_r32(R, G, B);
 
-        auto S = hsv.sat * 255;
-        auto V = hsv.val * 255;
-
         auto h = cs::round_to_u8(hsv.hue * 255);
 
         return { h, s, v };

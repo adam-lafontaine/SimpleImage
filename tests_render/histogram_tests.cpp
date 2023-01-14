@@ -71,7 +71,7 @@ static void draw_histogram(const r32* values, img::View1r32 const& dst, HistPara
 }
 
 
-static void draw(img::Histogram9r32& hists, img::View1r32 const& dst, HistParams const& props)
+static void draw(img::Histogram12r32& hists, img::View1r32 const& dst, HistParams const& props)
 {
     img::fill(dst, 255);
 
@@ -82,7 +82,7 @@ static void draw(img::Histogram9r32& hists, img::View1r32 const& dst, HistParams
     r.x_begin = space_px;
     r.x_end -= space_px;
 
-    for (u32 i = 0; i < 9; ++i)
+    for (u32 i = 0; i < 12; ++i)
     {
         r.y_begin += space_px;
         r.y_end += space_px;
@@ -105,14 +105,14 @@ void histogram_image_test(img::View const& out)
     params.bin_space = BIN_SPACE;
     params.hist_space = HIST_SPACE;
     params.bin_width = (width + BIN_SPACE - 2 * HIST_SPACE) / N_BINS - BIN_SPACE;
-    params.hist_height = (height - HIST_SPACE) / 9 - HIST_SPACE;
+    params.hist_height = (height - HIST_SPACE) / 12 - HIST_SPACE;
 
     img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height);
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::Histogram9r32 hists;
+    img::Histogram12r32 hists;
     hists.n_bins = N_BINS;
 
     img::Image vette;

@@ -82,6 +82,7 @@ object_files += $(stb_simage_o)
 simage_platform_c := $(simage)/simage_platform.cpp
 simage_platform_c += $(simage_platform_h)
 simage_platform_c += $(execute_h)
+simage_platform_c += $(color_space_h)
 simage_platform_o := $(build)/simage_platform.o
 object_files += $(simage_platform_o)
 
@@ -139,6 +140,13 @@ map_rgb_hsv_tests_c += $(color_space_h)
 map_rgb_hsv_tests_c += $(execute_h)
 map_rgb_hsv_tests_o := $(build)/map_rgb_hsv_tests.o
 object_files += $(map_rgb_hsv_tests_o)
+
+map_rgb_lch_tests_c := $(tests)/map_rgb_lch_tests.cpp
+map_rgb_lch_tests_c += $(tests_include_h)
+map_rgb_lch_tests_c += $(color_space_h)
+map_rgb_lch_tests_c += $(execute_h)
+map_rgb_lch_tests_o := $(build)/map_rgb_lch_tests.o
+object_files += $(map_rgb_lch_tests_o)
 
 map_rgb_yuv_tests_c := $(tests)/map_rgb_yuv_tests.cpp
 map_rgb_yuv_tests_c += $(tests_include_h)
@@ -237,6 +245,10 @@ $(map_rgb_tests_o): $(map_rgb_tests_c)
 
 $(map_rgb_hsv_tests_o): $(map_rgb_hsv_tests_c)
 	@echo "\n map_rgb_hsv_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(map_rgb_lch_tests_o): $(map_rgb_lch_tests_c)
+	@echo "\n map_rgb_lch_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 $(map_rgb_yuv_tests_o): $(map_rgb_yuv_tests_c)

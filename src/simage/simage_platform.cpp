@@ -819,6 +819,7 @@ namespace simage
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };
+		dst.lch = { 0 };
 		dst.yuv = { 0 };
 
 		make_histograms_from_rgb(src, dst);
@@ -833,6 +834,7 @@ namespace simage
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };
+		dst.lch = { 0 };
 		dst.yuv = { 0 };
 
 		make_histograms_from_yuv(src, dst);

@@ -462,7 +462,7 @@ namespace lch
         auto B = 0.0259040371f * l_ + 0.7827717662f * m_ - 0.8086757660f * s_;
 
         auto C = std::hypotf(A, B);
-        auto H = std::atan2f(B, A) / (2 * cs::PI) + 0.5f;
+        auto H = std::atan2(B, A) / (2 * cs::PI) + 0.5f;
 
         return { L, C, H };
     }
@@ -471,8 +471,8 @@ namespace lch
     inline cs::RGBr32 r32_to_rgb_r32(r32 l, r32 c, r32 h)
     {
         auto H = (h - 0.5f) * 2 * cs::PI;
-        auto A = c * std::cosf(H);
-        auto B = c * std::sinf(H);
+        auto A = c * std::cos(H);
+        auto B = c * std::sin(H);
 
         auto l_ = l + 0.3963377774f * A + 0.2158037573f * B;
         auto m_ = l - 0.1055613458f * A - 0.0638541728f * B;

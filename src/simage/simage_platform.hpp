@@ -264,6 +264,101 @@ namespace simage
 }
 
 
+/* map */
+
+namespace simage
+{
+	void map(ViewGray const& src, View const& dst);
+}
+
+
+/* histogram */
+
+namespace simage
+{
+	constexpr u32 MAX_HIST_BINS = 256;
+
+
+	class HistRGBr32
+	{
+	public:
+		r32 R[MAX_HIST_BINS];
+		r32 G[MAX_HIST_BINS];
+		r32 B[MAX_HIST_BINS];
+	};
+
+
+	class HistHSVr32
+	{
+	public:
+		r32 H[MAX_HIST_BINS];
+		r32 S[MAX_HIST_BINS];
+		r32 V[MAX_HIST_BINS];
+	};
+
+
+	class HistLCHr32
+	{
+	public:
+		r32 L[MAX_HIST_BINS];
+		r32 C[MAX_HIST_BINS];
+		r32 H[MAX_HIST_BINS];
+	};
+
+
+	class HistYUVr32
+	{
+	public:
+		r32 Y[MAX_HIST_BINS];
+		r32 U[MAX_HIST_BINS];
+		r32 V[MAX_HIST_BINS];
+	};
+
+
+	class Histogram12r32
+	{
+	public:
+
+		union
+		{
+			struct
+			{
+				HistRGBr32 rgb;
+				HistHSVr32 hsv;
+				HistLCHr32 lch;
+				HistYUVr32 yuv;
+			};
+
+			r32 list[12][MAX_HIST_BINS] = { 0 };
+		};
+
+		u32 n_bins = MAX_HIST_BINS;
+	};
+
+
+	void make_histograms(View const& src, Histogram12r32& dst);
+
+	void make_histograms(ViewYUV const& src, Histogram12r32& dst);
+
+
+	void make_histograms(View const& src, HistRGBr32& dst, u32 n_bins);
+
+	void make_histograms(View const& src, HistHSVr32& dst, u32 n_bins);
+
+	void make_histograms(View const& src, HistLCHr32& dst, u32 n_bins);
+
+	void make_histograms(ViewYUV const& src, HistYUVr32& dst, u32 n_bins);
+
+	void make_histograms(ViewYUV const& src, HistRGBr32& dst, u32 n_bins);
+
+	void make_histograms(ViewYUV const& src, HistHSVr32& dst, u32 n_bins);
+
+	void make_histograms(ViewYUV const& src, HistLCHr32& dst, u32 n_bins);
+
+
+}
+
+
 /* row begin */
 
 namespace simage

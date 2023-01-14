@@ -114,7 +114,7 @@ void render_run(app::AppState& app_state, std::function<void(Input const&)> cons
     int in_old = 1;
     Stopwatch sw;
     r64 frame_ms_elapsed = TARGET_MS_PER_FRAME;
-    char dbg_title[50] = { 0 };
+    char dbg_title[80] = { 0 };
     r64 ms_elapsed = 0.0;
     r64 title_refresh_ms = 500.0;    
 
@@ -126,7 +126,7 @@ void render_run(app::AppState& app_state, std::function<void(Input const&)> cons
         {
             ms_elapsed = 0.0;
             #ifndef NDEBUG
-            snprintf(dbg_title, 50, "%s (%d)", WINDOW_TITLE, (int)frame_ms_elapsed);
+            snprintf(dbg_title, 80, "%s (%d)", WINDOW_TITLE, (int)frame_ms_elapsed);
             SDL_SetWindowTitle(g_screen.window, dbg_title);
             #endif
         }

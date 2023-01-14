@@ -110,6 +110,7 @@ object_files += $(stb_simage_o)
 simage_platform_c := $(simage)/simage_platform.cpp
 simage_platform_c += $(simage_platform_h)
 simage_platform_c += $(execute_h)
+simage_platform_c += $(color_space_h)
 simage_platform_o := $(build)/simage_platform.o
 object_files += $(simage_platform_o)
 
@@ -152,6 +153,11 @@ image_tests_c := $(tests)/image_tests.cpp
 image_tests_c += $(tests_include_h)
 image_tests_o := $(build)/image_tests.o
 object_files += $(image_tests_o)
+
+histogram_tests_c := $(tests)/histogram_tests.cpp
+histogram_tests_c += $(tests_include_h)
+histogram_tests_o := $(build)/histogram_tests.o
+object_files += $(histogram_tests_o)
 
 
 # flags
@@ -208,6 +214,10 @@ $(fill_tests_o): $(fill_tests_c)
 
 $(image_tests_o): $(image_tests_c)
 	@echo "\n image_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(histogram_tests_o): $(histogram_tests_c)
+	@echo "\n histogram_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

@@ -27,9 +27,9 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 
 	static std::vector<std::function<void(img::View const&)>> funcs = 
 	{
-		//fill_platform_view_test,
-		//copy_image_test,
-		//resize_image_test,
+		fill_platform_view_test,
+		copy_image_test,
+		resize_image_test,
 		histogram_image_test,
 	};
 

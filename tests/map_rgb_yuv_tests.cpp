@@ -53,7 +53,41 @@ static bool yuv_conversion_test()
 
 static bool yuv_draw_test()
 {
-    printf("yuv_draw_test\n");
+    auto title = "yuv_draw_test";
+    printf("\n%s:\n", title);
+    auto out_dir = IMAGE_OUT_PATH / title;
+    empty_dir(out_dir);
+    auto const write_image = [&out_dir](auto const& image, const char* name) { img::write_image(image, out_dir / name); };
+
+    u8 Y = 255;
+
+    img::Image image;
+    img::create_image(image, 256, 256);
+
+    auto const row_func = [&](u32 y) 
+    {
+        auto v = (u8)y;
+        auto d = img::row_begin(image, y);
+        for (u32 x = 0; x < 256; ++x)
+        {
+            auto u = (u8)x;
+            auto rgba = yuv::u8_to_rgba_u8(Y, u, v);
+            auto& p = d[x].rgba;
+            p.red = rgba.red;
+            p.green = rgba.green;
+            p.blue = rgba.blue;
+            p.alpha = 255;
+        }
+    };
+
+    process_range(0, 256, row_func);
+    write_image(image, "yuv_255.bmp");
+
+    Y = 128;
+    process_range(0, 256, row_func);
+    write_image(image, "yuv_128.bmp");
+
+    img::destroy_image(image);
 
     printf("OK\n");
     return true;
@@ -76,6 +110,7 @@ bool map_rgb_yuv_tests()
 
     auto result = 
         yuv_conversion_test() &&
+        yuv_draw_test() &&
         yuv_camera_test();
 
     if (result)

@@ -102,7 +102,7 @@
     <ClCompile Include="..\..\tests\copy_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\map_lch_rgb_tests.cpp">
+    <ClCompile Include="..\..\tests\map_rgb_lch_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
   </ItemGroup>

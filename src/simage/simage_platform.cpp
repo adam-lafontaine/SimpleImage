@@ -641,6 +641,61 @@ namespace simage
 
 		process_image_rows(src.height, row_func);
 	}
+
+
+	void map_yuv_rgb(ViewYUV const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+		assert(src.width % 2 == 0);
+		static_assert(sizeof(YUV2) == 2);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422*)s2;
+			auto d = row_begin(dst, y);
+
+			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
+			{
+				auto yuv = s422[x422];
+
+				auto x = 2 * x422;
+				auto rgba = yuv::u8_to_rgba_u8(yuv.y1, yuv.u, yuv.v);
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.red = 255;
+
+				++x;
+				rgba = yuv::u8_to_rgba_u8(yuv.y2, yuv.u, yuv.v);
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.red = 255;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void map(ViewYUV const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = s[x].y;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
 }
 
 

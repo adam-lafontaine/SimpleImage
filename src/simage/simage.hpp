@@ -144,9 +144,6 @@ namespace simage
 	void map(ViewGray const& src, View1r32 const& dst);
 
 	void map(View1r32 const& src, ViewGray const& dst);
-
-
-	void map(ViewGray const& src, View const& dst);
 }
 
 
@@ -166,7 +163,7 @@ namespace simage
 }
 
 
-/* map_rgb_hsv */
+/* map_hsv */
 
 namespace simage
 {
@@ -181,7 +178,7 @@ namespace simage
 }
 
 
-/* map_rgb_lch */
+/* map_lch */
 
 namespace simage
 {
@@ -195,13 +192,11 @@ namespace simage
 }
 
 
-/* map_yuv_rgb */
+/* map_yuv */
 
 namespace simage
 {
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst);
-
-	void map_yuv_rgb(ViewYUV const& src, View const& dst);
 }
 
 

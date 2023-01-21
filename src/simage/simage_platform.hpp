@@ -269,6 +269,10 @@ namespace simage
 namespace simage
 {
 	void map(ViewGray const& src, View const& dst);
+
+	void map_yuv_rgb(ViewYUV const& src, View const& dst);
+
+	void map(ViewYUV const& src, ViewGray const& dst);
 }
 
 

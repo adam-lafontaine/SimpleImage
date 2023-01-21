@@ -277,6 +277,18 @@ namespace simage
 	}
 
 
+	static r32* row_offset_begin(View1r32 const& view, u32 y, int y_offset)
+	{
+		assert(verify(view));
+
+		int y_eff = y + y_offset;
+
+		auto offset = (size_t)((view.y_begin + y_eff) * view.image_width + view.x_begin);
+
+		return view.image_data + offset;
+	}
+
+
 	template <size_t N>
 	static r32* channel_row_begin(ViewCHr32<N> const& view, u32 y, u32 ch)
 	{
@@ -1113,42 +1125,6 @@ namespace simage
 	}
 
 
-	void map_yuv_rgb(ViewYUV const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-		assert(src.width % 2 == 0);
-		static_assert(sizeof(YUV2) == 2);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto s2 = row_begin(src, y);
-			auto s422 = (YUV422*)s2;
-			auto d = row_begin(dst, y);
-
-			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
-			{
-				auto yuv = s422[x422];
-
-				auto x = 2 * x422;
-				auto rgba = yuv::u8_to_rgba_u8(yuv.y1, yuv.u, yuv.v);
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
-				d[x].rgba.red = 255;
-
-				++x;
-				rgba = yuv::u8_to_rgba_u8(yuv.y2, yuv.u, yuv.v);
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
-				d[x].rgba.red = 255;
-			}
-		};
-
-		process_image_rows(src.height, row_func);
-	}
-
-
 	void mipmap_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
 	{		
 		static_assert(sizeof(YUV2) == 2);
@@ -1821,6 +1797,48 @@ namespace simage
 		};
 
 		process_image_rows(dst.height, row_func);
+	}
+}
+
+
+/* convolve */
+namespace simage
+{
+	static void convolve(View1r32 const& src, View1r32 const& dst, Matrix2D<r32> const& kernel)
+	{
+		assert(verify(src, dst));
+		assert(kernel.width % 2 > 0);
+		assert(kernel.height % 2 > 0);
+
+		auto width = src.width;
+		auto height = src.height;
+
+		int const ry_begin = -(kernel.height / 2);
+		int const ry_end = kernel.height / 2 + 1;
+		int const rx_begin = -(kernel.width / 2);
+		int const rx_end = kernel.width / 2 + 1;
+
+		auto const row_func = [&](u32 y) 
+		{
+			
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u32 w = 0;
+				d[x] = 0.0f;
+				for (int ry = ry_begin; ry < ry_end; ++ry)
+				{
+					auto s = row_offset_begin(src, y, ry);
+					for (int rx = rx_begin; rx < rx_end; ++rx)
+					{
+						d[x] += (s + rx)[x] * kernel.data_[w];
+						++w;
+					}
+				}
+			}
+		};
+
+		process_image_rows(src.height, row_func);
 	}
 }
 

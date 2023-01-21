@@ -1025,7 +1025,7 @@ namespace simage
 }
 
 
-/* map_yuv_rgb */
+/* map_yuv */
 
 namespace simage
 {
@@ -1758,7 +1758,7 @@ namespace simage
 		{
 			auto d = row_begin(dst, y);
 
-			Range2Du32 r;
+			Range2Du32 r{};
 			r.y_begin = y * src.height / dst.height;
 			r.y_end = r.y_begin + src.height / dst.height;
 			for (u32 x = 0; x < dst.width; ++x)
@@ -1800,7 +1800,7 @@ namespace simage
 		{
 			auto d = rgb_row_begin(dst, y).rgb;
 
-			Range2Du32 r;
+			Range2Du32 r{};
 			r.y_begin = y * src.height / dst.height;
 			r.y_end = r.y_begin + src.height / dst.height;
 			for (u32 x = 0; x < dst.width; ++x)
@@ -1832,9 +1832,9 @@ namespace simage
 		auto width = src.width;
 		auto height = src.height;
 
-		int const ry_begin = -(kernel.height / 2);
+		int const ry_begin = -(int)kernel.height / 2;
 		int const ry_end = kernel.height / 2 + 1;
-		int const rx_begin = -(kernel.width / 2);
+		int const rx_begin = -(int)kernel.width / 2;
 		int const rx_end = kernel.width / 2 + 1;
 
 		auto const row_func = [&](u32 y) 

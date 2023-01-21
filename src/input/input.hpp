@@ -498,10 +498,10 @@ constexpr u32 MAX_CONTROLLERS = 1;
 
 typedef struct input_t
 {
-	KeyboardInput keyboard;
-	MouseInput mouse;
+	KeyboardInput keyboard = {};
+	MouseInput mouse = {};
 
-	ControllerInput controllers[MAX_CONTROLLERS];
+	ControllerInput controllers[MAX_CONTROLLERS] = {};
 	u32 num_controllers = 0;
 
 	r32 dt_frame = 0.0;

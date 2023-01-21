@@ -228,9 +228,9 @@ public:
     SDL_Renderer* renderer = nullptr;
     SDL_Texture* texture = nullptr;
 
-    void* image_data;
-    int image_width;
-    int image_height;
+    void* image_data = nullptr;
+    int image_width = 0;
+    int image_height = 0;
 };
 
 

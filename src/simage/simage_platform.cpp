@@ -643,7 +643,7 @@ namespace simage
 	}
 
 
-	void map_yuv_rgb(ViewYUV const& src, View const& dst)
+	void map_yuv(ViewYUV const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 		assert(src.width % 2 == 0);

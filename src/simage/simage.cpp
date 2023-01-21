@@ -465,7 +465,26 @@ namespace simage
 		};
 
 		process_image_rows(src.height, row_func);
-	}	
+	}
+
+
+	void map(ViewYUV const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = cs::to_channel_r32(s[x].y);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
 }
 
 

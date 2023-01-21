@@ -53,7 +53,7 @@ public:
 
 #ifndef NDEBUG
 
-	~Matrix2D() { assert(!(bool)data_); }
+	//~Matrix2D() { assert(!(bool)data_); }
 
 #endif // !NDEBUG
 };

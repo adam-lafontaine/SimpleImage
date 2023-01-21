@@ -1622,6 +1622,29 @@ namespace simage
 }
 
 
+/* transform */
+
+namespace simage
+{
+	void transform(View1r32 const& src, View1r32 const& dst, std::function<r32(r32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y) 
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[x]);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+}
+
+
 /* shrink_view */
 
 namespace simage
@@ -1820,7 +1843,8 @@ namespace simage
 }
 
 
-/* convolve */
+/* gradients */
+
 namespace simage
 {
 	static void convolve(View1r32 const& src, View1r32 const& dst, Matrix2D<r32> const& kernel)
@@ -1828,9 +1852,6 @@ namespace simage
 		assert(verify(src, dst));
 		assert(kernel.width % 2 > 0);
 		assert(kernel.height % 2 > 0);
-
-		auto width = src.width;
-		auto height = src.height;
 
 		int const ry_begin = -(int)kernel.height / 2;
 		int const ry_end = kernel.height / 2 + 1;
@@ -1858,6 +1879,104 @@ namespace simage
 		};
 
 		process_image_rows(src.height, row_func);
+	}
+
+
+	constexpr std::array<r32, 33> GRAD_X
+	{
+		-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
+		-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
+		-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
+	};
+
+
+	constexpr std::array<r32, 33> GRAD_Y
+	{
+		-0.02f, -0.06f, -0.02f,
+		-0.03f, -0.09f, -0.03f,
+		-0.04f, -0.12f, -0.04f,
+		-0.05f, -0.15f, -0.05f,
+		-0.06f, -0.18f, -0.06f,
+		 0.00f,  0.00f,  0.00f,
+		 0.06f,  0.18f,  0.06f,
+		 0.05f,  0.15f,  0.05f,
+		 0.04f,  0.12f,  0.04f,
+		 0.03f,  0.09f,  0.03f,
+		 0.02f,  0.06f,  0.02f,
+	};
+
+
+	static void zero_outer(View1r32 const& view, u32 n_rows, u32 n_columns)
+	{
+		auto const top_bottom = [&]()
+		{
+			for (u32 r = 0; r < n_rows; ++r)
+			{
+				auto top = row_begin(view, r);
+				auto bottom = row_begin(view, view.height - 1 - r);
+				for (u32 x = 0; x < view.width; ++x)
+				{
+					top[x] = bottom[x] = 0.0f;
+				}
+			}
+		};
+
+		auto const left_right = [&]()
+		{
+			for (u32 y = n_rows; y < view.height - n_rows; ++y)
+			{
+				auto row = row_begin(view, y);
+				for (u32 c = 0; c < n_columns; ++c)
+				{
+					row[c] = row[view.width - 1 - c] = 0.0f;
+				}
+			}
+		};
+
+		std::array<std::function<void()>, 2> f_list
+		{
+			top_bottom, left_right
+		};
+
+		execute(f_list);
+	}
+
+
+	void gradients_xy(View1r32 const& src, View2r32 const& xy_dst)
+	{
+		auto x_dst = select_channel(xy_dst, XY::X);
+		auto y_dst = select_channel(xy_dst, XY::Y);
+
+		assert(verify(src, x_dst));
+		assert(verify(src, y_dst));
+
+		Matrix2D<r32> x_kernel{};
+		x_kernel.width = 11;
+		x_kernel.height = 3;
+		x_kernel.data_ = (r32*)GRAD_X.data();
+
+		Matrix2D<r32> y_kernel{};
+		y_kernel.width = 3;
+		y_kernel.height = 11;
+		y_kernel.data_ = (r32*)GRAD_Y.data();
+
+		zero_outer(x_dst, 1, 5);
+		zero_outer(y_dst, 5, 1);
+
+		Range2Du32 x_inner{};
+		x_inner.x_begin = 5;
+		x_inner.x_end = src.width - 5;
+		x_inner.y_begin = 1;
+		x_inner.y_end = src.height - 1;
+
+		Range2Du32 y_inner{};
+		y_inner.x_begin = 1;
+		y_inner.x_end = src.width - 1;
+		y_inner.y_begin = 5;
+		y_inner.y_end = src.height - 5;
+
+		convolve(sub_view(src, x_inner), sub_view(x_dst, x_inner), x_kernel);
+		convolve(sub_view(src, y_inner), sub_view(y_dst, y_inner), y_kernel);
 	}
 }
 

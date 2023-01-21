@@ -4,6 +4,7 @@
 #include "../util/memory_buffer.hpp"
 
 #include <array>
+#include <functional>
 
 namespace mb = memory_buffer;
 
@@ -247,6 +248,14 @@ namespace simage
 }
 
 
+/* transform */
+
+namespace simage
+{
+	void transform(View1r32 const& src, View1r32 const& dst, std::function<r32(r32)> const& func);
+}
+
+
 /* shrink */
 
 namespace simage
@@ -261,7 +270,12 @@ namespace simage
 }
 
 
+/* gradients */
 
+namespace simage
+{
+	void gradients_xy(View1r32 const& src, View2r32 const& xy_dst);
+}
 
 
 /* stb_simage.cpp */

@@ -1882,28 +1882,73 @@ namespace simage
 	}
 
 
-	constexpr std::array<r32, 33> GRAD_X
+	constexpr std::array<r32, 33> make_grad_x()
 	{
-		-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
-		-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
-		-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
-	};
+		/*constexpr std::array<r32, 33> GRAD_X
+		{
+			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
+			-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
+			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.01f,
+		};*/
+
+		std::array<r32, 33> grad = { 0 };
+
+		r32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+
+		size_t w = 11;
+
+		for (size_t i = 0; i < 5; ++i)
+		{
+			grad[6 + i] = values[i];
+			grad[2 * w + 6 + i] = values[i];
+			grad[w + 6 + i] = 3 * values[i];
+			grad[4 - i] = -values[i];
+			grad[2 * w + 4 - i] = -values[i];
+			grad[w + 4 - i] = -3 * values[i];
+		}
+
+		return grad;
+	}
 
 
-	constexpr std::array<r32, 33> GRAD_Y
+	constexpr std::array<r32, 33> make_grad_y()
 	{
-		-0.02f, -0.06f, -0.02f,
-		-0.03f, -0.09f, -0.03f,
-		-0.04f, -0.12f, -0.04f,
-		-0.05f, -0.15f, -0.05f,
-		-0.06f, -0.18f, -0.06f,
-		 0.00f,  0.00f,  0.00f,
-		 0.06f,  0.18f,  0.06f,
-		 0.05f,  0.15f,  0.05f,
-		 0.04f,  0.12f,  0.04f,
-		 0.03f,  0.09f,  0.03f,
-		 0.02f,  0.06f,  0.02f,
-	};
+		/*constexpr std::array<r32, 33> GRAD_Y
+		{
+			-0.02f, -0.06f, -0.02f,
+			-0.03f, -0.09f, -0.03f,
+			-0.04f, -0.12f, -0.04f,
+			-0.05f, -0.15f, -0.05f,
+			-0.06f, -0.18f, -0.06f,
+			 0.00f,  0.00f,  0.00f,
+			 0.06f,  0.18f,  0.06f,
+			 0.05f,  0.15f,  0.05f,
+			 0.04f,  0.12f,  0.04f,
+			 0.03f,  0.09f,  0.03f,
+			 0.02f,  0.06f,  0.02f,
+		};*/
+
+		std::array<r32, 33> grad = { 0 };
+
+		r32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+
+		size_t w = 3;
+
+		for (size_t i = 0; i < 5; ++i)
+		{
+			grad[w * (6 + i)] = values[i];
+			grad[w * (6 + i) + 2] = values[i];
+			grad[w * (6 + i) + 1] = 3 * values[i];
+			grad[w * (4 - i)] = -values[i];
+			grad[w * (4 - i) + 2] = -values[i];
+			grad[w * (4 - i) + 1] = -3 * values[i];
+		}
+
+		return grad;
+	}
+
+
+	
 
 
 	static void zero_outer(View1r32 const& view, u32 n_rows, u32 n_columns)
@@ -1950,15 +1995,18 @@ namespace simage
 		assert(verify(src, x_dst));
 		assert(verify(src, y_dst));
 
+		constexpr auto grad_x = make_grad_x();
+		constexpr auto grad_y = make_grad_y();
+
 		Matrix2D<r32> x_kernel{};
 		x_kernel.width = 11;
 		x_kernel.height = 3;
-		x_kernel.data_ = (r32*)GRAD_X.data();
+		x_kernel.data_ = (r32*)grad_x.data();
 
 		Matrix2D<r32> y_kernel{};
 		y_kernel.width = 3;
 		y_kernel.height = 11;
-		y_kernel.data_ = (r32*)GRAD_Y.data();
+		y_kernel.data_ = (r32*)grad_y.data();
 
 		zero_outer(x_dst, 1, 5);
 		zero_outer(y_dst, 5, 1);

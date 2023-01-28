@@ -1642,6 +1642,42 @@ namespace simage
 
 		process_image_rows(src.height, row_func);
 	}
+
+
+	void transform(View2r32 const& src, View1r32 const& dst, std::function<r32(r32, r32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y).channels;
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[0][x], s[1][x]);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void transform(View3r32 const& src, View1r32 const& dst, std::function<r32(r32, r32, r32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y).channels;
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[0][x], s[1][x], s[2][x]);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
 }
 
 
@@ -1859,8 +1895,7 @@ namespace simage
 		int const rx_end = kernel.width / 2 + 1;
 
 		auto const row_func = [&](u32 y) 
-		{
-			
+		{			
 			auto d = row_begin(dst, y);
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -1882,7 +1917,7 @@ namespace simage
 	}
 
 
-	constexpr std::array<r32, 33> make_grad_x()
+	constexpr std::array<r32, 33> make_grad_x_11()
 	{
 		/*constexpr std::array<r32, 33> GRAD_X
 		{
@@ -1911,7 +1946,7 @@ namespace simage
 	}
 
 
-	constexpr std::array<r32, 33> make_grad_y()
+	constexpr std::array<r32, 33> make_grad_y_11()
 	{
 		/*constexpr std::array<r32, 33> GRAD_Y
 		{
@@ -1948,7 +1983,32 @@ namespace simage
 	}
 
 
-	
+	constexpr std::array<r32, 15> make_grad_x_5()
+	{
+		std::array<r32, 15> grad
+		{
+			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+			-0.16f, -0.24f, 0.0f, 0.24f, 0.16f
+			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+		};
+
+		return grad;
+	}
+
+
+	constexpr std::array<r32, 15> make_grad_y_5()
+	{
+		std::array<r32, 15> grad
+		{
+			-0.08f, -0.16f, -0.08f,
+			-0.12f, -0.24f, -0.12f,
+			 0.00f,  0.00f,  0.00f,
+			 0.12f,  0.24f,  0.12f,
+			 0.08f,  0.16f,  0.08f,
+		};
+
+		return grad;
+	}
 
 
 	static void zero_outer(View1r32 const& view, u32 n_rows, u32 n_columns)
@@ -1995,33 +2055,40 @@ namespace simage
 		assert(verify(src, x_dst));
 		assert(verify(src, y_dst));
 
-		constexpr auto grad_x = make_grad_x();
-		constexpr auto grad_y = make_grad_y();
+		/*constexpr auto grad_x = make_grad_x_11();
+		constexpr auto grad_y = make_grad_y_11();
+		constexpr u32 kernel_dim_a = 11;*/
+
+		constexpr auto grad_x = make_grad_x_5();
+		constexpr auto grad_y = make_grad_y_5();
+		constexpr u32 kernel_dim_a = 5;
+
+		constexpr u32 kernel_dim_b = grad_x.size() / kernel_dim_a;
 
 		Matrix2D<r32> x_kernel{};
-		x_kernel.width = 11;
-		x_kernel.height = 3;
+		x_kernel.width = kernel_dim_a;
+		x_kernel.height = kernel_dim_b;
 		x_kernel.data_ = (r32*)grad_x.data();
 
 		Matrix2D<r32> y_kernel{};
-		y_kernel.width = 3;
-		y_kernel.height = 11;
+		y_kernel.width = kernel_dim_b;
+		y_kernel.height = kernel_dim_a;
 		y_kernel.data_ = (r32*)grad_y.data();
 
-		zero_outer(x_dst, 1, 5);
-		zero_outer(y_dst, 5, 1);
+		zero_outer(x_dst, kernel_dim_b / 2, kernel_dim_a / 2);
+		zero_outer(y_dst, kernel_dim_a / 2, kernel_dim_b / 2);
 
 		Range2Du32 x_inner{};
-		x_inner.x_begin = 5;
-		x_inner.x_end = src.width - 5;
-		x_inner.y_begin = 1;
-		x_inner.y_end = src.height - 1;
+		x_inner.x_begin = kernel_dim_a / 2;
+		x_inner.x_end = src.width - kernel_dim_a / 2;
+		x_inner.y_begin = kernel_dim_b / 2;
+		x_inner.y_end = src.height - kernel_dim_b / 2;
 
 		Range2Du32 y_inner{};
-		y_inner.x_begin = 1;
-		y_inner.x_end = src.width - 1;
-		y_inner.y_begin = 5;
-		y_inner.y_end = src.height - 5;
+		y_inner.x_begin = kernel_dim_b / 2;
+		y_inner.x_end = src.width - kernel_dim_b / 2;
+		y_inner.y_begin = kernel_dim_a / 2;
+		y_inner.y_end = src.height - kernel_dim_a / 2;
 
 		convolve(sub_view(src, x_inner), sub_view(x_dst, x_inner), x_kernel);
 		convolve(sub_view(src, y_inner), sub_view(y_dst, y_inner), y_kernel);

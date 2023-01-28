@@ -48,12 +48,53 @@ bool gradients_xy_test()
 }
 
 
+bool edges_test()
+{
+	auto title = "edges_test";
+	printf("\n%s:\n", title);
+	auto out_dir = IMAGE_OUT_PATH / title;
+	empty_dir(out_dir);
+	auto const write_image = [&out_dir](auto const& image, const char* name)
+	{ img::write_image(image, out_dir / name); };
+
+	GrayImage image;
+	img::read_image_from_file(CADILLAC_PATH, image);
+	auto view = img::make_view(image);
+	auto width = view.width;
+	auto height = view.height;
+
+	img::Buffer32 buffer;
+	mb::create_buffer(buffer, width * height * 3);
+
+	auto src = img::make_view_1(width, height, buffer);
+	auto dst_xy = img::make_view_2(width, height, buffer);
+
+	img::map(view, src);
+
+	img::gradients_xy(src, dst_xy);
+
+	write_image(image, "caddy.bmp");
+
+	img::transform(dst_xy, src, [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.2f ? 1.0f : 0.0f; });
+
+	img::map(src, view);
+
+	write_image(image, "edges.bmp");
+
+	mb::destroy_buffer(buffer);
+	img::destroy_image(image);
+
+	return true;
+}
+
+
 bool gradients_tests()
 {
 	printf("\n*** gradients tests ***\n");
 
 	auto result =
-		gradients_xy_test();
+		gradients_xy_test() &&
+		edges_test();
 
 	if (result)
 	{

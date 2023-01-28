@@ -93,26 +93,11 @@ namespace simage
 	};
 
 
-    template <size_t N>
-	class PixelCHr32
-	{
-	public:
-
-		static constexpr u32 n_channels = N;
-
-		r32* channels[N] = {};
-	};
-
-
 	using View1r32 = MatrixView<r32>;
 
     using View4r32 = ViewCHr32<4>;
 	using View3r32 = ViewCHr32<3>;
 	using View2r32 = ViewCHr32<2>;
-
-    using Pixel4r32 = PixelCHr32<4>;
-	using Pixel3r32 = PixelCHr32<3>;
-	using Pixel2r32 = PixelCHr32<2>;
 }
 
 

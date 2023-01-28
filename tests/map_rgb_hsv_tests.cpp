@@ -255,7 +255,7 @@ static bool hsv_draw_test()
         for (u32 x = 0; x < 256; ++x)
         {
             auto h = (u8)x;
-            auto rgba = hsv::u8_to_rgba_u8(h, s, V);
+            auto rgba = hsv::u8_to_rgb_u8(h, s, V);
             auto& p = d[x].rgba;
             p.red = rgba.red;
             p.green = rgba.green;

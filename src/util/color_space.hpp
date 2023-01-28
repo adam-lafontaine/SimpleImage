@@ -63,35 +63,6 @@ namespace color_space
     {
         return round_to_u8(clamp(value) * 255);
     }
-
-
-    static constexpr r32 lerp_to_r32(u8 value, r32 min, r32 max)
-    {
-        assert(min < max);
-
-        return min + (value / 255.0f) * (max - min);
-    }
-
-
-    static constexpr u8 lerp_to_u8(r32 value, r32 min, r32 max)
-    {
-        assert(min < max);
-        assert(value >= min);
-        assert(value <= max);
-
-        if (value < min)
-        {
-            value = min;
-        }
-        else if (value > max)
-        {
-            value = max;
-        }
-
-        auto ratio = (value - min) / (max - min);
-
-        return round_to_u8(ratio * 255);
-    }    
 }
 
 

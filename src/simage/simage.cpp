@@ -88,19 +88,24 @@ namespace simage
 #endif // !NDEBUG
 
 
-/* row begin */
+/* pixels */
 
 namespace simage
 {
-	// platform dependent, endianness
-	class RGBAr32p
+	template <size_t N>
+	class PixelCHr32
 	{
 	public:
-		r32* R;
-		r32* G;
-		r32* B;
-		r32* A;
+
+		static constexpr u32 n_channels = N;
+
+		r32* channels[N] = {};
 	};
+
+
+	using Pixel4r32 = PixelCHr32<4>;
+	using Pixel3r32 = PixelCHr32<3>;
+	using Pixel2r32 = PixelCHr32<2>;
 
 
 	class RGBr32p
@@ -109,36 +114,6 @@ namespace simage
 		r32* R;
 		r32* G;
 		r32* B;
-	};
-
-
-	class PixelRGBAr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 4;
-
-		union 
-		{
-			RGBAr32p rgba;
-
-			r32* channels[4] = {};
-		};
-	};
-
-
-	class PixelRGBr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 3;
-
-		union 
-		{
-			RGBr32p rgb;
-
-			r32* channels[3] = {};
-		};
 	};
 
 
@@ -151,21 +126,6 @@ namespace simage
 	};
 
 
-	class PixelHSVr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 3;
-
-		union
-		{
-			HSVr32p hsv;
-
-			r32* channels[3] = {};
-		};
-	};
-
-
 	class LCHr32p
 	{
 	public:
@@ -173,40 +133,13 @@ namespace simage
 		r32* C;
 		r32* H;
 	};
+}
 
 
-	class PixelLCHr32
-	{
-	public:
+/* row begin */
 
-		static constexpr u32 n_channels = 3;
-
-		union
-		{
-			LCHr32p lch;
-
-			r32* channels[3] = {};
-		};
-	};
-
-
-	class Pixel3CHr32
-	{
-	public:
-		static constexpr u32 n_channels = 3;
-
-		union 
-		{
-			RGBr32p rgb;
-
-			HSVr32p hsv;
-
-			r32* channels[3] = {};
-		};
-
-	};
-
-
+namespace simage
+{
 	template <size_t N>
 	static PixelCHr32<N> row_begin(ViewCHr32<N> const& view, u32 y)
 	{
@@ -226,54 +159,54 @@ namespace simage
 	}
 
 
-	static PixelRGBr32 rgb_row_begin(ViewRGBr32 const& view, u32 y)
+	static RGBr32p rgb_row_begin(ViewRGBr32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
 
-		PixelRGBr32 p{};
+		RGBr32p rgb{};
 
-		p.rgb.R = view.image_channel_data[id_cast(RGB::R)] + offset;
-		p.rgb.G = view.image_channel_data[id_cast(RGB::G)] + offset;
-		p.rgb.B = view.image_channel_data[id_cast(RGB::B)] + offset;
+		rgb.R = view.image_channel_data[id_cast(RGB::R)] + offset;
+		rgb.G = view.image_channel_data[id_cast(RGB::G)] + offset;
+		rgb.B = view.image_channel_data[id_cast(RGB::B)] + offset;
 
-		return p;
+		return rgb;
 	}
 
 
-	static PixelHSVr32 hsv_row_begin(ViewHSVr32 const& view, u32 y)
+	static HSVr32p hsv_row_begin(ViewHSVr32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
 
-		PixelHSVr32 p{};
+		HSVr32p hsv{};
 
-		p.hsv.H = view.image_channel_data[id_cast(HSV::H)] + offset;
-		p.hsv.S = view.image_channel_data[id_cast(HSV::S)] + offset;
-		p.hsv.V = view.image_channel_data[id_cast(HSV::V)] + offset;
+		hsv.H = view.image_channel_data[id_cast(HSV::H)] + offset;
+		hsv.S = view.image_channel_data[id_cast(HSV::S)] + offset;
+		hsv.V = view.image_channel_data[id_cast(HSV::V)] + offset;
 
-		return p;
+		return hsv;
 	}
 
 
-	static PixelLCHr32 lch_row_begin(ViewLCHr32 const& view, u32 y)
+	static LCHr32p lch_row_begin(ViewLCHr32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
 
-		PixelLCHr32 p{};
+		LCHr32p lch{};
 
-		p.lch.L = view.image_channel_data[id_cast(LCH::L)] + offset;
-		p.lch.C = view.image_channel_data[id_cast(LCH::C)] + offset;
-		p.lch.H = view.image_channel_data[id_cast(LCH::H)] + offset;
+		lch.L = view.image_channel_data[id_cast(LCH::L)] + offset;
+		lch.C = view.image_channel_data[id_cast(LCH::C)] + offset;
+		lch.H = view.image_channel_data[id_cast(LCH::H)] + offset;
 
-		return p;
+		return lch;
 	}
 
 
@@ -836,7 +769,7 @@ namespace simage
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
-			auto d = hsv_row_begin(dst, y).hsv;
+			auto d = hsv_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -858,12 +791,12 @@ namespace simage
 
 		auto const row_func = [&](u32 y) 
 		{
-			auto s = hsv_row_begin(src, y).hsv;
+			auto s = hsv_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgba = hsv::r32_to_rgba_u8(s.H[x], s.S[x], s.V[x]);
+				auto rgba = hsv::r32_to_rgb_u8(s.H[x], s.S[x], s.V[x]);
 
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
@@ -882,8 +815,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = rgb_row_begin(src, y).rgb;
-			auto d = hsv_row_begin(dst, y).hsv;
+			auto s = rgb_row_begin(src, y);
+			auto d = hsv_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -908,8 +841,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = hsv_row_begin(src, y).hsv;
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto s = hsv_row_begin(src, y);
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -936,7 +869,7 @@ namespace simage
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
-			auto d = lch_row_begin(dst, y).lch;
+			auto d = lch_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -958,12 +891,12 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = lch_row_begin(src, y).lch;
+			auto s = lch_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgba = lch::r32_to_rgba_u8(s.L[x], s.C[x], s.H[x]);
+				auto rgba = lch::r32_to_rgb_u8(s.L[x], s.C[x], s.H[x]);
 
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
@@ -982,8 +915,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = rgb_row_begin(src, y).rgb;
-			auto d = lch_row_begin(dst, y).lch;
+			auto s = rgb_row_begin(src, y);
+			auto d = lch_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -1008,8 +941,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = lch_row_begin(src, y).lch;
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto s = lch_row_begin(src, y);
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -1035,7 +968,7 @@ namespace simage
 		{
 			auto s2 = row_begin(src, y);
 			auto s422 = (YUV422*)s2;
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
 			{
@@ -1172,7 +1105,7 @@ namespace simage
 
 			auto s1 = (YUV422*)row_begin(src, src_y1);
 			auto s2 = (YUV422*)row_begin(src, src_y2);
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x = 0; x < dst.width; ++x)
 			{
@@ -1231,7 +1164,7 @@ namespace simage
 				u8 u_avg = avg2(yuv1.u, yuv2.u);
 				u8 v_avg = avg2(yuv1.v, yuv2.v);
 
-				auto rgba = yuv::u8_to_rgba_u8(y_avg, u_avg, v_avg);
+				auto rgba = yuv::u8_to_rgb_u8(y_avg, u_avg, v_avg);
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
 				d[x].rgba.blue = rgba.blue;
@@ -1857,7 +1790,7 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto d = rgb_row_begin(dst, y);
 
 			Range2Du32 r{};
 			r.y_begin = y * src.height / dst.height;
@@ -2063,7 +1996,7 @@ namespace simage
 		constexpr auto grad_y = make_grad_y_5();
 		constexpr u32 kernel_dim_a = 5;
 
-		constexpr u32 kernel_dim_b = grad_x.size() / kernel_dim_a;
+		constexpr u32 kernel_dim_b = (u32)grad_x.size() / kernel_dim_a;
 
 		Matrix2D<r32> x_kernel{};
 		x_kernel.width = kernel_dim_a;

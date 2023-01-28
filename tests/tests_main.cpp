@@ -23,7 +23,7 @@ static bool test_success()
         //sub_view_tests() &&
         //fill_tests() &&
         //copy_tests() &&
-        //histogram_tests() &&
+        histogram_tests() &&
         gradients_tests() &&
         true;
 }

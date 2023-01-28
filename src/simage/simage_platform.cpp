@@ -660,14 +660,14 @@ namespace simage
 				auto yuv = s422[x422];
 
 				auto x = 2 * x422;
-				auto rgba = yuv::u8_to_rgba_u8(yuv.y1, yuv.u, yuv.v);
+				auto rgba = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
 				d[x].rgba.blue = rgba.blue;
 				d[x].rgba.red = 255;
 
 				++x;
-				rgba = yuv::u8_to_rgba_u8(yuv.y2, yuv.u, yuv.v);
+				rgba = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
 				d[x].rgba.blue = rgba.blue;
@@ -827,7 +827,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 			auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
@@ -1033,7 +1033,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 
 			dst.R[to_hist_bin_u8(rgba.red, n_bins)]++;
 			dst.G[to_hist_bin_u8(rgba.green, n_bins)]++;
@@ -1065,7 +1065,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 			if (hsv.sat)
@@ -1102,7 +1102,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 			auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 			dst.L[to_hist_bin_u8(lch.light, n_bins)]++;

@@ -44,7 +44,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.image_width && view.width && view.height && view.image_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data;
 	}
 
 
@@ -101,11 +101,6 @@ namespace simage
 
 		r32* channels[N] = {};
 	};
-
-
-	using Pixel4r32 = PixelCHr32<4>;
-	using Pixel3r32 = PixelCHr32<3>;
-	using Pixel2r32 = PixelCHr32<2>;
 
 
 	class RGBr32p
@@ -216,9 +211,9 @@ namespace simage
 
 		int y_eff = y + y_offset;
 
-		auto offset = (size_t)((view.y_begin + y_eff) * view.image_width + view.x_begin);
+		auto offset = (size_t)((view.y_begin + y_eff) * view.matrix_width + view.x_begin);
 
-		return view.image_data + offset;
+		return view.matrix_data + offset;
 	}
 
 
@@ -303,8 +298,8 @@ namespace simage
 
 		View1r32 view;
 
-		view.image_data = mb::push_elements(buffer, width * height);
-		view.image_width = width;
+		view.matrix_data = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;
 		view.x_begin = 0;
 		view.y_begin = 0;
 		view.x_end = width;
@@ -1245,8 +1240,8 @@ namespace simage
 
 		View1r32 sub_view;
 
-		sub_view.image_data = view.image_data;
-		sub_view.image_width = view.image_width;
+		sub_view.matrix_data = view.matrix_data;
+		sub_view.matrix_width = view.matrix_width;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
 		sub_view.x_end = view.x_begin + range.x_end;
@@ -1270,12 +1265,12 @@ namespace simage
 	{
 		View1r32 view1{};
 
-		view1.image_width = view.image_width;
+		view1.matrix_width = view.image_width;
 		view1.range = view.range;
 		view1.width = view.width;
 		view1.height = view.height;
 
-		view1.image_data = view.image_channel_data[ch];
+		view1.matrix_data = view.image_channel_data[ch];
 
 		return view1;
 	}

@@ -175,6 +175,11 @@ histogram_tests_c += $(tests_include_h)
 histogram_tests_o := $(build)/histogram_tests.o
 object_files += $(histogram_tests_o)
 
+gradients_tests_c := $(tests)/gradients_tests.cpp
+gradients_tests_c += $(tests_include_h)
+gradients_tests_o := $(build)/gradients_tests.o
+object_files += $(gradients_tests_o)
+
 
 
 # flags
@@ -269,6 +274,10 @@ $(fill_tests_o): $(fill_tests_c)
 
 $(histogram_tests_o): $(histogram_tests_c)
 	@echo "\n histogram_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(gradients_tests_o): $(gradients_tests_c)
+	@echo "\n gradients_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

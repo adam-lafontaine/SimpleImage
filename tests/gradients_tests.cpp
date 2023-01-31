@@ -1,5 +1,7 @@
 #include "tests_include.hpp"
 
+#include <cmath>
+
 
 bool gradients_xy_test()
 {

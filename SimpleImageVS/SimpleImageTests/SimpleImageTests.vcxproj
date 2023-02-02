@@ -140,6 +140,7 @@
     <ClCompile Include="..\..\tests\create_image_tests.cpp" />
     <ClCompile Include="..\..\tests\execute_tests.cpp" />
     <ClCompile Include="..\..\tests\fill_tests.cpp" />
+    <ClCompile Include="..\..\tests\gradients_tests.cpp" />
     <ClCompile Include="..\..\tests\histogram_tests.cpp" />
     <ClCompile Include="..\..\tests\make_view_tests.cpp" />
     <ClCompile Include="..\..\tests\map_rgb_hsv_tests.cpp" />

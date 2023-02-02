@@ -63,35 +63,6 @@ namespace color_space
     {
         return round_to_u8(clamp(value) * 255);
     }
-
-
-    static constexpr r32 lerp_to_r32(u8 value, r32 min, r32 max)
-    {
-        assert(min < max);
-
-        return min + (value / 255.0f) * (max - min);
-    }
-
-
-    static constexpr u8 lerp_to_u8(r32 value, r32 min, r32 max)
-    {
-        assert(min < max);
-        assert(value >= min);
-        assert(value <= max);
-
-        if (value < min)
-        {
-            value = min;
-        }
-        else if (value > max)
-        {
-            value = max;
-        }
-
-        auto ratio = (value - min) / (max - min);
-
-        return round_to_u8(ratio * 255);
-    }    
 }
 
 
@@ -108,13 +79,12 @@ namespace color_space
     };
 
 
-    class RGBAu8
+    class RGBu8
     {
     public:
         u8 red;
         u8 green;
         u8 blue;
-        u8 alpha;
     };
 
 
@@ -133,7 +103,6 @@ namespace color_space
         u8 hue;
         u8 sat;
         u8 val;
-        u8 pad;
     };
 
 
@@ -170,7 +139,6 @@ namespace color_space
         u8 y;
         u8 u;
         u8 v;
-        u8 pad;
     };
 }
 
@@ -182,7 +150,7 @@ namespace hsv
     namespace cs = color_space;
 
     constexpr r32 HUE_MAX = 360.0f;
-    constexpr r32 zerof = 1.0f / HUE_MAX;
+    constexpr r32 ZERO_F = 1.0f / HUE_MAX;
 
 
     inline constexpr bool equals(r32 lhs, r32 rhs)
@@ -192,18 +160,18 @@ namespace hsv
 
         diff = diff < 0.0f ? -1.0f * diff : diff;
 
-        return diff < zerof;
+        return diff < ZERO_F;
     }
 
 
     inline constexpr cs::RGBr32 r32_to_rgb_r32(r32 h, r32 s, r32 v)
     {
-        if (v <= zerof)
+        if (v <= ZERO_F)
         {
             return { 0.0f, 0.0f, 0.0f };
         }
 
-        if (s <= zerof || h < 0.0f)
+        if (s <= ZERO_F || h < 0.0f)
         {
             return { v, v, v };
         }
@@ -267,13 +235,6 @@ namespace hsv
         auto max = std::max({ r, g, b });
         auto min = std::min({ r, g, b });
 
-        auto const r_max = equals(r, max);
-        auto const r_min = equals(r, min);
-        auto const g_max = equals(g, max);
-        auto const g_min = equals(g, min);
-        auto const b_max = equals(b, max);
-        auto const b_min = equals(b, min);
-
         r32 h = 0.0f;
         r32 s = 0.0f;
         r32 v = max;
@@ -289,6 +250,13 @@ namespace hsv
         auto range = max - min;
 
         s = range / v;
+
+        auto const r_max = equals(r, max);
+        auto const r_min = equals(r, min);
+        auto const g_max = equals(g, max);
+        auto const g_min = equals(g, min);
+        auto const b_max = equals(b, max);
+        auto const b_min = equals(b, min);
 
         int h_id =
             (r_max && g_min && b_min) ? -3 :
@@ -336,6 +304,7 @@ namespace hsv
             break;
         default:
             h_360 = -360.0f;
+            assert(false);
         }
 
         h = h_360 / 360.0f;
@@ -349,67 +318,26 @@ namespace hsv
 
 namespace hsv
 {
-    inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 h, u8 s, u8 v)
+    inline constexpr cs::RGBu8 r32_to_rgb_u8(r32 h, r32 s, r32 v)
     {
-        if (!s || !v)
+        if (v <= ZERO_F)
         {
-            return { v, v, v, 255 };
+            return { 0, 0, 0 };
         }
 
-        auto H = cs::to_channel_r32(h);
-        auto S = cs::to_channel_r32(s);
-        auto V = cs::to_channel_r32(v);
-
-        auto rgb = r32_to_rgb_r32(H, S, V);
-
-        auto r = cs::round_to_u8(rgb.red * 255);
-        auto g = cs::round_to_u8(rgb.green * 255);
-        auto b = cs::round_to_u8(rgb.blue * 255);
-
-        return { r, g, b, 255 };
-    }
-
-
-    inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
-    {
-        auto min = std::min({ r, g, b });
-        auto max = std::max({ r, g, b });
-
-        auto v = max;
-        u8 s = max == min ? 0 : cs::round_to_u8(255.0f * (max - min) / max);
-
-        auto R = cs::to_channel_r32(r);
-        auto G = cs::to_channel_r32(g);
-        auto B = cs::to_channel_r32(b);
-
-        auto hsv = r32_from_rgb_r32(R, G, B);
-
-        auto h = cs::round_to_u8(hsv.hue * 255);
-
-        return { h, s, v };
-    }
-
-
-    inline constexpr cs::RGBAu8 r32_to_rgba_u8(r32 h, r32 s, r32 v)
-    {
-        if (v <= zerof)
+        if (s <= ZERO_F || h < 0.0f)
         {
-            return { 0, 0, 0, 255 };
-        }
-
-        if (s <= zerof || h < 0.0f)
-        {
-            auto gray = cs::round_to_u8(v * 255);
-            return { gray, gray, gray, 255 };
+            auto gray = cs::to_channel_u8(v);
+            return { gray, gray, gray };
         }
 
         auto rgb = r32_to_rgb_r32(h, s, v);
 
-        auto r = cs::round_to_u8(rgb.red * 255);
-        auto g = cs::round_to_u8(rgb.green * 255);
-        auto b = cs::round_to_u8(rgb.blue * 255);
-
-        return { r, g, b, 255 };
+        return {
+            cs::to_channel_u8(rgb.red),
+            cs::to_channel_u8(rgb.green),
+            cs::to_channel_u8(rgb.blue)
+        };
     }
 
 
@@ -423,20 +351,41 @@ namespace hsv
     }
 
 
-    /*inline constexpr cs::HSVu8 u8_from_rgb_r32(r32 r, r32 g, r32 b)
+    inline constexpr cs::RGBu8 u8_to_rgb_u8(u8 h, u8 s, u8 v)
     {
-        auto R = cs::clamp(r);
-        auto G = cs::clamp(g);
-        auto B = cs::clamp(b);
-        
-        auto hsv = r32_from_rgb_r32(R, G, B);
+        if (!s || !v)
+        {
+            return { v, v, v };
+        }
 
-        auto h = cs::round_to_u8(hsv.hue * 255);
-        auto s = cs::round_to_u8(hsv.sat * 255);
-        auto v = cs::round_to_u8(hsv.val * 255);
+        auto H = cs::to_channel_r32(h);
+        auto S = cs::to_channel_r32(s);
+        auto V = cs::to_channel_r32(v);
+
+        auto rgb = r32_to_rgb_r32(H, S, V);
+
+        return {
+            cs::to_channel_u8(rgb.red),
+            cs::to_channel_u8(rgb.green),
+            cs::to_channel_u8(rgb.blue)
+        };
+    }
+
+
+    inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto min = std::min({ r, g, b });
+        auto max = std::max({ r, g, b });
+
+        auto v = max;
+        u8 s = max == min ? 0 : cs::to_channel_u8((r32)(max - min) / max);
+
+        auto hsv = r32_from_rgb_u8(r, g, b);
+
+        auto h = cs::to_channel_u8(hsv.hue);
 
         return { h, s, v };
-    }*/
+    }
 }
 
 
@@ -499,15 +448,14 @@ namespace lch
 
 namespace lch
 {
-    inline cs::RGBAu8 r32_to_rgba_u8(r32 l, r32 c, r32 h)
+    inline cs::RGBu8 r32_to_rgb_u8(r32 l, r32 c, r32 h)
     {
         auto rgb = r32_to_rgb_r32(l, c, h);
 
         return {
             cs::to_channel_u8(rgb.red),
             cs::to_channel_u8(rgb.green),
-            cs::to_channel_u8(rgb.blue),
-            255
+            cs::to_channel_u8(rgb.blue)
         };
     }
 
@@ -534,13 +482,13 @@ namespace lch
     }
 
 
-    inline cs::RGBAu8 u8_to_rgba_u8(u8 l, u8 c, u8 h)
+    inline cs::RGBu8 u8_to_rgb_u8(u8 l, u8 c, u8 h)
     {
         auto L = cs::to_channel_r32(l);
         auto C = cs::to_channel_r32(c);
         auto H = cs::to_channel_r32(h);
 
-        return r32_to_rgba_u8(L, C, H);
+        return r32_to_rgb_u8(L, C, H);
     }
 }
 
@@ -605,7 +553,7 @@ namespace yuv
 
 namespace yuv
 {
-    inline constexpr cs::RGBAu8 u8_to_rgba_u8(u8 y, u8 u, u8 v)
+    inline constexpr cs::RGBu8 u8_to_rgb_u8(u8 y, u8 u, u8 v)
     {
         auto Y = cs::to_channel_r32(y);
         auto U = cs::to_channel_r32(u) - 0.5f;
@@ -616,8 +564,7 @@ namespace yuv
         return {
             cs::to_channel_u8(rgb.red),
             cs::to_channel_u8(rgb.green),
-            cs::to_channel_u8(rgb.blue),
-            255
+            cs::to_channel_u8(rgb.blue)
         };
     }
 

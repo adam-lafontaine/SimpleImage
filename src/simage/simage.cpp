@@ -44,7 +44,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.image_width && view.width && view.height && view.image_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data;
 	}
 
 
@@ -88,18 +88,18 @@ namespace simage
 #endif // !NDEBUG
 
 
-/* row begin */
+/* pixels */
 
 namespace simage
 {
-	// platform dependent, endianness
-	class RGBAr32p
+	template <size_t N>
+	class PixelCHr32
 	{
 	public:
-		r32* R;
-		r32* G;
-		r32* B;
-		r32* A;
+
+		static constexpr u32 n_channels = N;
+
+		r32* channels[N] = {};
 	};
 
 
@@ -112,57 +112,12 @@ namespace simage
 	};
 
 
-	class PixelRGBAr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 4;
-
-		union 
-		{
-			RGBAr32p rgba;
-
-			r32* channels[4] = {};
-		};
-	};
-
-
-	class PixelRGBr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 3;
-
-		union 
-		{
-			RGBr32p rgb;
-
-			r32* channels[3] = {};
-		};
-	};
-
-
 	class HSVr32p
 	{
 	public:
 		r32* H;
 		r32* S;
 		r32* V;
-	};
-
-
-	class PixelHSVr32
-	{
-	public:
-
-		static constexpr u32 n_channels = 3;
-
-		union
-		{
-			HSVr32p hsv;
-
-			r32* channels[3] = {};
-		};
 	};
 
 
@@ -173,40 +128,13 @@ namespace simage
 		r32* C;
 		r32* H;
 	};
+}
 
 
-	class PixelLCHr32
-	{
-	public:
+/* row begin */
 
-		static constexpr u32 n_channels = 3;
-
-		union
-		{
-			LCHr32p lch;
-
-			r32* channels[3] = {};
-		};
-	};
-
-
-	class Pixel3CHr32
-	{
-	public:
-		static constexpr u32 n_channels = 3;
-
-		union 
-		{
-			RGBr32p rgb;
-
-			HSVr32p hsv;
-
-			r32* channels[3] = {};
-		};
-
-	};
-
-
+namespace simage
+{
 	template <size_t N>
 	static PixelCHr32<N> row_begin(ViewCHr32<N> const& view, u32 y)
 	{
@@ -226,54 +154,66 @@ namespace simage
 	}
 
 
-	static PixelRGBr32 rgb_row_begin(ViewRGBr32 const& view, u32 y)
+	static RGBr32p rgb_row_begin(ViewRGBr32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
 
-		PixelRGBr32 p{};
+		RGBr32p rgb{};
 
-		p.rgb.R = view.image_channel_data[id_cast(RGB::R)] + offset;
-		p.rgb.G = view.image_channel_data[id_cast(RGB::G)] + offset;
-		p.rgb.B = view.image_channel_data[id_cast(RGB::B)] + offset;
+		rgb.R = view.image_channel_data[id_cast(RGB::R)] + offset;
+		rgb.G = view.image_channel_data[id_cast(RGB::G)] + offset;
+		rgb.B = view.image_channel_data[id_cast(RGB::B)] + offset;
 
-		return p;
+		return rgb;
 	}
 
 
-	static PixelHSVr32 hsv_row_begin(ViewHSVr32 const& view, u32 y)
+	static HSVr32p hsv_row_begin(ViewHSVr32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
 
-		PixelHSVr32 p{};
+		HSVr32p hsv{};
 
-		p.hsv.H = view.image_channel_data[id_cast(HSV::H)] + offset;
-		p.hsv.S = view.image_channel_data[id_cast(HSV::S)] + offset;
-		p.hsv.V = view.image_channel_data[id_cast(HSV::V)] + offset;
+		hsv.H = view.image_channel_data[id_cast(HSV::H)] + offset;
+		hsv.S = view.image_channel_data[id_cast(HSV::S)] + offset;
+		hsv.V = view.image_channel_data[id_cast(HSV::V)] + offset;
 
-		return p;
+		return hsv;
 	}
 
 
-	static PixelLCHr32 lch_row_begin(ViewLCHr32 const& view, u32 y)
+	static LCHr32p lch_row_begin(ViewLCHr32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
 
-		PixelLCHr32 p{};
+		LCHr32p lch{};
 
-		p.lch.L = view.image_channel_data[id_cast(LCH::L)] + offset;
-		p.lch.C = view.image_channel_data[id_cast(LCH::C)] + offset;
-		p.lch.H = view.image_channel_data[id_cast(LCH::H)] + offset;
+		lch.L = view.image_channel_data[id_cast(LCH::L)] + offset;
+		lch.C = view.image_channel_data[id_cast(LCH::C)] + offset;
+		lch.H = view.image_channel_data[id_cast(LCH::H)] + offset;
 
-		return p;
+		return lch;
+	}
+
+
+	static r32* row_offset_begin(View1r32 const& view, u32 y, int y_offset)
+	{
+		assert(verify(view));
+
+		int y_eff = y + y_offset;
+
+		auto offset = (size_t)((view.y_begin + y_eff) * view.matrix_width + view.x_begin);
+
+		return view.matrix_data + offset;
 	}
 
 
@@ -358,8 +298,8 @@ namespace simage
 
 		View1r32 view;
 
-		view.image_data = mb::push_elements(buffer, width * height);
-		view.image_width = width;
+		view.matrix_data = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;
 		view.x_begin = 0;
 		view.y_begin = 0;
 		view.x_end = width;
@@ -453,7 +393,26 @@ namespace simage
 		};
 
 		process_image_rows(src.height, row_func);
-	}	
+	}
+
+
+	void map(ViewYUV const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = cs::to_channel_r32(s[x].y);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
 }
 
 
@@ -805,7 +764,7 @@ namespace simage
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
-			auto d = hsv_row_begin(dst, y).hsv;
+			auto d = hsv_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -827,12 +786,12 @@ namespace simage
 
 		auto const row_func = [&](u32 y) 
 		{
-			auto s = hsv_row_begin(src, y).hsv;
+			auto s = hsv_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgba = hsv::r32_to_rgba_u8(s.H[x], s.S[x], s.V[x]);
+				auto rgba = hsv::r32_to_rgb_u8(s.H[x], s.S[x], s.V[x]);
 
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
@@ -851,8 +810,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = rgb_row_begin(src, y).rgb;
-			auto d = hsv_row_begin(dst, y).hsv;
+			auto s = rgb_row_begin(src, y);
+			auto d = hsv_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -877,8 +836,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = hsv_row_begin(src, y).hsv;
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto s = hsv_row_begin(src, y);
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -905,7 +864,7 @@ namespace simage
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
-			auto d = lch_row_begin(dst, y).lch;
+			auto d = lch_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -927,12 +886,12 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = lch_row_begin(src, y).lch;
+			auto s = lch_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgba = lch::r32_to_rgba_u8(s.L[x], s.C[x], s.H[x]);
+				auto rgba = lch::r32_to_rgb_u8(s.L[x], s.C[x], s.H[x]);
 
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
@@ -951,8 +910,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = rgb_row_begin(src, y).rgb;
-			auto d = lch_row_begin(dst, y).lch;
+			auto s = rgb_row_begin(src, y);
+			auto d = lch_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -977,8 +936,8 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = lch_row_begin(src, y).lch;
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto s = lch_row_begin(src, y);
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
@@ -994,7 +953,7 @@ namespace simage
 }
 
 
-/* map_yuv_rgb */
+/* map_yuv */
 
 namespace simage
 {
@@ -1004,7 +963,7 @@ namespace simage
 		{
 			auto s2 = row_begin(src, y);
 			auto s422 = (YUV422*)s2;
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
 			{
@@ -1113,42 +1072,6 @@ namespace simage
 	}
 
 
-	void map_yuv_rgb(ViewYUV const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-		assert(src.width % 2 == 0);
-		static_assert(sizeof(YUV2) == 2);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto s2 = row_begin(src, y);
-			auto s422 = (YUV422*)s2;
-			auto d = row_begin(dst, y);
-
-			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
-			{
-				auto yuv = s422[x422];
-
-				auto x = 2 * x422;
-				auto rgba = yuv::u8_to_rgba_u8(yuv.y1, yuv.u, yuv.v);
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
-				d[x].rgba.red = 255;
-
-				++x;
-				rgba = yuv::u8_to_rgba_u8(yuv.y2, yuv.u, yuv.v);
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
-				d[x].rgba.red = 255;
-			}
-		};
-
-		process_image_rows(src.height, row_func);
-	}
-
-
 	void mipmap_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
 	{		
 		static_assert(sizeof(YUV2) == 2);
@@ -1177,7 +1100,7 @@ namespace simage
 
 			auto s1 = (YUV422*)row_begin(src, src_y1);
 			auto s2 = (YUV422*)row_begin(src, src_y2);
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x = 0; x < dst.width; ++x)
 			{
@@ -1236,7 +1159,7 @@ namespace simage
 				u8 u_avg = avg2(yuv1.u, yuv2.u);
 				u8 v_avg = avg2(yuv1.v, yuv2.v);
 
-				auto rgba = yuv::u8_to_rgba_u8(y_avg, u_avg, v_avg);
+				auto rgba = yuv::u8_to_rgb_u8(y_avg, u_avg, v_avg);
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
 				d[x].rgba.blue = rgba.blue;
@@ -1317,8 +1240,8 @@ namespace simage
 
 		View1r32 sub_view;
 
-		sub_view.image_data = view.image_data;
-		sub_view.image_width = view.image_width;
+		sub_view.matrix_data = view.matrix_data;
+		sub_view.matrix_width = view.matrix_width;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
 		sub_view.x_end = view.x_begin + range.x_end;
@@ -1342,12 +1265,12 @@ namespace simage
 	{
 		View1r32 view1{};
 
-		view1.image_width = view.image_width;
+		view1.matrix_width = view.image_width;
 		view1.range = view.range;
 		view1.width = view.width;
 		view1.height = view.height;
 
-		view1.image_data = view.image_channel_data[ch];
+		view1.matrix_data = view.image_channel_data[ch];
 
 		return view1;
 	}
@@ -1627,6 +1550,65 @@ namespace simage
 }
 
 
+/* transform */
+
+namespace simage
+{
+	void transform(View1r32 const& src, View1r32 const& dst, std::function<r32(r32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y) 
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[x]);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void transform(View2r32 const& src, View1r32 const& dst, std::function<r32(r32, r32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y).channels;
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[0][x], s[1][x]);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void transform(View3r32 const& src, View1r32 const& dst, std::function<r32(r32, r32, r32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y).channels;
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[0][x], s[1][x], s[2][x]);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+}
+
+
 /* shrink_view */
 
 namespace simage
@@ -1763,7 +1745,7 @@ namespace simage
 		{
 			auto d = row_begin(dst, y);
 
-			Range2Du32 r;
+			Range2Du32 r{};
 			r.y_begin = y * src.height / dst.height;
 			r.y_end = r.y_begin + src.height / dst.height;
 			for (u32 x = 0; x < dst.width; ++x)
@@ -1803,9 +1785,9 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto d = rgb_row_begin(dst, y).rgb;
+			auto d = rgb_row_begin(dst, y);
 
-			Range2Du32 r;
+			Range2Du32 r{};
 			r.y_begin = y * src.height / dst.height;
 			r.y_end = r.y_begin + src.height / dst.height;
 			for (u32 x = 0; x < dst.width; ++x)
@@ -1821,6 +1803,223 @@ namespace simage
 		};
 
 		process_image_rows(dst.height, row_func);
+	}
+}
+
+
+/* gradients */
+
+namespace simage
+{
+	static void convolve(View1r32 const& src, View1r32 const& dst, Matrix2D<r32> const& kernel)
+	{
+		assert(verify(src, dst));
+		assert(kernel.width % 2 > 0);
+		assert(kernel.height % 2 > 0);
+
+		int const ry_begin = -(int)kernel.height / 2;
+		int const ry_end = kernel.height / 2 + 1;
+		int const rx_begin = -(int)kernel.width / 2;
+		int const rx_end = kernel.width / 2 + 1;
+
+		auto const row_func = [&](u32 y) 
+		{			
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u32 w = 0;
+				d[x] = 0.0f;
+				for (int ry = ry_begin; ry < ry_end; ++ry)
+				{
+					auto s = row_offset_begin(src, y, ry);
+					for (int rx = rx_begin; rx < rx_end; ++rx)
+					{
+						d[x] += (s + rx)[x] * kernel.data_[w];
+						++w;
+					}
+				}
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	constexpr std::array<r32, 33> make_grad_x_11()
+	{
+		/*constexpr std::array<r32, 33> GRAD_X
+		{
+			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
+			-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
+			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.01f,
+		};*/
+
+		std::array<r32, 33> grad = { 0 };
+
+		r32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+
+		size_t w = 11;
+
+		for (size_t i = 0; i < 5; ++i)
+		{
+			grad[6 + i] = values[i];
+			grad[2 * w + 6 + i] = values[i];
+			grad[w + 6 + i] = 3 * values[i];
+			grad[4 - i] = -values[i];
+			grad[2 * w + 4 - i] = -values[i];
+			grad[w + 4 - i] = -3 * values[i];
+		}
+
+		return grad;
+	}
+
+
+	constexpr std::array<r32, 33> make_grad_y_11()
+	{
+		/*constexpr std::array<r32, 33> GRAD_Y
+		{
+			-0.02f, -0.06f, -0.02f,
+			-0.03f, -0.09f, -0.03f,
+			-0.04f, -0.12f, -0.04f,
+			-0.05f, -0.15f, -0.05f,
+			-0.06f, -0.18f, -0.06f,
+			 0.00f,  0.00f,  0.00f,
+			 0.06f,  0.18f,  0.06f,
+			 0.05f,  0.15f,  0.05f,
+			 0.04f,  0.12f,  0.04f,
+			 0.03f,  0.09f,  0.03f,
+			 0.02f,  0.06f,  0.02f,
+		};*/
+
+		std::array<r32, 33> grad = { 0 };
+
+		r32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+
+		size_t w = 3;
+
+		for (size_t i = 0; i < 5; ++i)
+		{
+			grad[w * (6 + i)] = values[i];
+			grad[w * (6 + i) + 2] = values[i];
+			grad[w * (6 + i) + 1] = 3 * values[i];
+			grad[w * (4 - i)] = -values[i];
+			grad[w * (4 - i) + 2] = -values[i];
+			grad[w * (4 - i) + 1] = -3 * values[i];
+		}
+
+		return grad;
+	}
+
+
+	constexpr std::array<r32, 15> make_grad_x_5()
+	{
+		std::array<r32, 15> grad
+		{
+			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+			-0.16f, -0.24f, 0.0f, 0.24f, 0.16f
+			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+		};
+
+		return grad;
+	}
+
+
+	constexpr std::array<r32, 15> make_grad_y_5()
+	{
+		std::array<r32, 15> grad
+		{
+			-0.08f, -0.16f, -0.08f,
+			-0.12f, -0.24f, -0.12f,
+			 0.00f,  0.00f,  0.00f,
+			 0.12f,  0.24f,  0.12f,
+			 0.08f,  0.16f,  0.08f,
+		};
+
+		return grad;
+	}
+
+
+	static void zero_outer(View1r32 const& view, u32 n_rows, u32 n_columns)
+	{
+		auto const top_bottom = [&]()
+		{
+			for (u32 r = 0; r < n_rows; ++r)
+			{
+				auto top = row_begin(view, r);
+				auto bottom = row_begin(view, view.height - 1 - r);
+				for (u32 x = 0; x < view.width; ++x)
+				{
+					top[x] = bottom[x] = 0.0f;
+				}
+			}
+		};
+
+		auto const left_right = [&]()
+		{
+			for (u32 y = n_rows; y < view.height - n_rows; ++y)
+			{
+				auto row = row_begin(view, y);
+				for (u32 c = 0; c < n_columns; ++c)
+				{
+					row[c] = row[view.width - 1 - c] = 0.0f;
+				}
+			}
+		};
+
+		std::array<std::function<void()>, 2> f_list
+		{
+			top_bottom, left_right
+		};
+
+		execute(f_list);
+	}
+
+
+	void gradients_xy(View1r32 const& src, View2r32 const& xy_dst)
+	{
+		auto x_dst = select_channel(xy_dst, XY::X);
+		auto y_dst = select_channel(xy_dst, XY::Y);
+
+		assert(verify(src, x_dst));
+		assert(verify(src, y_dst));
+
+		/*constexpr auto grad_x = make_grad_x_11();
+		constexpr auto grad_y = make_grad_y_11();
+		constexpr u32 kernel_dim_a = 11;*/
+
+		constexpr auto grad_x = make_grad_x_5();
+		constexpr auto grad_y = make_grad_y_5();
+		constexpr u32 kernel_dim_a = 5;
+
+		constexpr u32 kernel_dim_b = (u32)grad_x.size() / kernel_dim_a;
+
+		Matrix2D<r32> x_kernel{};
+		x_kernel.width = kernel_dim_a;
+		x_kernel.height = kernel_dim_b;
+		x_kernel.data_ = (r32*)grad_x.data();
+
+		Matrix2D<r32> y_kernel{};
+		y_kernel.width = kernel_dim_b;
+		y_kernel.height = kernel_dim_a;
+		y_kernel.data_ = (r32*)grad_y.data();
+
+		zero_outer(x_dst, kernel_dim_b / 2, kernel_dim_a / 2);
+		zero_outer(y_dst, kernel_dim_a / 2, kernel_dim_b / 2);
+
+		Range2Du32 x_inner{};
+		x_inner.x_begin = kernel_dim_a / 2;
+		x_inner.x_end = src.width - kernel_dim_a / 2;
+		x_inner.y_begin = kernel_dim_b / 2;
+		x_inner.y_end = src.height - kernel_dim_b / 2;
+
+		Range2Du32 y_inner{};
+		y_inner.x_begin = kernel_dim_b / 2;
+		y_inner.x_end = src.width - kernel_dim_b / 2;
+		y_inner.y_begin = kernel_dim_a / 2;
+		y_inner.y_end = src.height - kernel_dim_a / 2;
+
+		convolve(sub_view(src, x_inner), sub_view(x_dst, x_inner), x_kernel);
+		convolve(sub_view(src, y_inner), sub_view(y_dst, y_inner), y_kernel);
 	}
 }
 

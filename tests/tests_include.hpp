@@ -122,3 +122,5 @@ bool fill_tests();
 bool copy_tests();
 
 bool histogram_tests();
+
+bool gradients_tests();

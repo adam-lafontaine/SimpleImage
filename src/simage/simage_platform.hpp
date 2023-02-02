@@ -53,7 +53,7 @@ public:
 
 #ifndef NDEBUG
 
-	~Matrix2D() { assert(!(bool)data_); }
+	//~Matrix2D() { assert(!(bool)data_); }
 
 #endif // !NDEBUG
 };
@@ -112,8 +112,8 @@ namespace simage
 	{
 	public:
 
-		T* image_data = 0;
-		u32 image_width = 0;
+		T* matrix_data = 0;
+		u32 matrix_width = 0;
 
 		union
 		{
@@ -269,6 +269,10 @@ namespace simage
 namespace simage
 {
 	void map(ViewGray const& src, View const& dst);
+
+	void map_yuv(ViewYUV const& src, View const& dst);
+
+	void map(ViewYUV const& src, ViewGray const& dst);
 }
 
 
@@ -366,15 +370,6 @@ namespace simage
 	template <typename T>
 	inline T* row_begin(Matrix2D<T> const& image, u32 y)
 	{
-		/*assert(y < image.height);
-
-		auto offset = y * image.width;
-
-		auto ptr = image.data_ + (u64)(offset);
-		assert(ptr);
-
-		return ptr;*/
-
 		return image.data_ + (u64)(y * image.width);
 	}
 
@@ -382,16 +377,6 @@ namespace simage
 	template <typename T>
 	inline T* row_begin(MatrixView<T> const& view, u32 y)
 	{
-		/*assert(verify(view));
-		assert(y < view.height);
-
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
-
-		auto ptr = view.image_data + (u64)(offset);
-		assert(ptr);
-
-		return ptr;*/
-
-		return view.image_data + (u64)((view.y_begin + y) * view.image_width + view.x_begin);
+		return view.matrix_data + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
 }

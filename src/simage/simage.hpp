@@ -4,6 +4,7 @@
 #include "../util/memory_buffer.hpp"
 
 #include <array>
+#include <functional>
 
 namespace mb = memory_buffer;
 
@@ -92,26 +93,11 @@ namespace simage
 	};
 
 
-    template <size_t N>
-	class PixelCHr32
-	{
-	public:
-
-		static constexpr u32 n_channels = N;
-
-		r32* channels[N] = {};
-	};
-
-
 	using View1r32 = MatrixView<r32>;
 
     using View4r32 = ViewCHr32<4>;
 	using View3r32 = ViewCHr32<3>;
 	using View2r32 = ViewCHr32<2>;
-
-    using Pixel4r32 = PixelCHr32<4>;
-	using Pixel3r32 = PixelCHr32<3>;
-	using Pixel2r32 = PixelCHr32<2>;
 }
 
 
@@ -145,8 +131,7 @@ namespace simage
 
 	void map(View1r32 const& src, ViewGray const& dst);
 
-
-	void map(ViewGray const& src, View const& dst);
+	void map(ViewYUV const& src, View1r32 const& dst);
 }
 
 
@@ -166,7 +151,7 @@ namespace simage
 }
 
 
-/* map_rgb_hsv */
+/* map_hsv */
 
 namespace simage
 {
@@ -181,7 +166,7 @@ namespace simage
 }
 
 
-/* map_rgb_lch */
+/* map_lch */
 
 namespace simage
 {
@@ -195,13 +180,11 @@ namespace simage
 }
 
 
-/* map_yuv_rgb */
+/* map_yuv */
 
 namespace simage
 {
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst);
-
-	void map_yuv_rgb(ViewYUV const& src, View const& dst);
 }
 
 
@@ -250,6 +233,18 @@ namespace simage
 }
 
 
+/* transform */
+
+namespace simage
+{
+	void transform(View1r32 const& src, View1r32 const& dst, std::function<r32(r32)> const& func);
+
+	void transform(View2r32 const& src, View1r32 const& dst, std::function<r32(r32, r32)> const& func);
+
+	void transform(View3r32 const& src, View1r32 const& dst, std::function<r32(r32, r32, r32)> const& func);
+}
+
+
 /* shrink */
 
 namespace simage
@@ -264,7 +259,12 @@ namespace simage
 }
 
 
+/* gradients */
 
+namespace simage
+{
+	void gradients_xy(View1r32 const& src, View2r32 const& xy_dst);
+}
 
 
 /* stb_simage.cpp */

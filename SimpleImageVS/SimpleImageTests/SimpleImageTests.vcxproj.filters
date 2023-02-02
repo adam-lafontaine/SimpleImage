@@ -105,6 +105,9 @@
     <ClCompile Include="..\..\tests\map_rgb_lch_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\tests\gradients_tests.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\tests\tests_include.hpp">

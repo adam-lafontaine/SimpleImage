@@ -71,7 +71,7 @@ static bool yuv_draw_test()
         for (u32 x = 0; x < 256; ++x)
         {
             auto u = (u8)x;
-            auto rgba = yuv::u8_to_rgba_u8(Y, u, v);
+            auto rgba = yuv::u8_to_rgb_u8(Y, u, v);
             auto& p = d[x].rgba;
             p.red = rgba.red;
             p.green = rgba.green;

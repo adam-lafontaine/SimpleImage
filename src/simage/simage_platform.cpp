@@ -36,7 +36,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.image_width && view.width && view.height && view.image_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data;
 	}
 
 
@@ -205,8 +205,8 @@ namespace simage
 	{
 		MatrixView<T> view;
 
-		view.image_data = image.data_;
-		view.image_width = image.width;
+		view.matrix_data = image.data_;
+		view.matrix_width = image.width;
 		view.x_begin = 0;
 		view.y_begin = 0;
 		view.x_end = image.width;
@@ -261,8 +261,8 @@ namespace simage
 	{
 		MatrixView<T> sub_view;
 
-		sub_view.image_data = image.data_;
-		sub_view.image_width = image.width;
+		sub_view.matrix_data = image.data_;
+		sub_view.matrix_width = image.width;
 		sub_view.x_begin = range.x_begin;
 		sub_view.y_begin = range.y_begin;
 		sub_view.x_end = range.x_end;
@@ -279,8 +279,8 @@ namespace simage
 	{
 		MatrixView<T> sub_view;
 
-		sub_view.image_data = view.image_data;
-		sub_view.image_width = view.image_width;
+		sub_view.matrix_data = view.matrix_data;
+		sub_view.matrix_width = view.matrix_width;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
 		sub_view.x_end = view.x_begin + range.x_end;
@@ -641,6 +641,61 @@ namespace simage
 
 		process_image_rows(src.height, row_func);
 	}
+
+
+	void map_yuv(ViewYUV const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+		assert(src.width % 2 == 0);
+		static_assert(sizeof(YUV2) == 2);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422*)s2;
+			auto d = row_begin(dst, y);
+
+			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
+			{
+				auto yuv = s422[x422];
+
+				auto x = 2 * x422;
+				auto rgba = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.red = 255;
+
+				++x;
+				rgba = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
+				d[x].rgba.red = rgba.red;
+				d[x].rgba.green = rgba.green;
+				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.red = 255;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void map(ViewYUV const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = s[x].y;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
 }
 
 
@@ -772,7 +827,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 			auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
@@ -978,7 +1033,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 
 			dst.R[to_hist_bin_u8(rgba.red, n_bins)]++;
 			dst.G[to_hist_bin_u8(rgba.green, n_bins)]++;
@@ -1010,7 +1065,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 			if (hsv.sat)
@@ -1047,7 +1102,7 @@ namespace simage
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
-			auto rgba = yuv::u8_to_rgba_u8(yuv_y, yuv_u, yuv_v);
+			auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
 			auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
 			dst.L[to_hist_bin_u8(lch.light, n_bins)]++;

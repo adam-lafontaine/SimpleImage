@@ -58,6 +58,8 @@ public:
 #endif // !NDEBUG
 };
 
+using Mat2Dr32 = Matrix2D<r32>;
+
 
 namespace simage
 {

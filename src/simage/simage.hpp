@@ -267,6 +267,14 @@ namespace simage
 }
 
 
+/* blur */
+
+namespace simage
+{
+	void blur(View1r32 const& src, View1r32 const& dst);
+}
+
+
 /* stb_simage.cpp */
 
 namespace simage

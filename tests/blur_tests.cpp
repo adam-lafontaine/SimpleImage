@@ -32,7 +32,29 @@ static bool blur_gray_test()
 
     write_image(chess, "chess_blur.bmp");
 
+    mb::reset_buffer(buffer);
+
+    GrayImage caddy;
+    img::read_image_from_file(CADILLAC_PATH, caddy);
+    width = caddy.width;
+    height = caddy.height;
+    view = img::make_view(caddy);
+
+    src = img::make_view_1(width, height, buffer);
+    dst = img::make_view_1(width, height, buffer);
+
+    img::map(view, src);
+
+    write_image(caddy, "caddy.bmp");
+
+    img::blur(src, dst);
+
+    img::map(dst, view);
+
+    write_image(caddy, "caddy_blur.bmp");
+
     img::destroy_image(chess);
+    img::destroy_image(caddy);
     mb::destroy_buffer(buffer);
 
     return true;

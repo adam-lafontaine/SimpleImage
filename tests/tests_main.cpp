@@ -24,7 +24,7 @@ static bool test_success()
         //fill_tests() &&
         //copy_tests() &&
         //histogram_tests() &&
-        //gradients_tests() &&
+        gradients_tests() &&
         blur_tests() &&
         true;
 }

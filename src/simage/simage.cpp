@@ -16,6 +16,7 @@
 
 namespace mb = memory_buffer;
 namespace cs = color_space;
+namespace rng = std::ranges;
 
 
 
@@ -1805,9 +1806,6 @@ namespace simage
 
 namespace simage
 {
-
-
-
 	static void convolve(View1r32 const& src, View1r32 const& dst, Mat2Dr32 const& kernel)
 	{
 		assert(verify(src, dst));
@@ -1980,13 +1978,13 @@ namespace simage
 		assert(verify(src, x_dst));
 		assert(verify(src, y_dst));
 
-		/*constexpr auto grad_x = make_grad_x_11();
+		constexpr auto grad_x = make_grad_x_11();
 		constexpr auto grad_y = make_grad_y_11();
-		constexpr u32 kernel_dim_a = 11;*/
+		constexpr u32 kernel_dim_a = 11;
 
-		constexpr auto grad_x = make_grad_x_5();
+		/*constexpr auto grad_x = make_grad_x_5();
 		constexpr auto grad_y = make_grad_y_5();
-		constexpr u32 kernel_dim_a = 5;
+		constexpr u32 kernel_dim_a = 5;*/
 
 		constexpr u32 kernel_dim_b = (u32)grad_x.size() / kernel_dim_a;
 
@@ -2030,10 +2028,12 @@ namespace simage
 		auto D3 = 16.0f;
 		std::array<r32, 9> kernel = 
 		{
-			(1 / D3), (2 / D3), (1 / D3),
-			(2 / D3), (4 / D3), (2 / D3),
-			(1 / D3), (2 / D3), (1 / D3),
+			1.0f, 2.0f, 1.0f,
+			2.0f, 4.0f, 2.0f,
+			1.0f, 2.0f, 1.0f,
 		};
+
+		rng::for_each(kernel, [D3](r32& v) { v /= D3; });
 
 		return kernel;
 	}
@@ -2044,12 +2044,14 @@ namespace simage
 		auto D5 = 256.0f;
 		std::array<r32, 25> kernel =
 		{
-			(1 / D5), (4 / D5),  (6 / D5),  (4 / D5),  (1 / D5),
-			(4 / D5), (16 / D5), (24 / D5), (16 / D5), (4 / D5),
-			(6 / D5), (24 / D5), (36 / D5), (24 / D5), (6 / D5),
-			(4 / D5), (16 / D5), (24 / D5), (16 / D5), (4 / D5),
-			(1 / D5), (4 / D5),  (6 / D5),  (4 / D5),  (1 / D5),
+			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
+			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
+			6.0f, 24.0f, 36.0f, 24.0f, 6.0f,
+			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
+			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
 		};
+
+		rng::for_each(kernel, [D5](r32& v) { v /= D5; });
 
 		return kernel;
 	}

@@ -124,3 +124,5 @@ bool copy_tests();
 bool histogram_tests();
 
 bool gradients_tests();
+
+bool blur_tests();

@@ -13,7 +13,7 @@ bool gradients_xy_test()
 	{ img::write_image(image, out_dir / name); };
 
 	GrayImage image;
-	img::read_image_from_file(CORVETTE_PATH, image);
+	img::read_image_from_file(CHESS_PATH, image);
 	auto view = img::make_view(image);
 	auto width = view.width;
 	auto height = view.height;
@@ -31,7 +31,7 @@ bool gradients_xy_test()
 	auto dst_x = img::select_channel(dst_xy, img::XY::X);
 	auto dst_y = img::select_channel(dst_xy, img::XY::Y);
 
-	write_image(image, "vette.bmp");
+	write_image(image, "chess.bmp");
 
 	auto const to_abs = [](r32 p) { return p < 0.0f ? -p : p; };
 
@@ -60,7 +60,7 @@ bool edges_test()
 	{ img::write_image(image, out_dir / name); };
 
 	GrayImage image;
-	img::read_image_from_file(CADILLAC_PATH, image);
+	img::read_image_from_file(CHESS_PATH, image);
 	auto view = img::make_view(image);
 	auto width = view.width;
 	auto height = view.height;
@@ -75,12 +75,12 @@ bool edges_test()
 
 	img::gradients_xy(src, dst_xy);
 
-	write_image(image, "caddy.bmp");
+	write_image(image, "chess.bmp");
 
-	img::transform(dst_xy, src, [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.2f ? 1.0f : 0.0f; });
+	// breaks on linux
+	img::transform(dst_xy, src, [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.1f ? 1.0f : 0.0f; });
 
 	img::map(src, view);
-
 	write_image(image, "edges.bmp");
 
 	mb::destroy_buffer(buffer);

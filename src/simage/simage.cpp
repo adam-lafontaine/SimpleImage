@@ -2,7 +2,7 @@
 #include "../util/memory_buffer.hpp"
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
-
+//#define SIMAGE_NO_SIMD
 
 #ifndef SIMAGE_NO_SIMD
 #include "../util/simd.hpp"
@@ -16,6 +16,7 @@
 
 namespace mb = memory_buffer;
 namespace cs = color_space;
+namespace rng = std::ranges;
 
 
 
@@ -1370,15 +1371,16 @@ namespace simage
 
 namespace simage
 {
-	template <class VIEW, typename COLOR>
-	static void fill_no_simd(VIEW const& view, COLOR color)
-	{
+	static void fill_no_simd(View1r32 const& view, r32 gray32)
+	{		
+		assert(verify(view));
+
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(view, y);
 			for (u32 i = 0; i < view.width; ++i)
 			{
-				d[i] = color;
+				d[i] = gray32;
 			}
 		};
 
@@ -1464,13 +1466,11 @@ namespace simage
 	}
 
 
-	
-
-
 	template <size_t N>
 	static void fill_n_channels_simd(ViewCHr32<N> const& view, Pixel color)
 	{
 		r32 channels[N] = {};
+
 		for (u32 ch = 0; ch < N; ++ch)
 		{
 			channels[ch] = cs::to_channel_r32(color.channels[ch]);
@@ -1489,17 +1489,15 @@ namespace simage
 	}
 
 
-	template <class VIEW, typename COLOR>
-	static void do_fill(VIEW const& view, COLOR color)
+	static void do_fill(View1r32 const& view, r32 gray32)
 	{
-		auto len32 = view.width * sizeof(COLOR) / sizeof(r32);
-		if (len32 < simd::VEC_LEN)
+		if (view.width < simd::VEC_LEN)
 		{
-			fill_no_simd(view, color);
+			fill_no_simd(view, gray32);
 		}
 		else
 		{
-			fill_simd(view, color);
+			fill_simd(view, gray32);
 		}		
 	}
 
@@ -1518,9 +1516,6 @@ namespace simage
 	}
 
 #endif	
-
-
-	
 
 
 	void fill(View4r32 const& view, Pixel color)
@@ -1811,7 +1806,7 @@ namespace simage
 
 namespace simage
 {
-	static void convolve(View1r32 const& src, View1r32 const& dst, Matrix2D<r32> const& kernel)
+	static void convolve(View1r32 const& src, View1r32 const& dst, Mat2Dr32 const& kernel)
 	{
 		assert(verify(src, dst));
 		assert(kernel.width % 2 > 0);
@@ -1983,22 +1978,22 @@ namespace simage
 		assert(verify(src, x_dst));
 		assert(verify(src, y_dst));
 
-		/*constexpr auto grad_x = make_grad_x_11();
+		constexpr auto grad_x = make_grad_x_11();
 		constexpr auto grad_y = make_grad_y_11();
-		constexpr u32 kernel_dim_a = 11;*/
+		constexpr u32 kernel_dim_a = 11;
 
-		constexpr auto grad_x = make_grad_x_5();
+		/*constexpr auto grad_x = make_grad_x_5();
 		constexpr auto grad_y = make_grad_y_5();
-		constexpr u32 kernel_dim_a = 5;
+		constexpr u32 kernel_dim_a = 5;*/
 
 		constexpr u32 kernel_dim_b = (u32)grad_x.size() / kernel_dim_a;
 
-		Matrix2D<r32> x_kernel{};
+		Mat2Dr32 x_kernel{};
 		x_kernel.width = kernel_dim_a;
 		x_kernel.height = kernel_dim_b;
 		x_kernel.data_ = (r32*)grad_x.data();
 
-		Matrix2D<r32> y_kernel{};
+		Mat2Dr32 y_kernel{};
 		y_kernel.width = kernel_dim_b;
 		y_kernel.height = kernel_dim_a;
 		y_kernel.data_ = (r32*)grad_y.data();
@@ -2020,6 +2015,181 @@ namespace simage
 
 		convolve(sub_view(src, x_inner), sub_view(x_dst, x_inner), x_kernel);
 		convolve(sub_view(src, y_inner), sub_view(y_dst, y_inner), y_kernel);
+	}
+}
+
+
+/* blur */
+
+namespace simage
+{
+	static constexpr std::array<r32, 9> make_gauss_3()
+	{
+		auto D3 = 16.0f;
+		std::array<r32, 9> kernel = 
+		{
+			1.0f, 2.0f, 1.0f,
+			2.0f, 4.0f, 2.0f,
+			1.0f, 2.0f, 1.0f,
+		};
+
+		rng::for_each(kernel, [D3](r32& v) { v /= D3; });
+
+		return kernel;
+	}
+
+
+	static constexpr std::array<r32, 25> make_gauss_5()
+	{
+		auto D5 = 256.0f;
+		std::array<r32, 25> kernel =
+		{
+			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
+			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
+			6.0f, 24.0f, 36.0f, 24.0f, 6.0f,
+			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
+			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
+		};
+
+		rng::for_each(kernel, [D5](r32& v) { v /= D5; });
+
+		return kernel;
+	}
+
+
+	static void copy_outer(View1r32 const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const width = src.width;
+		auto const height = src.height;
+
+		auto const top_bottom = [&]()
+		{
+			auto s_top = row_begin(src, 0);
+			auto s_bottom = row_begin(src, height - 1);
+			auto d_top = row_begin(dst, 0);
+			auto d_bottom = row_begin(dst, height - 1);
+			for (u32 x = 0; x < width; ++x)
+			{
+				d_top[x] = s_top[x];
+				d_bottom[x] = s_bottom[x];
+			}
+		};
+
+		auto const left_right = [&]()
+		{
+			for (u32 y = 1; y < height - 1; ++y)
+			{
+				auto s_row = row_begin(src, y);
+				auto d_row = row_begin(dst, y);
+
+				d_row[0] = s_row[0];
+				d_row[width - 1] = s_row[width - 1];
+			}
+		};
+
+		std::array<std::function<void()>, 2> f_list
+		{
+			top_bottom, left_right
+		};
+
+		execute(f_list);
+	}
+
+
+	static void convolve_gauss_3x3_outer(View1r32 const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const width = src.width;
+		auto const height = src.height;
+
+		auto constexpr gauss = make_gauss_3();
+
+		Mat2Dr32 kernel{};
+		kernel.width = 3;
+		kernel.height = 3;
+		kernel.data_ = (r32*)gauss.data();
+
+		Range2Du32 top{};
+		top.x_begin = 0;
+		top.x_end = width;
+		top.y_begin = 0;
+		top.y_end = 1;
+
+		auto bottom = top;
+		bottom.y_begin = height - 1;
+		bottom.y_end = height;
+
+		auto left = top;
+		left.x_end = 1;
+		left.y_begin = 1;
+		left.y_end = height - 1;
+
+		auto right = left;
+		right.x_begin = width - 1;
+		right.x_end = width;
+
+		convolve(sub_view(src, top), sub_view(dst, top), kernel);
+		convolve(sub_view(src, bottom), sub_view(dst, bottom), kernel);
+		convolve(sub_view(src, left), sub_view(dst, left), kernel);
+		convolve(sub_view(src, right), sub_view(dst, right), kernel);			
+	}
+
+
+	static void convolve_gauss_5x5(View1r32 const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const width = src.width;
+		auto const height = src.height;
+
+		auto constexpr gauss = make_gauss_5();
+
+		Mat2Dr32 kernel{};
+		kernel.width = 5;
+		kernel.height = 5;
+		kernel.data_ = (r32*)gauss.data();
+
+		convolve(src, dst, kernel);
+	}
+
+
+	void blur(View1r32 const& src, View1r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const width = src.width;
+		auto const height = src.height;
+
+		copy_outer(src, dst);
+
+		Range2Du32 r{};
+		r.x_begin = 1;
+		r.x_end = width - 1;
+		r.y_begin = 1;
+		r.y_end = height - 1;
+
+		convolve_gauss_3x3_outer(sub_view(src, r), sub_view(dst, r));
+
+		r.x_begin = 2;
+		r.x_end = width - 2;
+		r.y_begin = 2;
+		r.y_end = height - 2;
+
+		convolve_gauss_5x5(sub_view(src, r), sub_view(dst, r));
+	}
+
+
+	void blur(View3r32 const& src, View3r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 ch = 0; ch < 3; ++ch)
+		{
+			blur(select_channel(src, ch), select_channel(dst, ch));
+		}
 	}
 }
 

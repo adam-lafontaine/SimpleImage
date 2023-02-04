@@ -180,6 +180,11 @@ gradients_tests_c += $(tests_include_h)
 gradients_tests_o := $(build)/gradients_tests.o
 object_files += $(gradients_tests_o)
 
+blur_tests_c := $(tests)/blur_tests.cpp
+blur_tests_c += $(tests_include_h)
+blur_tests_o := $(build)/blur_tests.o
+object_files += $(blur_tests_o)
+
 
 
 # flags
@@ -278,6 +283,10 @@ $(histogram_tests_o): $(histogram_tests_c)
 
 $(gradients_tests_o): $(gradients_tests_c)
 	@echo "\n gradients_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(blur_tests_o): $(blur_tests_c)
+	@echo "\n blur_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

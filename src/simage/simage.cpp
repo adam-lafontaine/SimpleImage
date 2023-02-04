@@ -2180,6 +2180,17 @@ namespace simage
 
 		convolve_gauss_5x5(sub_view(src, r), sub_view(dst, r));
 	}
+
+
+	void blur(View3r32 const& src, View3r32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 ch = 0; ch < 3; ++ch)
+		{
+			blur(select_channel(src, ch), select_channel(dst, ch));
+		}
+	}
 }
 
 

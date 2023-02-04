@@ -272,6 +272,8 @@ namespace simage
 namespace simage
 {
 	void blur(View1r32 const& src, View1r32 const& dst);
+
+	void blur(View3r32 const& src, View3r32 const& dst);
 }
 
 

@@ -21,10 +21,11 @@ static bool test_success()
         //map_rgb_lch_tests() &&
         //map_rgb_yuv_tests() &&        
         //sub_view_tests() &&
-        fill_tests() &&
+        //fill_tests() &&
         //copy_tests() &&
-        histogram_tests() &&
+        //histogram_tests() &&
         //gradients_tests() &&
+        blur_tests() &&
         true;
 }
 

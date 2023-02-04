@@ -77,6 +77,7 @@ bool edges_test()
 
 	write_image(image, "chess.bmp");
 
+	// breaks on linux
 	img::transform(dst_xy, src, [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.1f ? 1.0f : 0.0f; });
 
 	img::map(src, view);

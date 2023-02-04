@@ -2,7 +2,7 @@
 #include "../util/memory_buffer.hpp"
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
-
+//#define SIMAGE_NO_SIMD
 
 #ifndef SIMAGE_NO_SIMD
 #include "../util/simd.hpp"
@@ -1370,15 +1370,16 @@ namespace simage
 
 namespace simage
 {
-	template <class VIEW, typename COLOR>
-	static void fill_no_simd(VIEW const& view, COLOR color)
-	{
+	static void fill_no_simd(View1r32 const& view, r32 gray32)
+	{		
+		assert(verify(view));
+
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(view, y);
 			for (u32 i = 0; i < view.width; ++i)
 			{
-				d[i] = color;
+				d[i] = gray32;
 			}
 		};
 
@@ -1464,13 +1465,24 @@ namespace simage
 	}
 
 
-	
-
-
 	template <size_t N>
 	static void fill_n_channels_simd(ViewCHr32<N> const& view, Pixel color)
 	{
+		/*auto const fill_channel = [&](u32 ch) 
+		{
+			fill_simd(select_channel(view, ch), cs::to_channel_r32(color.channels[ch]));
+		};
+
+		std::array<std::function<void()>, N> channel_f_list = {};
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			channel_f_list[ch] = [&]() { fill_channel(ch); };
+		}
+
+		execute_sequential(channel_f_list);*/
+
 		r32 channels[N] = {};
+
 		for (u32 ch = 0; ch < N; ++ch)
 		{
 			channels[ch] = cs::to_channel_r32(color.channels[ch]);
@@ -1489,17 +1501,15 @@ namespace simage
 	}
 
 
-	template <class VIEW, typename COLOR>
-	static void do_fill(VIEW const& view, COLOR color)
+	static void do_fill(View1r32 const& view, r32 gray32)
 	{
-		auto len32 = view.width * sizeof(COLOR) / sizeof(r32);
-		if (len32 < simd::VEC_LEN)
+		if (view.width < simd::VEC_LEN)
 		{
-			fill_no_simd(view, color);
+			fill_no_simd(view, gray32);
 		}
 		else
 		{
-			fill_simd(view, color);
+			fill_simd(view, gray32);
 		}		
 	}
 
@@ -2020,6 +2030,141 @@ namespace simage
 
 		convolve(sub_view(src, x_inner), sub_view(x_dst, x_inner), x_kernel);
 		convolve(sub_view(src, y_inner), sub_view(y_dst, y_inner), y_kernel);
+	}
+}
+
+
+/* blur */
+
+namespace simage
+{
+	static constexpr std::array<r32, 9> make_gauss_3()
+	{
+		auto D3 = 16.0f;
+		std::array<r32, 9> kernel = 
+		{
+			(1 / D3), (2 / D3), (1 / D3),
+			(2 / D3), (4 / D3), (2 / D3),
+			(1 / D3), (2 / D3), (1 / D3),
+		};
+
+		return kernel;
+	}
+
+
+	static constexpr std::array<r32, 25> make_gauss_5()
+	{
+		auto D5 = 256.0f;
+		std::array<r32, 25> kernel =
+		{
+			(1 / D5), (4 / D5),  (6 / D5),  (4 / D5),  (1 / D5),
+			(4 / D5), (16 / D5), (24 / D5), (16 / D5), (4 / D5),
+			(6 / D5), (24 / D5), (36 / D5), (24 / D5), (6 / D5),
+			(4 / D5), (16 / D5), (24 / D5), (16 / D5), (4 / D5),
+			(1 / D5), (4 / D5),  (6 / D5),  (4 / D5),  (1 / D5),
+		};
+
+		return kernel;
+	}
+
+
+	static void copy_outer(View1r32 const& src, View1r32 const& dst)
+	{
+		auto const width = src.width;
+		auto const height = src.height;
+
+		auto const top_bottom = [&]()
+		{
+			auto s_top = row_begin(src, 0);
+			auto s_bottom = row_begin(src, height - 1);
+			auto d_top = row_begin(dst, 0);
+			auto d_bottom = row_begin(dst, height - 1);
+			for (u32 x = 0; x < width; ++x)
+			{
+				d_top[x] = s_top[x];
+				d_bottom[x] = s_bottom[x];
+			}
+		};
+
+		auto const left_right = [&]()
+		{
+			for (u32 y = 1; y < height - 1; ++y)
+			{
+				auto s_row = row_begin(src, y);
+				auto d_row = row_begin(dst, y);
+
+				d_row[0] = s_row[0];
+				d_row[width - 1] = s_row[width - 1];
+			}
+		};
+
+		std::array<std::function<void()>, 2> f_list
+		{
+			top_bottom, left_right
+		};
+
+		execute(f_list);
+	}
+
+
+	template <size_t N>
+	static void copy_outer(ViewCHr32<N> const& src, ViewCHr32<N> const& dst)
+	{
+		auto const copy_channel = [&](u32 ch) 
+		{
+			copy_outer(select_channel(src, ch), select_channel(dst, ch));
+		};
+
+
+		std::array<std::function<void(), N>> channel_f_list = {};
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			channel_f_list[ch] = [&]() { copy_channel(ch); };
+		}
+
+		execute(channel_f_list);
+
+
+		//auto const width = src.width;
+		//auto const height = src.height;
+
+		//auto const top_bottom = [&]()
+		//{
+		//	for (u32 ch = 0; ch < N; ++ch)
+		//	{
+		//		auto s_top = channel_row_begin(src, 0, ch);
+		//		auto s_bottom = channel_row_begin(src, height - 1, ch);
+		//		auto d_top = channel_row_begin(dst, 0, ch);
+		//		auto d_bottom = channel_row_begin(dst, height - 1, ch);
+		//		for (u32 x = 0; x < width; ++x)
+		//		{
+		//			d_top[x] = s_top[x]; // TODO: simd
+		//			d_bottom[x] = s_bottom[x];
+		//		}
+		//	}
+		//};
+
+		//auto const left_right = [&]()
+		//{
+		//	for (u32 y = 1; y < height - 1; ++y)
+		//	{
+		//		for (u32 ch = 0; ch < N; ++ch)
+		//		{
+		//			auto s_row = channel_row_begin(src, y, ch);
+		//			auto d_row = channel_row_begin(dst, y, ch);
+
+		//			d_row[0] = s_row[0];
+		//			d_row[width - 1] = s_row[width - 1];
+		//		}
+		//	}
+		//};
+
+		//std::array<std::function<void()>, 2> f_list
+		//{
+		//	top_bottom, left_right
+		//};
+
+		//execute(f_list);
 	}
 }
 

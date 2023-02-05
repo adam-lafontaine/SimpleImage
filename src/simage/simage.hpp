@@ -277,32 +277,7 @@ namespace simage
 }
 
 
-/* stb_simage.cpp */
 
-namespace simage
-{
-	bool read_image_from_file(const char* img_path_src, Image& image_dst);
-
-	bool read_image_from_file(const char* file_path_src, ImageGray& image_dst);
-
-
-#ifndef SIMAGE_NO_WRITE
-
-	bool write_image(Image const& image_src, const char* file_path_dst);
-
-	bool write_image(ImageGray const& image_src, const char* file_path_dst);
-
-#endif // !SIMAGE_NO_WRITE
-
-
-#ifndef SIMAGE_NO_RESIZE
-
-	bool resize_image(Image const& image_src, Image& image_dst);
-
-	bool resize_image(ImageGray const& image_src, ImageGray& image_dst);
-
-#endif // !SIMAGE_NO_RESIZE
-}
 
 
 #ifndef SIMAGE_NO_FILESYSTEM

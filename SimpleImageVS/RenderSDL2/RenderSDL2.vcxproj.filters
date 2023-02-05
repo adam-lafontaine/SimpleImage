@@ -49,12 +49,6 @@
     <Filter Include="Source Files\src\app">
       <UniqueIdentifier>{e20c84c4-ffdf-4929-88f4-bc325145e4f2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\src\simage\stb">
-      <UniqueIdentifier>{3b9651a1-7476-4517-95d9-fd1935067f1c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\simage\stb">
-      <UniqueIdentifier>{1c975a49-73dd-4ff7-9c6f-1a926afcc9a8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\src\resources">
       <UniqueIdentifier>{f8b68955-89c7-4321-bb64-8eab1681f86c}</UniqueIdentifier>
     </Filter>
@@ -96,9 +90,6 @@
     <ClInclude Include="..\..\src\simage\simage.hpp">
       <Filter>Header Files\src\simage</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\simage\stb\stb_include.hpp">
-      <Filter>Header Files\src\simage\stb</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\resources\icon_64.h">
       <Filter>Header Files\src\resources</Filter>
     </ClInclude>
@@ -130,9 +121,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\simage\simage.cpp">
       <Filter>Source Files\src\simage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp">
-      <Filter>Source Files\src\simage\stb</Filter>
     </ClCompile>
     <ClCompile Include="..\..\tests_render\image_tests.cpp">
       <Filter>Source Files\tests_render</Filter>

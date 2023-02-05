@@ -37,11 +37,11 @@
     <Filter Include="Source Files\src\simage">
       <UniqueIdentifier>{f8569776-1343-47b3-bd1b-fb6e096aeda7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\src\simage\stb">
-      <UniqueIdentifier>{9ba45df8-d0ba-452b-a574-98750ad224a1}</UniqueIdentifier>
+    <Filter Include="Source Files\src\stb">
+      <UniqueIdentifier>{0d25a159-1849-4980-a5e4-73dec3c4ce12}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\src\simage\stb">
-      <UniqueIdentifier>{b98b7769-03b5-4583-9a0e-3de136421aea}</UniqueIdentifier>
+    <Filter Include="Header Files\src\stb">
+      <UniqueIdentifier>{490e2f54-c306-4289-a2c8-8ed0724ab7d1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -59,9 +59,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\simage\simage.cpp">
       <Filter>Source Files\src\simage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp">
-      <Filter>Source Files\src\simage\stb</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\util\memory_buffer.cpp">
       <Filter>Source Files\src\util</Filter>
@@ -111,6 +108,9 @@
     <ClCompile Include="..\..\tests\blur_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\stb\stb_simage.cpp">
+      <Filter>Source Files\src\stb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\tests\tests_include.hpp">
@@ -128,9 +128,6 @@
     <ClInclude Include="..\..\src\defines.hpp">
       <Filter>Header Files\src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\simage\stb\stb_include.hpp">
-      <Filter>Header Files\src\simage\stb</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\util\color_space.hpp">
       <Filter>Header Files\src\util</Filter>
     </ClInclude>
@@ -145,6 +142,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\util\simd.hpp">
       <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\stb\stb_include.hpp">
+      <Filter>Header Files\src\stb</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -133,7 +133,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\simage\simage.cpp" />
     <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
-    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp" />
+    <ClCompile Include="..\..\src\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
     <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
     <ClCompile Include="..\..\tests\blur_tests.cpp" />
@@ -158,7 +158,7 @@
     <ClInclude Include="..\..\src\defines.hpp" />
     <ClInclude Include="..\..\src\simage\simage.hpp" />
     <ClInclude Include="..\..\src\simage\simage_platform.hpp" />
-    <ClInclude Include="..\..\src\simage\stb\stb_include.hpp" />
+    <ClInclude Include="..\..\src\stb\stb_include.hpp" />
     <ClInclude Include="..\..\src\util\color_space.hpp" />
     <ClInclude Include="..\..\src\util\execute.hpp" />
     <ClInclude Include="..\..\src\util\memory_buffer.hpp" />

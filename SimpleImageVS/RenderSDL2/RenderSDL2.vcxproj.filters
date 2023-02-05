@@ -55,6 +55,12 @@
     <Filter Include="Header Files\src\app">
       <UniqueIdentifier>{4b7adb42-9280-4c55-bd43-c7a533ad1074}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\stb">
+      <UniqueIdentifier>{51272b74-d49f-4bbb-9dd1-d82ee4cb0270}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\stb">
+      <UniqueIdentifier>{22914946-e554-4517-a5e5-7b376cfaeaa2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\defines.hpp">
@@ -99,6 +105,9 @@
     <ClInclude Include="..\..\src\util\color_space.hpp">
       <Filter>Header Files\src\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\stb\stb_include.hpp">
+      <Filter>Header Files\src\stb</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\simage\simage_platform.cpp">
@@ -130,6 +139,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\util\memory_buffer.cpp">
       <Filter>Source Files\src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\stb\stb_simage.cpp">
+      <Filter>Source Files\src\stb</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

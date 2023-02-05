@@ -8,7 +8,7 @@ tests := ..
 src := ../../src
 util := $(src)/util
 simage := $(src)/simage
-stb := $(simage)/stb
+stb := $(src)/stb
 
 
 tests_exe := $(build)/tests_exe

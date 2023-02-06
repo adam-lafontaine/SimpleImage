@@ -58,8 +58,6 @@ public:
 #endif // !NDEBUG
 };
 
-using Mat2Dr32 = Matrix2D<r32>;
-
 
 namespace simage
 {
@@ -140,6 +138,8 @@ namespace simage
 
 	using ImageGray = Matrix2D<u8>;
 	using ViewGray = MatrixView<u8>;
+
+	using Mat2Dr32 = Matrix2D<r32>;
 }
 
 
@@ -147,6 +147,8 @@ namespace simage
 
 namespace simage
 {
+#if IS_LITTLE_ENDIAN
+
 	class YUV422
 	{
 	public:
@@ -165,8 +167,41 @@ namespace simage
 	};
 
 
+	class BGR
+	{
+	public:
+		u8 blue;
+		u8 green;
+		u8 red;
+	};
+
+#else
+
+	class YUV422
+	{
+	public:
+		u8 y2;
+		u8 v;
+		u8 y1;
+		u8 u;
+	};
+
+
+	class YUV2
+	{
+	public:
+		u8 y;
+		u8 uv;
+	};
+
+#endif
+
+
 	using ImageYUV = Matrix2D<YUV2>;
 	using ViewYUV = MatrixView<YUV2>;
+
+	using ImageBGR = Matrix2D<BGR>;
+	using ViewBGR = MatrixView<BGR>;
 }
 
 
@@ -226,6 +261,8 @@ namespace simage
 	ViewGray make_view(ImageGray const& image);
 
 	ViewYUV make_view(ImageYUV const& image);
+
+	ViewBGR make_view(ImageBGR const& image);
 }
 
 
@@ -275,6 +312,8 @@ namespace simage
 	void map_yuv(ViewYUV const& src, View const& dst);
 
 	void map(ViewYUV const& src, ViewGray const& dst);
+
+	void map(ViewBGR const& src, View const& dst);
 }
 
 
@@ -409,4 +448,93 @@ namespace simage
 	bool resize_image(ImageGray const& image_src, ImageGray& image_dst);
 
 #endif // !SIMAGE_NO_RESIZE
+}
+
+
+/* read write */
+
+#ifndef SIMAGE_NO_FILESYSTEM
+
+#include <filesystem>
+
+
+namespace simage
+{
+	using path_t = std::filesystem::path;
+
+
+	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.string().c_str(), image_dst);
+	}
+
+
+	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
+	{
+		return read_image_from_file(img_path_src.string().c_str(), image_dst);
+	}
+
+#ifndef SIMAGE_NO_WRITE
+
+	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.string().c_str());
+	}
+
+
+	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.string().c_str());
+	}
+
+#endif // !SIMAGE_NO_WRITE
+
+}
+
+#else
+
+#include <string>
+
+namespace simage
+{
+	using path_t = std::string;
+
+	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.c_str(), image_dst);
+	}
+
+
+	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
+	{
+		return read_image_from_file(img_path_src.c_str(), image_dst);
+	}
+
+#ifndef SIMAGE_NO_WRITE
+
+	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.c_str());
+	}
+
+
+	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.c_str());
+	}
+
+#endif // !SIMAGE_NO_WRITE
+
+}
+
+#endif // !SIMAGE_NO_FILESYSTEM
+
+
+/* usb camera */
+
+
+
+namespace simage
+{
+
 }

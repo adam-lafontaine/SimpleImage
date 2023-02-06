@@ -31,6 +31,7 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 		copy_image_test,
 		resize_image_test,
 		histogram_image_test,
+		camera_test,
 	};
 
 	if (!input.keyboard.space_key.pressed)

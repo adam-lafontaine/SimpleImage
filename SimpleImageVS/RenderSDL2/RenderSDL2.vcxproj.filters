@@ -61,6 +61,9 @@
     <Filter Include="Header Files\src\stb">
       <UniqueIdentifier>{22914946-e554-4517-a5e5-7b376cfaeaa2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\opencv">
+      <UniqueIdentifier>{cea54a23-701a-406a-8958-3aa8b45dee25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\defines.hpp">
@@ -142,6 +145,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\stb\stb_simage.cpp">
       <Filter>Source Files\src\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
+      <Filter>Source Files\src\opencv</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests_render\camera_tests.cpp">
+      <Filter>Source Files\tests_render</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

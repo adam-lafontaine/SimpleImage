@@ -7,8 +7,6 @@
 #include "../util/simd.hpp"
 #endif // !SIMAGE_NO_SIMD
 
-namespace cs = color_space;
-
 
 
 static void process_image_rows(u32 n_rows, id_func_t const& row_func)
@@ -241,6 +239,17 @@ namespace simage
 
 
 	ViewYUV make_view(ImageYUV const& image)
+	{
+		assert(verify(image));
+
+		auto view = do_make_view(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewBGR make_view(ImageBGR const& image)
 	{
 		assert(verify(image));
 
@@ -691,6 +700,29 @@ namespace simage
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				d[x] = s[x].y;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void map(ViewBGR const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto& rgba = d[x].rgba;
+				rgba.red = s[x].red;
+				rgba.green = s[x].green;
+				rgba.blue = s[x].blue;
+				rgba.alpha = 255;
 			}
 		};
 

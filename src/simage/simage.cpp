@@ -1173,6 +1173,34 @@ namespace simage
 }
 
 
+namespace simage
+{
+	void map_bgr_rgb(ViewBGR const& src, ViewRGBr32 const& dst)
+	{
+		constexpr auto r = id_cast(RGB::R);
+		constexpr auto g = id_cast(RGB::G);
+		constexpr auto b = id_cast(RGB::B);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto dr = channel_row_begin(dst, y, r);
+			auto dg = channel_row_begin(dst, y, g);
+			auto db = channel_row_begin(dst, y, b);
+
+			for (u32 x = 0; x < src.width; ++x) // TODO: simd
+			{
+				dr[x] = cs::to_channel_r32(s[x].red);
+				dg[x] = cs::to_channel_r32(s[x].green);
+				db[x] = cs::to_channel_r32(s[x].blue);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+}
+
+
 /* sub_view */
 
 namespace simage

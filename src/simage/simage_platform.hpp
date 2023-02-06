@@ -194,6 +194,14 @@ namespace simage
 		u8 uv;
 	};
 
+	class BGR
+	{
+	public:
+		u8 red;
+		u8 green;
+		u8 blue;
+	};
+
 #endif
 
 
@@ -279,7 +287,9 @@ namespace simage
 	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
 
 
-	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range);
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range);
+
+	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
 }
 
 

@@ -349,15 +349,29 @@ namespace simage
 	}
 
 
-	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range)
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range)
 	{
-		auto width = image_range.x_end - image_range.x_begin;
-		Range2Du32 camera_range = image_range;
+		assert(verify(camera_src, range));
+
+		auto width = range.x_end - range.x_begin;
+		Range2Du32 camera_range = range;
 		camera_range.x_end = camera_range.x_begin + width / 2;
 
 		assert(verify(camera_src, camera_range));
 
 		auto sub_view = do_sub_view(camera_src, camera_range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range)
+	{
+		assert(verify(camera_src, range));
+
+		auto sub_view = do_sub_view(camera_src, range);
 
 		assert(verify(sub_view));
 

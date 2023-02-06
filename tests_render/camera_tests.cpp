@@ -11,15 +11,10 @@ void camera_test(img::View const& out)
 
 	cam >> frame;
 
-	auto b = frame.datastart;
-	auto e = frame.dataend;
-
-	auto total_bytes = e - b;
+	auto total_bytes = frame.dataend - frame.datastart;
 	auto total_pixels = frame.cols * frame.rows;
 
 	auto bytes_per_pixel = (r32)total_bytes / total_pixels;
-
-	int x = frame.channels();
 
 	img::ImageBGR image;
 	image.width = (u32)frame.cols;

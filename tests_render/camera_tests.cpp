@@ -1,10 +1,5 @@
 #include "tests_include.hpp"
 
-//#include <opencv2/opencv.hpp>
-//
-//
-//static cv::VideoCapture g_cam;
-
 
 void camera_test(img::View const& out)
 {

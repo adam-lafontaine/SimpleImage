@@ -555,9 +555,17 @@ namespace simage
 	};
 
 
+	using bgr_callback = std::function<void(ViewBGR const&)>;
+	using bool_f = std::function<bool()>;
+
+
 	bool open_camera(CameraUSB& camera);
 
 	void close_all_cameras();
 
 	bool grab_image(CameraUSB const& camera, View const& dst);
+
+	bool grab_image(CameraUSB const& camera, bgr_callback const& callback);
+
+	bool grab_continuous(CameraUSB const& camera, bgr_callback const& grab_cb, bool_f const& grab_condition);
 }

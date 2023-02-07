@@ -2,23 +2,16 @@
 #include "../src/app/app.hpp"
 #include "tests_def.hpp"
 
-
 //#define LEAK_CHECK
 #if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
 #include "../src/util/win32_leak_check.h"
 #endif
 
+#include <chrono>
 
 
 constexpr auto APP_TITLE = "SimpleImage SDL2 Tests";
 constexpr auto APP_VERSION = "1.0";
-
-
-
-static void do_nothing()
-{
-
-}
 
 
 static void run_selected_test(Input const& input, app::AppState& app_state)
@@ -35,30 +28,26 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 		camera_continuous_test,
 	};
 
-	if (!input.keyboard.space_key.pressed)
+	while (!app_state.signal_stop)
 	{
-		return;
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+		if (!input.keyboard.space_key.pressed)
+		{
+			continue;
+		}
+
+		test_id++;
+
+		if (test_id >= funcs.size())
+		{
+			test_id = 0;
+		}
+
+		auto& screen_out = app_state.screen_pixels;
+
+		funcs[test_id](screen_out);
 	}
-
-	test_id++;
-
-	if (test_id >= funcs.size())
-	{
-		test_id = 0;
-	}
-
-	auto& screen_out = app_state.screen_pixels;
-
-	funcs[test_id](screen_out);
-}
-
-
-static void process_input(Input const& input, app::AppState& app_state)
-{
-	execute({
-		[&]() { run_selected_test(input, app_state); },
-		do_nothing
-	});
 }
 
 
@@ -85,7 +74,14 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	render_run(app_state, [&](auto const& input) { process_input(input, app_state); });
+	Input user_input;
+
+	execute({
+		[&]() { run_selected_test(user_input, app_state); },
+		[&]() { render_run(app_state, [&](auto const& input) { user_input = input; }); }
+	});
+
+	
 
 	return EXIT_SUCCESS;
 }

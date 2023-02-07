@@ -540,11 +540,24 @@ namespace simage
 #endif // !SIMAGE_NO_FILESYSTEM
 
 
+
 /* usb camera */
-
-
 
 namespace simage
 {
+	class CameraUSB
+	{
+	public:
+		int id = -1;
+		u32 image_width = 0;
+		u32 image_height = 0;
+		u32 max_fps = 0;
+	};
 
+
+	bool open_camera(CameraUSB& camera);
+
+	void close_all_cameras();
+
+	bool grab_image(CameraUSB const& camera, View const& dst);
 }

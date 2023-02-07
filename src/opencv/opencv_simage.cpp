@@ -239,11 +239,6 @@ namespace simage
 		sw.start();
 		while (grab_condition())
 		{
-			if (!grab_current_frame(camcv))
-			{
-				return false;
-			}
-
 			execute(procs);
 
 			camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;

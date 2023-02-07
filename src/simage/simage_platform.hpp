@@ -2,6 +2,8 @@
 
 #include "../defines.hpp"
 
+#include <functional>
+
 
 // region of interest in an image
 class Range2Du32

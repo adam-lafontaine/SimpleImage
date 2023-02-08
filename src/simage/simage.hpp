@@ -250,6 +250,12 @@ namespace simage
 	void transform(View2r32 const& src, View1r32 const& dst, std::function<r32(r32, r32)> const& func);
 
 	void transform(View3r32 const& src, View1r32 const& dst, std::function<r32(r32, r32, r32)> const& func);
+
+	
+	inline void transform_gray(ViewRGBr32 const& src, View1r32 const& dst)
+	{
+		return transform(src, dst, [](r32 red, r32 green, r32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
+	}
 }
 
 

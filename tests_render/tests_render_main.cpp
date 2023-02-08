@@ -14,19 +14,21 @@ constexpr auto APP_TITLE = "SimpleImage SDL2 Tests";
 constexpr auto APP_VERSION = "1.0";
 
 
+static std::vector<std::function<void(img::View const&)>> tests =
+{
+	fill_platform_view_test,
+	copy_image_test,
+	resize_image_test,
+	histogram_image_test,
+	camera_test,
+	camera_callback_test,
+	//camera_continuous_test,
+};
+
+
 static void run_selected_test(Input const& input, app::AppState& app_state)
 {
-	static int test_id = -1;
-
-	static std::vector<std::function<void(img::View const&)>> funcs = 
-	{
-		fill_platform_view_test,
-		copy_image_test,
-		resize_image_test,
-		histogram_image_test,
-		camera_test,
-		//camera_continuous_test,
-	};
+	static int test_id = -1;	
 
 	if (!input.keyboard.space_key.pressed)
 	{
@@ -35,12 +37,12 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 
 	test_id++;
 
-	if (test_id >= funcs.size())
+	if (test_id >= tests.size())
 	{
 		test_id = 0;
 	}
 
-	funcs[test_id](app_state.screen_pixels);
+	tests[test_id](app_state.screen_pixels);
 
 	/*while (!app_state.signal_stop)
 	{

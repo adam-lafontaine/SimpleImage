@@ -15,4 +15,4 @@ void histogram_image_test(img::View const& out);
 
 void camera_test(img::View const& out);
 
-void camera_continuous_test(img::View const& out);
+//void camera_continuous_test(img::View const& out);

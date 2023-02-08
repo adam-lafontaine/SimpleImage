@@ -25,16 +25,30 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 		resize_image_test,
 		histogram_image_test,
 		camera_test,
-		camera_continuous_test,
+		//camera_continuous_test,
 	};
 
-	while (!app_state.signal_stop)
+	if (!input.keyboard.space_key.pressed)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+		return;
+	}
+
+	test_id++;
+
+	if (test_id >= funcs.size())
+	{
+		test_id = 0;
+	}
+
+	funcs[test_id](app_state.screen_pixels);
+
+	/*while (!app_state.signal_stop)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 		if (!input.keyboard.space_key.pressed)
 		{
-			continue;
+  			continue;
 		}
 
 		test_id++;
@@ -44,10 +58,8 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 			test_id = 0;
 		}
 
-		auto& screen_out = app_state.screen_pixels;
-
-		funcs[test_id](screen_out);
-	}
+		funcs[test_id](app_state.screen_pixels);
+	}*/
 }
 
 
@@ -74,14 +86,14 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	Input user_input;
+	/*Input user_input;
 
 	execute({
 		[&]() { run_selected_test(user_input, app_state); },
 		[&]() { render_run(app_state, [&](auto const& input) { user_input = input; }); }
-	});
+	});*/
 
-	
+	render_run(app_state, [&](auto const& input) { run_selected_test(input, app_state); });
 
 	return EXIT_SUCCESS;
 }

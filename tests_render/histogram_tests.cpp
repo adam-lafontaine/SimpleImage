@@ -3,10 +3,7 @@
 #include <array>
 #include <algorithm>
 
-
-//constexpr u32 BIN_WIDTH = 5;
 constexpr u32 BIN_SPACE = 1;
-//constexpr u32 HIST_HEIGHT = 100;
 constexpr u32 HIST_SPACE = 5;
 constexpr auto N_BINS = 64;
 

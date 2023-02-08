@@ -78,7 +78,10 @@ bool edges_test()
 	write_image(image, "chess.bmp");
 
 	// breaks on linux
-	img::transform(dst_xy, src, [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.1f ? 1.0f : 0.0f; });
+	//img::transform(dst_xy, src, [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.1f ? 1.0f : 0.0f; });
+
+	auto const to_avg_abs = [](r32 x, r32 y) { return ((x < 0.0f ? -x : x) + (y < 0.0f ? -y : y)) / 2; };
+	img::transform(dst_xy, src, to_avg_abs);
 
 	img::map(src, view);
 	write_image(image, "edges.bmp");

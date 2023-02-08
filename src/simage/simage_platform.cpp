@@ -812,6 +812,23 @@ namespace simage
 	}
 
 
+	static void for_each_bgr(ViewBGR const& src, std::function<void(u8, u8, u8)> const& rgb_func)
+	{
+		constexpr u32 PIXEL_STEP = 4;
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; x += PIXEL_STEP)
+			{
+				auto& bgr = s[x];
+
+				rgb_func(bgr.red, bgr.green, bgr.blue);
+			}
+		}
+	}
+
+
 	static void make_histograms_from_rgb(View const& src, Histogram12r32& dst)
 	{
 		auto& h_rgb = dst.rgb;
@@ -912,6 +929,57 @@ namespace simage
 	}
 
 
+	static void make_histograms_from_bgr(ViewBGR const& src, Histogram12r32& dst)
+	{
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_lch = dst.lch;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
+
+		r32 total = 0.0f;
+
+		auto const update_bins = [&](u8 red, u8 green, u8 blue)
+		{
+			auto hsv = hsv::u8_from_rgb_u8(red, green, blue);
+			auto lch = lch::u8_from_rgb_u8(red, green, blue);
+			auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
+
+			h_rgb.R[to_hist_bin_u8(red, n_bins)]++;
+			h_rgb.G[to_hist_bin_u8(green, n_bins)]++;
+			h_rgb.B[to_hist_bin_u8(blue, n_bins)]++;
+
+			if (hsv.sat)
+			{
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+			}
+
+			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
+
+			h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
+			h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+			h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+
+			total++;
+		};
+
+		for_each_bgr(src, update_bins);
+
+		for (u32 i = 0; i < 12; ++i)
+		{
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
+		}
+	}
+	
+	
 	void make_histograms(View const& src, Histogram12r32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
@@ -939,6 +1007,21 @@ namespace simage
 		dst.yuv = { 0 };
 
 		make_histograms_from_yuv(src, dst);
+	}
+
+
+	void make_histograms(ViewBGR const& src, Histogram12r32& dst)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
+
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.lch = { 0 };
+		dst.yuv = { 0 };
+
+		make_histograms_from_bgr(src, dst);
 	}
 
 

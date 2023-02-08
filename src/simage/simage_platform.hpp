@@ -397,6 +397,8 @@ namespace simage
 
 	void make_histograms(ViewYUV const& src, Histogram12r32& dst);
 
+	void make_histograms(ViewBGR const& src, Histogram12r32& dst);
+
 
 	void make_histograms(View const& src, HistRGBr32& dst, u32 n_bins);
 

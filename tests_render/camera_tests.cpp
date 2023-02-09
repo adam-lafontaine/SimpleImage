@@ -93,6 +93,7 @@ static void draw(img::Histogram12r32& hists, img::View1r32 const& dst, HistParam
 	}
 }
 
+#include <cstdio>
 
 void camera_test(img::View const& out)
 {

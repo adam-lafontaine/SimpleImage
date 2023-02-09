@@ -113,6 +113,10 @@ namespace simage
 		camera.image_height = (u32)cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 		camera.max_fps = (u32)cap.get(cv::CAP_PROP_FPS);
 
+		assert(camera.image_width);
+		assert(camera.image_height);
+		assert(camera.max_fps);
+
 		return true;
 	}
 

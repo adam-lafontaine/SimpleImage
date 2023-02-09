@@ -9,7 +9,7 @@
 static bool test_success()
 {
     return 
-        directory_files_test() &&
+        //directory_files_test() &&
         //execute_tests() &&
         //memory_buffer_tests() &&
         stb_simage_tests() &&
@@ -24,8 +24,8 @@ static bool test_success()
         //fill_tests() &&
         //copy_tests() &&
         //histogram_tests() &&
-        //gradients_tests() &&
-        //blur_tests() &&
+        gradients_tests() &&
+        blur_tests() &&
         true;
 }
 

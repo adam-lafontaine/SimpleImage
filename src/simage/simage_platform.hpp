@@ -2,6 +2,8 @@
 
 #include "../defines.hpp"
 
+#include <functional>
+
 
 // region of interest in an image
 class Range2Du32
@@ -57,8 +59,6 @@ public:
 
 #endif // !NDEBUG
 };
-
-using Mat2Dr32 = Matrix2D<r32>;
 
 
 namespace simage
@@ -140,6 +140,8 @@ namespace simage
 
 	using ImageGray = Matrix2D<u8>;
 	using ViewGray = MatrixView<u8>;
+
+	using Mat2Dr32 = Matrix2D<r32>;
 }
 
 
@@ -147,6 +149,8 @@ namespace simage
 
 namespace simage
 {
+#if IS_LITTLE_ENDIAN
+
 	class YUV422
 	{
 	public:
@@ -165,8 +169,49 @@ namespace simage
 	};
 
 
+	class BGR
+	{
+	public:
+		u8 blue;
+		u8 green;
+		u8 red;
+	};
+
+#else
+
+	class YUV422
+	{
+	public:
+		u8 y2;
+		u8 v;
+		u8 y1;
+		u8 u;
+	};
+
+
+	class YUV2
+	{
+	public:
+		u8 y;
+		u8 uv;
+	};
+
+	class BGR
+	{
+	public:
+		u8 red;
+		u8 green;
+		u8 blue;
+	};
+
+#endif
+
+
 	using ImageYUV = Matrix2D<YUV2>;
 	using ViewYUV = MatrixView<YUV2>;
+
+	using ImageBGR = Matrix2D<BGR>;
+	using ViewBGR = MatrixView<BGR>;
 }
 
 
@@ -226,6 +271,8 @@ namespace simage
 	ViewGray make_view(ImageGray const& image);
 
 	ViewYUV make_view(ImageYUV const& image);
+
+	ViewBGR make_view(ImageBGR const& image);
 }
 
 
@@ -242,7 +289,9 @@ namespace simage
 	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
 
 
-	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range);
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range);
+
+	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
 }
 
 
@@ -275,6 +324,8 @@ namespace simage
 	void map_yuv(ViewYUV const& src, View const& dst);
 
 	void map(ViewYUV const& src, ViewGray const& dst);
+
+	void map(ViewBGR const& src, View const& dst);
 }
 
 
@@ -346,6 +397,8 @@ namespace simage
 
 	void make_histograms(ViewYUV const& src, Histogram12r32& dst);
 
+	void make_histograms(ViewBGR const& src, Histogram12r32& dst);
+
 
 	void make_histograms(View const& src, HistRGBr32& dst, u32 n_bins);
 
@@ -381,4 +434,142 @@ namespace simage
 	{
 		return view.matrix_data + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
+}
+
+
+/* stb_simage.cpp */
+
+namespace simage
+{
+	bool read_image_from_file(const char* img_path_src, Image& image_dst);
+
+	bool read_image_from_file(const char* file_path_src, ImageGray& image_dst);
+
+
+#ifndef SIMAGE_NO_WRITE
+
+	bool write_image(Image const& image_src, const char* file_path_dst);
+
+	bool write_image(ImageGray const& image_src, const char* file_path_dst);
+
+#endif // !SIMAGE_NO_WRITE
+
+
+#ifndef SIMAGE_NO_RESIZE
+
+	bool resize_image(Image const& image_src, Image& image_dst);
+
+	bool resize_image(ImageGray const& image_src, ImageGray& image_dst);
+
+#endif // !SIMAGE_NO_RESIZE
+}
+
+
+/* read write */
+
+#ifndef SIMAGE_NO_FILESYSTEM
+
+#include <filesystem>
+
+
+namespace simage
+{
+	using path_t = std::filesystem::path;
+
+
+	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.string().c_str(), image_dst);
+	}
+
+
+	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
+	{
+		return read_image_from_file(img_path_src.string().c_str(), image_dst);
+	}
+
+#ifndef SIMAGE_NO_WRITE
+
+	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.string().c_str());
+	}
+
+
+	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.string().c_str());
+	}
+
+#endif // !SIMAGE_NO_WRITE
+
+}
+
+#else
+
+#include <string>
+
+namespace simage
+{
+	using path_t = std::string;
+
+	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
+	{
+		return read_image_from_file(img_path_src.c_str(), image_dst);
+	}
+
+
+	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
+	{
+		return read_image_from_file(img_path_src.c_str(), image_dst);
+	}
+
+#ifndef SIMAGE_NO_WRITE
+
+	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.c_str());
+	}
+
+
+	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
+	{
+		return write_image(image_src, file_path_dst.c_str());
+	}
+
+#endif // !SIMAGE_NO_WRITE
+
+}
+
+#endif // !SIMAGE_NO_FILESYSTEM
+
+
+
+/* usb camera */
+
+namespace simage
+{
+	class CameraUSB
+	{
+	public:
+		int id = -1;
+		u32 image_width = 0;
+		u32 image_height = 0;
+		u32 max_fps = 0;
+	};
+
+
+	using bgr_callback = std::function<void(ViewBGR const&)>;
+	using bool_f = std::function<bool()>;
+
+
+	bool open_camera(CameraUSB& camera);
+
+	void close_all_cameras();
+
+	bool grab_image(CameraUSB const& camera, View const& dst);
+
+	bool grab_image(CameraUSB const& camera, bgr_callback const& callback);
+
+	bool grab_continuous(CameraUSB const& camera, bgr_callback const& grab_cb, bool_f const& grab_condition);
 }

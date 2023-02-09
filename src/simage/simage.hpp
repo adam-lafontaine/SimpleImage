@@ -184,7 +184,15 @@ namespace simage
 
 namespace simage
 {
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst);
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst);	
+}
+
+
+/* map_bgr */
+
+namespace simage
+{
+	void map_bgr_rgb(ViewBGR const& src, ViewRGBr32 const& dst);
 }
 
 
@@ -242,6 +250,12 @@ namespace simage
 	void transform(View2r32 const& src, View1r32 const& dst, std::function<r32(r32, r32)> const& func);
 
 	void transform(View3r32 const& src, View1r32 const& dst, std::function<r32(r32, r32, r32)> const& func);
+
+	
+	inline void transform_gray(ViewRGBr32 const& src, View1r32 const& dst)
+	{
+		return transform(src, dst, [](r32 red, r32 green, r32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
+	}
 }
 
 
@@ -276,107 +290,3 @@ namespace simage
 	void blur(View3r32 const& src, View3r32 const& dst);
 }
 
-
-/* stb_simage.cpp */
-
-namespace simage
-{
-	bool read_image_from_file(const char* img_path_src, Image& image_dst);
-
-	bool read_image_from_file(const char* file_path_src, ImageGray& image_dst);
-
-
-#ifndef SIMAGE_NO_WRITE
-
-	bool write_image(Image const& image_src, const char* file_path_dst);
-
-	bool write_image(ImageGray const& image_src, const char* file_path_dst);
-
-#endif // !SIMAGE_NO_WRITE
-
-
-#ifndef SIMAGE_NO_RESIZE
-
-	bool resize_image(Image const& image_src, Image& image_dst);
-
-	bool resize_image(ImageGray const& image_src, ImageGray& image_dst);
-
-#endif // !SIMAGE_NO_RESIZE
-}
-
-
-#ifndef SIMAGE_NO_FILESYSTEM
-
-#include <filesystem>
-
-
-namespace simage
-{
-	using path_t = std::filesystem::path;
-
-
-	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
-	{
-		return read_image_from_file(img_path_src.string().c_str(), image_dst);
-	}
-
-
-	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
-	{
-		return read_image_from_file(img_path_src.string().c_str(), image_dst);
-	}
-
-#ifndef SIMAGE_NO_WRITE
-
-	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
-	{
-		return write_image(image_src, file_path_dst.string().c_str());
-	}
-
-
-	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
-	{
-		return write_image(image_src, file_path_dst.string().c_str());
-	}
-
-#endif // !SIMAGE_NO_WRITE
-	
-}
-
-#else
-
-#include <string>
-
-namespace simage
-{
-	using path_t = std::string;
-
-	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
-	{
-		return read_image_from_file(img_path_src.c_str(), image_dst);
-	}
-
-
-	inline bool read_image_from_file(path_t const& img_path_src, ImageGray& image_dst)
-	{
-		return read_image_from_file(img_path_src.c_str(), image_dst);
-	}
-
-#ifndef SIMAGE_NO_WRITE
-
-	inline bool write_image(Image const& image_src, path_t const& file_path_dst)
-	{
-		return write_image(image_src, file_path_dst.c_str());
-	}
-
-
-	inline bool write_image(ImageGray const& image_src, path_t const& file_path_dst)
-	{
-		return write_image(image_src, file_path_dst.c_str());
-	}
-
-#endif // !SIMAGE_NO_WRITE
-	
-}
-
-#endif // !SIMAGE_NO_FILESYSTEM

@@ -26,8 +26,8 @@ static void set_app_screen_buffer(ScreenMemory const& screen, img::View& app_scr
 {
     app_screen.width = screen.image_width;
     app_screen.height = screen.image_height;
-    app_screen.image_width = screen.image_width;
-    app_screen.image_data = (img::Pixel*)screen.image_data;
+    app_screen.matrix_width = screen.image_width;
+    app_screen.matrix_data = (img::Pixel*)screen.image_data;
     app_screen.range = make_range(app_screen);
 }
 

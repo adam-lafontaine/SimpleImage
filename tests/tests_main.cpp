@@ -12,7 +12,7 @@ static bool test_success()
         //directory_files_test() &&
         //execute_tests() &&
         //memory_buffer_tests() &&
-        //stb_simage_tests() &&
+        stb_simage_tests() &&
         //create_image_tests() &&
         //make_view_tests() &&
         //map_tests() &&

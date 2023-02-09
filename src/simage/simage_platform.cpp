@@ -7,8 +7,6 @@
 #include "../util/simd.hpp"
 #endif // !SIMAGE_NO_SIMD
 
-namespace cs = color_space;
-
 
 
 static void process_image_rows(u32 n_rows, id_func_t const& row_func)
@@ -249,6 +247,17 @@ namespace simage
 
 		return view;
 	}
+
+
+	ViewBGR make_view(ImageBGR const& image)
+	{
+		assert(verify(image));
+
+		auto view = do_make_view(image);
+		assert(verify(view));
+
+		return view;
+	}
 }
 
 
@@ -340,15 +349,29 @@ namespace simage
 	}
 
 
-	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& image_range)
+	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range)
 	{
-		auto width = image_range.x_end - image_range.x_begin;
-		Range2Du32 camera_range = image_range;
+		assert(verify(camera_src, range));
+
+		auto width = range.x_end - range.x_begin;
+		Range2Du32 camera_range = range;
 		camera_range.x_end = camera_range.x_begin + width / 2;
 
 		assert(verify(camera_src, camera_range));
 
 		auto sub_view = do_sub_view(camera_src, camera_range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range)
+	{
+		assert(verify(camera_src, range));
+
+		auto sub_view = do_sub_view(camera_src, range);
 
 		assert(verify(sub_view));
 
@@ -696,6 +719,29 @@ namespace simage
 
 		process_image_rows(src.height, row_func);
 	}
+
+
+	void map(ViewBGR const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto& rgba = d[x].rgba;
+				rgba.red = s[x].red;
+				rgba.green = s[x].green;
+				rgba.blue = s[x].blue;
+				rgba.alpha = 255;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
 }
 
 
@@ -761,6 +807,23 @@ namespace simage
 
 				yuv_func(yuv.y1, yuv.u, yuv.v);
 				yuv_func(yuv.y2, yuv.u, yuv.v);
+			}
+		}
+	}
+
+
+	static void for_each_bgr(ViewBGR const& src, std::function<void(u8, u8, u8)> const& rgb_func)
+	{
+		constexpr u32 PIXEL_STEP = 4;
+
+		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; x += PIXEL_STEP)
+			{
+				auto& bgr = s[x];
+
+				rgb_func(bgr.red, bgr.green, bgr.blue);
 			}
 		}
 	}
@@ -866,6 +929,57 @@ namespace simage
 	}
 
 
+	static void make_histograms_from_bgr(ViewBGR const& src, Histogram12r32& dst)
+	{
+		auto& h_rgb = dst.rgb;
+		auto& h_hsv = dst.hsv;
+		auto& h_lch = dst.lch;
+		auto& h_yuv = dst.yuv;
+		auto n_bins = dst.n_bins;
+
+		r32 total = 0.0f;
+
+		auto const update_bins = [&](u8 red, u8 green, u8 blue)
+		{
+			auto hsv = hsv::u8_from_rgb_u8(red, green, blue);
+			auto lch = lch::u8_from_rgb_u8(red, green, blue);
+			auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
+
+			h_rgb.R[to_hist_bin_u8(red, n_bins)]++;
+			h_rgb.G[to_hist_bin_u8(green, n_bins)]++;
+			h_rgb.B[to_hist_bin_u8(blue, n_bins)]++;
+
+			if (hsv.sat)
+			{
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+			}
+
+			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+
+			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
+
+			h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
+			h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+			h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+
+			total++;
+		};
+
+		for_each_bgr(src, update_bins);
+
+		for (u32 i = 0; i < 12; ++i)
+		{
+			for (u32 bin = 0; bin < n_bins; ++bin)
+			{
+				dst.list[i][bin] /= total;
+			}
+		}
+	}
+	
+	
 	void make_histograms(View const& src, Histogram12r32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
@@ -893,6 +1007,21 @@ namespace simage
 		dst.yuv = { 0 };
 
 		make_histograms_from_yuv(src, dst);
+	}
+
+
+	void make_histograms(ViewBGR const& src, Histogram12r32& dst)
+	{
+		static_assert(MAX_HIST_BINS == 256);
+		assert(dst.n_bins <= MAX_HIST_BINS);
+		assert(MAX_HIST_BINS % dst.n_bins == 0);
+
+		dst.rgb = { 0 };
+		dst.hsv = { 0 };
+		dst.lch = { 0 };
+		dst.yuv = { 0 };
+
+		make_histograms_from_bgr(src, dst);
 	}
 
 
@@ -1122,3 +1251,5 @@ namespace simage
 		}
 	}
 }
+
+

@@ -1,5 +1,5 @@
 #include "stb_include.hpp"
-#include "../simage_platform.hpp"
+#include "../simage/simage_platform.hpp"
 
 
 #include <algorithm>

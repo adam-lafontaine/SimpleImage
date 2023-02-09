@@ -1,7 +1,8 @@
 GPP := g++-11
 
 SDL2 := `sdl2-config --cflags --libs`
-TBB := -ltbb
+OPENCV := `pkg-config --cflags --libs opencv4`
+#OPENCV := -lopencv_core -lopencv_imgproc -lopencv_highgui
 
 build := ./build_files
 
@@ -12,7 +13,8 @@ app    := $(src)/app
 input  := $(src)/input
 sdl    := $(src)/sdl
 simage := $(src)/simage
-stb    := $(simage)/stb
+stb    := $(src)/stb
+opencv := $(src)/opencv
 res    := $(src)/resources
 
 
@@ -102,8 +104,18 @@ object_files += $(memory_buffer_o)
 stb_simage_c := $(stb)/stb_simage.cpp
 stb_simage_c += $(stb_h)
 stb_simage_c += $(simage_platform_h)
-stb_simage_o := $(build)/stb_simage.object_files
+stb_simage_o := $(build)/stb_simage.o
 object_files += $(stb_simage_o)
+
+
+# opencv_simage
+opencv_simage_c := $(opencv)/opencv_simage.cpp
+opencv_simage_c += $(stb_h)
+opencv_simage_c += $(simage_platform_h)
+opencv_simage_c += $(stopwatch_h)
+opencv_simage_c += $(execute_h)
+opencv_simage_o := $(build)/opencv_simage.o
+object_files += $(opencv_simage_o)
 
 
 # simage_platform
@@ -159,10 +171,15 @@ histogram_tests_c += $(tests_include_h)
 histogram_tests_o := $(build)/histogram_tests.o
 object_files += $(histogram_tests_o)
 
+camera_tests_c := $(tests)/camera_tests.cpp
+camera_tests_c += $(tests_include_h)
+camera_tests_o := $(build)/camera_tests.o
+object_files += $(camera_tests_o)
+
 
 # flags
-INCLUDES  :=
-LIBRARIES := $(SDL2) $(TBB)
+INCLUDES  := -I /usr/include/opencv4
+LIBRARIES := $(SDL2) $(OPENCV) -ltbb
 CCFLAGS := -std=c++20 
 #-mavx -mavx2
 
@@ -189,6 +206,11 @@ $(memory_buffer_o): $(memory_buffer_c)
 $(stb_simage_o): $(stb_simage_c)
 	@echo "\n stb_simage"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(opencv_simage_o): $(opencv_simage_c)
+	@echo "\n opencv_simage"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(INCLUDES) $(LIBRARIES)
+
 
 $(simage_platform_o): $(simage_platform_c)
 	@echo "\n simage_platform"
@@ -218,6 +240,10 @@ $(image_tests_o): $(image_tests_c)
 
 $(histogram_tests_o): $(histogram_tests_c)
 	@echo "\n histogram_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(camera_tests_o): $(camera_tests_c)
+	@echo "\n camera_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

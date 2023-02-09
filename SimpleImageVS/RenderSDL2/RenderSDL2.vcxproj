@@ -139,7 +139,7 @@
     <ClInclude Include="..\..\src\sdl\sdl_include.hpp" />
     <ClInclude Include="..\..\src\simage\simage.hpp" />
     <ClInclude Include="..\..\src\simage\simage_platform.hpp" />
-    <ClInclude Include="..\..\src\simage\stb\stb_include.hpp" />
+    <ClInclude Include="..\..\src\stb\stb_include.hpp" />
     <ClInclude Include="..\..\src\util\color_space.hpp" />
     <ClInclude Include="..\..\src\util\execute.hpp" />
     <ClInclude Include="..\..\src\util\memory_buffer.hpp" />
@@ -148,13 +148,15 @@
     <ClInclude Include="..\..\tests_render\tests_include.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp" />
     <ClCompile Include="..\..\src\sdl\sdl_input.cpp" />
     <ClCompile Include="..\..\src\sdl\sdl_render_run.cpp" />
     <ClCompile Include="..\..\src\simage\simage.cpp" />
     <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
-    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp" />
+    <ClCompile Include="..\..\src\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
     <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
+    <ClCompile Include="..\..\tests_render\camera_tests.cpp" />
     <ClCompile Include="..\..\tests_render\fill_tests.cpp" />
     <ClCompile Include="..\..\tests_render\histogram_tests.cpp" />
     <ClCompile Include="..\..\tests_render\image_tests.cpp" />

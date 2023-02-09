@@ -49,17 +49,20 @@
     <Filter Include="Source Files\src\app">
       <UniqueIdentifier>{e20c84c4-ffdf-4929-88f4-bc325145e4f2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\src\simage\stb">
-      <UniqueIdentifier>{3b9651a1-7476-4517-95d9-fd1935067f1c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\simage\stb">
-      <UniqueIdentifier>{1c975a49-73dd-4ff7-9c6f-1a926afcc9a8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\src\resources">
       <UniqueIdentifier>{f8b68955-89c7-4321-bb64-8eab1681f86c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\src\app">
       <UniqueIdentifier>{4b7adb42-9280-4c55-bd43-c7a533ad1074}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\stb">
+      <UniqueIdentifier>{51272b74-d49f-4bbb-9dd1-d82ee4cb0270}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\stb">
+      <UniqueIdentifier>{22914946-e554-4517-a5e5-7b376cfaeaa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\opencv">
+      <UniqueIdentifier>{cea54a23-701a-406a-8958-3aa8b45dee25}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -96,9 +99,6 @@
     <ClInclude Include="..\..\src\simage\simage.hpp">
       <Filter>Header Files\src\simage</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\simage\stb\stb_include.hpp">
-      <Filter>Header Files\src\simage\stb</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\resources\icon_64.h">
       <Filter>Header Files\src\resources</Filter>
     </ClInclude>
@@ -107,6 +107,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\util\color_space.hpp">
       <Filter>Header Files\src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\stb\stb_include.hpp">
+      <Filter>Header Files\src\stb</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -131,9 +134,6 @@
     <ClCompile Include="..\..\src\simage\simage.cpp">
       <Filter>Source Files\src\simage</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\simage\stb\stb_simage.cpp">
-      <Filter>Source Files\src\simage\stb</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\tests_render\image_tests.cpp">
       <Filter>Source Files\tests_render</Filter>
     </ClCompile>
@@ -142,6 +142,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\util\memory_buffer.cpp">
       <Filter>Source Files\src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\stb\stb_simage.cpp">
+      <Filter>Source Files\src\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
+      <Filter>Source Files\src\opencv</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests_render\camera_tests.cpp">
+      <Filter>Source Files\tests_render</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

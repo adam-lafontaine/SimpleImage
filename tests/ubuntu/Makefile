@@ -4,11 +4,11 @@ GPP := g++-11
 build := ./build_files
 out := ../TestImages/out_files
 
-tests := ..
-src := ../../src
-util := $(src)/util
+tests  := ..
+src    := ../../src
+util   := $(src)/util
 simage := $(src)/simage
-stb := $(simage)/stb
+stb    := $(src)/stb
 
 
 tests_exe := $(build)/tests_exe
@@ -74,7 +74,7 @@ object_files += $(memory_buffer_o)
 stb_simage_c := $(stb)/stb_simage.cpp
 stb_simage_c += $(stb_h)
 stb_simage_c += $(simage_platform_h)
-stb_simage_o := $(build)/stb_simage.object_files
+stb_simage_o := $(build)/stb_simage.o
 object_files += $(stb_simage_o)
 
 
@@ -190,7 +190,7 @@ object_files += $(blur_tests_o)
 # flags
 INCLUDES  :=
 LIBRARIES := -ltbb
-CCFLAGS := -std=c++20 -mavx -mavx2
+CCFLAGS := -std=c++20
 
 CCFLAGS += -O3
 CCFLAGS += -DNDEBUG

@@ -93,17 +93,6 @@ namespace simage
 
 namespace simage
 {
-	template <size_t N>
-	class PixelCHr32
-	{
-	public:
-
-		static constexpr u32 n_channels = N;
-
-		r32* channels[N] = {};
-	};
-
-
 	class RGBr32p
 	{
 	public:
@@ -136,25 +125,6 @@ namespace simage
 
 namespace simage
 {
-	template <size_t N>
-	static PixelCHr32<N> row_begin(ViewCHr32<N> const& view, u32 y)
-	{
-		assert(verify(view));
-		assert(y < view.height);
-
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
-
-		PixelCHr32<N> p{};
-
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			p.channels[ch] = view.image_channel_data[ch] + offset;
-		}
-
-		return p;
-	}
-
-
 	static RGBr32p rgb_row_begin(ViewRGBr32 const& view, u32 y)
 	{
 		assert(verify(view));
@@ -243,31 +213,6 @@ namespace simage
 		return view.image_channel_data[ch] + offset;
 	}
 
-}
-
-
-/* xy_at */
-
-namespace simage
-{
-	template <size_t N>
-	static PixelCHr32<N> xy_at(ViewCHr32<N> const& view, u32 x, u32 y)
-	{
-		assert(verify(view));
-		assert(y < view.height);
-		assert(x < view.width);
-
-		auto offset = (size_t)((view.y_begin + y) * view.image_width + view.x_begin) + x;
-
-		PixelCHr32<N> p{};
-
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			p.channels[ch] = view.image_channel_data[ch] + offset;
-		}
-
-		return p;
-	}
 }
 
 
@@ -1173,6 +1118,34 @@ namespace simage
 }
 
 
+namespace simage
+{
+	void map_bgr_rgb(ViewBGR const& src, ViewRGBr32 const& dst)
+	{
+		constexpr auto r = id_cast(RGB::R);
+		constexpr auto g = id_cast(RGB::G);
+		constexpr auto b = id_cast(RGB::B);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto dr = channel_row_begin(dst, y, r);
+			auto dg = channel_row_begin(dst, y, g);
+			auto db = channel_row_begin(dst, y, b);
+
+			for (u32 x = 0; x < src.width; ++x) // TODO: simd
+			{
+				dr[x] = cs::to_channel_r32(s[x].red);
+				dg[x] = cs::to_channel_r32(s[x].green);
+				db[x] = cs::to_channel_r32(s[x].blue);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+}
+
+
 /* sub_view */
 
 namespace simage
@@ -1573,11 +1546,12 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = row_begin(src, y).channels;
+			auto s0 = channel_row_begin(src, y, 0);
+			auto s1 = channel_row_begin(src, y, 1);
 			auto d = row_begin(dst, y);
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = func(s[0][x], s[1][x]);
+				d[x] = func(s0[x], s1[x]);
 			}
 		};
 
@@ -1591,11 +1565,13 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = row_begin(src, y).channels;
+			auto s0 = channel_row_begin(src, y, 0);
+			auto s1 = channel_row_begin(src, y, 1);
+			auto s2 = channel_row_begin(src, y, 2);
 			auto d = row_begin(dst, y);
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = func(s[0][x], s[1][x], s[2][x]);
+				d[x] = func(s0[x], s1[x], s2[x]);
 			}
 		};
 
@@ -1650,12 +1626,13 @@ namespace simage
 
 		for (u32 y = 0; y < view.height; ++y)
 		{
-			PixelCHr32<N> s = row_begin(view, y);
-			for (u32 x = 0; x < view.width; ++x)
+			for (u32 i = 0; i < N; ++i)
 			{
-				for (u32 i = 0; i < N; ++i)
+				auto s = channel_row_begin(view, y, i);
+
+				for (u32 x = 0; x < view.width; ++x)
 				{
-					results[i] += s.channels[i][x];
+					results[i] += s[x];
 				}
 			}
 		}
@@ -1738,7 +1715,9 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto d = row_begin(dst, y);
+			auto d0 = channel_row_begin(dst, y, 0);
+			auto d1 = channel_row_begin(dst, y, 1);
+			auto d2 = channel_row_begin(dst, y, 2);
 
 			Range2Du32 r{};
 			r.y_begin = y * src.height / dst.height;
@@ -1750,9 +1729,9 @@ namespace simage
 
 				auto avg = average(sub_view(src, r));
 
-				d.channels[0][x] = avg[0];
-				d.channels[1][x] = avg[1];
-				d.channels[2][x] = avg[2];
+				d0[x] = avg[0];
+				d1[x] = avg[1];
+				d2[x] = avg[2];
 			}
 		};
 

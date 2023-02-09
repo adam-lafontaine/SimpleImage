@@ -6,6 +6,7 @@
 #include <opencv2/videoio.hpp>
 
 #include <array>
+#include <thread>
 
 
 constexpr int N_CAMERAS = 1;

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <algorithm>
+#include <cmath>
 
 
 constexpr u32 BIN_SPACE = 1;
@@ -136,14 +137,14 @@ void camera_callback_test(img::View const& out)
 	auto dst_x = img::select_channel(grad, img::XY::X);
 	auto dst_y = img::select_channel(grad, img::XY::Y);
 
-	auto const to_avg_abs = [](r32 x, r32 y) { return ((x < 0.0f ? -x : x) + (y < 0.0f ? -y : y)) / 2; };
+	auto const to_hypot = [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y); };
 
 	auto const grab_cb = [&](img::ViewBGR const& src)
 	{
 		img::map_bgr_rgb(src, rgb);
 		img::transform_gray(rgb, gray);
 		img::gradients_xy(gray, grad);
-		img::transform(grad, gray, to_avg_abs);
+		img::transform(grad, gray, to_hypot);
 		img::map_rgb(gray, dst);
 	};
 

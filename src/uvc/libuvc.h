@@ -8,7 +8,6 @@ extern "C" {
 #include <stdio.h> // FILE
 #include <stdint.h>
 #include <sys/time.h>
-#include <libuvc/libuvc_config.h>
 #include "libuvc_config.h.in"
 
 struct libusb_context;

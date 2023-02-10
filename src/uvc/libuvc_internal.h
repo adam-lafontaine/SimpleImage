@@ -13,7 +13,7 @@
 #include <signal.h>
 #include <libusb.h>
 
-#include "../utlist.h"
+#include "utlist.h"
 #include "libuvc.h"
 
 

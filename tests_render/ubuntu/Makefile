@@ -2,7 +2,7 @@ GPP := g++-11
 
 SDL2 := `sdl2-config --cflags --libs`
 OPENCV := `pkg-config --cflags --libs opencv4`
-#OPENCV := -lopencv_core -lopencv_imgproc -lopencv_highgui
+LIBUSB := `pkg-config --libs --cflags libusb-1.0` -ljpeg
 
 build := ./build_files
 
@@ -204,7 +204,8 @@ INCLUDES  :=
 #INCLUDES += -I /usr/include/opencv4
 INCLUDES += -I /usr/include/libusb-1.0
 
-LIBRARIES := $(SDL2) -ltbb
+LIBRARIES := $(SDL2) -ltbb -pthread
+LIBRARIES += $(LIBUSB)
 #LIBRARIES += $(OPENCV)
 
 CCFLAGS := -std=c++20 

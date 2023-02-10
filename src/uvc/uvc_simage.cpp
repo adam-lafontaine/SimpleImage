@@ -31,6 +31,16 @@ vendor and product ID of your webcams.
 
 */
 
+constexpr auto DEVICE_PERMISSION_MSG = 
+"libuvc requires RW permissions for opening capturing devices, so you must create the following .rules file:"
+"\n\n"
+"/etc/udev/rules.d/99-uvc.rules"
+"\n\n"
+"Then, for each webcam add the following line:"
+"\n\n"
+"SUBSYSTEMS==\"usb\", ENV{DEVTYPE}==\"usb_device\", ATTRS{idVendor}==\"XXXX\", ATTRS{idProduct}==\"YYYY\", MODE=\"0666\"\n\n"
+"Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the vendor and product ID of your webcams.";
+
 
 /* verify */
 
@@ -103,6 +113,7 @@ static void print_connected_device_info(uvc_context_t *ctx)
     }
 
     uvc_free_device_list(list, 1);
+    printf("\n%s\n", DEVICE_PERMISSION_MSG);
 }
 
 

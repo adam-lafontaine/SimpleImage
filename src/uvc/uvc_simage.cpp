@@ -121,26 +121,6 @@ public:
 
 static DeviceListUVC g_device_list;
 
-class RGB
-{
-public:
-    u8 red;
-    u8 green;
-    u8 blue;
-};
-
-
-static img::Pixel to_pixel(RGB const& rgb)
-{
-    img::Pixel p{};
-
-    p.rgba.red = rgb.red;
-    p.rgba.green = rgb.green;
-    p.rgba.blue = rgb.blue;
-    p.rgba.alpha = 255;
-
-    return p;
-}
 
 
 static void print_uvc_error(uvc_error_t err, const char* msg)
@@ -580,20 +560,16 @@ namespace simage
         }
 
         auto& frame = *(device.rgb_frames[device.frame_curr]);
-        auto src = (RGB*)frame.data;
-
-        for (u32 y = 0; y < dst.height; ++y)
-        {
-            auto d = img::row_begin(dst, y);
-            for (u32 x = 0; x < dst.width; ++x)
-            {
-                d[x] = to_pixel(*src);
-                ++src;
-            }
-        }
 
         device.frame_curr = device.frame_curr ? 0 : 1;
         device.frame_prev = device.frame_curr ? 0 : 1;
+        
+        img::ImageRGB image;
+        image.width = camera.image_width;
+		image.height = camera.image_height;
+		image.data_ = (RGBu8*)frame.data;
+
+        map(make_view(image), dst);
 
         return true;
     }

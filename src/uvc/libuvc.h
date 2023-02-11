@@ -1,6 +1,8 @@
 #ifndef LIBUVC_H
 #define LIBUVC_H
 
+#define LIBUVC_HAS_JPEG 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -130,7 +130,7 @@ void camera_callback_test(img::View const& out)
 
 	img::Buffer32 buffer;
 	mb::create_buffer(buffer, width * height * 6);
-
+/*
 	auto rgb = img::make_view_3(width, height, buffer);
 	auto gray = img::make_view_1(width, height, buffer);
 	auto grad = img::make_view_2(width, height, buffer);
@@ -152,7 +152,7 @@ void camera_callback_test(img::View const& out)
 	{
 		
 	}
-
+*/
 	mb::destroy_buffer(buffer);
 	img::close_all_cameras();
 }
@@ -179,7 +179,7 @@ void camera_histogram_test(img::View const& out)
 
 	img::Buffer32 buffer;
 	mb::create_buffer(buffer, width * height);
-
+/*
 	auto hist_view = img::make_view_1(width, height, buffer);
 
 	img::Histogram12r32 hists;
@@ -196,7 +196,7 @@ void camera_histogram_test(img::View const& out)
 	{
 
 	}
-
+*/
 	mb::destroy_buffer(buffer);
 	img::close_all_cameras();
 }

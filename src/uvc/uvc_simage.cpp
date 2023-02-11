@@ -99,7 +99,7 @@ public:
 
     bool grab_single = false;
 
-    uvc_frame_t* bgr_frames[2];
+    uvc_frame_t* rgb_frames[2];
     u32 frame_curr = 0;
 	u32 frame_prev = 1;
 };
@@ -120,6 +120,27 @@ public:
 
 
 static DeviceListUVC g_device_list;
+
+class RGB
+{
+public:
+    u8 red;
+    u8 green;
+    u8 blue;
+};
+
+
+static img::Pixel to_pixel(RGB const& rgb)
+{
+    img::Pixel p{};
+
+    p.rgba.red = rgb.red;
+    p.rgba.green = rgb.green;
+    p.rgba.blue = rgb.blue;
+    p.rgba.alpha = 255;
+
+    return p;
+}
 
 
 static void print_uvc_error(uvc_error_t err, const char* msg)
@@ -225,10 +246,7 @@ static void disconnect_device(DeviceUVC& device)
         device.frame_width = -1;
         device.frame_height = -1;
         device.fps = -1;
-        device.is_connected = false;
-
-        uvc_free_frame(device.bgr_frames[0]);
-        uvc_free_frame(device.bgr_frames[1]);
+        device.is_connected = false;        
     }
 }
 
@@ -293,16 +311,7 @@ static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
     else
     {
         print_uvc_stream_info(device);
-    }
-
-    device.bgr_frames[0] = uvc_allocate_frame(width * height * 3);
-    device.bgr_frames[1] = uvc_allocate_frame(width * height * 3);
-
-    if (!device.bgr_frames[0] || !device.bgr_frames[1])
-    {
-        disconnect_device(device);
-        return false;
-    }
+    }    
 
     return true;
 }
@@ -387,11 +396,12 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
         return;
     }
 
-    auto bgr = device.bgr_frames[device.frame_curr];
+    auto rgb = device.rgb_frames[device.frame_curr];    
 
-    auto res = uvc_any2bgr(frame, bgr);
+    auto res = uvc_any2rgb(frame, rgb);
     if (res != UVC_SUCCESS)
     {
+        print_uvc_error(res, "uvc_any2rgb");
         device.grab_single = false;
         return;
     }
@@ -404,11 +414,24 @@ static void stop_device(DeviceUVC& device)
 {    
     uvc_stop_streaming(device.h_device);
     device.is_streaming = false;
+
+    uvc_free_frame(device.rgb_frames[0]);
+    uvc_free_frame(device.rgb_frames[1]);
 }
 
 
 static bool start_device(DeviceUVC& device, uvc_frame_callback_t callback)
 {
+    size_t frame_bytes = device.frame_width * device.frame_height * 3;
+    device.rgb_frames[0] = uvc_allocate_frame(frame_bytes);
+    device.rgb_frames[1] = uvc_allocate_frame(frame_bytes);
+
+    if (!device.rgb_frames[0] || !device.rgb_frames[1])
+    {
+        print_error("Error allocating frame memory");
+        return false;
+    }   
+    
     auto res = uvc_start_streaming(device.h_device, device.ctrl, callback, (void *)(&device), 0);
 
     if (res != UVC_SUCCESS)
@@ -537,6 +560,8 @@ namespace simage
 
     bool grab_image(CameraUSB const& camera, View const& dst)
     {
+        assert(verify(camera, dst));
+
         if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{
 			return false;
@@ -554,23 +579,27 @@ namespace simage
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
-        auto& frame = *(device.bgr_frames[device.frame_curr]);        
+        auto& frame = *(device.rgb_frames[device.frame_curr]);
+        auto src = (RGB*)frame.data;
 
-        ImageBGR image;
-		image.width = camera.image_width;
-		image.height = camera.image_height;
-		image.data_ = (BGR*)frame.data;
+        for (u32 y = 0; y < dst.height; ++y)
+        {
+            auto d = img::row_begin(dst, y);
+            for (u32 x = 0; x < dst.width; ++x)
+            {
+                d[x] = to_pixel(*src);
+                ++src;
+            }
+        }
 
         device.frame_curr = device.frame_curr ? 0 : 1;
         device.frame_prev = device.frame_curr ? 0 : 1;
-
-        map(make_view(image), dst);
 
         return true;
     }
 
 
-    bool grab_image(CameraUSB const& camera, bgr_callback const& grab_cb)
+    bool grab_image(CameraUSB const& camera, view_callback const& grab_cb)
     {
         if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{
@@ -589,7 +618,7 @@ namespace simage
     }
 
 
-    bool grab_continuous(CameraUSB const& camera, bgr_callback const& grab_cb, bool_f const& grab_condition)
+    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
     {
         if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{

@@ -93,6 +93,7 @@ enum uvc_frame_format {
 
 /* UVC_COLOR_FORMAT_* have been replaced with UVC_FRAME_FORMAT_*. Please use
  * UVC_FRAME_FORMAT_* instead of using these. */
+/*
 #define UVC_COLOR_FORMAT_UNKNOWN UVC_FRAME_FORMAT_UNKNOWN
 #define UVC_COLOR_FORMAT_UNCOMPRESSED UVC_FRAME_FORMAT_UNCOMPRESSED
 #define UVC_COLOR_FORMAT_COMPRESSED UVC_FRAME_FORMAT_COMPRESSED
@@ -104,6 +105,7 @@ enum uvc_frame_format {
 #define UVC_COLOR_FORMAT_GRAY8 UVC_FRAME_FORMAT_GRAY8
 #define UVC_COLOR_FORMAT_GRAY16 UVC_FRAME_FORMAT_GRAY16
 #define UVC_COLOR_FORMAT_NV12 UVC_FRAME_FORMAT_NV12
+*/
 
 /** VideoStreaming interface descriptor subtype (A.6) */
 enum uvc_vs_desc_subtype {

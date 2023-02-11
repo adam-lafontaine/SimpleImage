@@ -38,7 +38,8 @@ constexpr auto DEVICE_PERMISSION_MSG =
 "SUBSYSTEMS==\"usb\", ENV{DEVTYPE}==\"usb_device\", ATTRS{idVendor}==\"XXXX\", ATTRS{idProduct}==\"YYYY\", MODE=\"0666\"\n\n"
 "Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the vendor and product ID of your webcams.";
 
-
+constexpr u8 EXPOSURE_MODE_AUTO = 2;
+constexpr u8 EXPOSURE_MODE_APERTURE = 8;
 
 
 /* verify */
@@ -78,7 +79,7 @@ class DeviceUVC
 public:
     uvc_device_t* p_device;
     uvc_device_handle_t* h_device;
-    uvc_stream_ctrl_t ctrl;
+    uvc_stream_ctrl_t* ctrl;
 
     int device_id = -1;
 
@@ -92,6 +93,7 @@ public:
     const char* format_code;
 
     bool is_connected = false;
+    bool is_streaming = false;
 };
 
 
@@ -101,18 +103,11 @@ public:
     uvc_context_t *context;
     uvc_device_t** device_list;
 
+    std::vector<uvc_stream_ctrl_t> stream_ctrl_list;
+
     std::vector<DeviceUVC> devices;
 
-    bool is_open = false;
-};
-
-
-template <class T>
-class DataResult
-{
-public:
-    T data;
-    bool success = false;
+    bool is_connected = false;
 };
 
 
@@ -186,33 +181,30 @@ static void print_device_list(DeviceListUVC const& list)
 static void print_uvc_stream_info(DeviceUVC const& device)
 {
 #ifndef NDEBUG
-    // another copy
-    auto ctrl = device.ctrl;
     //printf("\n");
-    //uvc_print_stream_ctrl(&ctrl, stdout);
+    //uvc_print_stream_ctrl(device.ctrl, stdout);
 #endif
 }
 
 
-static DataResult<DeviceUVC> get_default_device(DeviceListUVC const& list)
+static DeviceUVC* get_default_device(DeviceListUVC& list)
 {
-    DataResult<DeviceUVC> result; // return copy for now
-
-    // return camera with highest index
-    auto b = list.devices.rbegin();
-    auto e = list.devices.rend();
-    auto it = std::find_if(b, e, [](auto& cam){ return cam.is_connected; });
-
-    if (it == e)
+    auto& devices = list.devices;
+    if(devices.empty())
     {
-        result.success = false;
-        return result;
+        return nullptr;
     }
 
-    result.data = *it;
-    result.success = true;
+    // return camera with highest index
+    for (int id = (int)devices.size() - 1; id >= 0; --id)
+    {
+        if (devices[id].is_connected)
+        {
+            return devices.data() + id;
+        }
+    }
 
-    return result;
+    return nullptr;
 }
 
 
@@ -230,8 +222,10 @@ static void disconnect_device(DeviceUVC& device)
 }
 
 
-static bool connect_device(DeviceUVC& device)
+static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
 {
+    device.ctrl = ctrl;
+
     auto res = uvc_open(device.p_device, &device.h_device);
     if (res != UVC_SUCCESS)
     {
@@ -274,7 +268,7 @@ static bool connect_device(DeviceUVC& device)
     device.is_connected = true;
 
     res = uvc_get_stream_ctrl_format_size(
-        device.h_device, &device.ctrl, /* result stored in ctrl */
+        device.h_device, device.ctrl, /* result stored in ctrl */
         frame_format,
         width, height, fps /* width, height, fps */
     );
@@ -346,17 +340,70 @@ static bool enumerate_devices(DeviceListUVC& list)
         return false;
     }
 
-    for (auto& dev : list.devices)
-    {
-        connect_device(dev);
+    // allocate for stream info
+    std::vector<uvc_stream_ctrl_t> ctrls(list.devices.size());
+    list.stream_ctrl_list = std::move(ctrls);
+
+    list.is_connected = false;
+
+    for (size_t i = 0; i < list.devices.size(); ++i)
+    {        
+        auto& dev = list.devices[i];
+        auto ctrl = list.stream_ctrl_list.data() + i;
+        list.is_connected |= connect_device(dev, ctrl);
     }
 
-    auto b = list.devices.begin();
-    auto e = list.devices.end();
+    return true;
+}
 
-    list.is_open = std::any_of(b, e, [](auto const& dev){ return dev.is_connected; });
+
+static void uvc_frame_callback(uvc_frame_t* frame, void* data)
+{
+    
+}
+
+
+static void stop_device(DeviceUVC& device)
+{    
+    uvc_stop_streaming(device.h_device);
+    device.is_streaming = false;
+}
+
+
+static bool start_device(DeviceUVC& device)
+{
+    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_frame_callback, (void *) 12345, 0);
+
+    if (res != UVC_SUCCESS)
+    {
+        print_uvc_error(res, "uvc_start_streaming");
+        return false;
+    }
+
+    device.is_streaming = true;
 
     return true;
+}
+
+
+static void enable_exposure_mode(DeviceUVC const& device)
+{
+    auto res = uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_AUTO);
+    if (res == UVC_SUCCESS)
+    {
+        return;
+    }
+
+    print_uvc_error(res, "uvc_set_ae_mode... auto");
+
+    if (res == UVC_ERROR_PIPE)
+    {
+        res = uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_APERTURE);
+        if (res != UVC_SUCCESS)
+        {
+            print_uvc_error(res, "uvc_set_ae_mode... aperture");
+        }
+    }
 }
 
 
@@ -373,54 +420,133 @@ namespace simage
         print_device_list(g_device_list);
 
         auto result = get_default_device(g_device_list);
-        if (!result.success)
+        if (!result)
         {
+            print_error("No connected devices available");
             return false;
         }
 
-        auto& device = result.data;
+        auto& device = *result;
 
         camera.id = device.device_id;
         camera.image_width = device.frame_width;
         camera.image_height = device.frame_height;
         camera.max_fps = device.fps;
 
+        if (!start_device(device))
+        {
+            return false;
+        }
+
+        camera.is_open = true;
+
+        enable_exposure_mode(device);
+
         return true;        
+    }
+
+
+    void close_camera(CameraUSB& camera)
+    {
+        camera.is_open = false;
+
+        if (camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
+		{
+			return;
+		}
+
+        auto& device = g_device_list.devices[camera.id];
+        if (device.is_streaming)
+        {
+            stop_device(device);
+        }
+
+        if (device.is_connected)
+        {
+            disconnect_device(device);
+        }
     }
 
 
     void close_all_cameras()
     {
-        if (!g_device_list.is_open)
+        if (!g_device_list.is_connected)
         {
             return;
         }
 
         for (auto& device : g_device_list.devices)
         {
-            disconnect_device(device);
+            if (device.is_streaming)
+            {
+                stop_device(device);
+            }
+
+            if (device.is_connected)
+            {
+                disconnect_device(device);
+            }
         }
 
         uvc_exit(g_device_list.context);
-        g_device_list.is_open = false;      
+        g_device_list.is_connected = false;  
+
+        g_device_list.devices.clear();
+        g_device_list.stream_ctrl_list.clear();
+
+        uvc_free_device_list(g_device_list.device_list, 0);
     }
 
 
-    bool grab_image(CameraUSB const& device, View const& dst)
+    bool grab_image(CameraUSB const& camera, View const& dst)
     {
+        if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
+		{
+			return false;
+		}
+
+        auto& device = g_device_list.devices[camera.id];
+        if (!device.is_streaming)
+        {
+            return false;
+        }
 
         return false;
     }
 
 
-    bool grab_image(CameraUSB const& device, bgr_callback const& grab_cb)
+    bool grab_image(CameraUSB const& camera, bgr_callback const& grab_cb)
     {
+        if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
+		{
+			return false;
+		}
+
+        auto& device = g_device_list.devices[camera.id];
+        if (!device.is_streaming)
+        {
+            return false;
+        }
+
+
+
         return false;
     }
 
 
-    bool grab_continuous(CameraUSB const& device, bgr_callback const& grab_cb, bool_f const& grab_condition)
+    bool grab_continuous(CameraUSB const& camera, bgr_callback const& grab_cb, bool_f const& grab_condition)
     {
+        if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
+		{
+			return false;
+		}
+
+        auto& device = g_device_list.devices[camera.id];
+        if (!device.is_streaming)
+        {
+            return false;
+        }
+
         return false;
     }
 

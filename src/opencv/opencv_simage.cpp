@@ -112,12 +112,30 @@ namespace simage
 		camera.image_width = (u32)cap.get(cv::CAP_PROP_FRAME_WIDTH);
 		camera.image_height = (u32)cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 		camera.max_fps = (u32)cap.get(cv::CAP_PROP_FPS);
+		camera.is_open = true;
 
 		assert(camera.image_width);
 		assert(camera.image_height);
 		assert(camera.max_fps);
 
 		return true;
+	}
+
+
+	void close_camera(CameraUSB& camera)
+	{
+		camera.is_open = false;
+
+		if (camera.id < 0 || camera.id >= N_CAMERAS)
+		{
+			return;
+		}
+
+		auto& camcv = g_cameras[camera.id];
+		camcv.capture.release();
+		camcv.frames[0].release();
+		camcv.frames[1].release();
+
 	}
 
 
@@ -137,7 +155,7 @@ namespace simage
 	{
 		assert(verify(camera, dst));
 
-		if (camera.id < 0)
+		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{
 			return false;
 		}
@@ -167,7 +185,7 @@ namespace simage
 
 	bool grab_image(CameraUSB const& camera, bgr_callback const& grab_cb)
 	{
-		if (camera.id < 0)
+		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{
 			return false;
 		}
@@ -197,7 +215,7 @@ namespace simage
 
 	bool grab_continuous(CameraUSB const& camera, bgr_callback const& grab_cb, bool_f const& grab_condition)
 	{
-		if (camera.id < 0)
+		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{
 			return false;
 		}

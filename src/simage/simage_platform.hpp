@@ -556,6 +556,8 @@ namespace simage
 		u32 image_width = 0;
 		u32 image_height = 0;
 		u32 max_fps = 0;
+
+		bool is_open;
 	};
 
 
@@ -564,6 +566,8 @@ namespace simage
 
 
 	bool open_camera(CameraUSB& camera);
+
+	void close_camera(CameraUSB& camera);
 
 	void close_all_cameras();
 

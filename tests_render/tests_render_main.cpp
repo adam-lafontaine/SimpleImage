@@ -79,8 +79,8 @@ int main()
 	app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
-	window_settings.screen_width = 900;
-	window_settings.screen_height = 700;
+	window_settings.screen_width = 1280;
+	window_settings.screen_height = 720;
 
 	app::AppState app_state;
 

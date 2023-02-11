@@ -88,7 +88,7 @@ namespace simage
 		ImageBGR image;
 		image.width = (u32)frame.cols;
 		image.height = (u32)frame.rows;
-		image.data_ = (BGR*)frame.data;
+		image.data_ = (BGRu8*)frame.data;
 
 		grab_cb(make_view(image));
 	}
@@ -175,7 +175,7 @@ namespace simage
 		ImageBGR image;
 		image.width = camera.image_width;
 		image.height = camera.image_height;
-		image.data_ = (BGR*)frame.data;
+		image.data_ = (BGRu8*)frame.data;
 
 		map(make_view(image), dst);
 
@@ -183,7 +183,7 @@ namespace simage
 	}
 
 
-	bool grab_image(CameraUSB const& camera, bgr_callback const& grab_cb)
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb)
 	{
 		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{
@@ -205,15 +205,15 @@ namespace simage
 		ImageBGR image;
 		image.width = camera.image_width;
 		image.height = camera.image_height;
-		image.data_ = (BGR*)frame.data;
+		image.data_ = (BGRu8*)frame.data;
 
-		grab_cb(make_view(image));
+		//grab_cb(make_view(image));
 
-		return true;
+		return false;
 	}
 
 
-	bool grab_continuous(CameraUSB const& camera, bgr_callback const& grab_cb, bool_f const& grab_condition)
+	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
 	{
 		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{
@@ -250,7 +250,7 @@ namespace simage
 		{ 
 			if (grab_ok[camcv.frame_prev]) 
 			{ 
-				process_previous_frame(camcv, grab_cb);
+				//process_previous_frame(camcv, grab_cb);
 			}			
 		};
 
@@ -270,7 +270,7 @@ namespace simage
 			wait_for_framerate();
 		}
 
-		return true;
+		return false;
 	}
 
 }

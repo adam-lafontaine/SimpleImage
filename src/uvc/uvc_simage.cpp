@@ -12,6 +12,8 @@
 #include <cstdio>
 #endif
 
+namespace img = simage;
+
 /*
 
 libuvc requires RW permissions for opening capturing devices, so you must
@@ -94,6 +96,12 @@ public:
 
     bool is_connected = false;
     bool is_streaming = false;
+
+    bool grab_single = false;
+
+    uvc_frame_t* bgr_frames[2];
+    u32 frame_curr = 0;
+	u32 frame_prev = 1;
 };
 
 
@@ -218,6 +226,9 @@ static void disconnect_device(DeviceUVC& device)
         device.frame_height = -1;
         device.fps = -1;
         device.is_connected = false;
+
+        uvc_free_frame(device.bgr_frames[0]);
+        uvc_free_frame(device.bgr_frames[1]);
     }
 }
 
@@ -276,11 +287,21 @@ static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
     if (res != UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_get_stream_ctrl_format_size");
-        disconnect_device(device);        
+        disconnect_device(device);
+        return false;
     }
     else
     {
         print_uvc_stream_info(device);
+    }
+
+    device.bgr_frames[0] = uvc_allocate_frame(width * height * 3);
+    device.bgr_frames[1] = uvc_allocate_frame(width * height * 3);
+
+    if (!device.bgr_frames[0] || !device.bgr_frames[1])
+    {
+        disconnect_device(device);
+        return false;
     }
 
     return true;
@@ -357,9 +378,25 @@ static bool enumerate_devices(DeviceListUVC& list)
 }
 
 
-static void uvc_frame_callback(uvc_frame_t* frame, void* data)
+static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
 {
+    auto& device = *(DeviceUVC*)data;
+
+    if (!device.grab_single)
+    {
+        return;
+    }
+
+    auto bgr = device.bgr_frames[device.frame_curr];
+
+    auto res = uvc_any2bgr(frame, bgr);
+    if (res != UVC_SUCCESS)
+    {
+        device.grab_single = false;
+        return;
+    }
     
+    device.grab_single = false;
 }
 
 
@@ -370,9 +407,9 @@ static void stop_device(DeviceUVC& device)
 }
 
 
-static bool start_device(DeviceUVC& device)
+static bool start_device(DeviceUVC& device, uvc_frame_callback_t callback)
 {
-    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_frame_callback, (void *) 12345, 0);
+    auto res = uvc_start_streaming(device.h_device, device.ctrl, callback, (void *)(&device), 0);
 
     if (res != UVC_SUCCESS)
     {
@@ -433,7 +470,7 @@ namespace simage
         camera.image_height = device.frame_height;
         camera.max_fps = device.fps;
 
-        if (!start_device(device))
+        if (!start_device(device, uvc_single_frame_callback))
         {
             return false;
         }
@@ -511,7 +548,25 @@ namespace simage
             return false;
         }
 
-        return false;
+        device.grab_single = true;
+        while (device.grab_single)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+
+        auto& frame = *(device.bgr_frames[device.frame_curr]);        
+
+        ImageBGR image;
+		image.width = camera.image_width;
+		image.height = camera.image_height;
+		image.data_ = (BGR*)frame.data;
+
+        device.frame_curr = device.frame_curr ? 0 : 1;
+        device.frame_prev = device.frame_curr ? 0 : 1;
+
+        map(make_view(image), dst);
+
+        return true;
     }
 
 

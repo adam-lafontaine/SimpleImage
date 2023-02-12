@@ -23,7 +23,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	camera_test,
 	camera_callback_test,
 	camera_histogram_test,
-	//camera_continuous_test,
+	camera_continuous_test,
 };
 
 

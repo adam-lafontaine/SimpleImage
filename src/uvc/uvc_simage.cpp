@@ -99,9 +99,7 @@ public:
 
     bool grab = false;
 
-    uvc_frame_t* rgb_frames[2];
-    u32 frame_curr = 0;
-	u32 frame_prev = 1;
+    uvc_frame_t* rgb_frame;
 };
 
 
@@ -376,7 +374,7 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
         return;
     }
 
-    auto rgb = device.rgb_frames[device.frame_curr];    
+    auto rgb = device.rgb_frame;
 
     auto res = uvc_any2rgb(frame, rgb);
     if (res != UVC_SUCCESS)
@@ -395,16 +393,25 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
 }
 
 
+class DeviceCallback
+{
+public:
+    DeviceUVC* device;
+    std::function<void(uvc_frame_t*)> rgb_cb;
+};
+
+
 static void uvc_continuous_frame_callback(uvc_frame_t* frame, void* data)
 {
-    auto& device = *(DeviceUVC*)data;
+    auto& dc = *(DeviceCallback*)data;
+    auto& device = *dc.device;
 
     if (!device.grab)
     {
         return;
     }
 
-    auto rgb = device.rgb_frames[device.frame_curr];    
+    auto rgb = device.rgb_frame;
 
     auto res = uvc_any2rgb(frame, rgb);
     if (res != UVC_SUCCESS)
@@ -415,9 +422,12 @@ static void uvc_continuous_frame_callback(uvc_frame_t* frame, void* data)
         {
             p[i] = 128;
         }
+        dc.rgb_cb(rgb);
         device.grab = false;
         return;
     }
+
+    dc.rgb_cb(rgb);
 }
 
 
@@ -425,25 +435,29 @@ static void stop_device(DeviceUVC& device)
 {    
     uvc_stop_streaming(device.h_device);
     device.is_streaming = false;
-
-    uvc_free_frame(device.rgb_frames[0]);
-    uvc_free_frame(device.rgb_frames[1]);
 }
 
 
-static bool start_device(DeviceUVC& device, uvc_frame_callback_t callback)
-{
-    size_t frame_bytes = device.frame_width * device.frame_height * 3;
-    device.rgb_frames[0] = uvc_allocate_frame(frame_bytes);
-    device.rgb_frames[1] = uvc_allocate_frame(frame_bytes);
+static bool start_device_single_frame(DeviceUVC& device)
+{ 
+    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_single_frame_callback, (void *)(&device), 0);
 
-    if (!device.rgb_frames[0] || !device.rgb_frames[1])
+    if (res != UVC_SUCCESS)
     {
-        print_error("Error allocating frame memory");
+        print_uvc_error(res, "uvc_start_streaming");
         return false;
-    }   
-    
-    auto res = uvc_start_streaming(device.h_device, device.ctrl, callback, (void *)(&device), 0);
+    }
+
+    device.is_streaming = true;
+
+    return true;
+}
+
+
+static bool start_device_continuous(DeviceCallback& device_cb)
+{   
+    auto& device = *device_cb.device; 
+    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_continuous_frame_callback, (void *)(&device_cb), 0);
 
     if (res != UVC_SUCCESS)
     {
@@ -504,7 +518,16 @@ namespace simage
         camera.image_height = device.frame_height;
         camera.max_fps = device.fps;
 
-        if (!start_device(device, uvc_single_frame_callback))
+        size_t frame_bytes = device.frame_width * device.frame_height * 3;
+        device.rgb_frame = uvc_allocate_frame(frame_bytes);
+
+        if (!device.rgb_frame)
+        {
+            print_error("Error allocating frame memory");
+            return false;
+        }
+
+        if (!start_device_single_frame(device))
         {
             return false;
         }
@@ -536,6 +559,8 @@ namespace simage
         {
             disconnect_device(device);
         }
+
+        uvc_free_frame(device.rgb_frame);
     }
 
 
@@ -557,6 +582,8 @@ namespace simage
             {
                 disconnect_device(device);
             }
+
+            uvc_free_frame(device.rgb_frame);
         }
 
         uvc_exit(g_device_list.context);
@@ -590,10 +617,7 @@ namespace simage
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
-        auto& frame = *(device.rgb_frames[device.frame_curr]);
-
-        device.frame_curr = device.frame_curr ? 0 : 1;
-        device.frame_prev = device.frame_curr ? 0 : 1;
+        auto& frame = *(device.rgb_frame);
         
         img::ImageRGB image;
         image.width = camera.image_width;
@@ -625,10 +649,7 @@ namespace simage
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
-        auto& frame = *(device.rgb_frames[device.frame_curr]);
-
-        device.frame_curr = device.frame_curr ? 0 : 1;
-        device.frame_prev = device.frame_curr ? 0 : 1;
+        auto& frame = *(device.rgb_frame);
         
         img::ImageRGB image;
         image.width = camera.image_width;
@@ -656,7 +677,22 @@ namespace simage
             stop_device(device);
         }
 
-        start_device(device, uvc_continuous_frame_callback);
+        img::ImageRGB frame_image;
+        frame_image.width = camera.image_width;
+        frame_image.height = camera.image_height;
+
+        auto const frame_cb = [&](uvc_frame_t* frame)
+        {            
+		    frame_image.data_ = (RGBu8*)frame->data;
+            img::map(img::make_view(frame_image), grab_view);
+            grab_cb(grab_view);
+        };
+
+        DeviceCallback dc{};
+        dc.device = &device;
+        dc.rgb_cb = frame_cb;        
+
+        start_device_continuous(dc);
 
         device.grab = true;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -670,6 +706,8 @@ namespace simage
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             if (!device.grab)
             {
+                stop_device(device);
+                start_device_single_frame(device);
                 return false;
             }
         }
@@ -677,7 +715,7 @@ namespace simage
         device.grab = false;
 
         stop_device(device);
-        start_device(device, uvc_single_frame_callback);
+        start_device_single_frame(device);
 
         return true;
     }

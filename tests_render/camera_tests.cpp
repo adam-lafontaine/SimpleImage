@@ -208,28 +208,27 @@ void camera_histogram_test(img::View const& out)
 }
 
 
-//void camera_continuous_test(img::View const& out)
-//{
-//	img::CameraUSB camera;
-//
-//	if (!img::open_camera(camera))
-//	{
-//		return;
-//	}
-//
-//	auto dst = img::sub_view(out, make_range(camera.image_width, camera.image_height));
-//
-//	auto frame_count = 0;
-//
-//	auto const grab_condition = [&frame_count]() { return frame_count < 120; };
-//
-//	auto const grab_cb = [&](img::ViewBGR const& src)
-//	{
-//		img::map(src, dst);
-//		++frame_count;
-//	};
-//
-//	img::grab_continuous(camera, grab_cb, grab_condition);
-//
-//	img::close_all_cameras();
-//}
+void camera_continuous_test(img::View const& out)
+{
+	img::CameraUSB camera;
+
+	if (!img::open_camera(camera))
+	{
+		return;
+	}
+
+	auto dst = img::sub_view(out, make_range(camera.image_width, camera.image_height));
+
+	auto frame_count = 0;
+	auto const grab_condition = [&frame_count]() { return frame_count < 240; };
+
+	auto const grab_cb = [&](img::View const& src)
+	{
+		++frame_count;
+	};
+
+	img::grab_continuous(camera, grab_cb, dst, grab_condition);
+
+	img::close_all_cameras();
+
+}

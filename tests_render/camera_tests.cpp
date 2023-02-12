@@ -182,24 +182,27 @@ void camera_histogram_test(img::View const& out)
 
 	img::Buffer32 buffer;
 	mb::create_buffer(buffer, width * height);
-/*
+
 	auto hist_view = img::make_view_1(width, height, buffer);
 
 	img::Histogram12r32 hists;
 	hists.n_bins = N_BINS;
 
-	auto const grab_cb = [&](img::ViewBGR const& src)
+	auto const grab_cb = [&](img::View const& src)
 	{
 		img::make_histograms(src, hists);
 		draw(hists, hist_view, params);
 		img::map_rgb(hist_view, out);
 	};
 
-	if (!img::grab_image(camera, grab_cb))
+	Image grab_image;
+	img::create_image(grab_image, width, height);
+
+	if (!img::grab_image(camera, grab_cb, img::make_view(grab_image)))
 	{
 
 	}
-*/
+
 	mb::destroy_buffer(buffer);
 	img::close_all_cameras();
 }

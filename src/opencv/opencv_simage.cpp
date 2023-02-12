@@ -185,7 +185,7 @@ namespace simage
 	}
 
 
-	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb, View const& dst)
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view)
 	{
 		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{
@@ -209,15 +209,15 @@ namespace simage
 		image.height = camera.image_height;
 		image.data_ = (BGRu8*)frame.data;
 
-		img::map(img::make_view(image), dst);
+		img::map(img::make_view(image), grab_view);
 
-        grab_cb(dst);
+        grab_cb(grab_view);
 
 		return false;
 	}
 
 
-	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view, bool_f const& grab_condition)
 	{
 		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{

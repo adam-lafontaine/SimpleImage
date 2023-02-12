@@ -130,7 +130,7 @@ void camera_callback_test(img::View const& out)
 
 	img::Buffer32 buffer;
 	mb::create_buffer(buffer, width * height * 6);
-/*
+
 	auto rgb = img::make_view_3(width, height, buffer);
 	auto gray = img::make_view_1(width, height, buffer);
 	auto grad = img::make_view_2(width, height, buffer);
@@ -139,20 +139,23 @@ void camera_callback_test(img::View const& out)
 
 	auto const to_hypot = [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y); };
 
-	auto const grab_cb = [&](img::ViewBGR const& src)
+	auto const grab_cb = [&](img::View const& src)
 	{
-		img::map_bgr_rgb(src, rgb);
+		img::map_rgb(src, rgb);
 		img::transform_gray(rgb, gray);
 		img::gradients_xy(gray, grad);
 		img::transform(grad, gray, to_hypot);
 		img::map_rgb(gray, dst);
 	};
 
-	if (!img::grab_image(camera, grab_cb))
+	Image grab_image;
+	img::create_image(grab_image, dst.width, dst.height);
+
+	if (!img::grab_image(camera, grab_cb, img::make_view(grab_image)))
 	{
 		
 	}
-*/
+
 	mb::destroy_buffer(buffer);
 	img::close_all_cameras();
 }

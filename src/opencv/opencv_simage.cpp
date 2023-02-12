@@ -8,6 +8,8 @@
 #include <array>
 #include <thread>
 
+namespace img = simage;
+
 
 constexpr int N_CAMERAS = 1;
 //constexpr u32 N_FRAMES = 2;
@@ -183,7 +185,7 @@ namespace simage
 	}
 
 
-	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb)
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb, View const& dst)
 	{
 		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
 		{
@@ -207,7 +209,9 @@ namespace simage
 		image.height = camera.image_height;
 		image.data_ = (BGRu8*)frame.data;
 
-		//grab_cb(make_view(image));
+		img::map(img::make_view(image), dst);
+
+        grab_cb(dst);
 
 		return false;
 	}

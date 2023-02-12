@@ -21,7 +21,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	//resize_image_test,
 	histogram_image_test,
 	camera_test,
-	//camera_callback_test,
+	camera_callback_test,
 	//camera_histogram_test,
 	//camera_continuous_test,
 };

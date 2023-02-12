@@ -97,7 +97,7 @@ public:
     bool is_connected = false;
     bool is_streaming = false;
 
-    bool grab_single = false;
+    bool grab = false;
 
     uvc_frame_t* rgb_frames[2];
     u32 frame_curr = 0;
@@ -371,7 +371,7 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
 {
     auto& device = *(DeviceUVC*)data;
 
-    if (!device.grab_single)
+    if (!device.grab)
     {
         return;
     }
@@ -382,11 +382,42 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
     if (res != UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_any2rgb");
-        device.grab_single = false;
+        auto p = (u8*)rgb->data;
+        for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
+        {
+            p[i] = 128;
+        }
+        device.grab = false;
         return;
     }
     
-    device.grab_single = false;
+    device.grab = false;
+}
+
+
+static void uvc_continuous_frame_callback(uvc_frame_t* frame, void* data)
+{
+    auto& device = *(DeviceUVC*)data;
+
+    if (!device.grab)
+    {
+        return;
+    }
+
+    auto rgb = device.rgb_frames[device.frame_curr];    
+
+    auto res = uvc_any2rgb(frame, rgb);
+    if (res != UVC_SUCCESS)
+    {
+        print_uvc_error(res, "uvc_any2rgb");
+        auto p = (u8*)rgb->data;
+        for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
+        {
+            p[i] = 128;
+        }
+        device.grab = false;
+        return;
+    }
 }
 
 
@@ -553,8 +584,8 @@ namespace simage
             return false;
         }
 
-        device.grab_single = true;
-        while (device.grab_single)
+        device.grab = true;
+        while (device.grab)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
@@ -575,7 +606,7 @@ namespace simage
     }
 
 
-    bool grab_image(CameraUSB const& camera, view_callback const& grab_cb)
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view)
     {
         if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{
@@ -588,13 +619,31 @@ namespace simage
             return false;
         }
 
+        device.grab = true;
+        while (device.grab)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
 
+        auto& frame = *(device.rgb_frames[device.frame_curr]);
+
+        device.frame_curr = device.frame_curr ? 0 : 1;
+        device.frame_prev = device.frame_curr ? 0 : 1;
+        
+        img::ImageRGB image;
+        image.width = camera.image_width;
+		image.height = camera.image_height;
+		image.data_ = (RGBu8*)frame.data;
+
+        img::map(img::make_view(image), grab_view);
+
+        grab_cb(grab_view);
 
         return false;
     }
 
 
-    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view, bool_f const& grab_condition)
     {
         if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{
@@ -602,12 +651,35 @@ namespace simage
 		}
 
         auto& device = g_device_list.devices[camera.id];
-        if (!device.is_streaming)
+        if (device.is_streaming)
+        {
+            stop_device(device);
+        }
+
+        start_device(device, uvc_continuous_frame_callback);
+
+        device.grab = true;
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        if (!device.grab)
         {
             return false;
         }
 
-        return false;
+        while (grab_condition())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            if (!device.grab)
+            {
+                return false;
+            }
+        }
+
+        device.grab = false;
+
+        stop_device(device);
+        start_device(device, uvc_single_frame_callback);
+
+        return true;
     }
 
 

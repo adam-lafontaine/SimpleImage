@@ -619,11 +619,10 @@ namespace simage
     }
 
 
-    
-
-
     bool grab_image(CameraUSB const& camera)
     {
+        assert(verify(camera));
+        
         if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
 		{
 			return false;

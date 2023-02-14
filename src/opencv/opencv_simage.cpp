@@ -44,7 +44,7 @@ namespace simage
 
 	static bool verify(CameraUSB const& camera)
 	{
-		return camera.image_width && camera.image_height && camera.max_fps && camera.id >= 0;
+		return camera.image_width && camera.image_height && camera.max_fps && camera.device_id >= 0;
 	}
 
 
@@ -60,27 +60,42 @@ namespace simage
 #endif
 
 
+static void close_all_cameras()
+{
+	for (int i = 0; i < N_CAMERAS; ++i)
+	{
+		g_cameras[i].capture.release();
+
+		g_cameras[i].frames[0].release();
+		g_cameras[i].frames[1].release();
+	}
+}
+
+
+static bool grab_current_frame(CameraCV& cam)
+{
+	auto& cap = cam.capture;
+
+	if (!cap.grab())
+	{
+		return false;
+	}
+
+	auto& frame = cam.frames[cam.frame_curr];
+
+	if (!cap.retrieve(frame))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
 
 namespace simage
 {
-	static bool grab_current_frame(CameraCV& cam)
-	{
-		auto& cap = cam.capture;
-
-		if (!cap.grab())
-		{
-			return false;
-		}
-
-		auto& frame = cam.frames[cam.frame_curr];
-
-		if (!cap.retrieve(frame))
-		{
-			return false;
-		}
-
-		return true;
-	}
+	
 
 
 	static void process_previous_frame(CameraCV& cam, std::function<void(ViewBGR const&)> const& grab_cb)
@@ -110,10 +125,17 @@ namespace simage
 			}
 		}
 
-		camera.id = 0;
+		camera.device_id = 0;
 		camera.image_width = (u32)cap.get(cv::CAP_PROP_FRAME_WIDTH);
 		camera.image_height = (u32)cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 		camera.max_fps = (u32)cap.get(cv::CAP_PROP_FPS);
+
+		if (!create_image(camera.latest_frame, camera.image_width, camera.image_height))
+		{
+			cap.release();			
+			return false;
+		}
+
 		camera.is_open = true;
 
 		assert(camera.image_width);
@@ -128,28 +150,49 @@ namespace simage
 	{
 		camera.is_open = false;
 
-		if (camera.id < 0 || camera.id >= N_CAMERAS)
+		if (camera.device_id < 0 || camera.device_id >= N_CAMERAS)
 		{
 			return;
 		}
 
-		auto& camcv = g_cameras[camera.id];
+		/*auto& camcv = g_cameras[camera.device_id];
 		camcv.capture.release();
 		camcv.frames[0].release();
-		camcv.frames[1].release();
+		camcv.frames[1].release();*/
 
+		close_all_cameras();
 	}
 
 
-	void close_all_cameras()
+	bool grab_image(CameraUSB const& camera)
 	{
-		for (int i = 0; i < N_CAMERAS; ++i)
-		{
-			g_cameras[i].capture.release();
+		assert(verify(camera));
 
-			g_cameras[i].frames[0].release();
-			g_cameras[i].frames[1].release();
+		if (!camera.is_open || camera.device_id < 0 || camera.device_id >= N_CAMERAS)
+		{
+			return false;
 		}
+
+		auto& camcv = g_cameras[camera.device_id];
+
+		if (!grab_current_frame(camcv))
+		{
+			return false;
+		}
+
+		auto& frame = camcv.frames[camcv.frame_curr];
+
+		camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
+		camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
+
+		ImageBGR bgr;
+		bgr.width = camera.image_width;
+		bgr.height = camera.image_height;
+		bgr.data_ = (BGRu8*)frame.data;
+
+		map(make_view(bgr), make_view(camera.latest_frame));
+
+		return true;
 	}
 
 
@@ -157,12 +200,12 @@ namespace simage
 	{
 		assert(verify(camera, dst));
 
-		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
+		if (!camera.is_open || camera.device_id < 0 || camera.device_id >= N_CAMERAS)
 		{
 			return false;
 		}
 
-		auto& camcv = g_cameras[camera.id];
+		auto& camcv = g_cameras[camera.device_id];
 
 		if (!grab_current_frame(camcv))
 		{
@@ -174,25 +217,25 @@ namespace simage
 		camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
 		camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
 
-		ImageBGR image;
-		image.width = camera.image_width;
-		image.height = camera.image_height;
-		image.data_ = (BGRu8*)frame.data;
+		ImageBGR bgr;
+		bgr.width = camera.image_width;
+		bgr.height = camera.image_height;
+		bgr.data_ = (BGRu8*)frame.data;
 
-		map(make_view(image), dst);
+		map(make_view(bgr), dst);
 
 		return true;
 	}
 
 
-	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view)
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb)
 	{
-		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
+		if (!camera.is_open || camera.device_id < 0 || camera.device_id >= N_CAMERAS)
 		{
 			return false;
 		}
 
-		auto& camcv = g_cameras[camera.id];
+		auto& camcv = g_cameras[camera.device_id];
 
 		if (!grab_current_frame(camcv))
 		{
@@ -204,22 +247,22 @@ namespace simage
 		camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
 		camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
 
-		ImageBGR image;
-		image.width = camera.image_width;
-		image.height = camera.image_height;
-		image.data_ = (BGRu8*)frame.data;
+		ImageBGR bgr;
+		bgr.width = camera.image_width;
+		bgr.height = camera.image_height;
+		bgr.data_ = (BGRu8*)frame.data;
 
-		img::map(img::make_view(image), grab_view);
+		auto frame_view = make_view(camera.latest_frame);
+        map(make_view(bgr), frame_view);
+        grab_cb(frame_view);
 
-        grab_cb(grab_view);
-
-		return false;
+        return true;
 	}
 
 
-	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view, bool_f const& grab_condition)
+	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
 	{
-		if (!camera.is_open || camera.id < 0 || camera.id >= N_CAMERAS)
+		if (!camera.is_open || camera.device_id < 0 || camera.device_id >= N_CAMERAS)
 		{
 			return false;
 		}
@@ -245,7 +288,7 @@ namespace simage
 			sw.start();
 		};
 
-		auto& camcv = g_cameras[camera.id];
+		auto& camcv = g_cameras[camera.device_id];
 		bool grab_ok[2] = { false, false };
 
 		auto const grab_current = [&]() { grab_ok[camcv.frame_curr] = grab_current_frame(camcv); };

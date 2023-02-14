@@ -10,7 +10,6 @@ extern "C" {
 #include <stdio.h> // FILE
 #include <stdint.h>
 #include <sys/time.h>
-//#include "libuvc_config.h.in"
 
 struct libusb_context;
 struct libusb_device_handle;

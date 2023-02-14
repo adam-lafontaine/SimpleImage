@@ -92,22 +92,31 @@ static bool grab_current_frame(CameraCV& cam)
 }
 
 
+static void swap_frames(CameraCV& camcv)
+{
+	camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
+	camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
+}
+
+
 
 namespace simage
 {
 	
 
 
-	static void process_previous_frame(CameraCV& cam, std::function<void(ViewBGR const&)> const& grab_cb)
+	static void process_previous_frame(CameraUSB const& camera, CameraCV& camcv, view_callback const& grab_cb)
 	{
-		auto& frame = cam.frames[cam.frame_prev];
+		auto& frame = camcv.frames[camcv.frame_prev];
 
-		ImageBGR image;
-		image.width = (u32)frame.cols;
-		image.height = (u32)frame.rows;
-		image.data_ = (BGRu8*)frame.data;
+		ImageBGR bgr;
+		bgr.width = camera.image_width;
+		bgr.height = camera.image_height;
+		bgr.data_ = (BGRu8*)frame.data;
 
-		grab_cb(make_view(image));
+		auto frame_view = make_view(camera.latest_frame);
+		map(make_view(bgr), frame_view);
+		grab_cb(frame_view);
 	}
 
 
@@ -182,8 +191,7 @@ namespace simage
 
 		auto& frame = camcv.frames[camcv.frame_curr];
 
-		camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
-		camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
+		swap_frames(camcv);
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -214,8 +222,7 @@ namespace simage
 
 		auto& frame = camcv.frames[camcv.frame_curr];
 
-		camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
-		camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
+		swap_frames(camcv);
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -244,8 +251,7 @@ namespace simage
 
 		auto& frame = camcv.frames[camcv.frame_curr];
 
-		camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
-		camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
+		swap_frames(camcv);
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -297,7 +303,7 @@ namespace simage
 		{ 
 			if (grab_ok[camcv.frame_prev]) 
 			{ 
-				//process_previous_frame(camcv, grab_cb);
+				process_previous_frame(camera, camcv, grab_cb);
 			}			
 		};
 
@@ -311,8 +317,7 @@ namespace simage
 		{
 			execute(procs);
 
-			camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
-			camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
+			swap_frames(camcv);
 
 			wait_for_framerate();
 		}

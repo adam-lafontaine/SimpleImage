@@ -107,13 +107,6 @@ memory_buffer_o := $(build)/memory_buffer.o
 object_files += $(memory_buffer_o)
 
 
-# uvc
-#uvc_c := $(uvc)/libuvc.c
-#uvc_c += $(uvc_h)
-#uvc_o := $(build)/libuvc.o
-#object_files += $(uvc_o)
-
-
 # stb_simage
 stb_simage_c := $(stb)/stb_simage.cpp
 stb_simage_c += $(stb_h)
@@ -210,8 +203,8 @@ LIBRARIES += $(LIBUSB)
 CCFLAGS := -std=c++20 
 #-mavx -mavx2
 
-#CCFLAGS += -O3
-#CCFLAGS += -DNDEBUG
+CCFLAGS += -O3
+CCFLAGS += -DNDEBUG
 
 
 # build rules
@@ -233,10 +226,6 @@ $(memory_buffer_o): $(memory_buffer_c)
 $(stb_simage_o): $(stb_simage_c)
 	@echo "\n stb_simage"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
-
-#$(uvc_o): $(uvc_c)
-#	@echo "\n uvc"
-#	$(GPP) $(CCFLAGS) -o $@ -c $< $(INCLUDES) $(LIBRARIES)
 
 
 

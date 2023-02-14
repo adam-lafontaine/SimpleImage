@@ -204,6 +204,7 @@ void camera_histogram_test(img::View const& out)
 	}
 
 	mb::destroy_buffer(buffer);
+	img::destroy_image(grab_image);
 	img::close_all_cameras();
 }
 
@@ -217,18 +218,41 @@ void camera_continuous_test(img::View const& out)
 		return;
 	}
 
-	auto dst = img::sub_view(out, make_range(camera.image_width, camera.image_height));
+	auto width = camera.image_width;
+	auto height = camera.image_height;
 
 	auto frame_count = 0;
-	auto const grab_condition = [&frame_count]() { return frame_count < 240; };
+	auto const grab_condition = [&frame_count]() { return frame_count < 10; };
+
+	Image grab_image;
+	img::create_image(grab_image, width, height);
+
+	u32 w = width / 10;
+	auto range = make_range(w, height);
+
+	img::Buffer32 buffer;
+	mb::create_buffer(buffer, w * height * 4);
+
+	auto view_rgb = img::make_view_3(w, height, buffer);
+	auto view_gray = img::make_view_1(w, height, buffer);
+	r32 f = 1.0f;
 
 	auto const grab_cb = [&](img::View const& src)
 	{
+		img::map_rgb(img::sub_view(src, range), view_rgb);
+		img::transform_gray(view_rgb, view_gray);
+		img::transform(view_gray, view_gray, [&](r32 p){ return p * f; });
+		img::map_rgb(view_gray, img::sub_view(out, range));
+
+		range.x_begin += w;
+		range.x_end += w;
+		f = f == 1.0f ? 0.5f : 1.0f;
 		++frame_count;
 	};
 
-	img::grab_continuous(camera, grab_cb, dst, grab_condition);
+	img::grab_continuous(camera, grab_cb, img::make_view(grab_image), grab_condition);
 
 	img::close_all_cameras();
-
+	img::destroy_image(grab_image);
+	mb::destroy_buffer(buffer);
 }

@@ -1,6 +1,6 @@
 #include "../simage/simage_platform.hpp"
-#include "../util/stopwatch.hpp"
-#include "../util/execute.hpp"
+
+#define LIBUVC_IMPLEMENTATION 1
 #include "../uvc/libuvc.h"
 
 #include <array>
@@ -231,7 +231,7 @@ static void disconnect_device(DeviceUVC& device)
 
         uvc_unref_device(device.p_device);
         device.p_device = nullptr;
-        
+
         device.frame_width = -1;
         device.frame_height = -1;
         device.fps = -1;

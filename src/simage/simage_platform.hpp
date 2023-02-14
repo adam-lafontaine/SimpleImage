@@ -579,12 +579,12 @@ namespace simage
 	class CameraUSB
 	{
 	public:
-		int id = -1;
+		int device_id = -1;
 		u32 image_width = 0;
 		u32 image_height = 0;
 		u32 max_fps = 0;
 
-		Image frame;
+		Image latest_frame;
 
 		bool is_open;
 	};
@@ -596,8 +596,6 @@ namespace simage
 	bool open_camera(CameraUSB& camera);
 
 	void close_camera(CameraUSB& camera);
-
-	void close_all_devices();
 
 	bool grab_image(CameraUSB const& camera);
 

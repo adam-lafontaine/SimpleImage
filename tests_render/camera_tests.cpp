@@ -113,7 +113,6 @@ void camera_test(img::View const& out)
 	}
 
 	img::close_camera(camera);
-	img::close_all_devices();
 }
 
 
@@ -159,7 +158,6 @@ void camera_callback_test(img::View const& out)
 
 	mb::destroy_buffer(buffer);
 	img::close_camera(camera);
-	img::close_all_devices();
 }
 
 
@@ -205,7 +203,6 @@ void camera_histogram_test(img::View const& out)
 
 	mb::destroy_buffer(buffer);
 	img::close_camera(camera);
-	img::close_all_devices();
 }
 
 
@@ -251,6 +248,5 @@ void camera_continuous_test(img::View const& out)
 	img::grab_continuous(camera, grab_cb, grab_condition);
 
 	img::close_camera(camera);
-	img::close_all_devices();
 	mb::destroy_buffer(buffer);
 }

@@ -212,8 +212,8 @@ LIBRARIES += $(LIBUSB)
 CCFLAGS := -std=c++20 
 #-mavx -mavx2
 
-#CCFLAGS += -O3
-#CCFLAGS += -DNDEBUG
+CCFLAGS += -O3
+CCFLAGS += -DNDEBUG
 
 
 # build rules

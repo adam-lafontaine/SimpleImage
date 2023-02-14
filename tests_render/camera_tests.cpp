@@ -3,6 +3,7 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 
 constexpr u32 BIN_SPACE = 1;
@@ -96,10 +97,11 @@ static void draw(img::Histogram12r32& hists, img::View1r32 const& dst, HistParam
 
 void camera_test(img::View const& out)
 {
- 	img::CameraUSB camera;
+ 	img::CameraUSB camera;	
 
 	if (!img::open_camera(camera))
 	{
+		printf("Error camera_test / open_camera\n");
 		return;
 	}
 
@@ -107,10 +109,11 @@ void camera_test(img::View const& out)
 
 	if (!img::grab_image(camera, dst))
 	{
-		
+		printf("Error camera_test / grab_image\n");
 	}
 
-	img::close_all_cameras();
+	img::close_camera(camera);
+	img::close_all_devices();
 }
 
 
@@ -120,6 +123,7 @@ void camera_callback_test(img::View const& out)
 
 	if (!img::open_camera(camera))
 	{
+		printf("Error camera_callback_test / open_camera\n");
 		return;
 	}
 
@@ -148,16 +152,14 @@ void camera_callback_test(img::View const& out)
 		img::map_rgb(gray, dst);
 	};
 
-	Image grab_image;
-	img::create_image(grab_image, dst.width, dst.height);
-
-	if (!img::grab_image(camera, grab_cb, img::make_view(grab_image)))
+	if (!img::grab_image(camera, grab_cb))
 	{
-		
+		printf("Error camera_callback_test / grab_image\n");
 	}
 
 	mb::destroy_buffer(buffer);
-	img::close_all_cameras();
+	img::close_camera(camera);
+	img::close_all_devices();
 }
 
 
@@ -167,6 +169,7 @@ void camera_histogram_test(img::View const& out)
 
 	if (!img::open_camera(camera))
 	{
+		printf("Error camera_histogram_test / open_camera\n");
 		return;
 	}
 
@@ -195,17 +198,14 @@ void camera_histogram_test(img::View const& out)
 		img::map_rgb(hist_view, out);
 	};
 
-	Image grab_image;
-	img::create_image(grab_image, width, height);
-
-	if (!img::grab_image(camera, grab_cb, img::make_view(grab_image)))
+	if (!img::grab_image(camera, grab_cb))
 	{
-
+		printf("Error camera_histogram_test / grab_image\n");
 	}
 
 	mb::destroy_buffer(buffer);
-	img::destroy_image(grab_image);
-	img::close_all_cameras();
+	img::close_camera(camera);
+	img::close_all_devices();
 }
 
 
@@ -215,6 +215,7 @@ void camera_continuous_test(img::View const& out)
 
 	if (!img::open_camera(camera))
 	{
+		printf("Error camera_continuous_test / open_camera\n");
 		return;
 	}
 
@@ -223,9 +224,6 @@ void camera_continuous_test(img::View const& out)
 
 	auto frame_count = 0;
 	auto const grab_condition = [&frame_count]() { return frame_count < 10; };
-
-	Image grab_image;
-	img::create_image(grab_image, width, height);
 
 	u32 w = width / 10;
 	auto range = make_range(w, height);
@@ -250,9 +248,9 @@ void camera_continuous_test(img::View const& out)
 		++frame_count;
 	};
 
-	img::grab_continuous(camera, grab_cb, img::make_view(grab_image), grab_condition);
+	img::grab_continuous(camera, grab_cb, grab_condition);
 
-	img::close_all_cameras();
-	img::destroy_image(grab_image);
+	img::close_camera(camera);
+	img::close_all_devices();
 	mb::destroy_buffer(buffer);
 }

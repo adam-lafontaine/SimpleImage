@@ -584,6 +584,8 @@ namespace simage
 		u32 image_height = 0;
 		u32 max_fps = 0;
 
+		Image frame;
+
 		bool is_open;
 	};
 	
@@ -595,11 +597,13 @@ namespace simage
 
 	void close_camera(CameraUSB& camera);
 
-	void close_all_cameras();
+	void close_all_devices();
+
+	bool grab_image(CameraUSB const& camera);
 
 	bool grab_image(CameraUSB const& camera, View const& dst);
 
-	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view);
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb);
 
-	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view, bool_f const& grab_condition);
+	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition);
 }

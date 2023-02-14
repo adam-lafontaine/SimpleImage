@@ -119,6 +119,13 @@ public:
 
 static DeviceListUVC g_device_list;
 
+class DeviceCallback
+{
+public:
+    DeviceUVC* device;
+    std::function<void(uvc_frame_t*)> rgb_cb;
+};
+
 
 
 static void print_uvc_error(uvc_error_t err, const char* msg)
@@ -393,14 +400,6 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
 }
 
 
-class DeviceCallback
-{
-public:
-    DeviceUVC* device;
-    std::function<void(uvc_frame_t*)> rgb_cb;
-};
-
-
 static void uvc_continuous_frame_callback(uvc_frame_t* frame, void* data)
 {
     auto& dc = *(DeviceCallback*)data;
@@ -518,6 +517,13 @@ namespace simage
         camera.image_height = device.frame_height;
         camera.max_fps = device.fps;
 
+        if (!create_image(camera.frame, camera.image_width, camera.image_height))
+        {
+            uvc_free_device_list(g_device_list.device_list, 0);
+            uvc_exit(g_device_list.context);
+            return false;
+        }
+
         size_t frame_bytes = device.frame_width * device.frame_height * 3;
         device.rgb_frame = uvc_allocate_frame(frame_bytes);
 
@@ -531,7 +537,7 @@ namespace simage
         {
             return false;
         }
-
+        
         camera.is_open = true;
 
         enable_exposure_mode(device);
@@ -543,6 +549,7 @@ namespace simage
     void close_camera(CameraUSB& camera)
     {
         camera.is_open = false;
+        destroy_image(camera.frame);
 
         if (camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{
@@ -560,11 +567,15 @@ namespace simage
             disconnect_device(device);
         }
 
-        uvc_free_frame(device.rgb_frame);
+        if (device.rgb_frame)
+        {
+            uvc_free_frame(device.rgb_frame);
+            device.rgb_frame = nullptr;
+        }
     }
 
 
-    void close_all_cameras()
+    void close_all_devices()
     {
         if (!g_device_list.is_connected)
         {
@@ -583,16 +594,51 @@ namespace simage
                 disconnect_device(device);
             }
 
-            uvc_free_frame(device.rgb_frame);
+            if (device.rgb_frame)
+            {
+                uvc_free_frame(device.rgb_frame);
+                device.rgb_frame = nullptr;
+            }
         }
-
-        uvc_exit(g_device_list.context);
-        g_device_list.is_connected = false;  
-
+        
+        g_device_list.is_connected = false;
         g_device_list.devices.clear();
         g_device_list.stream_ctrl_list.clear();
 
         uvc_free_device_list(g_device_list.device_list, 0);
+        uvc_exit(g_device_list.context);
+    }
+
+
+    bool grab_image(CameraUSB const& camera)
+    {
+        if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
+		{
+			return false;
+		}
+
+        auto& device = g_device_list.devices[camera.id];
+        if (!device.is_streaming)
+        {
+            return false;
+        }
+
+        device.grab = true;
+        while (device.grab)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+
+        auto& frame = *(device.rgb_frame);
+        
+        ImageRGB rgb;
+        rgb.width = camera.image_width;
+		rgb.height = camera.image_height;
+		rgb.data_ = (RGBu8*)frame.data;
+
+        map(make_view(rgb), make_view(camera.frame));
+
+        return true;
     }
 
 
@@ -619,18 +665,18 @@ namespace simage
 
         auto& frame = *(device.rgb_frame);
         
-        img::ImageRGB image;
-        image.width = camera.image_width;
-		image.height = camera.image_height;
-		image.data_ = (RGBu8*)frame.data;
+        ImageRGB rgb;
+        rgb.width = camera.image_width;
+		rgb.height = camera.image_height;
+		rgb.data_ = (RGBu8*)frame.data;
 
-        map(make_view(image), dst);
+        map(make_view(rgb), dst);
 
         return true;
     }
 
 
-	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view)
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb)
     {
         if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{
@@ -651,20 +697,20 @@ namespace simage
 
         auto& frame = *(device.rgb_frame);
         
-        img::ImageRGB image;
-        image.width = camera.image_width;
-		image.height = camera.image_height;
-		image.data_ = (RGBu8*)frame.data;
+        ImageRGB rgb;
+        rgb.width = camera.image_width;
+		rgb.height = camera.image_height;
+		rgb.data_ = (RGBu8*)frame.data;
 
-        img::map(img::make_view(image), grab_view);
+        auto frame_view = make_view(camera.frame);
+        map(make_view(rgb), frame_view);
+        grab_cb(frame_view);
 
-        grab_cb(grab_view);
-
-        return false;
+        return true;
     }
 
 
-    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, View const& grab_view, bool_f const& grab_condition)
+    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
     {
         if (!camera.is_open || camera.id < 0 || camera.id >= (int)g_device_list.devices.size())
 		{
@@ -677,15 +723,17 @@ namespace simage
             stop_device(device);
         }
 
-        img::ImageRGB frame_image;
-        frame_image.width = camera.image_width;
-        frame_image.height = camera.image_height;
+        ImageRGB rgb;
+        rgb.width = camera.image_width;
+		rgb.height = camera.image_height;
+
+        auto frame_view = make_view(camera.frame);
 
         auto const frame_cb = [&](uvc_frame_t* frame)
         {            
-		    frame_image.data_ = (RGBu8*)frame->data;
-            img::map(img::make_view(frame_image), grab_view);
-            grab_cb(grab_view);
+		    rgb.data_ = (RGBu8*)frame->data;            
+            map(make_view(rgb), frame_view);
+            grab_cb(frame_view);
         };
 
         DeviceCallback dc{};
@@ -718,10 +766,7 @@ namespace simage
         start_device_single_frame(device);
 
         return true;
-    }
-
-
-    
+    }    
 }
 
 

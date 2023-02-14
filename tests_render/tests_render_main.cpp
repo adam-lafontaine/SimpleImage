@@ -16,10 +16,10 @@ constexpr auto APP_VERSION = "1.0";
 
 static std::vector<std::function<void(img::View const&)>> tests =
 {
-	fill_platform_view_test,
+	//fill_platform_view_test,
 	//copy_image_test,
 	//resize_image_test,
-	histogram_image_test,
+	//histogram_image_test,
 	camera_test,
 	camera_callback_test,
 	camera_histogram_test,

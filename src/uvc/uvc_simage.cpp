@@ -79,9 +79,9 @@ namespace simage
 class DeviceUVC
 {
 public:
-    uvc_device_t* p_device;
-    uvc_device_handle_t* h_device;
-    uvc_stream_ctrl_t* ctrl;
+    uvc_device_t* p_device = nullptr;
+    uvc_device_handle_t* h_device = nullptr;
+    uvc_stream_ctrl_t* ctrl = nullptr;
 
     int device_id = -1;
 
@@ -99,15 +99,15 @@ public:
 
     bool grab = false;
 
-    uvc_frame_t* rgb_frame;
+    uvc_frame_t* rgb_frame = nullptr;
 };
 
 
 class DeviceListUVC
 {
 public:
-    uvc_context_t *context;
-    uvc_device_t** device_list;
+    uvc_context_t *context = nullptr;
+    uvc_device_t** device_list = nullptr;
 
     std::vector<uvc_stream_ctrl_t> stream_ctrl_list;
 
@@ -122,7 +122,7 @@ static DeviceListUVC g_device_list;
 class DeviceCallback
 {
 public:
-    DeviceUVC* device;
+    DeviceUVC* device = nullptr;
     std::function<void(uvc_frame_t*)> rgb_cb;
 };
 
@@ -227,7 +227,11 @@ static void disconnect_device(DeviceUVC& device)
     if (device.is_connected)
     {
         uvc_close(device.h_device);
+        device.h_device = nullptr;
+
         uvc_unref_device(device.p_device);
+        device.p_device = nullptr;
+        
         device.frame_width = -1;
         device.frame_height = -1;
         device.fps = -1;
@@ -522,7 +526,10 @@ static void close_all_devices()
     g_device_list.stream_ctrl_list.clear();
 
     uvc_free_device_list(g_device_list.device_list, 0);
+    g_device_list.device_list = nullptr;
+
     uvc_exit(g_device_list.context);
+    g_device_list.context = nullptr;
 }
 
 

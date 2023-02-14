@@ -97,7 +97,7 @@ static void draw(img::Histogram12r32& hists, img::View1r32 const& dst, HistParam
 
 void camera_test(img::View const& out)
 {
- 	img::CameraUSB camera;	
+ 	img::CameraUSB camera;
 
 	if (!img::open_camera(camera))
 	{

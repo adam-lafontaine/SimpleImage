@@ -169,6 +169,8 @@ namespace simage
 		camcv.frames[0].release();
 		camcv.frames[1].release();*/
 
+		destroy_image(camera.latest_frame);
+
 		close_all_cameras();
 	}
 

@@ -19,7 +19,7 @@ class CameraCV
 {
 public:
 	cv::VideoCapture capture;
-	cv::Mat frames[2];
+	cv::Mat bgr_frames[2];
 
 	u32 frame_curr = 0;
 	u32 frame_prev = 1;
@@ -66,8 +66,8 @@ static void close_all_cameras()
 	{
 		g_cameras[i].capture.release();
 
-		g_cameras[i].frames[0].release();
-		g_cameras[i].frames[1].release();
+		g_cameras[i].bgr_frames[0].release();
+		g_cameras[i].bgr_frames[1].release();
 	}
 }
 
@@ -81,7 +81,7 @@ static bool grab_current_frame(CameraCV& cam)
 		return false;
 	}
 
-	auto& frame = cam.frames[cam.frame_curr];
+	auto& frame = cam.bgr_frames[cam.frame_curr];
 
 	if (!cap.retrieve(frame))
 	{
@@ -107,7 +107,7 @@ namespace simage
 
 	static void process_previous_frame(CameraUSB const& camera, CameraCV& camcv, view_callback const& grab_cb)
 	{
-		auto& frame = camcv.frames[camcv.frame_prev];
+		auto& frame = camcv.bgr_frames[camcv.frame_prev];
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -163,12 +163,7 @@ namespace simage
 		{
 			return;
 		}
-
-		/*auto& camcv = g_cameras[camera.device_id];
-		camcv.capture.release();
-		camcv.frames[0].release();
-		camcv.frames[1].release();*/
-
+		
 		destroy_image(camera.latest_frame);
 
 		close_all_cameras();
@@ -191,7 +186,7 @@ namespace simage
 			return false;
 		}
 
-		auto& frame = camcv.frames[camcv.frame_curr];
+		auto& frame = camcv.bgr_frames[camcv.frame_curr];
 
 		swap_frames(camcv);
 
@@ -222,7 +217,7 @@ namespace simage
 			return false;
 		}
 
-		auto& frame = camcv.frames[camcv.frame_curr];
+		auto& frame = camcv.bgr_frames[camcv.frame_curr];
 
 		swap_frames(camcv);
 
@@ -251,7 +246,7 @@ namespace simage
 			return false;
 		}
 
-		auto& frame = camcv.frames[camcv.frame_curr];
+		auto& frame = camcv.bgr_frames[camcv.frame_curr];
 
 		swap_frames(camcv);
 

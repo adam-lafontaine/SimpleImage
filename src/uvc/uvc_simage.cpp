@@ -75,6 +75,13 @@ namespace simage
 #endif
 
 
+enum class GrabStaus : int
+{
+    Grabbing,
+    OK,
+    Error,
+};
+
 
 class DeviceUVC
 {
@@ -97,9 +104,12 @@ public:
     bool is_connected = false;
     bool is_streaming = false;
 
-    bool grab = false;
+    GrabStaus grab_status = GrabStaus::OK;
 
-    uvc_frame_t* rgb_frame = nullptr;
+    uvc_frame_t* rgb_frames[2] = { nullptr, nullptr };
+
+    u32 frame_curr = 0;
+	u32 frame_prev = 1;
 };
 
 
@@ -126,6 +136,26 @@ public:
     std::function<void(uvc_frame_t*)> rgb_cb;
 };
 
+
+
+static void swap_device_frames(DeviceUVC& cam)
+{
+	cam.frame_curr = cam.frame_curr == 0 ? 1 : 0;
+	cam.frame_prev = cam.frame_curr == 0 ? 1 : 0;
+}
+
+
+static void free_device_frames(DeviceUVC& device)
+{
+    for (int i = 0; i < 2; ++i)
+    {
+        if (device.rgb_frames[i])
+        {
+            uvc_free_frame(device.rgb_frames[i]);
+            device.rgb_frames[i] = nullptr;
+        }
+    }
+}
 
 
 static void print_uvc_error(uvc_error_t err, const char* msg)
@@ -380,57 +410,60 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
 {
     auto& device = *(DeviceUVC*)data;
 
-    if (!device.grab)
+    if (device.grab_status != GrabStaus::Grabbing)
     {
         return;
     }
 
-    auto rgb = device.rgb_frame;
+    auto rgb = device.rgb_frames[device.frame_curr];
 
     auto res = uvc_any2rgb(frame, rgb);
-    if (res != UVC_SUCCESS)
+    if (res == UVC_SUCCESS)
     {
-        print_uvc_error(res, "uvc_any2rgb");
-        auto p = (u8*)rgb->data;
-        for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
-        {
-            p[i] = 128;
-        }
-        device.grab = false;
+        device.grab_status = GrabStaus::OK;
         return;
     }
+
+    print_uvc_error(res, "uvc_any2rgb");
+    auto p = (u8*)rgb->data;
+    for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
+    {
+        p[i] = 128;
+    }
     
-    device.grab = false;
+    device.grab_status = GrabStaus::Error;
 }
 
 
-static void uvc_continuous_frame_callback(uvc_frame_t* frame, void* data)
+static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
 {
+    // for fast callbacks that can execute in sequence
     auto& dc = *(DeviceCallback*)data;
     auto& device = *dc.device;
 
-    if (!device.grab)
+    if (device.grab_status != GrabStaus::Grabbing)
     {
         return;
     }
 
-    auto rgb = device.rgb_frame;
+    auto rgb = device.rgb_frames[device.frame_curr];
 
     auto res = uvc_any2rgb(frame, rgb);
-    if (res != UVC_SUCCESS)
+    if (res == UVC_SUCCESS)
     {
-        print_uvc_error(res, "uvc_any2rgb");
-        auto p = (u8*)rgb->data;
-        for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
-        {
-            p[i] = 128;
-        }
         dc.rgb_cb(rgb);
-        device.grab = false;
+        swap_device_frames(device);
         return;
     }
-
+    
+    print_uvc_error(res, "uvc_any2rgb");
+    auto p = (u8*)rgb->data;
+    for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
+    {
+        p[i] = 128;
+    }
     dc.rgb_cb(rgb);
+    device.grab_status = GrabStaus::Error;    
 }
 
 
@@ -460,7 +493,7 @@ static bool start_device_single_frame(DeviceUVC& device)
 static bool start_device_continuous(DeviceCallback& device_cb)
 {   
     auto& device = *device_cb.device; 
-    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_continuous_frame_callback, (void *)(&device_cb), 0);
+    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_fast_continuous_frame_callback, (void *)(&device_cb), 0);
 
     if (res != UVC_SUCCESS)
     {
@@ -514,11 +547,7 @@ static void close_all_devices()
             disconnect_device(device);
         }
 
-        if (device.rgb_frame)
-        {
-            uvc_free_frame(device.rgb_frame);
-            device.rgb_frame = nullptr;
-        }
+        free_device_frames(device);
     }
     
     g_device_list.is_connected = false;
@@ -530,6 +559,25 @@ static void close_all_devices()
 
     uvc_exit(g_device_list.context);
     g_device_list.context = nullptr;
+}
+
+
+static bool grab_current_frame(DeviceUVC& device)
+{
+    // uvc_single_frame_callback is running
+
+    if (!device.is_streaming)
+    {
+        return false;
+    }
+
+    device.grab_status = GrabStaus::Grabbing;
+    while (device.grab_status == GrabStaus::Grabbing)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+
+    return device.grab_status == GrabStaus::OK;
 }
 
 
@@ -566,12 +614,17 @@ namespace simage
             return false;
         }
 
-        size_t frame_bytes = device.frame_width * device.frame_height * 3;
-        device.rgb_frame = uvc_allocate_frame(frame_bytes);
+        free_device_frames(device);
 
-        if (!device.rgb_frame)
+        size_t frame_bytes = device.frame_width * device.frame_height * 3;
+
+        device.rgb_frames[0] = uvc_allocate_frame(frame_bytes);
+        device.rgb_frames[1] = uvc_allocate_frame(frame_bytes);
+
+        if (!device.rgb_frames[0] || !device.rgb_frames[1])
         {
             print_error("Error allocating frame memory");
+            free_device_frames(device);
             return false;
         }
 
@@ -634,13 +687,13 @@ namespace simage
             return false;
         }
 
-        device.grab = true;
-        while (device.grab)
+        device.grab_status = GrabStaus::Grabbing;
+        while (device.grab_status == GrabStaus::Grabbing)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
-        auto& frame = *(device.rgb_frame);
+        auto& frame = *(device.rgb_frames[device.frame_curr]);
         
         ImageRGB rgb;
         rgb.width = camera.image_width;
@@ -668,13 +721,13 @@ namespace simage
             return false;
         }
 
-        device.grab = true;
-        while (device.grab)
+        device.grab_status = GrabStaus::Grabbing;
+        while (device.grab_status == GrabStaus::Grabbing)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
-        auto& frame = *(device.rgb_frame);
+        auto& frame = *(device.rgb_frames[device.frame_curr]);
         
         ImageRGB rgb;
         rgb.width = camera.image_width;
@@ -700,13 +753,13 @@ namespace simage
             return false;
         }
 
-        device.grab = true;
-        while (device.grab)
+        device.grab_status = GrabStaus::Grabbing;
+        while (device.grab_status == GrabStaus::Grabbing)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
-        auto& frame = *(device.rgb_frame);
+        auto& frame = *(device.rgb_frames[device.frame_curr]);
         
         ImageRGB rgb;
         rgb.width = camera.image_width;
@@ -753,17 +806,17 @@ namespace simage
 
         start_device_continuous(dc);
 
-        device.grab = true;
+        device.grab_status = GrabStaus::Grabbing;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        if (!device.grab)
+        if (device.grab_status != GrabStaus::Grabbing)
         {
             return false;
         }
 
         while (grab_condition())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            if (!device.grab)
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            if (device.grab_status != GrabStaus::Grabbing)
             {
                 stop_device(device);
                 start_device_single_frame(device);
@@ -771,7 +824,7 @@ namespace simage
             }
         }
 
-        device.grab = false;
+        device.grab_status = GrabStaus::OK;
 
         stop_device(device);
         start_device_single_frame(device);

@@ -75,6 +75,14 @@ namespace simage
 #endif
 
 
+enum class GrabMode : int
+{
+    Off,
+    SingleFrame,
+    Continuous
+};
+
+
 enum class GrabStaus : int
 {
     Grabbing,
@@ -89,6 +97,7 @@ public:
     uvc_device_t* p_device = nullptr;
     uvc_device_handle_t* h_device = nullptr;
     uvc_stream_ctrl_t* ctrl = nullptr;
+    uvc_stream_handle_t* h_stream = nullptr;
 
     int device_id = -1;
 
@@ -102,8 +111,7 @@ public:
     const char* format_code;
 
     bool is_connected = false;
-    bool is_streaming = false;
-
+    GrabMode grab_mode = GrabMode::Off;
     GrabStaus grab_status = GrabStaus::OK;
 
     uvc_frame_t* rgb_frames[2] = { nullptr, nullptr };
@@ -406,12 +414,17 @@ static bool enumerate_devices(DeviceListUVC& list)
 }
 
 
-static void uvc_single_frame_callback(uvc_frame_t* frame, void* data)
+static void uvc_single_frame_callback(uvc_frame_t* frame, DeviceUVC& device)
 {
-    auto& device = *(DeviceUVC*)data;
+    if (device.grab_mode != GrabMode::SingleFrame)
+    {
+        print_error("single frame - wrong grab mode");
+        return;
+    }
 
     if (device.grab_status != GrabStaus::Grabbing)
     {
+        print_error("single frame - not grabbing");
         return;
     }
 
@@ -441,8 +454,15 @@ static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
     auto& dc = *(DeviceCallback*)data;
     auto& device = *dc.device;
 
+    if (device.grab_mode != GrabMode::Continuous)
+    {
+        print_error("continuous - wrong grab mode");
+        return;
+    }
+
     if (device.grab_status != GrabStaus::Grabbing)
     {
+        print_error("continuous - not grabbing");
         return;
     }
 
@@ -470,21 +490,30 @@ static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
 static void stop_device(DeviceUVC& device)
 {    
     uvc_stop_streaming(device.h_device);
-    device.is_streaming = false;
+    device.h_stream = nullptr;
+    device.grab_mode = GrabMode::Off;
+    device.grab_status = GrabStaus::OK;
 }
 
 
 static bool start_device_single_frame(DeviceUVC& device)
 { 
-    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_single_frame_callback, (void *)(&device), 0);
-
+    auto res = uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
     if (res != UVC_SUCCESS)
     {
-        print_uvc_error(res, "uvc_start_streaming");
+        print_uvc_error(res, "uvc_stream_open_ctrl");
         return false;
     }
 
-    device.is_streaming = true;
+    res = uvc_stream_start(device.h_stream, 0, (void*)12345, 0);
+    if (res != UVC_SUCCESS)
+    {
+        print_uvc_error(res, "uvc_stream_start");
+        uvc_stream_close(device.h_stream);
+        return false;
+    }
+
+    device.grab_mode = GrabMode::SingleFrame;
 
     return true;
 }
@@ -501,7 +530,7 @@ static bool start_device_continuous(DeviceCallback& device_cb)
         return false;
     }
 
-    device.is_streaming = true;
+    device.grab_mode = GrabMode::Continuous;
 
     return true;
 }
@@ -537,7 +566,7 @@ static void close_all_devices()
 
     for (auto& device : g_device_list.devices)
     {
-        if (device.is_streaming)
+        if (device.grab_mode != GrabMode::Off)
         {
             stop_device(device);
         }
@@ -564,18 +593,19 @@ static void close_all_devices()
 
 static bool grab_current_frame(DeviceUVC& device)
 {
-    // uvc_single_frame_callback is running
+    device.grab_status = GrabStaus::Grabbing;
 
-    if (!device.is_streaming)
+    uvc_frame_t* frame;
+
+    auto res = uvc_stream_get_frame(device.h_stream, &frame, 0);
+    if (res != UVC_SUCCESS)
     {
+        print_uvc_error(res, "uvc_stream_get_frame");
+        device.grab_status = GrabStaus::Error;
         return false;
     }
 
-    device.grab_status = GrabStaus::Grabbing;
-    while (device.grab_status == GrabStaus::Grabbing)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
-    }
+    uvc_single_frame_callback(frame, device);
 
     return device.grab_status == GrabStaus::OK;
 }
@@ -682,15 +712,10 @@ namespace simage
 		}
 
         auto& device = g_device_list.devices[camera.device_id];
-        if (!device.is_streaming)
+
+        if (!grab_current_frame(device))
         {
             return false;
-        }
-
-        device.grab_status = GrabStaus::Grabbing;
-        while (device.grab_status == GrabStaus::Grabbing)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
         auto& frame = *(device.rgb_frames[device.frame_curr]);
@@ -712,19 +737,16 @@ namespace simage
 
         if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
 		{
+            print_error("not open");
 			return false;
 		}
 
         auto& device = g_device_list.devices[camera.device_id];
-        if (!device.is_streaming)
-        {
-            return false;
-        }
 
-        device.grab_status = GrabStaus::Grabbing;
-        while (device.grab_status == GrabStaus::Grabbing)
+        if (!grab_current_frame(device))
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            print_error("grab_current_frame");
+            return false;
         }
 
         auto& frame = *(device.rgb_frames[device.frame_curr]);
@@ -748,15 +770,10 @@ namespace simage
 		}
 
         auto& device = g_device_list.devices[camera.device_id];
-        if (!device.is_streaming)
+
+        if (!grab_current_frame(device))
         {
             return false;
-        }
-
-        device.grab_status = GrabStaus::Grabbing;
-        while (device.grab_status == GrabStaus::Grabbing)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
         auto& frame = *(device.rgb_frames[device.frame_curr]);
@@ -782,7 +799,7 @@ namespace simage
 		}
 
         auto& device = g_device_list.devices[camera.device_id];
-        if (device.is_streaming)
+        if (device.grab_mode != GrabMode::Off)
         {
             stop_device(device);
         }

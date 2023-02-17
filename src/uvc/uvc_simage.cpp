@@ -1,4 +1,5 @@
 #include "../simage/simage_platform.hpp"
+#include "../util/execute.hpp"
 
 #define LIBUVC_IMPLEMENTATION 1
 #include "../uvc/libuvc.h"
@@ -483,7 +484,6 @@ static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
         p[i] = 128;
     }
     dc.rgb_cb(rgb);
-    device.grab_status = GrabStaus::Error;    
 }
 
 
@@ -613,6 +613,21 @@ static bool grab_current_frame(DeviceUVC& device)
 
 namespace simage
 {
+    static void process_previous_frame(CameraUSB const& camera, DeviceUVC& device, view_callback const& grab_cb)
+    {
+        auto& frame = device.rgb_frames[device.frame_prev];
+
+        ImageRGB rgb;
+        rgb.width = camera.image_width;
+        rgb.height = camera.image_height;
+        rgb.data_ = (RGBu8*)frame->data;
+
+        auto frame_view = make_view(camera.latest_frame);
+		map(make_view(rgb), frame_view);
+		grab_cb(frame_view);
+    }
+
+
     bool open_camera(CameraUSB& camera)
     {
         if (!enumerate_devices(g_device_list))
@@ -791,7 +806,7 @@ namespace simage
     }
 
 
-    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+    bool grab_continuous2(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
     {
         if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
 		{
@@ -833,18 +848,55 @@ namespace simage
         while (grab_condition())
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            if (device.grab_status != GrabStaus::Grabbing)
-            {
-                stop_device(device);
-                start_device_single_frame(device);
-                return false;
-            }
         }
 
         device.grab_status = GrabStaus::OK;
 
         stop_device(device);
         start_device_single_frame(device);
+
+        return true;
+    }
+
+
+    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+    {
+        if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
+		{
+			return false;
+		}
+
+        auto& device = g_device_list.devices[camera.device_id];
+        if (device.grab_mode != GrabMode::Off)
+        {
+            //stop_device(device);
+        }
+
+        bool grab_ok[2] = { false, false };
+
+        auto const grab_current = [&](){ grab_ok[device.frame_curr] = grab_current_frame(device); };
+
+        auto const process_previous = [&]()
+        {
+            if (grab_ok[device.frame_prev])
+            {
+                process_previous_frame(camera, device, grab_cb);
+            }
+        };
+
+        std::array<std::function<void()>, 2> procs = 
+		{
+			grab_current, process_previous
+		};
+
+        device.grab_status = GrabStaus::Grabbing;
+        while (grab_condition())
+        {
+            execute(procs);
+            swap_device_frames(device);
+        }
+
+        device.grab_status = GrabStaus::OK;
 
         return true;
     }    

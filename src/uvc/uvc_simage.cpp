@@ -481,6 +481,11 @@ static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
 
 static void stop_device(DeviceUVC& device)
 {    
+    if (device.grab_mode == GrabMode::Off)
+    {
+        return;
+    }
+
     uvc_stop_streaming(device.h_device);
     device.h_stream = nullptr;
     device.grab_mode = GrabMode::Off;
@@ -634,6 +639,14 @@ namespace simage
     }
 
 
+    static bool camera_is_initialized(CameraUSB const& camera)
+    {
+        return camera.is_open
+            && camera.device_id >= 0
+            && camera.device_id < (int)g_device_list.devices.size();
+    }
+
+
     bool open_camera(CameraUSB& camera)
     {
         if (!enumerate_devices(g_device_list))
@@ -723,15 +736,51 @@ namespace simage
     }
 
 
+    bool set_mode_single_frame(CameraUSB& camera)
+    {
+        if (!camera_is_initialized(camera))
+        {
+            return false;
+        }
+
+        auto& device = g_device_list.devices[camera.device_id];
+
+        if (device.grab_mode == GrabMode::Continuous)
+        {
+            stop_device(device);
+        }
+
+        return start_device_single_frame(device);
+    }
+
+
+	bool set_mode_continuous(CameraUSB& camera)
+    {
+        if (!camera_is_initialized(camera))
+        {
+            return false;
+        }
+
+        auto& device = g_device_list.devices[camera.device_id];
+
+        if (device.grab_mode == GrabMode::SingleFrame)
+        {
+            stop_device(device);
+        }
+        
+        return start_device_continuous(device);
+    }
+
+
     bool grab_image(CameraUSB const& camera)
     {
         assert(verify(camera));
         
-        if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
-		{
-			return false;
-		}
-
+        if (!camera_is_initialized(camera))
+        {
+            return false;
+        }
+        
         auto& device = g_device_list.devices[camera.device_id];
 
         if (!grab_current_frame(device))
@@ -754,14 +803,13 @@ namespace simage
 
     bool grab_image(CameraUSB const& camera, View const& dst)
     {
-        assert(verify(camera, dst));
-
-        if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
-		{
-            print_error("not open");
-			return false;
-		}
-
+        assert(verify(camera));
+        
+        if (!camera_is_initialized(camera))
+        {
+            return false;
+        }
+        
         auto& device = g_device_list.devices[camera.device_id];
 
         if (!grab_current_frame(device))
@@ -814,16 +862,15 @@ namespace simage
 
     bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
     {
-        if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
-		{
-			return false;
-		}
+        assert(verify(camera));
+        
+        if (!camera_is_initialized(camera))
+        {
+            return false;
+        }
 
         auto& device = g_device_list.devices[camera.device_id];
-        if (device.grab_mode != GrabMode::Off)
-        {
-            stop_device(device);
-        }
+        //set_mode_continuous(camera);
 
         ImageRGB rgb;
         rgb.width = camera.image_width;
@@ -840,7 +887,7 @@ namespace simage
 
         device.rgb_cb = frame_cb;
 
-        start_device_continuous(device);
+        //start_device_continuous(device);
 
         device.grab_status = GrabStaus::Grabbing;
 
@@ -851,8 +898,8 @@ namespace simage
 
         device.grab_status = GrabStaus::OK;
 
-        stop_device(device);
-        start_device_single_frame(device);
+        //stop_device(device);
+        //start_device_single_frame(device);
 
         return true;
     }

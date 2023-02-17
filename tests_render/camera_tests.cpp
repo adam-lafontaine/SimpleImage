@@ -220,10 +220,12 @@ void camera_continuous_test(img::View const& out)
 	auto width = camera.image_width;
 	auto height = camera.image_height;
 
-	auto frame_count = 0;
-	auto const grab_condition = [&frame_count]() { return frame_count < 128; };
+	auto n_images = 128;
 
-	u32 w = width / 128;
+	auto frame_count = 0;
+	auto const grab_condition = [&]() { return frame_count < n_images; };
+
+	u32 w = width / n_images;
 	auto range = make_range(w, height);
 
 	img::Buffer32 buffer;
@@ -235,6 +237,8 @@ void camera_continuous_test(img::View const& out)
 
 	auto const grab_cb = [&](img::View const& src)
 	{
+		printf("frame: %d\n", frame_count);
+
 		img::map_rgb(img::sub_view(src, range), view_rgb);
 		img::transform_gray(view_rgb, view_gray);
 		img::transform(view_gray, view_gray, [&](r32 p){ return p * f; });
@@ -248,8 +252,20 @@ void camera_continuous_test(img::View const& out)
 
 	Stopwatch sw;
 	sw.start();
+
+	if(!img::set_mode_continuous(camera))
+	{
+		printf("Error set_mode_continuous\n");
+	}
+
+	printf("set_mode time: %f ms\n", sw.get_time_milli());
+
+	sw.start();
 	img::grab_continuous(camera, grab_cb, grab_condition);
-	printf("Continuous time: %f ms\n", sw.get_time_milli());
+
+	auto time = sw.get_time_milli();
+	printf("Continuous time: %f ms\n", time);
+	printf("Time per image: %f\n", time / n_images);
 
 	img::close_camera(camera);
 	mb::destroy_buffer(buffer);

@@ -1,4 +1,5 @@
 #include "tests_include.hpp"
+#include "../src/util/stopwatch.hpp"
 
 #include <array>
 #include <algorithm>
@@ -220,9 +221,9 @@ void camera_continuous_test(img::View const& out)
 	auto height = camera.image_height;
 
 	auto frame_count = 0;
-	auto const grab_condition = [&frame_count]() { return frame_count < 10; };
+	auto const grab_condition = [&frame_count]() { return frame_count < 128; };
 
-	u32 w = width / 10;
+	u32 w = width / 128;
 	auto range = make_range(w, height);
 
 	img::Buffer32 buffer;
@@ -245,7 +246,10 @@ void camera_continuous_test(img::View const& out)
 		++frame_count;
 	};
 
+	Stopwatch sw;
+	sw.start();
 	img::grab_continuous(camera, grab_cb, grab_condition);
+	printf("Continuous time: %f ms\n", sw.get_time_milli());
 
 	img::close_camera(camera);
 	mb::destroy_buffer(buffer);

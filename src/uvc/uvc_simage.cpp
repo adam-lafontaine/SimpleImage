@@ -806,7 +806,7 @@ namespace simage
     }
 
 
-    bool grab_continuous2(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
     {
         if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
 		{
@@ -839,15 +839,10 @@ namespace simage
         start_device_continuous(dc);
 
         device.grab_status = GrabStaus::Grabbing;
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        if (device.grab_status != GrabStaus::Grabbing)
-        {
-            return false;
-        }
 
         while (grab_condition())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
 
         device.grab_status = GrabStaus::OK;
@@ -859,7 +854,7 @@ namespace simage
     }
 
 
-    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+    bool grab_continuous2(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
     {
         if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
 		{

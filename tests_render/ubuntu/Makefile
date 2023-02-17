@@ -188,6 +188,7 @@ object_files += $(histogram_tests_o)
 
 camera_tests_c := $(tests)/camera_tests.cpp
 camera_tests_c += $(tests_include_h)
+camera_tests_c += $(stopwatch_h)
 camera_tests_o := $(build)/camera_tests.o
 object_files += $(camera_tests_o)
 
@@ -204,8 +205,8 @@ LIBRARIES += $(LIBUSB)
 CCFLAGS := -std=c++20 
 #-mavx -mavx2
 
-#CCFLAGS += -O3
-#CCFLAGS += -DNDEBUG
+CCFLAGS += -O3
+CCFLAGS += -DNDEBUG
 
 
 # build rules

@@ -119,6 +119,8 @@ public:
 
     u32 frame_curr = 0;
 	u32 frame_prev = 1;
+
+    std::function<void(uvc_frame_t*)> rgb_cb;
 };
 
 
@@ -137,13 +139,6 @@ public:
 
 
 static DeviceListUVC g_device_list;
-
-class DeviceCallback
-{
-public:
-    DeviceUVC* device = nullptr;
-    std::function<void(uvc_frame_t*)> rgb_cb;
-};
 
 
 
@@ -452,8 +447,7 @@ static void uvc_single_frame_callback(uvc_frame_t* frame, DeviceUVC& device)
 static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
 {
     // for fast callbacks that can execute in sequence
-    auto& dc = *(DeviceCallback*)data;
-    auto& device = *dc.device;
+    auto& device = *(DeviceUVC*)data;
 
     if (device.grab_mode != GrabMode::Continuous)
     {
@@ -470,20 +464,18 @@ static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
     auto rgb = device.rgb_frames[device.frame_curr];
 
     auto res = uvc_any2rgb(frame, rgb);
-    if (res == UVC_SUCCESS)
+    if (res != UVC_SUCCESS)
     {
-        dc.rgb_cb(rgb);
-        swap_device_frames(device);
-        return;
-    }
+        print_uvc_error(res, "uvc_any2rgb");
+        auto p = (u8*)rgb->data;
+        for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
+        {
+            p[i] = 128;
+        }        
+    }    
     
-    print_uvc_error(res, "uvc_any2rgb");
-    auto p = (u8*)rgb->data;
-    for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
-    {
-        p[i] = 128;
-    }
-    dc.rgb_cb(rgb);
+    device.rgb_cb(rgb);
+    //swap_device_frames(device);
 }
 
 
@@ -498,6 +490,11 @@ static void stop_device(DeviceUVC& device)
 
 static bool start_device_single_frame(DeviceUVC& device)
 { 
+    if (device.grab_mode == GrabMode::SingleFrame)
+    {
+        return true;
+    }
+
     auto res = uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
     if (res != UVC_SUCCESS)
     {
@@ -519,10 +516,14 @@ static bool start_device_single_frame(DeviceUVC& device)
 }
 
 
-static bool start_device_continuous(DeviceCallback& device_cb)
-{   
-    auto& device = *device_cb.device; 
-    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_fast_continuous_frame_callback, (void *)(&device_cb), 0);
+static bool start_device_continuous(DeviceUVC& device)
+{ 
+    if (device.grab_mode == GrabMode::Continuous)
+    {
+        return true;
+    }
+
+    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_fast_continuous_frame_callback, (void *)(&device), 0);
 
     if (res != UVC_SUCCESS)
     {
@@ -593,6 +594,11 @@ static void close_all_devices()
 
 static bool grab_current_frame(DeviceUVC& device)
 {
+    if (device.grab_mode != GrabMode::SingleFrame)
+    {
+        return false;
+    }
+
     device.grab_status = GrabStaus::Grabbing;
 
     uvc_frame_t* frame;
@@ -832,11 +838,9 @@ namespace simage
             grab_cb(frame_view);
         };
 
-        DeviceCallback dc{};
-        dc.device = &device;
-        dc.rgb_cb = frame_cb;        
+        device.rgb_cb = frame_cb;
 
-        start_device_continuous(dc);
+        start_device_continuous(device);
 
         device.grab_status = GrabStaus::Grabbing;
 

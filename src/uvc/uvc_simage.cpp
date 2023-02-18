@@ -410,75 +410,6 @@ static bool enumerate_devices(DeviceListUVC& list)
 }
 
 
-static void uvc_single_frame_callback(uvc_frame_t* frame, DeviceUVC& device)
-{
-    if (device.grab_mode != GrabMode::SingleFrame)
-    {
-        print_error("single frame - wrong grab mode");
-        return;
-    }
-
-    if (device.grab_status != GrabStaus::Grabbing)
-    {
-        print_error("single frame - not grabbing");
-        return;
-    }
-
-    auto rgb = device.rgb_frames[device.frame_curr];
-
-    auto res = uvc_any2rgb(frame, rgb);
-    if (res == UVC_SUCCESS)
-    {
-        device.grab_status = GrabStaus::OK;
-        return;
-    }
-
-    print_uvc_error(res, "uvc_any2rgb");
-    auto p = (u8*)rgb->data;
-    for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
-    {
-        p[i] = 128;
-    }
-    
-    device.grab_status = GrabStaus::Error;
-}
-
-
-static void uvc_fast_continuous_frame_callback(uvc_frame_t* frame, void* data)
-{
-    // for fast callbacks that can execute in sequence
-    auto& device = *(DeviceUVC*)data;
-
-    if (device.grab_mode != GrabMode::Continuous)
-    {
-        print_error("continuous - wrong grab mode");
-        return;
-    }
-
-    if (device.grab_status != GrabStaus::Grabbing)
-    {
-        print_error("continuous - not grabbing");
-        return;
-    }
-
-    auto rgb = device.rgb_frames[device.frame_curr];
-
-    auto res = uvc_any2rgb(frame, rgb);
-    if (res != UVC_SUCCESS)
-    {
-        print_uvc_error(res, "uvc_any2rgb");
-        auto p = (u8*)rgb->data;
-        for (int i = 0; i < rgb->width * rgb->height * 3; ++i)
-        {
-            p[i] = 128;
-        }        
-    }    
-    
-    device.rgb_cb(rgb);
-    //swap_device_frames(device);
-}
-
-
 static void stop_device(DeviceUVC& device)
 {    
     if (device.grab_mode == GrabMode::Off)
@@ -500,6 +431,11 @@ static bool start_device_single_frame(DeviceUVC& device)
         return true;
     }
 
+    if (device.grab_mode == GrabMode::Continuous)
+    {
+        stop_device(device);
+    }
+
     auto res = uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
     if (res != UVC_SUCCESS)
     {
@@ -516,27 +452,6 @@ static bool start_device_single_frame(DeviceUVC& device)
     }
 
     device.grab_mode = GrabMode::SingleFrame;
-
-    return true;
-}
-
-
-static bool start_device_continuous(DeviceUVC& device)
-{ 
-    if (device.grab_mode == GrabMode::Continuous)
-    {
-        return true;
-    }
-
-    auto res = uvc_start_streaming(device.h_device, device.ctrl, uvc_fast_continuous_frame_callback, (void *)(&device), 0);
-
-    if (res != UVC_SUCCESS)
-    {
-        print_uvc_error(res, "uvc_start_streaming");
-        return false;
-    }
-
-    device.grab_mode = GrabMode::Continuous;
 
     return true;
 }
@@ -597,48 +512,32 @@ static void close_all_devices()
 }
 
 
-static bool grab_current_frame(DeviceUVC& device)
+static bool grab_and_convert_current_frame(DeviceUVC& device)
 {
-    if (device.grab_mode != GrabMode::SingleFrame)
-    {
-        return false;
-    }
-
-    device.grab_status = GrabStaus::Grabbing;
-
     uvc_frame_t* frame;
 
     auto res = uvc_stream_get_frame(device.h_stream, &frame, 0);
     if (res != UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");
-        device.grab_status = GrabStaus::Error;
         return false;
     }
 
-    uvc_single_frame_callback(frame, device);
+    auto rgb = device.rgb_frames[device.frame_curr];
 
-    return device.grab_status == GrabStaus::OK;
+    res = uvc_any2rgb(frame, rgb);
+    if (res != UVC_SUCCESS)
+    {  
+        print_uvc_error(res, "uvc_any2rgb");
+        return false;
+    }
+
+    return true;
 }
 
 
 namespace simage
 {
-    static void process_previous_frame(CameraUSB const& camera, DeviceUVC& device, view_callback const& grab_cb)
-    {
-        auto& frame = device.rgb_frames[device.frame_prev];
-
-        ImageRGB rgb;
-        rgb.width = camera.image_width;
-        rgb.height = camera.image_height;
-        rgb.data_ = (RGBu8*)frame->data;
-
-        auto frame_view = make_view(camera.latest_frame);
-		map(make_view(rgb), frame_view);
-		grab_cb(frame_view);
-    }
-
-
     static bool camera_is_initialized(CameraUSB const& camera)
     {
         return camera.is_open
@@ -736,42 +635,6 @@ namespace simage
     }
 
 
-    bool set_mode_single_frame(CameraUSB& camera)
-    {
-        if (!camera_is_initialized(camera))
-        {
-            return false;
-        }
-
-        auto& device = g_device_list.devices[camera.device_id];
-
-        if (device.grab_mode == GrabMode::Continuous)
-        {
-            stop_device(device);
-        }
-
-        return start_device_single_frame(device);
-    }
-
-
-	bool set_mode_continuous(CameraUSB& camera)
-    {
-        if (!camera_is_initialized(camera))
-        {
-            return false;
-        }
-
-        auto& device = g_device_list.devices[camera.device_id];
-
-        if (device.grab_mode == GrabMode::SingleFrame)
-        {
-            stop_device(device);
-        }
-        
-        return start_device_continuous(device);
-    }
-
-
     bool grab_image(CameraUSB const& camera)
     {
         assert(verify(camera));
@@ -783,7 +646,7 @@ namespace simage
         
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_current_frame(device))
+        if (!grab_and_convert_current_frame(device))
         {
             return false;
         }
@@ -812,9 +675,8 @@ namespace simage
         
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_current_frame(device))
+        if (!grab_and_convert_current_frame(device))
         {
-            print_error("grab_current_frame");
             return false;
         }
 
@@ -840,7 +702,7 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_current_frame(device))
+        if (!grab_and_convert_current_frame(device))
         {
             return false;
         }
@@ -870,82 +732,30 @@ namespace simage
         }
 
         auto& device = g_device_list.devices[camera.device_id];
-        //set_mode_continuous(camera);
+
+        auto frame = device.rgb_frames[device.frame_curr];
 
         ImageRGB rgb;
         rgb.width = camera.image_width;
-		rgb.height = camera.image_height;
+        rgb.height = camera.image_height;
+        rgb.data_ = (RGBu8*)frame->data;
 
         auto frame_view = make_view(camera.latest_frame);
 
-        auto const frame_cb = [&](uvc_frame_t* frame)
-        {            
-		    rgb.data_ = (RGBu8*)frame->data;            
-            map(make_view(rgb), frame_view);
-            grab_cb(frame_view);
-        };
-
-        device.rgb_cb = frame_cb;
-
-        //start_device_continuous(device);
-
         device.grab_status = GrabStaus::Grabbing;
-
         while (grab_condition())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            if (grab_and_convert_current_frame(device))
+            {               
+                map(make_view(rgb), frame_view);
+                grab_cb(frame_view);
+            }
         }
 
         device.grab_status = GrabStaus::OK;
-
-        //stop_device(device);
-        //start_device_single_frame(device);
 
         return true;
     }
-
-
-    bool grab_continuous2(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
-    {
-        if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
-		{
-			return false;
-		}
-
-        auto& device = g_device_list.devices[camera.device_id];
-        if (device.grab_mode != GrabMode::Off)
-        {
-            //stop_device(device);
-        }
-
-        bool grab_ok[2] = { false, false };
-
-        auto const grab_current = [&](){ grab_ok[device.frame_curr] = grab_current_frame(device); };
-
-        auto const process_previous = [&]()
-        {
-            if (grab_ok[device.frame_prev])
-            {
-                process_previous_frame(camera, device, grab_cb);
-            }
-        };
-
-        std::array<std::function<void()>, 2> procs = 
-		{
-			grab_current, process_previous
-		};
-
-        device.grab_status = GrabStaus::Grabbing;
-        while (grab_condition())
-        {
-            execute(procs);
-            swap_device_frames(device);
-        }
-
-        device.grab_status = GrabStaus::OK;
-
-        return true;
-    }    
 }
 
 

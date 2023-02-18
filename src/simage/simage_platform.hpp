@@ -597,10 +597,6 @@ namespace simage
 
 	void close_camera(CameraUSB& camera);
 
-	bool set_mode_single_frame(CameraUSB& camera);
-
-	bool set_mode_continuous(CameraUSB& camera);
-
 	bool grab_image(CameraUSB const& camera);
 
 	bool grab_image(CameraUSB const& camera, View const& dst);

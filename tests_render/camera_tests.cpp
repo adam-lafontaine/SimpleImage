@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <thread>
 
 
 constexpr u32 BIN_SPACE = 1;
@@ -235,38 +236,28 @@ void camera_continuous_test(img::View const& out)
 	auto view_gray = img::make_view_1(w, height, buffer);
 	r32 f = 1.0f;
 
+	Stopwatch sw;
+	sw.start();
+
 	auto const grab_cb = [&](img::View const& src)
 	{
-		printf("frame: %d\n", frame_count);
-
 		img::map_rgb(img::sub_view(src, range), view_rgb);
 		img::transform_gray(view_rgb, view_gray);
 		img::transform(view_gray, view_gray, [&](r32 p){ return p * f; });
 		img::map_rgb(view_gray, img::sub_view(out, range));
 
+		std::this_thread::sleep_for(std::chrono::milliseconds(2 * frame_count));
+		printf("frame: %d, time: %f ms\n", frame_count, sw.get_time_milli());
+		sw.start();
+
 		range.x_begin += w;
 		range.x_end += w;
 		f = f == 1.0f ? 0.5f : 1.0f;
-		++frame_count;
+		++frame_count;		
 	};
-
-	Stopwatch sw;
-	sw.start();
-
-	if(!img::set_mode_continuous(camera))
-	{
-		printf("Error set_mode_continuous\n");
-	}
-
-	printf("set_mode time: %f ms\n", sw.get_time_milli());
-
-	sw.start();
+	
 	img::grab_continuous(camera, grab_cb, grab_condition);
-
-	auto time = sw.get_time_milli();
-	printf("Continuous time: %f ms\n", time);
-	printf("Time per image: %f\n", time / n_images);
-
+	
 	img::close_camera(camera);
 	mb::destroy_buffer(buffer);
 }

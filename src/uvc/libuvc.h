@@ -9,7 +9,6 @@ extern "C" {
 
 #include <stdio.h> // FILE
 #include <stdint.h>
-#include <sys/time.h>
 
 struct libusb_context;
 struct libusb_device_handle;
@@ -813,8 +812,9 @@ uvc_error_t uvc_mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out);
 
 #ifdef LIBUVC_IMPLEMENTATION
 
-#ifndef UTLIST_H
 #define UTLIST_H
+#ifdef UTLIST_H
+
 
 #define UTLIST_VERSION 1.9.1
 
@@ -1280,8 +1280,9 @@ do {                                                                            
 
 #endif /* UTLIST_H */
 
-#ifndef LIBUVC_INTERNAL_H
+
 #define LIBUVC_INTERNAL_H
+#ifdef LIBUVC_INTERNAL_H
 
 #include <assert.h>
 #include <stdlib.h>
@@ -1593,7 +1594,7 @@ void uvc_start_handler_thread(uvc_context_t *ctx);
 uvc_error_t uvc_claim_if(uvc_device_handle_t *devh, int idx);
 uvc_error_t uvc_release_if(uvc_device_handle_t *devh, int idx);
 
-#endif // !def(LIBUVC_INTERNAL_H)
+#endif // LIBUVC_INTERNAL_H
 
 #include <errno.h>
 #include <jpeglib.h>

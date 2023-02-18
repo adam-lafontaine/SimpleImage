@@ -1,11 +1,8 @@
 #include "../simage/simage_platform.hpp"
-#include "../util/execute.hpp"
 
 #define LIBUVC_IMPLEMENTATION 1
 #include "../uvc/libuvc.h"
 
-#include <array>
-#include <thread>
 #include <vector>
 #include <algorithm>
 
@@ -76,22 +73,6 @@ namespace simage
 #endif
 
 
-enum class GrabMode : int
-{
-    Off,
-    SingleFrame,
-    Continuous
-};
-
-
-enum class GrabStaus : int
-{
-    Grabbing,
-    OK,
-    Error,
-};
-
-
 class DeviceUVC
 {
 public:
@@ -99,6 +80,9 @@ public:
     uvc_device_handle_t* h_device = nullptr;
     uvc_stream_ctrl_t* ctrl = nullptr;
     uvc_stream_handle_t* h_stream = nullptr;
+
+    uvc_frame_t* rgb_frame = nullptr;
+    img::ViewRGB rgb_view;
 
     int device_id = -1;
 
@@ -112,15 +96,7 @@ public:
     const char* format_code;
 
     bool is_connected = false;
-    GrabMode grab_mode = GrabMode::Off;
-    GrabStaus grab_status = GrabStaus::OK;
-
-    uvc_frame_t* rgb_frames[2] = { nullptr, nullptr };
-
-    u32 frame_curr = 0;
-	u32 frame_prev = 1;
-
-    std::function<void(uvc_frame_t*)> rgb_cb;
+    bool is_streaming = false;
 };
 
 
@@ -141,23 +117,12 @@ public:
 static DeviceListUVC g_device_list;
 
 
-
-static void swap_device_frames(DeviceUVC& cam)
+static void free_device_frame(DeviceUVC& device)
 {
-	cam.frame_curr = cam.frame_curr == 0 ? 1 : 0;
-	cam.frame_prev = cam.frame_curr == 0 ? 1 : 0;
-}
-
-
-static void free_device_frames(DeviceUVC& device)
-{
-    for (int i = 0; i < 2; ++i)
+    if (device.rgb_frame)
     {
-        if (device.rgb_frames[i])
-        {
-            uvc_free_frame(device.rgb_frames[i]);
-            device.rgb_frames[i] = nullptr;
-        }
+        uvc_free_frame(device.rgb_frame);
+        device.rgb_frame = nullptr;
     }
 }
 
@@ -412,28 +377,19 @@ static bool enumerate_devices(DeviceListUVC& list)
 
 static void stop_device(DeviceUVC& device)
 {    
-    if (device.grab_mode == GrabMode::Off)
+    if (device.is_streaming)
     {
-        return;
+        uvc_stop_streaming(device.h_device);
+        device.h_stream = nullptr;
     }
-
-    uvc_stop_streaming(device.h_device);
-    device.h_stream = nullptr;
-    device.grab_mode = GrabMode::Off;
-    device.grab_status = GrabStaus::OK;
 }
 
 
 static bool start_device_single_frame(DeviceUVC& device)
 { 
-    if (device.grab_mode == GrabMode::SingleFrame)
+    if (device.is_streaming)
     {
         return true;
-    }
-
-    if (device.grab_mode == GrabMode::Continuous)
-    {
-        stop_device(device);
     }
 
     auto res = uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
@@ -451,7 +407,7 @@ static bool start_device_single_frame(DeviceUVC& device)
         return false;
     }
 
-    device.grab_mode = GrabMode::SingleFrame;
+    device.is_streaming = true;
 
     return true;
 }
@@ -487,17 +443,9 @@ static void close_all_devices()
 
     for (auto& device : g_device_list.devices)
     {
-        if (device.grab_mode != GrabMode::Off)
-        {
-            stop_device(device);
-        }
-
-        if (device.is_connected)
-        {
-            disconnect_device(device);
-        }
-
-        free_device_frames(device);
+        stop_device(device);
+        disconnect_device(device);
+        free_device_frame(device);
     }
     
     g_device_list.is_connected = false;
@@ -512,7 +460,7 @@ static void close_all_devices()
 }
 
 
-static bool grab_and_convert_current_frame(DeviceUVC& device)
+static bool grab_and_convert_frame(DeviceUVC& device)
 {
     uvc_frame_t* frame;
 
@@ -523,7 +471,7 @@ static bool grab_and_convert_current_frame(DeviceUVC& device)
         return false;
     }
 
-    auto rgb = device.rgb_frames[device.frame_curr];
+    auto rgb = device.rgb_frame;
 
     res = uvc_any2rgb(frame, rgb);
     if (res != UVC_SUCCESS)
@@ -531,6 +479,10 @@ static bool grab_and_convert_current_frame(DeviceUVC& device)
         print_uvc_error(res, "uvc_any2rgb");
         return false;
     }
+
+    //device.rgb_image.width = rgb->width;
+    //device.rgb_image.height = rgb->height;
+    //device.rgb_image.data_ = (img::RGBu8*)rgb->data;
 
     return true;
 }
@@ -577,19 +529,24 @@ namespace simage
             return false;
         }
 
-        free_device_frames(device);
+        free_device_frame(device);
 
         size_t frame_bytes = device.frame_width * device.frame_height * 3;
 
-        device.rgb_frames[0] = uvc_allocate_frame(frame_bytes);
-        device.rgb_frames[1] = uvc_allocate_frame(frame_bytes);
-
-        if (!device.rgb_frames[0] || !device.rgb_frames[1])
+        device.rgb_frame = uvc_allocate_frame(frame_bytes);
+        if (!device.rgb_frame)
         {
             print_error("Error allocating frame memory");
-            free_device_frames(device);
+            free_device_frame(device);
             return false;
         }
+
+        ImageRGB rgb;
+        rgb.width = device.frame_width;
+        rgb.height = device.frame_height;
+        rgb.data_ = (RGBu8*)device.rgb_frame->data;
+
+        device.rgb_view = img::make_view(rgb);
 
         if (!start_device_single_frame(device))
         {
@@ -646,19 +603,12 @@ namespace simage
         
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_and_convert_current_frame(device))
+        if (!grab_and_convert_frame(device))
         {
             return false;
         }
-
-        auto& frame = *(device.rgb_frames[device.frame_curr]);
         
-        ImageRGB rgb;
-        rgb.width = camera.image_width;
-		rgb.height = camera.image_height;
-		rgb.data_ = (RGBu8*)frame.data;
-
-        map(make_view(rgb), make_view(camera.latest_frame));
+        map(device.rgb_view, make_view(camera.latest_frame));
 
         return true;
     }
@@ -675,19 +625,12 @@ namespace simage
         
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_and_convert_current_frame(device))
+        if (!grab_and_convert_frame(device))
         {
             return false;
         }
 
-        auto& frame = *(device.rgb_frames[device.frame_curr]);
-        
-        ImageRGB rgb;
-        rgb.width = camera.image_width;
-		rgb.height = camera.image_height;
-		rgb.data_ = (RGBu8*)frame.data;
-
-        map(make_view(rgb), dst);
+        map(device.rgb_view, dst);
 
         return true;
     }
@@ -702,20 +645,13 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_and_convert_current_frame(device))
+        if (!grab_and_convert_frame(device))
         {
             return false;
         }
 
-        auto& frame = *(device.rgb_frames[device.frame_curr]);
-        
-        ImageRGB rgb;
-        rgb.width = camera.image_width;
-		rgb.height = camera.image_height;
-		rgb.data_ = (RGBu8*)frame.data;
-
         auto frame_view = make_view(camera.latest_frame);
-        map(make_view(rgb), frame_view);
+        map(device.rgb_view, frame_view);
         grab_cb(frame_view);
 
         return true;
@@ -733,31 +669,22 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
 
-        auto frame = device.rgb_frames[device.frame_curr];
-
-        ImageRGB rgb;
-        rgb.width = camera.image_width;
-        rgb.height = camera.image_height;
-        rgb.data_ = (RGBu8*)frame->data;
-
         auto frame_view = make_view(camera.latest_frame);
-
-        device.grab_status = GrabStaus::Grabbing;
+        
         while (grab_condition())
         {
-            if (grab_and_convert_current_frame(device))
+            if (grab_and_convert_frame(device))
             {               
-                map(make_view(rgb), frame_view);
+                map(device.rgb_view, frame_view);
                 grab_cb(frame_view);
             }
         }
-
-        device.grab_status = GrabStaus::OK;
 
         return true;
     }
 }
 
+#if 0
 
 static void print_connected_device_info_raw(uvc_context_t *ctx)
 {
@@ -898,3 +825,5 @@ static bool example()
 
     return true;
 }
+
+#endif

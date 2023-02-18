@@ -146,11 +146,11 @@
     <ClCompile Include="..\..\src\stb\stb_simage.cpp">
       <Filter>Source Files\src\stb</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
-      <Filter>Source Files\src\opencv</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\tests_render\camera_tests.cpp">
       <Filter>Source Files\tests_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
+      <Filter>Source Files\src\opencv</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -908,7 +908,7 @@ namespace simage
 		auto const row_func = [&](u32 y)
 		{
 			auto s2 = row_begin(src, y);
-			auto s422 = (YUV422*)s2;
+			auto s422 = (YUV422u8*)s2;
 			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
@@ -942,7 +942,7 @@ namespace simage
 
 #else
 
-	class YUV422r32Planar
+	class YUV422u8r32Planar
 	{
 	public:
 		r32 y1[simd::VEC_LEN] = { 0 };
@@ -952,9 +952,9 @@ namespace simage
 	};
 
 
-	static YUV422r32Planar to_planar(YUV422* begin)
+	static YUV422u8r32Planar to_planar(YUV422u8* begin)
 	{
-		YUV422r32Planar planar;
+		YUV422u8r32Planar planar;
 
 		for (u32 i = 0; i < simd::VEC_LEN; ++i)
 		{
@@ -970,7 +970,7 @@ namespace simage
 	}
 
 
-	static void map_yuv422_rgb_row(YUV422* yuv, r32* dr, r32* dg, r32* db, u32 length)
+	static void map_yuv422_rgb_row(YUV422u8* yuv, r32* dr, r32* dg, r32* db, u32 length)
 	{
 		constexpr u32 STEP = simd::VEC_LEN;
 
@@ -1012,7 +1012,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 		assert(src.width % 2 == 0);
-		static_assert(sizeof(YUV2) == 2);
+		static_assert(sizeof(YUV2u8) == 2);
 
 		do_map_yuv_rgb(src, dst);
 	}
@@ -1020,7 +1020,7 @@ namespace simage
 
 	void mipmap_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
 	{		
-		static_assert(sizeof(YUV2) == 2);
+		static_assert(sizeof(YUV2u8) == 2);
 		assert(verify(src));
 		assert(verify(dst));
 		assert(src.width % 2 == 0);
@@ -1044,8 +1044,8 @@ namespace simage
 			auto src_y1 = y * 2;
 			auto src_y2 = src_y1 + 1;
 
-			auto s1 = (YUV422*)row_begin(src, src_y1);
-			auto s2 = (YUV422*)row_begin(src, src_y2);
+			auto s1 = (YUV422u8*)row_begin(src, src_y1);
+			auto s2 = (YUV422u8*)row_begin(src, src_y2);
 			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x = 0; x < dst.width; ++x)
@@ -1069,7 +1069,7 @@ namespace simage
 
 	void map_yuv_rgb2(ViewYUV const& src, View const& dst)
 	{
-		static_assert(sizeof(YUV2) == 2);
+		static_assert(sizeof(YUV2u8) == 2);
 		assert(verify(src));
 		assert(verify(dst));
 		assert(src.width % 2 == 0);
@@ -1093,8 +1093,8 @@ namespace simage
 			auto src_y1 = y * 2;
 			auto src_y2 = src_y1 + 1;
 
-			auto s1 = (YUV422*)row_begin(src, src_y1);
-			auto s2 = (YUV422*)row_begin(src, src_y2);
+			auto s1 = (YUV422u8*)row_begin(src, src_y1);
+			auto s2 = (YUV422u8*)row_begin(src, src_y2);
 			auto d = row_begin(dst, y);
 
 			for (u32 x = 0; x < dst.width; ++x)

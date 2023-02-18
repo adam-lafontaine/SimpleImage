@@ -258,6 +258,17 @@ namespace simage
 
 		return view;
 	}
+
+
+	ViewRGB make_view(ImageRGB const& image)
+	{
+		assert(verify(image));
+
+		auto view = do_make_view(image);
+		assert(verify(view));
+
+		return view;
+	}
 }
 
 
@@ -368,6 +379,18 @@ namespace simage
 
 
 	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range)
+	{
+		assert(verify(camera_src, range));
+
+		auto sub_view = do_sub_view(camera_src, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	ViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range)
 	{
 		assert(verify(camera_src, range));
 
@@ -670,12 +693,12 @@ namespace simage
 	{
 		assert(verify(src, dst));
 		assert(src.width % 2 == 0);
-		static_assert(sizeof(YUV2) == 2);
+		static_assert(sizeof(YUV2u8) == 2);
 
 		auto const row_func = [&](u32 y)
 		{
 			auto s2 = row_begin(src, y);
-			auto s422 = (YUV422*)s2;
+			auto s422 = (YUV422u8*)s2;
 			auto d = row_begin(dst, y);
 
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
@@ -722,6 +745,29 @@ namespace simage
 
 
 	void map(ViewBGR const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto& rgba = d[x].rgba;
+				rgba.red = s[x].red;
+				rgba.green = s[x].green;
+				rgba.blue = s[x].blue;
+				rgba.alpha = 255;
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}	
+
+
+	void map(ViewRGB const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -800,7 +846,7 @@ namespace simage
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
 			auto s2 = row_begin(src, y);
-			auto s422 = (YUV422*)s2;
+			auto s422 = (YUV422u8*)s2;
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
 			{
 				auto yuv = s422[x422];

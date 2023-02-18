@@ -23,7 +23,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	camera_test,
 	camera_callback_test,
 	camera_histogram_test,
-	//camera_continuous_test,
+	camera_continuous_test,
 };
 
 
@@ -44,25 +44,6 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 	}
 
 	tests[test_id](app_state.screen_pixels);
-
-	/*while (!app_state.signal_stop)
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-		if (!input.keyboard.space_key.pressed)
-		{
-  			continue;
-		}
-
-		test_id++;
-
-		if (test_id >= funcs.size())
-		{
-			test_id = 0;
-		}
-
-		funcs[test_id](app_state.screen_pixels);
-	}*/
 }
 
 
@@ -79,8 +60,8 @@ int main()
 	app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
-	window_settings.screen_width = 900;
-	window_settings.screen_height = 700;
+	window_settings.screen_width = 1280;
+	window_settings.screen_height = 720;
 
 	app::AppState app_state;
 
@@ -88,13 +69,6 @@ int main()
 	{
 		return EXIT_FAILURE;
 	}
-
-	/*Input user_input;
-
-	execute({
-		[&]() { run_selected_test(user_input, app_state); },
-		[&]() { render_run(app_state, [&](auto const& input) { user_input = input; }); }
-	});*/
 
 	render_run(app_state, [&](auto const& input) { run_selected_test(input, app_state); });
 

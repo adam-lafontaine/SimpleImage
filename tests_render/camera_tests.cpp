@@ -1,8 +1,11 @@
 #include "tests_include.hpp"
+#include "../src/util/stopwatch.hpp"
 
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <thread>
 
 
 constexpr u32 BIN_SPACE = 1;
@@ -93,7 +96,6 @@ static void draw(img::Histogram12r32& hists, img::View1r32 const& dst, HistParam
 	}
 }
 
-#include <cstdio>
 
 void camera_test(img::View const& out)
 {
@@ -101,6 +103,7 @@ void camera_test(img::View const& out)
 
 	if (!img::open_camera(camera))
 	{
+		printf("Error camera_test / open_camera\n");
 		return;
 	}
 
@@ -108,10 +111,10 @@ void camera_test(img::View const& out)
 
 	if (!img::grab_image(camera, dst))
 	{
-		
+		printf("Error camera_test / grab_image\n");
 	}
 
-	img::close_all_cameras();
+	img::close_camera(camera);
 }
 
 
@@ -121,6 +124,7 @@ void camera_callback_test(img::View const& out)
 
 	if (!img::open_camera(camera))
 	{
+		printf("Error camera_callback_test / open_camera\n");
 		return;
 	}
 
@@ -140,9 +144,9 @@ void camera_callback_test(img::View const& out)
 
 	auto const to_hypot = [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y); };
 
-	auto const grab_cb = [&](img::ViewBGR const& src)
+	auto const grab_cb = [&](img::View const& src)
 	{
-		img::map_bgr_rgb(src, rgb);
+		img::map_rgb(src, rgb);
 		img::transform_gray(rgb, gray);
 		img::gradients_xy(gray, grad);
 		img::transform(grad, gray, to_hypot);
@@ -151,11 +155,11 @@ void camera_callback_test(img::View const& out)
 
 	if (!img::grab_image(camera, grab_cb))
 	{
-		
+		printf("Error camera_callback_test / grab_image\n");
 	}
 
 	mb::destroy_buffer(buffer);
-	img::close_all_cameras();
+	img::close_camera(camera);
 }
 
 
@@ -165,6 +169,7 @@ void camera_histogram_test(img::View const& out)
 
 	if (!img::open_camera(camera))
 	{
+		printf("Error camera_histogram_test / open_camera\n");
 		return;
 	}
 
@@ -186,7 +191,7 @@ void camera_histogram_test(img::View const& out)
 	img::Histogram12r32 hists;
 	hists.n_bins = N_BINS;
 
-	auto const grab_cb = [&](img::ViewBGR const& src)
+	auto const grab_cb = [&](img::View const& src)
 	{
 		img::make_histograms(src, hists);
 		draw(hists, hist_view, params);
@@ -195,36 +200,64 @@ void camera_histogram_test(img::View const& out)
 
 	if (!img::grab_image(camera, grab_cb))
 	{
-
+		printf("Error camera_histogram_test / grab_image\n");
 	}
 
 	mb::destroy_buffer(buffer);
-	img::close_all_cameras();
+	img::close_camera(camera);
 }
 
 
-//void camera_continuous_test(img::View const& out)
-//{
-//	img::CameraUSB camera;
-//
-//	if (!img::open_camera(camera))
-//	{
-//		return;
-//	}
-//
-//	auto dst = img::sub_view(out, make_range(camera.image_width, camera.image_height));
-//
-//	auto frame_count = 0;
-//
-//	auto const grab_condition = [&frame_count]() { return frame_count < 120; };
-//
-//	auto const grab_cb = [&](img::ViewBGR const& src)
-//	{
-//		img::map(src, dst);
-//		++frame_count;
-//	};
-//
-//	img::grab_continuous(camera, grab_cb, grab_condition);
-//
-//	img::close_all_cameras();
-//}
+void camera_continuous_test(img::View const& out)
+{
+	img::CameraUSB camera;
+
+	if (!img::open_camera(camera))
+	{
+		printf("Error camera_continuous_test / open_camera\n");
+		return;
+	}
+
+	auto width = camera.image_width;
+	auto height = camera.image_height;
+
+	auto n_images = 128;
+
+	auto frame_count = 0;
+	auto const grab_condition = [&]() { return frame_count < n_images; };
+
+	u32 w = width / n_images;
+	auto range = make_range(w, height);
+
+	img::Buffer32 buffer;
+	mb::create_buffer(buffer, w * height * 4);
+
+	auto view_rgb = img::make_view_3(w, height, buffer);
+	auto view_gray = img::make_view_1(w, height, buffer);
+	r32 f = 1.0f;
+
+	Stopwatch sw;
+	sw.start();
+
+	auto const grab_cb = [&](img::View const& src)
+	{
+		img::map_rgb(img::sub_view(src, range), view_rgb);
+		img::transform_gray(view_rgb, view_gray);
+		img::transform(view_gray, view_gray, [&](r32 p){ return p * f; });
+		img::map_rgb(view_gray, img::sub_view(out, range));
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(2 * frame_count));
+		printf("frame: %d, time: %f ms\n", frame_count, sw.get_time_milli());
+		sw.start();
+
+		range.x_begin += w;
+		range.x_end += w;
+		f = f == 1.0f ? 0.5f : 1.0f;
+		++frame_count;		
+	};
+	
+	img::grab_continuous(camera, grab_cb, grab_condition);
+	
+	img::close_camera(camera);
+	mb::destroy_buffer(buffer);
+}

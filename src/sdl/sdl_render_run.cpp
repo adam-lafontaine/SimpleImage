@@ -94,9 +94,6 @@ bool render_init(app::WindowSettings const& window_settings, app::AppState& app_
 }
 
 
-
-
-
 void render_run(app::AppState& app_state, std::function<void(Input const&)> const& on_input)
 {
 

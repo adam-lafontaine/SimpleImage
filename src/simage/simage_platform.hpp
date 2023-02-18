@@ -151,7 +151,7 @@ namespace simage
 {
 #if IS_LITTLE_ENDIAN
 
-	class YUV422
+	class YUV422u8
 	{
 	public:
 		u8 u;
@@ -161,7 +161,7 @@ namespace simage
 	};
 
 
-	class YUV2
+	class YUV2u8
 	{
 	public:
 		u8 uv;
@@ -169,7 +169,7 @@ namespace simage
 	};
 
 
-	class BGR
+	class BGRu8
 	{
 	public:
 		u8 blue;
@@ -177,9 +177,17 @@ namespace simage
 		u8 red;
 	};
 
+
+	class RGBu8
+	{
+	public:
+		u8 red;
+		u8 green;
+		u8 blue;
+	};
 #else
 
-	class YUV422
+	class YUV422u8
 	{
 	public:
 		u8 y2;
@@ -189,29 +197,42 @@ namespace simage
 	};
 
 
-	class YUV2
+	class YUV2u8
 	{
 	public:
 		u8 y;
 		u8 uv;
 	};
 
-	class BGR
+
+	class BGRu8
 	{
 	public:
 		u8 red;
 		u8 green;
 		u8 blue;
+	};
+
+
+	class RGBu8
+	{
+	public:
+		u8 blue;
+		u8 green;
+		u8 red;
 	};
 
 #endif
 
 
-	using ImageYUV = Matrix2D<YUV2>;
-	using ViewYUV = MatrixView<YUV2>;
+	using ImageYUV = Matrix2D<YUV2u8>;
+	using ViewYUV = MatrixView<YUV2u8>;
 
-	using ImageBGR = Matrix2D<BGR>;
-	using ViewBGR = MatrixView<BGR>;
+	using ImageBGR = Matrix2D<BGRu8>;
+	using ViewBGR = MatrixView<BGRu8>;
+
+	using ImageRGB = Matrix2D<RGBu8>;
+	using ViewRGB = MatrixView<RGBu8>;
 }
 
 
@@ -273,6 +294,8 @@ namespace simage
 	ViewYUV make_view(ImageYUV const& image);
 
 	ViewBGR make_view(ImageBGR const& image);
+
+	ViewRGB make_view(ImageRGB const& image);
 }
 
 
@@ -292,6 +315,8 @@ namespace simage
 	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range);
 
 	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
+
+	ViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range);
 }
 
 
@@ -326,6 +351,8 @@ namespace simage
 	void map(ViewYUV const& src, ViewGray const& dst);
 
 	void map(ViewBGR const& src, View const& dst);
+
+	void map(ViewRGB const& src, View const& dst);
 }
 
 
@@ -552,24 +579,29 @@ namespace simage
 	class CameraUSB
 	{
 	public:
-		int id = -1;
+		int device_id = -1;
 		u32 image_width = 0;
 		u32 image_height = 0;
 		u32 max_fps = 0;
+
+		Image latest_frame;
+
+		bool is_open;
 	};
-
-
-	using bgr_callback = std::function<void(ViewBGR const&)>;
+	
+	using view_callback = std::function<void(View const&)>;
 	using bool_f = std::function<bool()>;
 
 
 	bool open_camera(CameraUSB& camera);
 
-	void close_all_cameras();
+	void close_camera(CameraUSB& camera);
+
+	bool grab_image(CameraUSB const& camera);
 
 	bool grab_image(CameraUSB const& camera, View const& dst);
 
-	bool grab_image(CameraUSB const& camera, bgr_callback const& callback);
+	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb);
 
-	bool grab_continuous(CameraUSB const& camera, bgr_callback const& grab_cb, bool_f const& grab_condition);
+	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition);
 }

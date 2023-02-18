@@ -2,7 +2,7 @@ GPP := g++-11
 
 SDL2 := `sdl2-config --cflags --libs`
 OPENCV := `pkg-config --cflags --libs opencv4`
-#OPENCV := -lopencv_core -lopencv_imgproc -lopencv_highgui
+LIBUSB := `pkg-config --libs --cflags libusb-1.0` -ljpeg
 
 build := ./build_files
 
@@ -15,6 +15,7 @@ sdl    := $(src)/sdl
 simage := $(src)/simage
 stb    := $(src)/stb
 opencv := $(src)/opencv
+uvc    := $(src)/uvc
 res    := $(src)/resources
 
 
@@ -46,6 +47,12 @@ stb_h += $(stb)/stb_image_resize.h
 stb_h += $(stb)/stb_image_write.h
 stb_h += $(stb)/stb_image.h
 stb_h += $(defines_h)
+
+# uvc
+uvc_h := $(uvc)/libuvc.h
+#uvc_h += $(uvc)/libuvc_internal.h
+#uvc_h += $(uvc)/utlist.h
+
 
 # simage
 simage_platform_h := $(simage)/simage_platform.hpp
@@ -110,12 +117,19 @@ object_files += $(stb_simage_o)
 
 # opencv_simage
 opencv_simage_c := $(opencv)/opencv_simage.cpp
-opencv_simage_c += $(stb_h)
 opencv_simage_c += $(simage_platform_h)
 opencv_simage_c += $(stopwatch_h)
 opencv_simage_c += $(execute_h)
 opencv_simage_o := $(build)/opencv_simage.o
-object_files += $(opencv_simage_o)
+#object_files += $(opencv_simage_o)
+
+
+# uvc_simage
+uvc_simage_c := $(uvc)/uvc_simage.cpp
+uvc_simage_c += $(simage_platform_h)
+uvc_simage_c += $(uvc_h)
+uvc_simage_o := $(build)/uvc_simage.o
+object_files += $(uvc_simage_o)
 
 
 # simage_platform
@@ -173,18 +187,25 @@ object_files += $(histogram_tests_o)
 
 camera_tests_c := $(tests)/camera_tests.cpp
 camera_tests_c += $(tests_include_h)
+camera_tests_c += $(stopwatch_h)
 camera_tests_o := $(build)/camera_tests.o
 object_files += $(camera_tests_o)
 
 
 # flags
-INCLUDES  := -I /usr/include/opencv4
-LIBRARIES := $(SDL2) $(OPENCV) -ltbb
+INCLUDES  := 
+#INCLUDES += -I /usr/include/opencv4
+INCLUDES += -I /usr/include/libusb-1.0
+
+LIBRARIES := $(SDL2) -ltbb -pthread
+LIBRARIES += $(LIBUSB)
+#LIBRARIES += $(OPENCV)
+
 CCFLAGS := -std=c++20 
 #-mavx -mavx2
 
-#CCFLAGS += -O3
-#CCFLAGS += -DNDEBUG
+CCFLAGS += -O3
+CCFLAGS += -DNDEBUG
 
 
 # build rules
@@ -207,9 +228,15 @@ $(stb_simage_o): $(stb_simage_c)
 	@echo "\n stb_simage"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
-$(opencv_simage_o): $(opencv_simage_c)
-	@echo "\n opencv_simage"
-	$(GPP) $(CCFLAGS) -o $@ -c $< $(INCLUDES) $(LIBRARIES)
+
+
+#$(opencv_simage_o): $(opencv_simage_c)
+#	@echo "\n opencv_simage"
+#	$(GPP) $(CCFLAGS) -o $@ -c $< $(INCLUDES) $(LIBRARIES)
+
+$(uvc_simage_o): $(uvc_simage_c)
+	@echo "\n uvc_simage"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 
 $(simage_platform_o): $(simage_platform_c)

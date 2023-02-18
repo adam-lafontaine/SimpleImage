@@ -268,28 +268,7 @@ namespace simage
 		if (!camera.is_open || camera.device_id < 0 || camera.device_id >= N_CAMERAS)
 		{
 			return false;
-		}
-
-		Stopwatch sw;
-		auto target_ms_per_frame = (r64)camera.max_fps;
-		auto frame_ms_elapsed = (r64)camera.max_fps;
-
-		auto const wait_for_framerate = [&]()
-		{
-			frame_ms_elapsed = sw.get_time_milli();
-
-			auto sleep_ms = (u32)(target_ms_per_frame - frame_ms_elapsed);
-			if (frame_ms_elapsed < target_ms_per_frame && sleep_ms > 0)
-			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-				while (frame_ms_elapsed < target_ms_per_frame)
-				{
-					frame_ms_elapsed = sw.get_time_milli();
-				}
-			}
-
-			sw.start();
-		};
+		}		
 
 		auto& camcv = g_cameras[camera.device_id];
 		bool grab_ok[2] = { false, false };
@@ -309,14 +288,11 @@ namespace simage
 			grab_current, process_previous
 		};
 
-		sw.start();
 		while (grab_condition())
 		{
-			execute(procs);
+			execute_sequential(procs);
 
 			swap_frames(camcv);
-
-			wait_for_framerate();
 		}
 
 		return false;

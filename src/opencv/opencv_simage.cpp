@@ -1,21 +1,18 @@
 #include "../simage/simage_platform.hpp"
-#include "../util/stopwatch.hpp"
 #include "../util/execute.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio.hpp>
 
 #include <array>
-#include <thread>
 
 namespace img = simage;
 
 
 constexpr int N_CAMERAS = 1;
-//constexpr u32 N_FRAMES = 2;
 
 
-class CameraCV
+class DeviceCV
 {
 public:
 	cv::VideoCapture capture;
@@ -26,7 +23,7 @@ public:
 };
 
 
-static CameraCV g_cameras[N_CAMERAS];
+static DeviceCV g_cameras[N_CAMERAS];
 
 
 /* verify */
@@ -72,7 +69,7 @@ static void close_all_cameras()
 }
 
 
-static bool grab_current_frame(CameraCV& cam)
+static bool grab_current_frame(DeviceCV& cam)
 {
 	auto& cap = cam.capture;
 
@@ -92,10 +89,10 @@ static bool grab_current_frame(CameraCV& cam)
 }
 
 
-static void swap_frames(CameraCV& camcv)
+static void swap_frames(DeviceCV& device)
 {
-	camcv.frame_curr = camcv.frame_curr == 0 ? 1 : 0;
-	camcv.frame_prev = camcv.frame_curr == 0 ? 1 : 0;
+	device.frame_curr = device.frame_curr == 0 ? 1 : 0;
+	device.frame_prev = device.frame_curr == 0 ? 1 : 0;
 }
 
 
@@ -105,9 +102,24 @@ namespace simage
 	
 
 
-	static void process_previous_frame(CameraUSB const& camera, CameraCV& camcv, view_callback const& grab_cb)
+	static void process_previous_frame(CameraUSB const& camera, DeviceCV& device, view_callback const& grab_cb)
 	{
-		auto& frame = camcv.bgr_frames[camcv.frame_prev];
+		auto& frame = device.bgr_frames[device.frame_prev];
+
+		ImageBGR bgr;
+		bgr.width = camera.image_width;
+		bgr.height = camera.image_height;
+		bgr.data_ = (BGRu8*)frame.data;
+
+		auto frame_view = make_view(camera.latest_frame);
+		map(make_view(bgr), frame_view);
+		grab_cb(frame_view);
+	}
+
+
+	static void process_current_frame(CameraUSB const& camera, DeviceCV& device, view_callback const& grab_cb)
+	{
+		auto& frame = device.bgr_frames[device.frame_curr];
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -179,16 +191,16 @@ namespace simage
 			return false;
 		}
 
-		auto& camcv = g_cameras[camera.device_id];
+		auto& device = g_cameras[camera.device_id];
 
-		if (!grab_current_frame(camcv))
+		if (!grab_current_frame(device))
 		{
 			return false;
 		}
 
-		auto& frame = camcv.bgr_frames[camcv.frame_curr];
+		auto& frame = device.bgr_frames[device.frame_curr];
 
-		swap_frames(camcv);
+		swap_frames(device);
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -210,16 +222,16 @@ namespace simage
 			return false;
 		}
 
-		auto& camcv = g_cameras[camera.device_id];
+		auto& device = g_cameras[camera.device_id];
 
-		if (!grab_current_frame(camcv))
+		if (!grab_current_frame(device))
 		{
 			return false;
 		}
 
-		auto& frame = camcv.bgr_frames[camcv.frame_curr];
+		auto& frame = device.bgr_frames[device.frame_curr];
 
-		swap_frames(camcv);
+		swap_frames(device);
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -239,16 +251,16 @@ namespace simage
 			return false;
 		}
 
-		auto& camcv = g_cameras[camera.device_id];
+		auto& device = g_cameras[camera.device_id];
 
-		if (!grab_current_frame(camcv))
+		if (!grab_current_frame(device))
 		{
 			return false;
 		}
 
-		auto& frame = camcv.bgr_frames[camcv.frame_curr];
+		auto& frame = device.bgr_frames[device.frame_curr];
 
-		swap_frames(camcv);
+		swap_frames(device);
 
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
@@ -270,16 +282,16 @@ namespace simage
 			return false;
 		}		
 
-		auto& camcv = g_cameras[camera.device_id];
+		auto& device = g_cameras[camera.device_id];
 		bool grab_ok[2] = { false, false };
 
-		auto const grab_current = [&]() { grab_ok[camcv.frame_curr] = grab_current_frame(camcv); };
+		auto const grab_current = [&]() { grab_ok[device.frame_curr] = grab_current_frame(device); };
 
 		auto const process_previous = [&]() 
 		{ 
-			if (grab_ok[camcv.frame_prev]) 
+			if (grab_ok[device.frame_prev]) 
 			{ 
-				process_previous_frame(camera, camcv, grab_cb);
+				process_previous_frame(camera, device, grab_cb);
 			}			
 		};
 
@@ -290,9 +302,13 @@ namespace simage
 
 		while (grab_condition())
 		{
-			execute_sequential(procs);
+			execute(procs);
+			swap_frames(device);
 
-			swap_frames(camcv);
+			/*if (grab_current_frame(device))
+			{
+				process_current_frame(camera, device, grab_cb);
+			}*/
 		}
 
 		return false;

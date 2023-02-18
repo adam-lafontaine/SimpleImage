@@ -480,10 +480,6 @@ static bool grab_and_convert_frame(DeviceUVC& device)
         return false;
     }
 
-    //device.rgb_image.width = rgb->width;
-    //device.rgb_image.height = rgb->height;
-    //device.rgb_image.data_ = (img::RGBu8*)rgb->data;
-
     return true;
 }
 

@@ -45,15 +45,39 @@ static void run_selected_proc(Input const& input, img::CameraUSB const& camera, 
 }
 
 
-static img::View get_camera_view(img::CameraUSB const& camera, img::View const& app_screen)
+static img::View get_screen_view(img::CameraUSB const& camera, img::View const& app_screen)
 {
 	if (camera.image_width == app_screen.width && camera.image_height == app_screen.height)
 	{
 		return app_screen;
 	}
 
-	// assume camera is smaller than screen
 	auto r = make_range(camera.image_width, camera.image_height);
+	u32 x_adj = 0;
+	u32 y_adj = 0;
+
+	if (camera.image_width > app_screen.width)
+	{
+		assert(false || "camera cannot be larger than screen");
+	}
+	else if (camera.image_width < app_screen.width)
+	{
+		x_adj = (app_screen.width - camera.image_width) / 2;
+	}
+
+	if (camera.image_height > app_screen.height)
+	{
+		assert(false || "camera cannot be larger than screen");
+	}
+	else if (camera.image_height < app_screen.height)
+	{
+		y_adj = (app_screen.height - camera.image_height) / 2;
+	}
+
+	r.x_begin += x_adj;
+	r.x_end += x_adj;
+	r.y_begin += y_adj;
+	r.y_end += y_adj;
 
 	return img::sub_view(app_screen, r);
 }
@@ -88,9 +112,9 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	auto camera_out = get_camera_view(camera, app_state.screen_pixels);
+	auto screen_out = get_screen_view(camera, app_state.screen_pixels);
 
-	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, camera_out); });
+	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, screen_out); });
 
 	img::close_camera(camera);
 	close_camera_procs();

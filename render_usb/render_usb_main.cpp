@@ -2,11 +2,6 @@
 #include "../src/app/app.hpp"
 #include "../render_usb/proc_def.hpp"
 
-//#define LEAK_CHECK
-#if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
-#include "../src/util/win32_leak_check.h"
-#endif
-
 constexpr auto APP_TITLE = "Render USB";
 constexpr auto APP_VERSION = "1.0";
 
@@ -45,11 +40,11 @@ static void run_selected_proc(Input const& input, img::CameraUSB const& camera, 
 }
 
 
-static img::View get_screen_view(img::CameraUSB& camera, img::View const& app_screen)
+static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 {
 	if (camera.frame_roi.width == app_screen.width && camera.frame_roi.height == app_screen.height)
 	{
-		return app_screen;
+		return;
 	}	
 
 	// change camera roi if it is larger than the screen
@@ -90,47 +85,43 @@ static img::View get_screen_view(img::CameraUSB& camera, img::View const& app_sc
 	roi_screen.y_begin += y_adj_screen;
 	roi_screen.y_end += y_adj_screen;	
 
-	return img::sub_view(app_screen, roi_screen);
+	app_screen = img::sub_view(app_screen, roi_screen);
 }
 
 
 int main()
 {
-#if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
-	int dbgFlags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	dbgFlags |= _CRTDBG_CHECK_ALWAYS_DF;   // check block integrity
-	dbgFlags |= _CRTDBG_DELAY_FREE_MEM_DF; // don't recycle memory
-	dbgFlags |= _CRTDBG_LEAK_CHECK_DF;     // leak report on exit
-	_CrtSetDbgFlag(dbgFlags);
-#endif
-
-	app::WindowSettings window_settings{};
-	window_settings.app_title = APP_TITLE;
-	window_settings.version = APP_VERSION;
-	window_settings.screen_width = 500;
-	window_settings.screen_height = 300;
-
-	app::AppState app_state;
-
-	if (!render_init(window_settings, app_state))
-	{
-		return EXIT_FAILURE;
-	}
-
 	img::CameraUSB camera;
 	if (!img::open_camera(camera))
 	{
 		return false;
 	}
 
-	auto screen_out = get_screen_view(camera, app_state.screen_pixels);
+	app::WindowSettings window_settings{};
+	window_settings.app_title = APP_TITLE;
+	window_settings.version = APP_VERSION;
+	window_settings.screen_width = camera.image_width;
+	window_settings.screen_height = camera.image_height;
+
+	app::AppState app_state;
+
+	if (!render_init(window_settings, app_state))
+	{
+		return EXIT_FAILURE;
+	}	
+
+	auto full_screen = app_state.screen_pixels;
+
+	auto out_view = full_screen;
+
+	adjust_screen_views(camera, out_view);
 	
 	if (!init_camera_procs(camera))
 	{
 		return EXIT_FAILURE;
 	}
 
-	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, screen_out); });
+	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, out_view); });
 
 	img::close_camera(camera);
 	close_camera_procs();

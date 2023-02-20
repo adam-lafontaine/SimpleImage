@@ -585,6 +585,7 @@ namespace simage
 		u32 max_fps = 0;
 
 		Image latest_frame;
+		View roi_view;
 
 		bool is_open;
 	};
@@ -604,4 +605,6 @@ namespace simage
 	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb);
 
 	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition);
+
+	inline void set_roi(CameraUSB& camera, Range2Du32 const& roi) { camera.roi_view = sub_view(camera.latest_frame, roi); }
 }

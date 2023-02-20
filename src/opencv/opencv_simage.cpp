@@ -137,6 +137,8 @@ namespace simage
 			return false;
 		}
 
+		camera.roi_view = img::make_view(camera.latest_frame);
+
 		ImageBGR bgr;
 		bgr.width = camera.image_width;
 		bgr.height = camera.image_height;
@@ -188,7 +190,7 @@ namespace simage
 
 		auto& device_view = device.bgr_views[device.frame_curr];
 
-		map(device_view, make_view(camera.latest_frame));
+		map(device_view, camera.roi_view);
 
 		swap_frames(device);
 
@@ -238,11 +240,10 @@ namespace simage
 			return false;
 		}
 
-		auto& device_view = device.bgr_views[device.frame_curr];		
+		auto& device_view = device.bgr_views[device.frame_curr];	
 
-		auto frame_view = make_view(camera.latest_frame);
-        map(device_view, frame_view);
-        grab_cb(frame_view);
+        map(device_view, camera.roi_view);
+        grab_cb(camera.roi_view);
 
 		swap_frames(device);
 
@@ -260,7 +261,8 @@ namespace simage
 		}
 
 		auto& device = g_devices[camera.device_id];
-		bool grab_ok[2] = { false, false };
+
+		/*bool grab_ok[2] = { false, false };
 
 		auto const grab_current = [&]() { grab_ok[device.frame_curr] = grab_and_convert_current_frame(device); };
 
@@ -269,16 +271,15 @@ namespace simage
 			if (grab_ok[device.frame_prev]) 
 			{ 
 				auto& device_view = device.bgr_views[device.frame_prev];
-				auto frame_view = make_view(camera.latest_frame);
-				map(device_view, frame_view);
-				grab_cb(frame_view);
+				map(device_view, camera.roi_view);
+				grab_cb(camera.roi_view);
 			}			
 		};
 
 		std::array<std::function<void()>, 2> procs = 
 		{
 			grab_current, process_previous
-		};
+		};*/
 
 		while (grab_condition())
 		{
@@ -288,9 +289,8 @@ namespace simage
 			if (grab_and_convert_current_frame(device))
 			{
 				auto& device_view = device.bgr_views[device.frame_curr];
-				auto frame_view = make_view(camera.latest_frame);
-				map(device_view, frame_view);
-				grab_cb(frame_view);
+				map(device_view, camera.roi_view);
+				grab_cb(camera.roi_view);
 			}
 		}
 

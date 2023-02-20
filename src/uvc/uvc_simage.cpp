@@ -525,6 +525,8 @@ namespace simage
             return false;
         }
 
+        camera.frame_roi = img::make_view(camera.latest_frame);
+
         free_device_frame(device);
 
         size_t frame_bytes = device.frame_width * device.frame_height * 3;

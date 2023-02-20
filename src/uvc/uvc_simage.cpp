@@ -603,8 +603,11 @@ namespace simage
         {
             return false;
         }
+
+        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
+        auto device_view = sub_view(device.rgb_view, roi);
         
-        map(device.rgb_view, make_view(camera.latest_frame));
+        map(device_view, camera.frame_roi);
 
         return true;
     }
@@ -626,7 +629,10 @@ namespace simage
             return false;
         }
 
-        map(device.rgb_view, dst);
+        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
+        auto device_view = sub_view(device.rgb_view, roi);
+
+        map(device_view, dst);
 
         return true;
     }
@@ -646,9 +652,11 @@ namespace simage
             return false;
         }
 
-        auto frame_view = make_view(camera.latest_frame);
-        map(device.rgb_view, frame_view);
-        grab_cb(frame_view);
+        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
+        auto device_view = sub_view(device.rgb_view, roi);
+
+        map(device_view, camera.frame_roi);
+        grab_cb(camera.frame_roi);
 
         return true;
     }
@@ -665,14 +673,17 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
 
+        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
+        auto device_view = sub_view(device.rgb_view, roi);
+
         auto frame_view = make_view(camera.latest_frame);
         
         while (grab_condition())
         {
             if (grab_and_convert_frame(device))
             {               
-                map(device.rgb_view, frame_view);
-                grab_cb(frame_view);
+                map(device_view, camera.frame_roi);
+				grab_cb(camera.frame_roi);
             }
         }
 

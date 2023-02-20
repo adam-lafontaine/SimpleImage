@@ -1,4 +1,3 @@
-#include "../src/util/execute.hpp"
 #include "../src/app/app.hpp"
 #include "tests_def.hpp"
 
@@ -6,8 +5,6 @@
 #if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
 #include "../src/util/win32_leak_check.h"
 #endif
-
-#include <chrono>
 
 
 constexpr auto APP_TITLE = "SimpleImage SDL2 Tests";

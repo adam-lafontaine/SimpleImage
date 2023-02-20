@@ -1,12 +1,11 @@
 GPP := g++-11
 
 SDL2 := `sdl2-config --cflags --libs`
-OPENCV := `pkg-config --cflags --libs opencv4`
 LIBUSB := `pkg-config --libs --cflags libusb-1.0` -ljpeg
 
 build := ./build_files
 
-tests  := ..
+procs  := ..
 src    := ../../src
 util   := $(src)/util
 app    := $(src)/app
@@ -17,7 +16,6 @@ stb    := $(src)/stb
 opencv := $(src)/opencv
 uvc    := $(src)/uvc
 res    := $(src)/resources
-
 
 render_exe := $(build)/render_exe
 
@@ -75,19 +73,15 @@ app_h := $(app)/app.hpp
 app_h += $(simage_platform_h)
 app_h += $(input_h)
 
-#tests
-tests_def_h := $(tests)/tests_def.hpp
-tests_def_h += $(simage_h)
-
-tests_include_h := $(tests)/tests_include.hpp
-tests_include_h += $(tests_def_h)
+# procs
+proc_def_h := $(procs)/proc_def.hpp
+proc_def_h += $(simage_platform_h)
 
 
 # main
-main_c := $(tests)/tests_render_main.cpp
-main_c += $(execute_h)
-main_c += $(tests_def_h)
-main_o := $(build)/tests_main.o
+main_c := $(procs)/render_usb_main.cpp
+main_c += $(proc_def_h)
+main_o := $(build)/render_usb_main.o
 object_files := $(main_o)
 
 
@@ -111,15 +105,6 @@ stb_simage_c += $(stb_h)
 stb_simage_c += $(simage_platform_h)
 stb_simage_o := $(build)/stb_simage.o
 object_files += $(stb_simage_o)
-
-
-# opencv_simage
-#opencv_simage_c := $(opencv)/opencv_simage.cpp
-#opencv_simage_c += $(simage_platform_h)
-#opencv_simage_c += $(stopwatch_h)
-#opencv_simage_c += $(execute_h)
-#opencv_simage_o := $(build)/opencv_simage.o
-#object_files += $(opencv_simage_o)
 
 
 # uvc_simage
@@ -166,44 +151,26 @@ sdl_render_o := $(build)/sdl_render.o
 object_files += $(sdl_render_o)
 
 
-# tests
-
-fill_tests_c := $(tests)/fill_tests.cpp
-fill_tests_c += $(tests_include_h)
-fill_tests_o := $(build)/fill_tests.o
-object_files += $(fill_tests_o)
-
-image_tests_c := $(tests)/image_tests.cpp
-image_tests_c += $(tests_include_h)
-image_tests_o := $(build)/image_tests.o
-object_files += $(image_tests_o)
-
-histogram_tests_c := $(tests)/histogram_tests.cpp
-histogram_tests_c += $(tests_include_h)
-histogram_tests_o := $(build)/histogram_tests.o
-object_files += $(histogram_tests_o)
-
-camera_tests_c := $(tests)/camera_tests.cpp
-camera_tests_c += $(tests_include_h)
-camera_tests_c += $(stopwatch_h)
-camera_tests_o := $(build)/camera_tests.o
-object_files += $(camera_tests_o)
+# render_usb
+render_usb_c := $(procs)/render_usb.cpp
+render_usb_c += $(proc_def_h)
+render_usb_c += $(simage_h)
+render_usb_o := $(build)/render_usb.o
+object_files += $(render_usb_o)
 
 
 # flags
 INCLUDES  := 
-#INCLUDES += -I /usr/include/opencv4
 INCLUDES += -I /usr/include/libusb-1.0
 
 LIBRARIES := $(SDL2) -ltbb -pthread
 LIBRARIES += $(LIBUSB)
-#LIBRARIES += $(OPENCV)
 
 CCFLAGS := -std=c++20 
-#-mavx -mavx2
 
 CCFLAGS += -O3
 CCFLAGS += -DNDEBUG
+
 
 
 # build rules
@@ -225,12 +192,6 @@ $(memory_buffer_o): $(memory_buffer_c)
 $(stb_simage_o): $(stb_simage_c)
 	@echo "\n stb_simage"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
-
-
-
-#$(opencv_simage_o): $(opencv_simage_c)
-#	@echo "\n opencv_simage"
-#	$(GPP) $(CCFLAGS) -o $@ -c $< $(INCLUDES) $(LIBRARIES)
 
 $(uvc_simage_o): $(uvc_simage_c)
 	@echo "\n uvc_simage"
@@ -255,20 +216,8 @@ $(sdl_render_o): $(sdl_render_c)
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 
-$(fill_tests_o): $(fill_tests_c)
-	@echo "\n fill_tests"
-	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
-
-$(image_tests_o): $(image_tests_c)
-	@echo "\n image_tests"
-	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
-
-$(histogram_tests_o): $(histogram_tests_c)
-	@echo "\n histogram_tests"
-	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
-
-$(camera_tests_o): $(camera_tests_c)
-	@echo "\n camera_tests"
+$(render_usb_o): $(render_usb_c)
+	@echo "\n render_usb"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

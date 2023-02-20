@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/simage/simage.hpp"
+#include "../src/simage/simage_platform.hpp"
 
 namespace img = simage;
 

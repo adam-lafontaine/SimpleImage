@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleImageTests", "SimpleI
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderSDL2", "RenderSDL2\RenderSDL2.vcxproj", "{6D8F3B10-1534-4019-8676-A4853A324691}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderUSB", "RenderUSB\RenderUSB.vcxproj", "{E9798067-0D90-423C-8C77-30D68FB63637}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{6D8F3B10-1534-4019-8676-A4853A324691}.Release|x64.Build.0 = Release|x64
 		{6D8F3B10-1534-4019-8676-A4853A324691}.Release|x86.ActiveCfg = Release|Win32
 		{6D8F3B10-1534-4019-8676-A4853A324691}.Release|x86.Build.0 = Release|Win32
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Debug|x64.ActiveCfg = Debug|x64
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Debug|x64.Build.0 = Debug|x64
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Debug|x86.ActiveCfg = Debug|Win32
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Debug|x86.Build.0 = Debug|Win32
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Release|x64.ActiveCfg = Release|x64
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Release|x64.Build.0 = Release|x64
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Release|x86.ActiveCfg = Release|Win32
+		{E9798067-0D90-423C-8C77-30D68FB63637}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

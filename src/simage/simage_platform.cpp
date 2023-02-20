@@ -390,7 +390,31 @@ namespace simage
 	}
 
 
+	ViewBGR sub_view(ViewBGR const& camera_src, Range2Du32 const& range)
+	{
+		assert(verify(camera_src, range));
+
+		auto sub_view = do_sub_view(camera_src, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
 	ViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range)
+	{
+		assert(verify(camera_src, range));
+
+		auto sub_view = do_sub_view(camera_src, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	ViewRGB sub_view(ViewRGB const& camera_src, Range2Du32 const& range)
 	{
 		assert(verify(camera_src, range));
 

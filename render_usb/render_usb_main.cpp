@@ -45,41 +45,52 @@ static void run_selected_proc(Input const& input, img::CameraUSB const& camera, 
 }
 
 
-static img::View get_screen_view(img::CameraUSB const& camera, img::View const& app_screen)
+static img::View get_screen_view(img::CameraUSB& camera, img::View const& app_screen)
 {
-	if (camera.image_width == app_screen.width && camera.image_height == app_screen.height)
+	if (camera.frame_roi.width == app_screen.width && camera.frame_roi.height == app_screen.height)
 	{
 		return app_screen;
-	}
+	}	
 
-	auto r = make_range(camera.image_width, camera.image_height);
-	u32 x_adj = 0;
-	u32 y_adj = 0;
+	// change camera roi if it is larger than the screen
+	auto roi_camera = make_range(camera.frame_roi.width, camera.frame_roi.height);
 
-	if (camera.image_width > app_screen.width)
+	if (camera.frame_roi.width > app_screen.width)
 	{
-		assert(false || "camera cannot be larger than screen");
-	}
-	else if (camera.image_width < app_screen.width)
-	{
-		x_adj = (app_screen.width - camera.image_width) / 2;
+		roi_camera.x_begin = (camera.frame_roi.width - app_screen.width) / 2;
+		roi_camera.x_end = roi_camera.x_begin + app_screen.width;
 	}
 
-	if (camera.image_height > app_screen.height)
+	if (camera.frame_roi.height > app_screen.height)
 	{
-		assert(false || "camera cannot be larger than screen");
-	}
-	else if (camera.image_height < app_screen.height)
-	{
-		y_adj = (app_screen.height - camera.image_height) / 2;
+		roi_camera.y_begin = (camera.frame_roi.height - app_screen.height) / 2;
+		roi_camera.y_end = roi_camera.y_begin + app_screen.height;
 	}
 
-	r.x_begin += x_adj;
-	r.x_end += x_adj;
-	r.y_begin += y_adj;
-	r.y_end += y_adj;
+	img::set_roi(camera, roi_camera);
 
-	return img::sub_view(app_screen, r);
+	// screen view that fits in camera roi
+	u32 x_adj_screen = 0;
+	u32 y_adj_screen = 0;
+	
+	if (camera.frame_roi.width < app_screen.width)
+	{
+		x_adj_screen = (app_screen.width - camera.frame_roi.width) / 2;
+	}
+	
+	if (camera.frame_roi.height < app_screen.height)
+	{
+		y_adj_screen = (app_screen.height - camera.frame_roi.height) / 2;
+	}
+	
+	auto roi_screen = make_range(camera.frame_roi.width, camera.frame_roi.height);
+
+	roi_screen.x_begin += x_adj_screen;
+	roi_screen.x_end += x_adj_screen;
+	roi_screen.y_begin += y_adj_screen;
+	roi_screen.y_end += y_adj_screen;	
+
+	return img::sub_view(app_screen, roi_screen);
 }
 
 
@@ -96,8 +107,8 @@ int main()
 	app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
-	window_settings.screen_width = 1280;
-	window_settings.screen_height = 720;
+	window_settings.screen_width = 500;
+	window_settings.screen_height = 300;
 
 	app::AppState app_state;
 
@@ -107,12 +118,17 @@ int main()
 	}
 
 	img::CameraUSB camera;
+	if (!img::open_camera(camera))
+	{
+		return false;
+	}
+
+	auto screen_out = get_screen_view(camera, app_state.screen_pixels);
+	
 	if (!init_camera_procs(camera))
 	{
 		return EXIT_FAILURE;
 	}
-
-	auto screen_out = get_screen_view(camera, app_state.screen_pixels);
 
 	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, screen_out); });
 

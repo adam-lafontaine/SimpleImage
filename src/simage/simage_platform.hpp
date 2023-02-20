@@ -316,7 +316,11 @@ namespace simage
 
 	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
 
+	ViewBGR sub_view(ViewBGR const& camera_src, Range2Du32 const& range);
+
 	ViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range);
+
+	ViewRGB sub_view(ViewRGB const& camera_src, Range2Du32 const& range);
 }
 
 
@@ -585,7 +589,7 @@ namespace simage
 		u32 max_fps = 0;
 
 		Image latest_frame;
-		View roi_view;
+		View frame_roi;
 
 		bool is_open;
 	};
@@ -606,5 +610,5 @@ namespace simage
 
 	bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition);
 
-	inline void set_roi(CameraUSB& camera, Range2Du32 const& roi) { camera.roi_view = sub_view(camera.latest_frame, roi); }
+	inline void set_roi(CameraUSB& camera, Range2Du32 const& roi) { camera.frame_roi = sub_view(camera.latest_frame, roi); }
 }

@@ -34,19 +34,17 @@ void close_camera_procs()
 }
 
 
-bool init_camera_procs(img::CameraUSB& camera)
+bool init_camera_procs(img::CameraUSB const& camera)
 {
-	if (!img::open_camera(camera))
-	{
-		return false;
-	}
-
-	auto width = camera.image_width;
-	auto height = camera.image_height;
+	auto width = camera.frame_roi.width;
+	auto height = camera.frame_roi.height;
 
 	auto n_channels = 9;
 
-	mb::create_buffer(buffer, width * height * n_channels);
+	if (!mb::create_buffer(buffer, width * height * n_channels))
+	{
+		return false;
+	}
 
 	view3a = img::make_view_3(width, height, buffer);
 	view2a = img::make_view_2(width, height, buffer);

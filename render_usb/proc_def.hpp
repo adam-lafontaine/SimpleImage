@@ -7,7 +7,7 @@ namespace img = simage;
 
 void close_camera_procs();
 
-bool init_camera_procs(img::CameraUSB& camera);
+bool init_camera_procs(img::CameraUSB const& camera);
 
 
 void show_camera(img::View const& src, img::View const& dst);

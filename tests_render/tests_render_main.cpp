@@ -1,4 +1,3 @@
-#include "../src/util/execute.hpp"
 #include "../src/app/app.hpp"
 #include "tests_def.hpp"
 

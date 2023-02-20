@@ -131,5 +131,8 @@
     <ClInclude Include="..\..\src\stb\stb_include.hpp">
       <Filter>Header Files\src\stb</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\render_usb\proc_def.hpp">
+      <Filter>Header Files\render_usb</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

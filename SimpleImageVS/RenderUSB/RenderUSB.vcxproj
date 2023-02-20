@@ -142,6 +142,7 @@
     <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\render_usb\proc_def.hpp" />
     <ClInclude Include="..\..\src\app\app.hpp" />
     <ClInclude Include="..\..\src\defines.hpp" />
     <ClInclude Include="..\..\src\input\input.hpp" />

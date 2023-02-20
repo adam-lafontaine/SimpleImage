@@ -9,10 +9,52 @@
 constexpr auto APP_TITLE = "Render USB";
 constexpr auto APP_VERSION = "1.0";
 
-static std::vector<std::function<void(img::View const&)>> list = 
+static std::vector<std::function<void(img::View const&)>> proc_list = 
 {
 
 };
+
+
+static void run_selected_proc(Input const& input, img::CameraUSB const& camera, img::View const& dst)
+{
+	static int proc_id = -1;
+
+	img::view_callback grab_cb = [](img::View const&) {};
+
+	if (input.keyboard.space_key.pressed)
+	{
+		proc_id++;
+
+		if (proc_id >= proc_list.size())
+		{
+			proc_id = 0;
+		}
+
+		grab_cb = [&](img::View const&) { proc_list[proc_id](dst); };
+	}
+
+	/*if (proc_id < 0 || proc_id >= proc_list.size())
+	{
+		return;
+	}*/
+
+	img::grab_image(camera, grab_cb);
+}
+
+
+static img::View get_camera_view(img::CameraUSB const& camera, img::View const& app_screen)
+{
+	if (camera.image_width == app_screen.width && camera.image_height == app_screen.height)
+	{
+		return app_screen;
+	}
+
+	// assume camera is smaller than screen
+	auto r = make_range(camera.image_width, camera.image_height);
+
+	return img::sub_view(app_screen, r);
+}
+
 
 int main()
 {
@@ -37,7 +79,17 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	render_run(app_state, [&](auto const& input) {  });
+	img::CameraUSB camera;
+	if (!img::open_camera(camera))
+	{
+		return EXIT_FAILURE;
+	}
+
+	auto camera_out = get_camera_view(camera, app_state.screen_pixels);
+
+	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, camera_out); });
+
+	img::close_camera(camera);
 
 	return EXIT_SUCCESS;
 }

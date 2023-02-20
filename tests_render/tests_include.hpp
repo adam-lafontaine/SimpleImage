@@ -1,10 +1,12 @@
 #pragma once
 #include "tests_def.hpp"
+#include "../src/simage/simage.hpp"
 
 
 #include <filesystem>
 
 namespace fs = std::filesystem;
+namespace img = simage;
 
 
 using Image = img::Image;

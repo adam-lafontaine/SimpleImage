@@ -139,8 +139,6 @@ void camera_callback_test(img::View const& out)
 	auto rgb = img::make_view_3(width, height, buffer);
 	auto gray = img::make_view_1(width, height, buffer);
 	auto grad = img::make_view_2(width, height, buffer);
-	auto dst_x = img::select_channel(grad, img::XY::X);
-	auto dst_y = img::select_channel(grad, img::XY::Y);
 
 	auto const to_hypot = [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y); };
 

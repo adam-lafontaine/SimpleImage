@@ -13,7 +13,8 @@ constexpr auto APP_VERSION = "1.0";
 static std::vector<std::function<void(img::View const&, img::View const&)>> proc_list =
 {
 	show_camera,
-	show_gray
+	show_gray,
+	show_gradients
 };
 
 

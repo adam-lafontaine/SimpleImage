@@ -12,7 +12,8 @@ constexpr auto APP_VERSION = "1.0";
 
 static std::vector<std::function<void(img::View const&, img::View const&)>> proc_list =
 {
-	show_camera
+	show_camera,
+	show_gray
 };
 
 
@@ -77,7 +78,7 @@ int main()
 	}
 
 	img::CameraUSB camera;
-	if (!img::open_camera(camera))
+	if (!init_camera_procs(camera))
 	{
 		return EXIT_FAILURE;
 	}
@@ -87,6 +88,7 @@ int main()
 	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, camera_out); });
 
 	img::close_camera(camera);
+	close_camera_procs();
 
 	return EXIT_SUCCESS;
 }

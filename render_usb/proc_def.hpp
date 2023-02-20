@@ -5,4 +5,4 @@
 namespace img = simage;
 
 
-void show_camera(img::View const& out);
+void show_camera(img::View const& src, img::View const& dst);

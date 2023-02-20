@@ -90,6 +90,9 @@
     <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
       <Filter>Source Files\src\opencv</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\render_usb\render_usb.cpp">
+      <Filter>Source Files\render_usb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\defines.hpp">

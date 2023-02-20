@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\render_usb\render_usb.cpp" />
     <ClCompile Include="..\..\render_usb\render_usb_main.cpp" />
     <ClCompile Include="..\..\src\opencv\opencv_simage.cpp" />
     <ClCompile Include="..\..\src\sdl\sdl_input.cpp" />

@@ -1,5 +1,6 @@
 #include "../src/util/execute.hpp"
 #include "../src/app/app.hpp"
+#include "../render_usb/proc_def.hpp"
 
 //#define LEAK_CHECK
 #if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
@@ -9,17 +10,15 @@
 constexpr auto APP_TITLE = "Render USB";
 constexpr auto APP_VERSION = "1.0";
 
-static std::vector<std::function<void(img::View const&)>> proc_list = 
+static std::vector<std::function<void(img::View const&, img::View const&)>> proc_list =
 {
-
+	show_camera
 };
 
 
 static void run_selected_proc(Input const& input, img::CameraUSB const& camera, img::View const& dst)
 {
 	static int proc_id = -1;
-
-	img::view_callback grab_cb = [](img::View const&) {};
 
 	if (input.keyboard.space_key.pressed)
 	{
@@ -29,16 +28,14 @@ static void run_selected_proc(Input const& input, img::CameraUSB const& camera, 
 		{
 			proc_id = 0;
 		}
-
-		grab_cb = [&](img::View const&) { proc_list[proc_id](dst); };
 	}
 
-	/*if (proc_id < 0 || proc_id >= proc_list.size())
+	if (proc_id < 0 || proc_id >= proc_list.size())
 	{
 		return;
-	}*/
+	}
 
-	img::grab_image(camera, grab_cb);
+	img::grab_image(camera, [&](img::View const& src) { proc_list[proc_id](src, dst); });
 }
 
 

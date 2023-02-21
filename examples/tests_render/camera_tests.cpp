@@ -1,5 +1,5 @@
 #include "tests_include.hpp"
-#include "../src/util/stopwatch.hpp"
+#include "../../src/util/stopwatch.hpp"
 
 #include <array>
 #include <algorithm>

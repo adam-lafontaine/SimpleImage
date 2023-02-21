@@ -6,7 +6,7 @@ LIBUSB := `pkg-config --libs --cflags libusb-1.0` -ljpeg
 build := ./build_files
 
 procs  := ..
-src    := ../../src
+src    := ../../../src
 util   := $(src)/util
 app    := $(src)/app
 input  := $(src)/input

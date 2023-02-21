@@ -1,5 +1,5 @@
-#include "../src/util/execute.hpp"
-#include "../src/app/app.hpp"
+#include "../../src/util/execute.hpp"
+#include "../../src/app/app.hpp"
 #include "../render_usb/proc_def.hpp"
 
 constexpr auto APP_TITLE = "Render USB";

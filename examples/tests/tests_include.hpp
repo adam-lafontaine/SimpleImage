@@ -1,4 +1,4 @@
-#include "../src/simage/simage.hpp"
+#include "../../src/simage/simage.hpp"
 
 #include <filesystem>
 

@@ -3,7 +3,7 @@
 
 //#define LEAK_CHECK
 #if defined(_WIN32) && defined(_DEBUG) && defined(LEAK_CHECK)
-#include "../src/util/win32_leak_check.h"
+#include "../../src/util/win32_leak_check.h"
 #endif
 
 static bool test_success()

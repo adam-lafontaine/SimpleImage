@@ -1,4 +1,4 @@
-#include "../src/app/app.hpp"
+#include "../../src/app/app.hpp"
 #include "tests_def.hpp"
 
 //#define LEAK_CHECK

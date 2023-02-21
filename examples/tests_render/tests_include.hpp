@@ -1,6 +1,6 @@
 #pragma once
 #include "tests_def.hpp"
-#include "../src/simage/simage.hpp"
+#include "../../src/simage/simage.hpp"
 
 
 #include <filesystem>

@@ -1,5 +1,5 @@
 #include "proc_def.hpp"
-#include "../src/simage/simage.hpp"
+#include "../../src/simage/simage.hpp"
 
 #include <cmath>
 

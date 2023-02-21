@@ -5,7 +5,7 @@ build := ./build_files
 out := ../TestImages/out_files
 
 tests  := ..
-src    := ../../src
+src    := ../../../src
 util   := $(src)/util
 simage := $(src)/simage
 stb    := $(src)/stb

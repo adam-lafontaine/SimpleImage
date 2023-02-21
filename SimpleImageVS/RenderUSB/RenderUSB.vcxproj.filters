@@ -63,7 +63,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\render_usb\render_usb_main.cpp">
+    <ClCompile Include="..\..\examples\render_usb\render_usb_main.cpp">
       <Filter>Source Files\render_usb</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\sdl\sdl_input.cpp">
@@ -90,7 +90,7 @@
     <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
       <Filter>Source Files\src\opencv</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\render_usb\render_usb.cpp">
+    <ClCompile Include="..\..\examples\render_usb\render_usb.cpp">
       <Filter>Source Files\render_usb</Filter>
     </ClCompile>
   </ItemGroup>
@@ -134,7 +134,7 @@
     <ClInclude Include="..\..\src\stb\stb_include.hpp">
       <Filter>Header Files\src\stb</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\render_usb\proc_def.hpp">
+    <ClInclude Include="..\..\examples\render_usb\proc_def.hpp">
       <Filter>Header Files\render_usb</Filter>
     </ClInclude>
   </ItemGroup>

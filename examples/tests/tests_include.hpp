@@ -19,7 +19,7 @@ using path_t = fs::path;
 
 // set this directory for your system
 //constexpr auto ROOT_DIR = "../../../tests/";
-constexpr auto ROOT_DIR = "C:\\D_Data\\Repos\\SimpleImage\\tests";
+constexpr auto ROOT_DIR = "C:\\D_Data\\Repos\\SimpleImage\\examples\\tests";
 
 #else
 

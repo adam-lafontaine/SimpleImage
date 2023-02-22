@@ -137,9 +137,6 @@
     <ClCompile Include="..\..\examples\tests_render\histogram_tests.cpp">
       <Filter>Source Files\tests_render</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\util\memory_buffer.cpp">
-      <Filter>Source Files\src\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\stb\stb_simage.cpp">
       <Filter>Source Files\src\stb</Filter>
     </ClCompile>

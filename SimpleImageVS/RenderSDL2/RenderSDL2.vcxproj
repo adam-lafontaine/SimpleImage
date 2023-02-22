@@ -155,7 +155,6 @@
     <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
     <ClCompile Include="..\..\src\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
-    <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
     <ClCompile Include="..\..\examples\tests_render\camera_tests.cpp" />
     <ClCompile Include="..\..\examples\tests_render\fill_tests.cpp" />
     <ClCompile Include="..\..\examples\tests_render\histogram_tests.cpp" />

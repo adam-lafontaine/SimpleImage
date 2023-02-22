@@ -63,13 +63,6 @@ execute_o := $(build)/execute.o
 object_files += $(execute_o)
 
 
-# memory buffer
-memory_buffer_c := $(util)/memory_buffer.cpp
-memory_buffer_c += $(memory_buffer_h)
-memory_buffer_o := $(build)/memory_buffer.o
-object_files += $(memory_buffer_o)
-
-
 # stb_simage
 stb_simage_c := $(stb)/stb_simage.cpp
 stb_simage_c += $(stb_h)

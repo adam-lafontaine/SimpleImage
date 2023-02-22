@@ -24,7 +24,7 @@ constexpr auto ROOT_DIR = "C:\\D_Data\\Repos\\SimpleImage\\examples\\tests";
 #else
 
 // set this directory for your system
-constexpr auto ROOT_DIR = "../";
+constexpr auto ROOT_DIR = "/home/adam/Repos/SimpleImage/examples/tests/";
 
 #endif // _WIN32
 

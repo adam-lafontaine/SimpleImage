@@ -65,6 +65,7 @@ using r32 = float;
 using r64 = double;
 using i8 = int8_t;
 using i32 = int32_t;
+using cstr = const char*;
 
 
 #ifdef SIMAGE_NO_PARALLEL

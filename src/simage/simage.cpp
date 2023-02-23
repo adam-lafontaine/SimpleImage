@@ -1,5 +1,4 @@
 #include "simage.hpp"
-#include "../util/memory_buffer.hpp"
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
 //#define SIMAGE_NO_SIMD
@@ -9,12 +8,9 @@
 #endif // !SIMAGE_NO_SIMD
 
 
-
 #include <cmath>
 #include <algorithm>
 
-
-namespace mb = memory_buffer;
 namespace cs = color_space;
 namespace rng = std::ranges;
 

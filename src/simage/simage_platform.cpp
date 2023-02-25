@@ -34,7 +34,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data_;
 	}
 
 
@@ -203,7 +203,7 @@ namespace simage
 	{
 		MatrixView<T> view;
 
-		view.matrix_data = image.data_;
+		view.matrix_data_ = image.data_;
 		view.matrix_width = image.width;
 		view.x_begin = 0;
 		view.y_begin = 0;
@@ -281,7 +281,7 @@ namespace simage
 	{
 		MatrixView<T> sub_view;
 
-		sub_view.matrix_data = image.data_;
+		sub_view.matrix_data_ = image.data_;
 		sub_view.matrix_width = image.width;
 		sub_view.x_begin = range.x_begin;
 		sub_view.y_begin = range.y_begin;
@@ -299,7 +299,7 @@ namespace simage
 	{
 		MatrixView<T> sub_view;
 
-		sub_view.matrix_data = view.matrix_data;
+		sub_view.matrix_data_ = view.matrix_data_;
 		sub_view.matrix_width = view.matrix_width;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;

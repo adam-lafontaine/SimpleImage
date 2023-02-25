@@ -41,7 +41,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data_;
 	}
 
 
@@ -55,7 +55,7 @@ namespace simage
 	template <typename T, size_t N>
 	static bool verify(ChannelView2D<T,N> const& view)
 	{
-		return view.image_width && view.width && view.height && view.channel_data[0];
+		return view.image_width_ && view.width && view.height && view.channel_data_[0];
 	}
 
 	template <class IMG_A, class IMG_B>
@@ -126,13 +126,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+		auto offset = (view.y_begin + y) * view.image_width_ + view.x_begin;
 
 		RGBr32p rgb{};
 
-		rgb.R = view.channel_data[id_cast(RGB::R)] + offset;
-		rgb.G = view.channel_data[id_cast(RGB::G)] + offset;
-		rgb.B = view.channel_data[id_cast(RGB::B)] + offset;
+		rgb.R = view.channel_data_[id_cast(RGB::R)] + offset;
+		rgb.G = view.channel_data_[id_cast(RGB::G)] + offset;
+		rgb.B = view.channel_data_[id_cast(RGB::B)] + offset;
 
 		return rgb;
 	}
@@ -143,13 +143,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+		auto offset = (view.y_begin + y) * view.image_width_ + view.x_begin;
 
 		HSVr32p hsv{};
 
-		hsv.H = view.channel_data[id_cast(HSV::H)] + offset;
-		hsv.S = view.channel_data[id_cast(HSV::S)] + offset;
-		hsv.V = view.channel_data[id_cast(HSV::V)] + offset;
+		hsv.H = view.channel_data_[id_cast(HSV::H)] + offset;
+		hsv.S = view.channel_data_[id_cast(HSV::S)] + offset;
+		hsv.V = view.channel_data_[id_cast(HSV::V)] + offset;
 
 		return hsv;
 	}
@@ -160,13 +160,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+		auto offset = (view.y_begin + y) * view.image_width_ + view.x_begin;
 
 		LCHr32p lch{};
 
-		lch.L = view.channel_data[id_cast(LCH::L)] + offset;
-		lch.C = view.channel_data[id_cast(LCH::C)] + offset;
-		lch.H = view.channel_data[id_cast(LCH::H)] + offset;
+		lch.L = view.channel_data_[id_cast(LCH::L)] + offset;
+		lch.C = view.channel_data_[id_cast(LCH::C)] + offset;
+		lch.H = view.channel_data_[id_cast(LCH::H)] + offset;
 
 		return lch;
 	}
@@ -180,7 +180,7 @@ namespace simage
 
 		auto offset = (size_t)((view.y_begin + y_eff) * view.matrix_width + view.x_begin);
 
-		return view.matrix_data + offset;
+		return view.matrix_data_ + offset;
 	}
 
 
@@ -191,9 +191,9 @@ namespace simage
 
 		assert(y < view.height);
 
-		auto offset = (size_t)((view.y_begin + y) * view.image_width + view.x_begin);
+		auto offset = (size_t)((view.y_begin + y) * view.image_width_ + view.x_begin);
 
-		return view.channel_data[ch] + offset;
+		return view.channel_data_[ch] + offset;
 	}
 
 
@@ -204,9 +204,9 @@ namespace simage
 
 		int y_eff = y + y_offset;
 
-		auto offset = (size_t)((view.y_begin + y_eff) * view.image_width + view.x_begin);
+		auto offset = (size_t)((view.y_begin + y_eff) * view.image_width_ + view.x_begin);
 
-		return view.channel_data[ch] + offset;
+		return view.channel_data_[ch] + offset;
 	}
 
 }
@@ -219,7 +219,7 @@ namespace simage
 	template <size_t N>
 	static void do_make_view(ViewCh2Dr32<N>& view, u32 width, u32 height, Buffer32& buffer)
 	{
-		view.image_width = width;
+		view.image_width_ = width;
 		view.x_begin = 0;
 		view.y_begin = 0;
 		view.x_end = width;
@@ -229,7 +229,7 @@ namespace simage
 
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			view.channel_data[ch] = mb::push_elements(buffer, width * height);
+			view.channel_data_[ch] = mb::push_elements(buffer, width * height);
 		}
 	}
 
@@ -240,7 +240,7 @@ namespace simage
 
 		View1r32 view;
 
-		view.matrix_data = mb::push_elements(buffer, width * height);
+		view.matrix_data_ = mb::push_elements(buffer, width * height);
 		view.matrix_width = width;
 		view.x_begin = 0;
 		view.y_begin = 0;
@@ -1171,7 +1171,7 @@ namespace simage
 	{
 		ViewCh2Dr32<N> sub_view;
 
-		sub_view.image_width = view.image_width;
+		sub_view.image_width_ = view.image_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
 		sub_view.x_end = view.x_begin + range.x_end;
@@ -1181,7 +1181,7 @@ namespace simage
 
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			sub_view.channel_data[ch] = view.channel_data[ch];
+			sub_view.channel_data_[ch] = view.channel_data_[ch];
 		}
 
 		return sub_view;
@@ -1230,7 +1230,7 @@ namespace simage
 
 		View1r32 sub_view;
 
-		sub_view.matrix_data = view.matrix_data;
+		sub_view.matrix_data_ = view.matrix_data_;
 		sub_view.matrix_width = view.matrix_width;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
@@ -1255,12 +1255,12 @@ namespace simage
 	{
 		View1r32 view1{};
 
-		view1.matrix_width = view.image_width;
+		view1.matrix_width = view.image_width_;
 		view1.range = view.range;
 		view1.width = view.width;
 		view1.height = view.height;
 
-		view1.matrix_data = view.channel_data[ch];
+		view1.matrix_data_ = view.channel_data_[ch];
 
 		return view1;
 	}
@@ -1342,14 +1342,14 @@ namespace simage
 
 		ViewRGBr32 rgb;
 
-		rgb.image_width = view.image_width;
+		rgb.image_width_ = view.image_width_;
 		rgb.width = view.width;
 		rgb.height = view.height;
 		rgb.range = view.range;
 
-		rgb.channel_data[id_cast(RGB::R)] = view.channel_data[id_cast(RGB::R)];
-		rgb.channel_data[id_cast(RGB::G)] = view.channel_data[id_cast(RGB::G)];
-		rgb.channel_data[id_cast(RGB::B)] = view.channel_data[id_cast(RGB::B)];
+		rgb.channel_data_[id_cast(RGB::R)] = view.channel_data_[id_cast(RGB::R)];
+		rgb.channel_data_[id_cast(RGB::G)] = view.channel_data_[id_cast(RGB::G)];
+		rgb.channel_data_[id_cast(RGB::B)] = view.channel_data_[id_cast(RGB::B)];
 
 		return rgb;
 	}

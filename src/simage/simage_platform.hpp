@@ -108,8 +108,11 @@ namespace simage
 	{
 	public:
 
-		T* matrix_data = 0;
+		T* matrix_data_ = 0;
 		u32 matrix_width = 0;
+
+		u32 width = 0;
+		u32 height = 0;
 
 		union
 		{
@@ -122,10 +125,7 @@ namespace simage
 				u32 y_begin;
 				u32 y_end;
 			};
-		};
-
-		u32 width = 0;
-		u32 height = 0;
+		};		
 	};
 
 
@@ -457,7 +457,7 @@ namespace simage
 	template <typename T>
 	inline T* row_begin(MatrixView<T> const& view, u32 y)
 	{
-		return view.matrix_data + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
+		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
 }
 

@@ -46,8 +46,8 @@ static bool image_test()
     printf("sub_view from image\n");
     auto left_view = img::sub_view(vette, left);
 
-    result = is_valid_ptr(left_view.matrix_data);
-    result &= (left_view.matrix_data == vette.data_);
+    result = is_valid_ptr(left_view.matrix_data_);
+    result &= (left_view.matrix_data_ == vette.data_);
     result &= (left_view.width == width / 2);
     result &= (left_view.height == height);
     if (!result)
@@ -64,8 +64,8 @@ static bool image_test()
     printf("sub_view from view\n");
     auto bottom_view = img::sub_view(left_view, bottom);
 
-    result = is_valid_ptr(bottom_view.matrix_data);
-    result &= (bottom_view.matrix_data == vette.data_);
+    result = is_valid_ptr(bottom_view.matrix_data_);
+    result &= (bottom_view.matrix_data_ == vette.data_);
     result &= (bottom_view.width == width / 2);
     result &= (bottom_view.height == height - bottom.y_begin);
     if (!result)
@@ -140,8 +140,8 @@ static bool gray_test()
     printf("sub_view from image\n");
     auto left_view = img::sub_view(caddy, left);
 
-    result = is_valid_ptr(left_view.matrix_data);
-    result &= (left_view.matrix_data == caddy.data_);
+    result = is_valid_ptr(left_view.matrix_data_);
+    result &= (left_view.matrix_data_ == caddy.data_);
     result &= (left_view.width == width / 2);
     result &= (left_view.height == height);
     if (!result)
@@ -158,8 +158,8 @@ static bool gray_test()
     printf("sub_view from view\n");
     auto bottom_view = img::sub_view(left_view, bottom);
 
-    result = is_valid_ptr(bottom_view.matrix_data);
-    result &= (bottom_view.matrix_data == caddy.data_);
+    result = is_valid_ptr(bottom_view.matrix_data_);
+    result &= (bottom_view.matrix_data_ == caddy.data_);
     result &= (bottom_view.width == width / 2);
     result &= (bottom_view.height == height - bottom.y_begin);
     if (!result)

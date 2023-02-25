@@ -14,12 +14,12 @@ static bool test_image_view(IMAGE const& image)
     bool result = false;
 
     auto view = img::make_view(image);
-    printf("data: %p\n", (void*)view.matrix_data);
+    printf("data: %p\n", (void*)view.matrix_data_);
     printf("width: %u\n", view.width);
     printf("height: %u\n", view.height);
 
-    result = is_valid_ptr(view.matrix_data);
-    result &= (view.matrix_data == image.data_);
+    result = is_valid_ptr(view.matrix_data_);
+    result &= (view.matrix_data_ == image.data_);
     result &= (view.width == image.width);
     result &= (view.height == image.height);
     result &= (view.x_begin == 0);
@@ -108,10 +108,10 @@ static bool test_from_buffer()
     auto const verify_view = [&](auto const& view)
     {
         bool result = false;
-        printf("data: %p\n", (void*)view.channel_data[0]);
+        printf("data: %p\n", (void*)view.channel_data_[0]);
         printf("width: %u\n", view.width);
         printf("height: %u\n", view.height);
-        result = is_valid_ptr(view.channel_data[0]);
+        result = is_valid_ptr(view.channel_data_[0]);
         result &= (view.width == width);
         result &= (view.height == height);
 
@@ -121,10 +121,10 @@ static bool test_from_buffer()
     auto const verify_view_1 = [&](auto const& view)
     {
         bool result = false;
-        printf("data: %p\n", (void*)view.matrix_data);
+        printf("data: %p\n", (void*)view.matrix_data_);
         printf("width: %u\n", view.width);
         printf("height: %u\n", view.height);
-        result = is_valid_ptr(view.matrix_data);
+        result = is_valid_ptr(view.matrix_data_);
         result &= (view.width == width);
         result &= (view.height == height);
 

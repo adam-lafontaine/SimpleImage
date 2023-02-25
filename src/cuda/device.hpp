@@ -3,22 +3,13 @@
 #include "../defines.hpp"
 
 
-class ByteBuffer // TODO: No
-{
-public:
-    u8* data_ = nullptr;
-    size_t capacity_ = 0;
-    size_t size_ = 0;
-};
-
-
 namespace cuda
 {
-    bool device_malloc(ByteBuffer& buffer, size_t n_bytes);
+    u8* device_malloc(size_t n_bytes);
 
-    bool unified_malloc(ByteBuffer& buffer, size_t n_bytes);
+    u8* unified_malloc(size_t n_bytes);
 
-    bool free(ByteBuffer& buffer);
+    bool free(void* data);
 
 
     bool memcpy_to_device(const void* host_src, void* device_dst, size_t n_bytes);
@@ -52,16 +43,17 @@ namespace cuda
     {
         auto const n_bytes = sizeof(T) * n_elements;
 
-        ByteBuffer b{};
-        auto result = device_malloc(b, n_bytes);
-        if (result)
+        auto data = device_malloc(n_bytes);
+        if (!data)
         {
-            buffer.data_ = (T*)b.data_;
-            buffer.capacity_ = n_elements;
-            buffer.size_ = 0;
+            return false;
         }
 
-        return result;
+        buffer.data_ = (T*)data;
+        buffer.capacity_ = n_elements;
+        buffer.size_ = 0;
+
+        return true;
     }
 
 
@@ -70,16 +62,17 @@ namespace cuda
     {
         auto const n_bytes = sizeof(T) * n_elements;
 
-        ByteBuffer b{};
-        auto result = unified_malloc(b, n_bytes);
-        if (result)
+        auto data = device_malloc(n_bytes);
+        if (!data)
         {
-            buffer.data_ = (T*)b.data_;
-            buffer.capacity_ = n_elements;
-            buffer.size_ = 0;
+            return false;
         }
 
-        return result;
+        buffer.data_ = (T*)data;
+        buffer.capacity_ = n_elements;
+        buffer.size_ = 0;
+
+        return true;
     }
 
 
@@ -93,9 +86,7 @@ namespace cuda
             return;
         }
 
-        ByteBuffer b{};
-        b.data_ = (u8*)buffer.data_;
-        cuda::free(b);
+        cuda::free(buffer.data_);
 
         buffer.data_ = nullptr;
     }

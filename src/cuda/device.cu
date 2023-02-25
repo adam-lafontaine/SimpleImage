@@ -39,67 +39,48 @@ static void check_error(cudaError_t err, cstr label = "")
 
 namespace cuda
 {
-    bool device_malloc(ByteBuffer& buffer, size_t n_bytes)
+    u8* device_malloc(size_t n_bytes)
     {
         assert(n_bytes);
-        assert(!buffer.data_);
 
-        if (!n_bytes || buffer.data_)
-        {
-            return false;
-        }
+        u8* data;
 
-        cudaError_t err = cudaMalloc((void**)&(buffer.data_), n_bytes);
+        auto err = cudaMalloc((void**)&(data), n_bytes);
         check_error(err, "malloc");
 
-        bool result = err == cudaSuccess;
-
-        if (result)
+        if (err != cudaSuccess)
         {
-            buffer.capacity_ = n_bytes;
-            buffer.size_ = 0;
+            return nullptr;
         }
-        
-        return result;
+
+        return data;
     }
 
 
-    bool unified_malloc(ByteBuffer& buffer, size_t n_bytes)
+    u8* unified_malloc(size_t n_bytes)
     {
         assert(n_bytes);
-        assert(!buffer.data_);
 
-        if (!n_bytes || buffer.data_)
+        u8* data;
+
+        auto err = cudaMallocManaged((void**)&(data), n_bytes);
+        check_error(err, "malloc");
+
+        if (err != cudaSuccess)
         {
-            return false;
+            return nullptr;
         }
 
-        cudaError_t err = cudaMallocManaged((void**)&(buffer.data_), n_bytes);
-        check_error(err, "unified_malloc");
-
-        bool result = err == cudaSuccess;
-
-        if (result)
-        {
-            buffer.capacity_ = n_bytes;
-            buffer.size_ = 0;
-        }
-        
-        return result;
+        return data;
     }
 
 
-    bool free(ByteBuffer& buffer)
+    bool free(void* data)
     {
-        buffer.capacity_ = 0;
-        buffer.size_ = 0;
-
-        if (buffer.data_)
+        if (data)
         {
-            cudaError_t err = cudaFree(buffer.data_);
+            auto err = cudaFree(data);
             check_error(err, "free");
-
-            buffer.data_ = nullptr;
 
             return err == cudaSuccess;
         }

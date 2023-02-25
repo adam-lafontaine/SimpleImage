@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../defines.hpp"
 
 #include <cstdlib>
@@ -53,7 +55,6 @@ namespace memory_buffer
 		buffer.capacity_ = 0;
 		buffer.size_ = 0;
 	}
-
 
 	template <typename T>
 	void reset_buffer(MemoryBuffer<T>& buffer)
@@ -118,69 +119,3 @@ namespace memory_buffer
 		}
 	}
 }
-
-
-
-
-
-/*template <typename T>
-class MemoryBuffer
-{
-public:
-	T* data_ = nullptr;
-	u32 capacity_ = 0;
-	u32 size_ = 0;
-
-#ifndef NDEBUG
-
-	~MemoryBuffer() { assert(!(bool)data_); }
-
-#endif // !NDEBUG
-};
-
-
-
-namespace memory_buffer
-{
-	template <typename T>
-	xMemoryBuffer<T>& as_memory_buffer(MemoryBuffer<T>& buffer)
-	{
-		return *(xMemoryBuffer<T>*)(&buffer);
-		
-	}
-
-
-	template <typename T>
-	bool create_buffer(MemoryBuffer<T>& buffer, u32 n_elements)
-	{
-		return create_buffer(as_memory_buffer(buffer), n_elements);
-	}
-
-
-	template <typename T>
-	void destroy_buffer(MemoryBuffer<T>& buffer)
-	{
-		destroy_buffer(as_memory_buffer(buffer));
-	}
-
-
-	template <typename T>
-	void reset_buffer(MemoryBuffer<T>& buffer)
-	{
-		buffer.size_ = 0;
-	}
-
-
-	template <typename T>
-	T* push_elements(MemoryBuffer<T>& buffer, u32 n_elements)
-	{
-		return push_elements(as_memory_buffer(buffer), n_elements);
-	}
-
-
-	template <typename T>
-	void pop_elements(MemoryBuffer<T>& buffer, u32 n_elements)
-	{
-		pop_elements(as_memory_buffer(buffer), n_elements);
-	}
-}*/

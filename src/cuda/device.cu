@@ -42,22 +42,22 @@ namespace cuda
     bool device_malloc(ByteBuffer& buffer, size_t n_bytes)
     {
         assert(n_bytes);
-        assert(!buffer.data);
+        assert(!buffer.data_);
 
-        if (!n_bytes || buffer.data)
+        if (!n_bytes || buffer.data_)
         {
             return false;
         }
 
-        cudaError_t err = cudaMalloc((void**)&(buffer.data), n_bytes);
+        cudaError_t err = cudaMalloc((void**)&(buffer.data_), n_bytes);
         check_error(err, "malloc");
 
         bool result = err == cudaSuccess;
 
         if (result)
         {
-            buffer.capacity = n_bytes;
-            buffer.size = 0;
+            buffer.capacity_ = n_bytes;
+            buffer.size_ = 0;
         }
         
         return result;
@@ -67,22 +67,22 @@ namespace cuda
     bool unified_malloc(ByteBuffer& buffer, size_t n_bytes)
     {
         assert(n_bytes);
-        assert(!buffer.data);
+        assert(!buffer.data_);
 
-        if (!n_bytes || buffer.data)
+        if (!n_bytes || buffer.data_)
         {
             return false;
         }
 
-        cudaError_t err = cudaMallocManaged((void**)&(buffer.data), n_bytes);
+        cudaError_t err = cudaMallocManaged((void**)&(buffer.data_), n_bytes);
         check_error(err, "unified_malloc");
 
         bool result = err == cudaSuccess;
 
         if (result)
         {
-            buffer.capacity = n_bytes;
-            buffer.size = 0;
+            buffer.capacity_ = n_bytes;
+            buffer.size_ = 0;
         }
         
         return result;
@@ -91,15 +91,15 @@ namespace cuda
 
     bool free(ByteBuffer& buffer)
     {
-        buffer.capacity = 0;
-        buffer.size = 0;
+        buffer.capacity_ = 0;
+        buffer.size_ = 0;
 
-        if (buffer.data)
+        if (buffer.data_)
         {
-            cudaError_t err = cudaFree(buffer.data);
+            cudaError_t err = cudaFree(buffer.data_);
             check_error(err, "free");
 
-            buffer.data = nullptr;
+            buffer.data_ = nullptr;
 
             return err == cudaSuccess;
         }

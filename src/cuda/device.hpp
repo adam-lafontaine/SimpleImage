@@ -3,6 +3,12 @@
 #include "../defines.hpp"
 
 
+namespace cuda
+{
+    using r16 = u16; // half float available on GPU
+}
+
+
 
 class ByteBuffer
 {

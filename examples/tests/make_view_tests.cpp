@@ -108,10 +108,10 @@ static bool test_from_buffer()
     auto const verify_view = [&](auto const& view)
     {
         bool result = false;
-        printf("data: %p\n", (void*)view.image_channel_data[0]);
+        printf("data: %p\n", (void*)view.channel_data[0]);
         printf("width: %u\n", view.width);
         printf("height: %u\n", view.height);
-        result = is_valid_ptr(view.image_channel_data[0]);
+        result = is_valid_ptr(view.channel_data[0]);
         result &= (view.width == width);
         result &= (view.height == height);
 

@@ -12,6 +12,8 @@
 #define SIMAGE_PNG
 #define SIMAGE_BMP
 
+#define SIMAGE_CUDA
+
 //#define SIMAGE_NO_WRITE
 //#define SIMAGE_NO_RESIZE
 //#define SIMAGE_NO_PARALLEL
@@ -59,6 +61,7 @@
 /*  types.hpp  */
 
 using u8 = uint8_t;
+using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
 using r32 = float;

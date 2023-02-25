@@ -1,11 +1,8 @@
-#include "../../src/util/memory_buffer.hpp"
-#include "../../src/defines.hpp"
+#include "../../src/cuda/device.hpp"
 
 #include <cstdio>
 
-namespace mb = memory_buffer;
-
-using Buffer32 = MemoryBuffer<r32>;
+using Buffer32 = DeviceBuffer<r32>;
 
 
 template <typename T>
@@ -15,19 +12,19 @@ static bool is_valid_ptr(T* ptr)
 }
 
 
-static bool create_destroy_test()
+static bool create_destroy_device_test()
 {
-    printf("\ncreate_destroy_test\n");
+    printf("\ncreate_destroy_device_test\n");
 
     u32 n_elements = 100;
     bool result = false;
 
     Buffer32 buffer{};
 
-    printf("create_buffer() - zero elements\n");
+    printf("create_device_buffer() - zero elements\n");
 #ifdef NDEBUG
     
-    result = !mb::create_buffer(buffer, 0);
+    result = !cuda::create_device_buffer(buffer, 0);
     result &= !is_valid_ptr(buffer.data_);
     result &= (buffer.capacity_ == 0);
     result &= (buffer.size_ == 0);
@@ -45,8 +42,8 @@ static bool create_destroy_test()
     printf("Skipped\n");
 #endif // !NDEBUG
 
-    printf("create_buffer()\n");
-    result = mb::create_buffer(buffer, n_elements);
+    printf("create_device_buffer()\n");
+    result = cuda::create_device_buffer(buffer, n_elements);
     result &= is_valid_ptr(buffer.data_);
     result &= (buffer.capacity_ == n_elements);
     result &= (buffer.size_ == 0);
@@ -61,7 +58,71 @@ static bool create_destroy_test()
     printf("OK\n");
 
     printf("destroy_buffer()\n");
-    mb::destroy_buffer(buffer);
+    cuda::destroy_buffer(buffer);
+    result = !is_valid_ptr(buffer.data_);
+    result &= (buffer.capacity_ == 0);
+    result &= (buffer.size_ == 0);
+    printf("data: %p\n", (void*)buffer.data_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);   
+    if (!result)
+    {
+        printf("FAIL\n");
+        return false;
+    }
+    printf("OK\n");
+
+    return true; 
+}
+
+
+static bool create_destroy_unified_test()
+{
+    printf("\ncreate_destroy_inified_test\n");
+
+    u32 n_elements = 100;
+    bool result = false;
+
+    Buffer32 buffer{};
+
+    printf("create_unified_buffer() - zero elements\n");
+#ifdef NDEBUG
+    
+    result = !cuda::create_unified_buffer(buffer, 0);
+    result &= !is_valid_ptr(buffer.data_);
+    result &= (buffer.capacity_ == 0);
+    result &= (buffer.size_ == 0);
+    printf("data: %p\n", (void*)buffer.data_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
+    if (!result)
+    {
+        printf("FAIL\n");
+        return false;
+    }
+    printf("OK\n");
+
+#else
+    printf("Skipped\n");
+#endif // !NDEBUG
+
+    printf("create_unified_buffer()\n");
+    result = cuda::create_unified_buffer(buffer, n_elements);
+    result &= is_valid_ptr(buffer.data_);
+    result &= (buffer.capacity_ == n_elements);
+    result &= (buffer.size_ == 0);
+    printf("data: %p\n", (void*)buffer.data_);
+    printf("capacity: %u\n", buffer.capacity_);
+    printf("size: %u\n", buffer.size_);
+    if (!result)
+    {
+        printf("FAIL\n");
+        return false;
+    }
+    printf("OK\n");
+
+    printf("destroy_buffer()\n");
+    cuda::destroy_buffer(buffer);
     result = !is_valid_ptr(buffer.data_);
     result &= (buffer.capacity_ == 0);
     result &= (buffer.size_ == 0);
@@ -89,8 +150,8 @@ static bool push_elements_test()
 
     Buffer32 buffer{};
 
-    printf("create_buffer()\n");
-    result = mb::create_buffer(buffer, capacity);
+    printf("create_device_buffer()\n");
+    result = cuda::create_device_buffer(buffer, capacity);
     printf("capacity: %u\n", buffer.capacity_);
     printf("size: %u\n", buffer.size_);
     if (!result)
@@ -104,7 +165,7 @@ static bool push_elements_test()
     printf("push_elements() - zero elements\n");
 #ifdef NDEBUG
 
-    auto ptr = mb::push_elements(buffer, 0);
+    auto ptr = cuda::push_elements(buffer, 0);
     result = !is_valid_ptr(ptr);
     printf("ptr: %p\n", (void*)ptr);
     printf("size: %u\n", buffer.size_);
@@ -120,7 +181,7 @@ static bool push_elements_test()
 #endif // !NDEBUG
 
     printf("push_elements()\n");
-    auto chunk1 = mb::push_elements(buffer, push);
+    auto chunk1 = cuda::push_elements(buffer, push);
     result = is_valid_ptr(chunk1);
     result &= (buffer.size_ == push);
     printf("chunk1: %p\n", (void*)chunk1);
@@ -132,7 +193,7 @@ static bool push_elements_test()
     }
     printf("OK\n");
 
-    auto chunk2 = mb::push_elements(buffer, push);
+    auto chunk2 = cuda::push_elements(buffer, push);
     auto ptr_diff = int(chunk2 - chunk1);
     result = is_valid_ptr(chunk2);
     result &= (buffer.size_ == 2 * push);
@@ -153,7 +214,7 @@ static bool push_elements_test()
 #ifdef NDEBUG
     
     auto size = buffer.size_;
-    auto chunk3 = mb::push_elements(buffer, buffer.capacity_ - buffer.size_ + 1);
+    auto chunk3 = cuda::push_elements(buffer, buffer.capacity_ - buffer.size_ + 1);
     result = !is_valid_ptr(chunk3);
     result &= (buffer.size_ == size);
     result &= (buffer.capacity_ == capacity);
@@ -170,7 +231,7 @@ static bool push_elements_test()
     printf("Skipped\n");
 #endif // !NDEBUG
 
-    mb::destroy_buffer(buffer);
+    cuda::destroy_buffer(buffer);
 
     return true;
 }
@@ -188,8 +249,8 @@ static bool pop_elements_test()
 
     Buffer32 buffer{};
 
-    printf("create_buffer()\n");
-    result = mb::create_buffer(buffer, capacity);
+    printf("create_device_buffer()\n");
+    result = cuda::create_device_buffer(buffer, capacity);
     printf("capacity: %u\n", buffer.capacity_);
     printf("size: %u\n", buffer.size_);
     if (!result)
@@ -200,7 +261,7 @@ static bool pop_elements_test()
     printf("OK\n");
 
     printf("push_elements()\n");
-    auto chunk1 = mb::push_elements(buffer, push);
+    auto chunk1 = cuda::push_elements(buffer, push);
     result = is_valid_ptr(chunk1);
     result &= (buffer.size_ == push);
     printf("chunk1: %p\n", (void*)chunk1);
@@ -213,7 +274,7 @@ static bool pop_elements_test()
     printf("OK\n");
 
     printf("pop_elements()\n");
-    mb::pop_elements(buffer, pop);
+    cuda::pop_elements(buffer, pop);
     printf("size: %u\n", buffer.size_);
     result = (buffer.size_ == push - pop);
     if (!result)
@@ -226,7 +287,7 @@ static bool pop_elements_test()
     printf("pop_elements() - too many elements\n");
 #ifdef NDEBUG
 
-    mb::pop_elements(buffer, buffer.size_ + 1);
+    cuda::pop_elements(buffer, buffer.size_ + 1);
     result = (buffer.size_ == 0);
     printf("size: %u\n", buffer.size_);
     if (!result)
@@ -240,7 +301,7 @@ static bool pop_elements_test()
     printf("Skipped\n");
 #endif // !NDEBUG
 
-    mb::destroy_buffer(buffer);
+    cuda::destroy_buffer(buffer);
 
     return true;
 }
@@ -256,17 +317,17 @@ static bool reset_test()
 
     Buffer32 buffer{};
 
-    printf("create_buffer()\n");
-    mb::create_buffer(buffer, n_elements);
+    printf("create_device_buffer()\n");
+    cuda::create_device_buffer(buffer, n_elements);
     printf("capacity: %u\n", buffer.capacity_);
     printf("size: %u\n", buffer.size_);
 
     printf("push_elements()\n");
-    auto chunk1 = mb::push_elements(buffer, push);
+    auto chunk1 = cuda::push_elements(buffer, push);
     printf("size: %u\n", buffer.size_);
 
     printf("reset_buffer()\n");
-    mb::reset_buffer(buffer);
+    cuda::reset_buffer(buffer);
     result = is_valid_ptr(buffer.data_);
     result &= (buffer.capacity_ == n_elements);
     result &= (buffer.size_ == 0);
@@ -280,25 +341,26 @@ static bool reset_test()
     }
     printf("OK\n");
 
-    mb::destroy_buffer(buffer);
+    cuda::destroy_buffer(buffer);
 
     return true;
 }
 
 
-bool memory_buffer_tests()
+bool device_buffer_tests()
 {
-    printf("\n*** memory_buffer tests ***\n");
+    printf("\n*** device_buffer tests ***\n");
 
     auto result = 
-        create_destroy_test() &&
+        create_destroy_device_test() &&
+        create_destroy_unified_test() &&
         push_elements_test() &&
         pop_elements_test() &&
         reset_test();
 
     if (result)
     {
-        printf("memory_buffer tests OK\n");
+        printf("device_buffer tests OK\n");
     }
     return result;
 }

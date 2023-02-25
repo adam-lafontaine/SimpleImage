@@ -52,8 +52,8 @@ namespace simage
 	}
 
 
-	template <size_t N>
-	static bool verify(ViewCh2Dr32<N> const& view)
+	template <typename T, size_t N>
+	static bool verify(ChannelView2D<T,N> const& view)
 	{
 		return view.image_width && view.width && view.height && view.channel_data[0];
 	}
@@ -2202,58 +2202,3 @@ namespace simage
 
 #endif // SIMAGE_NO_SIMD
 
-
-#ifdef SIMAGE_CUDA
-
-
-/* verify */
-
-namespace simage
-{
-#ifndef NDEBUG
-
-
-	template <typename T, size_t N>
-	static bool verify(CudaViewCh2D<T,N> const& view)
-	{
-		return view.image_width && view.width && view.height && view.channel_data[0];
-	}
-
-
-#endif // NDEBUG
-}
-
-
-namespace simage
-{
-	template <size_t N>
-	static void map_row_host_device(ViewCh2Dr32<N> const& src, CudaViewCh2D<r32, N> const& dst)
-	{
-
-	}
-
-
-    static void map_rgb_host_to_device(View const& src, CudaView3r32 const& dst, ViewRGBr32 const& host)
-    {
-        assert(verify(src, dst));
-
-        constexpr auto R = id_cast(RGB::R);
-		constexpr auto G = id_cast(RGB::G);
-		constexpr auto B = id_cast(RGB::B);
-
-        auto const width = src.width;
-        auto const height = src.height;
-
-		auto const bytes_per_row = sizeof(r32) * width;
-
-		auto const row_func = [&](u32 y)
-		{
-			map_rgb_row_no_simd(src, host, y);
-			
-		};
-
-		process_image_by_row(height, row_func);
-    }
-}
-
-#endif // SIMAGE_CUDA

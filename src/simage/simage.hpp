@@ -67,7 +67,7 @@ namespace simage
 namespace simage
 {
 	template <typename T, size_t N>
-	class ViewCh2D
+	class ChannelView2D
 	{
 	public:
 
@@ -94,7 +94,7 @@ namespace simage
 
 
 	template <size_t N>
-	using ViewCh2Dr32 = ViewCh2D<r32, N>;
+	using ViewCh2Dr32 = ChannelView2D<r32, N>;
 
 
 	using View1r32 = MatrixView<r32>;
@@ -102,18 +102,6 @@ namespace simage
     using View4r32 = ViewCh2Dr32<4>;
 	using View3r32 = ViewCh2Dr32<3>;
 	using View2r32 = ViewCh2Dr32<2>;
-
-
-	template <typename T, size_t N>
-	class SomeArray
-	{
-	public:
-		T data[N];
-	};
-
-
-	template <size_t N>
-	using SomeArrayr32 = SomeArray<r32,N>;
 }
 
 
@@ -305,88 +293,3 @@ namespace simage
 
 	void blur(View3r32 const& src, View3r32 const& dst);
 }
-
-#ifdef SIMAGE_CUDA
-
-#include "../cuda/device.hpp"
-
-
-/* view */
-
-namespace simage
-{
-    template <typename T, size_t N>
-	class CudaViewCh2D
-	{
-	public:
-
-		u32 image_width = 0;
-
-		T* channel_data[N] = {};		
-
-		u32 width = 0;
-		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
-	};
-
-
-    template <typename T>
-    class CudaView
-    {
-    public:
-        u32 image_width = 0;
-
-        T* image_data = nullptr;
-
-        u32 width = 0;
-		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
-    };
-
-
-    using CudaView4r32 = CudaViewCh2D<r32, 4>;
-	using CudaView3r32 = CudaViewCh2D<r32, 3>;
-	using CudaView2r32 = CudaViewCh2D<r32, 2>;
-    using CudaView1r32 = CudaView<r32>;
-
-    using CudaView4r16 = CudaViewCh2D<cuda::r16, 4>;
-	using CudaView3r16 = CudaViewCh2D<cuda::r16, 3>;
-	using CudaView2r16 = CudaViewCh2D<cuda::r16, 2>;
-    using CudaView1r16 = CudaView<cuda::r16>;
-
-    using CudaViewRGBr32 = CudaView3r32;
-    using CudaViewRGBAr32 = CudaView4r32;
-}
-
-
-namespace simage
-{
-    
-}
-
-
-#endif // SIMAGE_CUDA

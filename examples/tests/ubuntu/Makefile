@@ -185,8 +185,8 @@ INCLUDES  :=
 LIBRARIES := -ltbb
 CCFLAGS := -std=c++20
 
-CCFLAGS += -O3
-CCFLAGS += -DNDEBUG
+#CCFLAGS += -O3
+#CCFLAGS += -DNDEBUG
 
 
 # build rules

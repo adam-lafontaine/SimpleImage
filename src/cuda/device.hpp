@@ -3,14 +3,7 @@
 #include "../defines.hpp"
 
 
-namespace cuda
-{
-    using r16 = u16; // half float available on GPU
-}
-
-
-
-class ByteBuffer
+class ByteBuffer // TODO: No
 {
 public:
     u8* data_ = nullptr;
@@ -35,7 +28,10 @@ namespace cuda
 
     bool no_errors(cstr label);
 
-    bool launch_success(cstr label);    
+    bool launch_success(cstr label);
+
+
+    using r16 = u16; // half float available on GPU
 }
 
 

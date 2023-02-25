@@ -18,7 +18,7 @@ namespace simage
     {
         Matrix2D<T> dst{};
 
-        dst.data_ = mat.data;
+        dst.data_ = mat.data_;
         dst.width = mat.width;
         dst.height = mat.height;
 
@@ -56,33 +56,53 @@ namespace simage
 			lhs.height == rhs.height;
 	}
 
+
+    template <typename T>
+	static bool verify(DeviceBuffer<T> const& buffer, u32 n_elements)
+	{
+		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
+	}
+
 #endif // NDEBUG
 }
 
 
+/* make_image */
+
+namespace simage 
+{
+    DeviceImage make_image(u32 width, u32 height, DeviceBuffer32& buffer)
+    {
+        assert(verify(buffer, width * height));
+
+        DeviceImage image{};
+
+        image.data_ = cuda::push_elements(buffer, width * height);
+        image.width = width;
+        image.height = height;
+
+        assert(verify(image));
+
+        return image;
+    }
+}
+
+
+/* copy_to_device */
+
 namespace simage
 {
-	static void copy_to_device(Image const& src, DeviceImage const& dst)
+    void copy_to_device(Image const& src, DeviceImage const& dst)
 	{
         assert(verify(src, dst));
 
         auto const n_bytes = sizeof(Pixel) * src.width * src.height;
 
-        if(!cuda::memcpy_to_device(src.data_, dst.data, n_bytes)) { assert(false); }
+        if(!cuda::memcpy_to_device(src.data_, dst.data_, n_bytes)) { assert(false); }
 	}
 
 
-    static void copy_to_host(DeviceImage const& src, Image const& dst)
-	{
-        assert(verify(src, dst));
-
-        auto const n_bytes = sizeof(Pixel) * src.width * src.height;
-
-        if(!cuda::memcpy_to_host(src.data, dst.data_, n_bytes)) { assert(false); }
-	}
-
-
-    static void copy_to_device(View const& src, DeviceImage const& dst)
+    void copy_to_device(View const& src, DeviceImage const& dst)
 	{
         assert(verify(src, dst));
 
@@ -98,9 +118,24 @@ namespace simage
 
         process_image_by_row(src.height, row_func);
 	}
+}
 
 
-    static void copy_to_host(DeviceImage const& src, View const& dst)
+/* copy_to_host */
+
+namespace simage
+{
+    void copy_to_host(DeviceImage const& src, Image const& dst)
+	{
+        assert(verify(src, dst));
+
+        auto const n_bytes = sizeof(Pixel) * src.width * src.height;
+
+        if(!cuda::memcpy_to_host(src.data_, dst.data_, n_bytes)) { assert(false); }
+	}
+
+
+    void copy_to_host(DeviceImage const& src, View const& dst)
 	{
         assert(verify(src, dst));
 

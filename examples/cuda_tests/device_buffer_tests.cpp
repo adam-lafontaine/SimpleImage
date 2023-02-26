@@ -1,6 +1,4 @@
-#include "../../src/cuda/device.hpp"
-
-#include <cstdio>
+#include "tests_include.hpp"
 
 using Buffer32 = DeviceBuffer<r32>;
 

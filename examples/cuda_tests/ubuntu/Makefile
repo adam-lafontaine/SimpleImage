@@ -284,16 +284,26 @@ endif
 
 GPP := g++-11
 
+SDL2 := `sdl2-config --cflags --libs`
+LIBUSB := `pkg-config --libs --cflags libusb-1.0` -ljpeg
+
 
 build := ./build_files
 tests  := ..
 src    := ../../../src
 util   := $(src)/util
-cuda   := $(src)/cuda
+app    := $(src)/app
+input  := $(src)/input
+sdl    := $(src)/sdl
+uvc    := $(src)/uvc
 simage := $(src)/simage
+cuda   := $(src)/cuda
 
 tests_exe := $(build)/tests_exe
 
+
+# resources
+icon_h := $(res)/icon_64.h
 
 # headers
 defines_h := $(src)/defines.hpp
@@ -303,11 +313,30 @@ stopwatch_h := $(util)/stopwatch.hpp
 execute_h := $(util)/execute.hpp
 execute_h += $(defines_h)
 
+# uvc
+uvc_h := $(uvc)/libuvc.h
+
+# color_space
+color_space_h := $(util)/color_space.hpp
+color_space_h += $(defines_h)
+
 # device
 cuda_def_h := $(cuda)/cuda_def.cuh
 
 device_h := $(cuda)/device.hpp
 device_h += $(defines_h)
+
+# simage
+simage_platform_h := $(simage)/simage_platform.hpp
+simage_platform_h += $(defines_h)
+
+simage_cuda_h := $(simage)/simage_cuda.hpp
+simage_cuda_h += $(simage_platform_h)
+simage_cuda_h += $(device_h)
+
+
+
+
 
 
 # main
@@ -321,12 +350,34 @@ execute_c += $(execute_h)
 execute_o := $(build)/execute.o
 object_files += $(execute_o)
 
+# uvc_simage
+uvc_simage_c := $(uvc)/uvc_simage.cpp
+uvc_simage_c += $(simage_platform_h)
+uvc_simage_c += $(uvc_h)
+uvc_simage_o := $(build)/uvc_simage.o
+object_files += $(uvc_simage_o)
+
 # device
 device_c     := $(cuda)/device.cu
 device_c     += $(device_h)
 device_c     += $(cuda_def_h)
 device_o     := $(build)/device.o
 object_files += $(device_o)
+
+# simage_platform
+simage_platform_c := $(simage)/simage_platform.cpp
+simage_platform_c += $(simage_platform_h)
+simage_platform_c += $(execute_h)
+simage_platform_c += $(color_space_h)
+simage_platform_o := $(build)/simage_platform.o
+object_files += $(simage_platform_o)
+
+# simage_cuda
+simage_cuda_c := $(simage)/simage_cuda.cpp
+simage_cuda_c += $(simage_cuda_h)
+simage_cuda_c += $(execute_h)
+simage_cuda_o := $(build)/simage_cuda.o
+object_files += $(simage_cuda_o)
 
 
 # device_buffer_tests
@@ -335,10 +386,21 @@ device_buffer_tests_c += $(device_h)
 device_buffer_tests_o := $(build)/device_buffer_tests.o
 object_files += $(device_buffer_tests_o)
 
+# device_copy_tests
+device_copy_tests_c := $(tests)/device_copy_tests.cpp
+device_copy_tests_c += $(device_h)
+device_copy_tests_o := $(build)/device_copy_tests.o
+object_files += $(device_copy_tests_o)
+
 
 # flags
 INCLUDES  :=
-LIBRARIES := -ltbb
+INCLUDES += -I /usr/include/libusb-1.0
+LIBRARIES := -ltbb -pthread $(LIBUSB)
+
+GPP_LIBS := -ltbb -pthread $(LIBUSB)
+
+NVCC_LIBS := -ltbb $(LIBUSB)
 
 GPP_FLAGS := -std=c++20
 GPP_FLAGS += -O3
@@ -356,10 +418,22 @@ $(main_o): $(main_c)
 
 $(execute_o): $(execute_c)
 	@echo "\n execute"
-	$(GPP) $(GPP_FLAGS) -o $@ -c $< $(LIBRARIES)
+	$(GPP) $(GPP_FLAGS) -o $@ -c $< $(GPP_LIBS)
+
+$(uvc_simage_o): $(uvc_simage_c)
+	@echo "\n uvc_simage"
+	$(GPP) $(GPP_FLAGS) -o $@ -c $< $(GPP_LIBS)
+
+$(simage_platform_o): $(simage_platform_c)
+	@echo "\n simage_platform"
+	$(GPP) $(GPP_FLAGS) -o $@ -c $< $(GPP_LIBS)
 
 $(device_o): $(device_c)
 	@echo "\n device"
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(simage_cuda_o): $(simage_cuda_c)
+	@echo "\n simage_cuda"
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 
@@ -367,10 +441,14 @@ $(device_buffer_tests_o): $(device_buffer_tests_c)
 	@echo "\n device_buffer_tests"
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
+$(device_copy_tests_o): $(device_copy_tests_c)
+	@echo "\n device_copy_tests"
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
 
 $(tests_exe): $(object_files)
 	@echo "\n cuda_tests"
-	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(NVCC_LIBS)
 
 
 build: $(tests_exe)

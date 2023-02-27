@@ -2,25 +2,40 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <thread>
 
 
 bool device_buffer_tests();
 
-bool device_copy_tests();
+bool device_copy_tests(img::Image const& src, img::View const& dst);
 
 
 constexpr auto APP_TITLE = "CUDA Tests";
 constexpr auto APP_VERSION = "1.0";
 
 
+static bool run_test(img::CameraUSB const& camera, app::AppState& state, std::function<bool(img::Image const&, img::View const&)> const& test)
+{
+    if (!img::grab_image(camera))
+    {
+        printf("Image grab failed\n");
+        return false;
+    }
 
+    auto result = test(camera.latest_frame, state.screen_pixels);
+    render_once();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    return result;
+}
 
 
 static bool test_success(app::AppState& state, img::CameraUSB const& camera)
 {
     return 
         device_buffer_tests() &&
-        device_copy_tests() &&
+        run_test(camera, state, device_copy_tests) &&
         true;
 }
 

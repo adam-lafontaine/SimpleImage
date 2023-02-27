@@ -295,6 +295,7 @@ util   := $(src)/util
 app    := $(src)/app
 input  := $(src)/input
 sdl    := $(src)/sdl
+res    := $(src)/resources
 uvc    := $(src)/uvc
 simage := $(src)/simage
 cuda   := $(src)/cuda
@@ -316,6 +317,19 @@ execute_h += $(defines_h)
 # uvc
 uvc_h := $(uvc)/libuvc.h
 
+
+# input
+input_h := $(input)/input.hpp
+
+input_state_h := $(input)/input_state.hpp
+input_state += $(input_h)
+
+# sdl
+sdl_include_h := $(sdl)/sdl_include.hpp
+sdl_include_h += $(input_h)
+sdl_include_h += $(icon_h)
+
+
 # color_space
 color_space_h := $(util)/color_space.hpp
 color_space_h += $(defines_h)
@@ -335,14 +349,23 @@ simage_cuda_h += $(simage_platform_h)
 simage_cuda_h += $(device_h)
 
 
+# app
+app_h := $(app)/app.hpp
+app_h += $(simage_platform_h)
+app_h += $(input_h)
 
+
+# tests_include
+tests_include_h := $(tests)/tests_include.hpp
+tests_include_h += $(simage_cuda_h)
 
 
 
 # main
-main_c         := $(tests)/cuda_tests_main.cpp
-main_o         := $(build)/cuda_tests_main.o
-object_files   := $(main_o)
+main_c := $(tests)/cuda_tests_main.cpp
+main_c += $(app_h)
+main_o := $(build)/cuda_tests_main.o
+object_files := $(main_o)
 
 # execute
 execute_c := $(util)/execute.cpp
@@ -357,12 +380,30 @@ uvc_simage_c += $(uvc_h)
 uvc_simage_o := $(build)/uvc_simage.o
 object_files += $(uvc_simage_o)
 
+
+# sdl_input
+sdl_input_c := $(sdl)/sdl_input.cpp
+sdl_input_c += $(sdl_include_h)
+sdl_input_c += $(input_state_h)
+sdl_input_o := $(build)/sdl_input.o
+object_files += $(sdl_input_o)
+
+# sdl_render
+sdl_render_c := $(sdl)/sdl_render_run.cpp
+sdl_render_c += $(sdl_include_h)
+sdl_render_c += $(app_h)
+sdl_render_c += $(stopwatch_h)
+sdl_render_o := $(build)/sdl_render.o
+object_files += $(sdl_render_o)
+
+
 # device
 device_c     := $(cuda)/device.cu
 device_c     += $(device_h)
 device_c     += $(cuda_def_h)
 device_o     := $(build)/device.o
 object_files += $(device_o)
+
 
 # simage_platform
 simage_platform_c := $(simage)/simage_platform.cpp
@@ -382,13 +423,13 @@ object_files += $(simage_cuda_o)
 
 # device_buffer_tests
 device_buffer_tests_c := $(tests)/device_buffer_tests.cpp
-device_buffer_tests_c += $(device_h)
+device_buffer_tests_c += $(tests_include_h)
 device_buffer_tests_o := $(build)/device_buffer_tests.o
 object_files += $(device_buffer_tests_o)
 
 # device_copy_tests
 device_copy_tests_c := $(tests)/device_copy_tests.cpp
-device_copy_tests_c += $(device_h)
+device_copy_tests_c += $(tests_include_h)
 device_copy_tests_o := $(build)/device_copy_tests.o
 object_files += $(device_copy_tests_o)
 
@@ -396,7 +437,6 @@ object_files += $(device_copy_tests_o)
 # flags
 INCLUDES  :=
 INCLUDES += -I /usr/include/libusb-1.0
-LIBRARIES := -ltbb -pthread $(LIBUSB)
 
 GPP_LIBS := -ltbb -pthread $(LIBUSB)
 
@@ -418,11 +458,21 @@ $(main_o): $(main_c)
 
 $(execute_o): $(execute_c)
 	@echo "\n execute"
-	$(GPP) $(GPP_FLAGS) -o $@ -c $< $(GPP_LIBS)
+	$(GPP) $(GPP_FLAGS) -o $@ -c $<
 
 $(uvc_simage_o): $(uvc_simage_c)
 	@echo "\n uvc_simage"
-	$(GPP) $(GPP_FLAGS) -o $@ -c $< $(GPP_LIBS)
+	$(GPP) $(GPP_FLAGS) -o $@ -c $< $(LIBUSB)
+
+
+$(sdl_input_o): $(sdl_input_c)
+	@echo "\n sdl_input"
+	$(GPP) $(GPP_FLAGS) -o $@ -c $<
+
+$(sdl_render_o): $(sdl_render_c)
+	@echo "\n sdl_render"
+	$(GPP) $(GPP_FLAGS) -o $@ -c $<
+
 
 $(simage_platform_o): $(simage_platform_c)
 	@echo "\n simage_platform"
@@ -448,7 +498,7 @@ $(device_copy_tests_o): $(device_copy_tests_c)
 
 $(tests_exe): $(object_files)
 	@echo "\n cuda_tests"
-	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(NVCC_LIBS)
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(NVCC_LIBS) $(SDL2)
 
 
 build: $(tests_exe)

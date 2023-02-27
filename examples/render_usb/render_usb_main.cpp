@@ -94,7 +94,7 @@ int main()
 	img::CameraUSB camera;
 	if (!img::open_camera(camera))
 	{
-		return false;
+		return EXIT_FAILURE;
 	}
 
 	app::WindowSettings window_settings{};
@@ -107,6 +107,7 @@ int main()
 
 	if (!render_init(window_settings, app_state))
 	{
+		img::close_camera(camera);
 		return EXIT_FAILURE;
 	}	
 

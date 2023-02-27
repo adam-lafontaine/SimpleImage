@@ -42,6 +42,13 @@ namespace app
 }
 
 
+
+// sdl_render_run.cpp
+
 bool render_init(app::WindowSettings const& window_settings, app::AppState& app_settings);
+
+void render_close();
+
+void render_once();
 
 void render_run(app::AppState& app_state, std::function<void(Input const&)> const& on_input);

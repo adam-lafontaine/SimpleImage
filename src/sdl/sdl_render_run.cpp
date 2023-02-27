@@ -94,15 +94,27 @@ bool render_init(app::WindowSettings const& window_settings, app::AppState& app_
 }
 
 
+void render_close()
+{
+    close_game_controllers(g_controller_input, g_input[0]);
+    destroy_screen_memory(g_screen);
+    close_sdl();
+}
+
+
+void render_once()
+{
+    render_screen(g_screen);
+}
+
+
 void render_run(app::AppState& app_state, std::function<void(Input const&)> const& on_input)
 {
 
     auto const cleanup = [&]()
     {
         app_state.signal_stop = true;
-        close_game_controllers(g_controller_input, g_input[0]);
-        destroy_screen_memory(g_screen);
-        close_sdl();
+        render_close();
     };    
 
     g_running = true;      

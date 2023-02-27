@@ -9,7 +9,7 @@
 namespace simage
 {
     template <typename T, size_t N>
-	class DeviceChannelMatrix
+	class DeviceChannelMatrix2D
 	{
 	public:
 
@@ -28,10 +28,15 @@ namespace simage
 
         u32 width = 0;
 		u32 height = 0;
-    };
+    }; 
 
+    using DeviceView1r16 = DeviceMatrix2D<cuda::r16>;
 
-	using DeviceImage = DeviceMatrix2D<Pixel>;
+    using DeviceView4r16 = DeviceChannelMatrix2D<cuda::r16, 4>;
+	using DeviceView3r16 = DeviceChannelMatrix2D<cuda::r16, 3>;
+	using DeviceView2r16 = DeviceChannelMatrix2D<cuda::r16, 2>;
+
+	using DeviceView = DeviceMatrix2D<Pixel>;
 }
 
 
@@ -42,7 +47,7 @@ namespace simage
     using DeviceBuffer32 = DeviceBuffer<Pixel>;
 
     
-    DeviceImage make_image(u32 width, u32 height, DeviceBuffer32& buffer);
+    DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer);
 }
 
 
@@ -50,9 +55,9 @@ namespace simage
 
 namespace simage
 {
-    void copy_to_device(Image const& src, DeviceImage const& dst);
+    void copy_to_device(Image const& src, DeviceView const& dst);
 
-    void copy_to_device(View const& src, DeviceImage const& dst);
+    void copy_to_device(View const& src, DeviceView const& dst);
 }
 
 
@@ -60,7 +65,7 @@ namespace simage
 
 namespace simage
 {
-    void copy_to_host(DeviceImage const& src, Image const& dst);
+    void copy_to_host(DeviceView const& src, Image const& dst);
 
-    void copy_to_host(DeviceImage const& src, View const& dst);
+    void copy_to_host(DeviceView const& src, View const& dst);
 }

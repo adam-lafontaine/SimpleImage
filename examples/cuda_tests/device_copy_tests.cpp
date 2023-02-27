@@ -1,9 +1,6 @@
 #include "tests_include.hpp"
 
 
-using PixelBuffer = DeviceBuffer<img::Pixel>;
-
-
 bool copy_image_test(img::Image const& src, img::View const& dst)
 {
     printf("copy_image_test\n");
@@ -11,10 +8,10 @@ bool copy_image_test(img::Image const& src, img::View const& dst)
     auto width = src.width;
     auto height = src.height;
 
-    PixelBuffer buffer;
+    img::DeviceBuffer32 buffer;
     cuda::create_device_buffer(buffer, width * height);
 
-    auto d_image = img::make_image(width, height, buffer);
+    auto d_image = img::make_view(width, height, buffer);
 
     img::copy_to_device(src, d_image);
     img::copy_to_host(d_image, dst);
@@ -44,10 +41,10 @@ bool copy_view_test(img::Image const& src, img::View const& dst)
 
     auto dst_v = img::sub_view(dst, dst_r);
 
-    PixelBuffer buffer;
+    img::DeviceBuffer32 buffer;
     cuda::create_device_buffer(buffer, width * height / 4);
 
-    auto d_image = img::make_image(width / 2, height / 2, buffer);
+    auto d_image = img::make_view(width / 2, height / 2, buffer);
 
     img::copy_to_device(src_v, d_image);
     img::copy_to_host(d_image, dst_v);

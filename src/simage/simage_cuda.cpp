@@ -71,11 +71,11 @@ namespace simage
 
 namespace simage 
 {
-    DeviceImage make_image(u32 width, u32 height, DeviceBuffer32& buffer)
+    DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer)
     {
         assert(verify(buffer, width * height));
 
-        DeviceImage image{};
+        DeviceView image{};
 
         image.data_ = cuda::push_elements(buffer, width * height);
         image.width = width;
@@ -92,7 +92,7 @@ namespace simage
 
 namespace simage
 {
-    void copy_to_device(Image const& src, DeviceImage const& dst)
+    void copy_to_device(Image const& src, DeviceView const& dst)
 	{
         assert(verify(src, dst));
 
@@ -102,7 +102,7 @@ namespace simage
 	}
 
 
-    void copy_to_device(View const& src, DeviceImage const& dst)
+    void copy_to_device(View const& src, DeviceView const& dst)
 	{
         assert(verify(src, dst));
 
@@ -125,7 +125,7 @@ namespace simage
 
 namespace simage
 {
-    void copy_to_host(DeviceImage const& src, Image const& dst)
+    void copy_to_host(DeviceView const& src, Image const& dst)
 	{
         assert(verify(src, dst));
 
@@ -135,7 +135,7 @@ namespace simage
 	}
 
 
-    void copy_to_host(DeviceImage const& src, View const& dst)
+    void copy_to_host(DeviceView const& src, View const& dst)
 	{
         assert(verify(src, dst));
 

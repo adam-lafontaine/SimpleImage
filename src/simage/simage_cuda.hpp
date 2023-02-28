@@ -90,17 +90,19 @@ namespace simage
 }
 
 
-/* copy_to_device */
+/* device copy */
 
 namespace simage
 {
     void copy_to_device(View const& src, DeviceView const& dst);
+
+    void copy_to_host(DeviceView const& src, View const& dst);
 }
 
 
-/* copy_to_host */
+/*  */
 
 namespace simage
 {
-    void copy_to_host(DeviceView const& src, View const& dst);
+    
 }

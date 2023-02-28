@@ -189,7 +189,7 @@ namespace simage
 }
 
 
-/* copy_to_device */
+/* device copy */
 
 namespace simage
 {
@@ -209,13 +209,8 @@ namespace simage
 
         process_image_by_row(src.height, row_func);
 	}
-}
 
 
-/* copy_to_host */
-
-namespace simage
-{
     void copy_to_host(DeviceView const& src, View const& dst)
 	{
         assert(verify(src, dst));
@@ -232,4 +227,12 @@ namespace simage
 
         process_image_by_row(src.height, row_func);
 	}
+}
+
+
+/*  */
+
+namespace simage
+{
+    
 }

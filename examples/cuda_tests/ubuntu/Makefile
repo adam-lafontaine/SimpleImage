@@ -433,6 +433,12 @@ device_copy_tests_c += $(tests_include_h)
 device_copy_tests_o := $(build)/device_copy_tests.o
 object_files += $(device_copy_tests_o)
 
+# device_copy_tests
+make_view_tests_c := $(tests)/make_view_tests.cpp
+make_view_tests_c += $(tests_include_h)
+make_view_tests_o := $(build)/make_view_tests.o
+object_files += $(make_view_tests_o)
+
 
 # flags
 INCLUDES  :=
@@ -493,6 +499,10 @@ $(device_buffer_tests_o): $(device_buffer_tests_c)
 
 $(device_copy_tests_o): $(device_copy_tests_c)
 	@echo "\n device_copy_tests"
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(make_view_tests_o): $(make_view_tests_c)
+	@echo "\n make_view_tests"
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 

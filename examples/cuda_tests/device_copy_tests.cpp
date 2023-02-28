@@ -13,7 +13,7 @@ bool copy_image_test(img::Image const& src, img::View const& dst)
 
     auto d_image = img::make_view(width, height, buffer);
 
-    img::copy_to_device(src, d_image);
+    img::copy_to_device(img::make_view(src), d_image);
     img::copy_to_host(d_image, dst);
 
     cuda::destroy_buffer(buffer);

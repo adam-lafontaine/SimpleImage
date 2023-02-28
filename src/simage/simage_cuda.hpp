@@ -9,45 +9,84 @@
 namespace simage
 {
     template <typename T, size_t N>
-	class DeviceChannelMatrix2D
+	class DeviceChannelView2D
 	{
 	public:
+
+        u32 channel_width_ = 0;
 
 		T* channel_data_[N] = {};		
 
 		u32 width = 0;
 		u32 height = 0;
+
+        union
+		{
+			Range2Du32 range = {};
+
+			struct
+			{
+				u32 x_begin;
+				u32 x_end;
+				u32 y_begin;
+				u32 y_end;
+			};
+		};
 	};
 
 
     template <typename T>
-    class DeviceMatrix2D
+    class DeviceView2D
     {
     public:
-        T* data_ = nullptr;
+        T* matrix_data_ = nullptr;
+        u32 matrix_width = 0;
 
         u32 width = 0;
 		u32 height = 0;
+
+        union
+		{
+			Range2Du32 range = {};
+
+			struct
+			{
+				u32 x_begin;
+				u32 x_end;
+				u32 y_begin;
+				u32 y_end;
+			};
+		};
     }; 
 
-    using DeviceView1r16 = DeviceMatrix2D<cuda::r16>;
+    using DeviceView1r16 = DeviceView2D<cuda::r16>;
 
-    using DeviceView4r16 = DeviceChannelMatrix2D<cuda::r16, 4>;
-	using DeviceView3r16 = DeviceChannelMatrix2D<cuda::r16, 3>;
-	using DeviceView2r16 = DeviceChannelMatrix2D<cuda::r16, 2>;
+    using DeviceView4r16 = DeviceChannelView2D<cuda::r16, 4>;
+	using DeviceView3r16 = DeviceChannelView2D<cuda::r16, 3>;
+	using DeviceView2r16 = DeviceChannelView2D<cuda::r16, 2>;
 
-	using DeviceView = DeviceMatrix2D<Pixel>;
+	using DeviceView = DeviceView2D<Pixel>;    
 }
 
 
-/* make_image */
+/* make_view */
 
 namespace simage
 {
     using DeviceBuffer32 = DeviceBuffer<Pixel>;
+    using DeviceBuffer16 = DeviceBuffer<cuda::r16>;
 
     
     DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer);
+
+
+    DeviceView1r16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer);
+
+    DeviceView2r16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer);
+
+    DeviceView3r16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer);
+
+    DeviceView4r16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer);
 }
 
 
@@ -55,8 +94,6 @@ namespace simage
 
 namespace simage
 {
-    void copy_to_device(Image const& src, DeviceView const& dst);
-
     void copy_to_device(View const& src, DeviceView const& dst);
 }
 
@@ -65,7 +102,5 @@ namespace simage
 
 namespace simage
 {
-    void copy_to_host(DeviceView const& src, Image const& dst);
-
     void copy_to_host(DeviceView const& src, View const& dst);
 }

@@ -220,12 +220,10 @@ namespace simage
 	static void do_make_view(ViewCh2Dr32<N>& view, u32 width, u32 height, Buffer32& buffer)
 	{
 		view.image_width_ = width;
-		view.x_begin = 0;
-		view.y_begin = 0;
-		view.x_end = width;
-		view.y_end = height;
 		view.width = width;
 		view.height = height;
+
+		view.range = make_range(width, height);
 
 		for (u32 ch = 0; ch < N; ++ch)
 		{
@@ -241,13 +239,11 @@ namespace simage
 		View1r32 view;
 
 		view.matrix_data_ = mb::push_elements(buffer, width * height);
-		view.matrix_width = width;
-		view.x_begin = 0;
-		view.y_begin = 0;
-		view.x_end = width;
-		view.y_end = height;
+		view.matrix_width = width;		
 		view.width = width;
 		view.height = height;
+
+		view.range = make_range(width, height);
 
 		assert(verify(view));
 

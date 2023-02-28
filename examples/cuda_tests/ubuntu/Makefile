@@ -443,11 +443,11 @@ GPP_LIBS := -ltbb -pthread $(LIBUSB)
 NVCC_LIBS := -ltbb $(LIBUSB)
 
 GPP_FLAGS := -std=c++20
-GPP_FLAGS += -O3
-GPP_FLAGS += -DNDEBUG
+#GPP_FLAGS += -O3
+#GPP_FLAGS += -DNDEBUG
 
 NVCC_FLAGS := -std=c++17
-NVCC_FLAGS += -DNDEBUG
+#NVCC_FLAGS += -DNDEBUG
 
 
 # build rules

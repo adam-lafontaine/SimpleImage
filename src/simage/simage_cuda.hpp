@@ -65,7 +65,8 @@ namespace simage
 	using DeviceView3r16 = DeviceChannelView2D<cuda::r16, 3>;
 	using DeviceView2r16 = DeviceChannelView2D<cuda::r16, 2>;
 
-	using DeviceView = DeviceView2D<Pixel>;    
+	using DeviceView = DeviceView2D<Pixel>;
+    using DeviceViewGray = DeviceView2D<u8>;
 }
 
 
@@ -75,9 +76,12 @@ namespace simage
 {
     using DeviceBuffer32 = DeviceBuffer<Pixel>;
     using DeviceBuffer16 = DeviceBuffer<cuda::r16>;
+    using DeviceBuffer8 = DeviceBuffer<u8>;
 
     
     DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer);
+
+    DeviceViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
 
 
     DeviceView1r16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer);
@@ -96,7 +100,11 @@ namespace simage
 {
     void copy_to_device(View const& src, DeviceView const& dst);
 
+    void copy_to_device(ViewGray const& src, DeviceViewGray const& dst);
+
     void copy_to_host(DeviceView const& src, View const& dst);
+
+    void copy_to_host(DeviceViewGray const& src, ViewGray const& dst);
 }
 
 
@@ -104,5 +112,5 @@ namespace simage
 
 namespace simage
 {
-    
+    void map(DeviceViewGray const& src, DeviceView1r16 const& dst);
 }

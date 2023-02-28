@@ -414,7 +414,9 @@ simage_platform_o := $(build)/simage_platform.o
 object_files += $(simage_platform_o)
 
 # simage_cuda
-simage_cuda_c := $(simage)/simage_cuda.cpp
+simage_cuda_c := $(simage)/simage_cuda.cu
+simage_cuda_c += $(cuda_def_h)
+simage_cuda_c += $(simage)/simage_cuda.cpp
 simage_cuda_c += $(simage_cuda_h)
 simage_cuda_c += $(execute_h)
 simage_cuda_o := $(build)/simage_cuda.o
@@ -442,7 +444,7 @@ object_files += $(make_view_tests_o)
 
 # flags
 INCLUDES  :=
-INCLUDES += -I /usr/include/libusb-1.0
+#INCLUDES += -I /usr/include/libusb-1.0
 
 GPP_LIBS := -ltbb -pthread $(LIBUSB)
 

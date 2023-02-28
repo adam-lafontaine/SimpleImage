@@ -20,10 +20,9 @@ static void process_image_rows(u32 n_rows, id_func_t const& row_func)
 
 /* verify */
 
-#ifndef NDEBUG
-
 namespace simage
 {
+#ifndef NDEBUG
 	template <typename T>
 	static bool verify(Matrix2D<T> const& image)
 	{
@@ -60,9 +59,9 @@ namespace simage
 			range.y_begin < image.height&&
 			range.y_end <= image.height;
 	}
-}
 
 #endif // !NDEBUG
+}
 
 
 /* platform */

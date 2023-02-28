@@ -56,6 +56,20 @@ bool make_view_tests()
 
     cuda::destroy_buffer(pixel_buffer);
 
+    img::DeviceBuffer8 gray_buffer;
+    cuda::create_device_buffer(gray_buffer, width * height);
+
+    printf("make_view gray ");
+    auto vg = img::make_view(width, height, gray_buffer);
+    if (!verify_view_1(vg))
+    {
+        printf("FAIL\n");
+        cuda::destroy_buffer(gray_buffer);
+        return false;
+    }
+
+    cuda::destroy_buffer(gray_buffer);
+
 
     img::DeviceBuffer16 buffer;
     cuda::create_device_buffer(buffer, width * height * 10);

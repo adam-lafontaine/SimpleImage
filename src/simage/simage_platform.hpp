@@ -342,6 +342,8 @@ namespace simage
 
 namespace simage
 {
+	void map(View const& src, ViewGray const& dst);
+
 	void map(ViewGray const& src, View const& dst);
 
 	void map_yuv(ViewYUV const& src, View const& dst);

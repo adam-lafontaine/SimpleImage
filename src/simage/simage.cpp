@@ -354,6 +354,14 @@ namespace simage
 }
 
 
+/* map_gray */
+
+namespace simage
+{
+	// TODO
+}
+
+
 /* map_rgb */
 
 namespace simage

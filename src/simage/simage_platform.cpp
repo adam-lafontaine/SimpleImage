@@ -691,6 +691,26 @@ namespace simage
 
 namespace simage
 {
+	void map(View const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = s[x].rgba;
+				d[x] = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
 	void map(ViewGray const& src, View const& dst)
 	{
 		assert(verify(src, dst));
@@ -812,6 +832,8 @@ namespace simage
 		process_image_rows(src.height, row_func);
 	}
 }
+
+
 
 
 /* make_histograms */

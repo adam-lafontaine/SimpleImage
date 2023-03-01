@@ -143,6 +143,29 @@ namespace color_space
 }
 
 
+/* grayscale */
+
+namespace gray
+{
+    constexpr r32 COEFF_RED = 0.299f;
+    constexpr r32 COEFF_GREEN = 0.587f;
+    constexpr r32 COEFF_BLUE = 0.114f;
+
+
+    inline constexpr r32 r32_from_rgb_r32(r32 r, r32 g, r32 b)
+    {
+        return COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
+    }
+
+
+    inline constexpr u8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        return (u8)(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
+    }
+    
+}
+
+
 /* hsv r32 */
 
 namespace hsv

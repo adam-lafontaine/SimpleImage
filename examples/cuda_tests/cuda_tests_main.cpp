@@ -10,6 +10,8 @@ bool make_view_tests();
 
 bool copy_image_test(img::Image const& src, img::View const& dst);
 bool copy_view_test(img::Image const& src, img::View const& dst);
+bool copy_gray_image_test(img::Image const& src, img::View const& dst);
+bool copy_gray_view_test(img::Image const& src, img::View const& dst);
 
 
 constexpr auto APP_TITLE = "CUDA Tests";
@@ -35,11 +37,14 @@ static bool run_test(img::CameraUSB const& camera, app::AppState& state, std::fu
 
 static bool test_success(app::AppState& state, img::CameraUSB const& camera)
 {
+
     return 
         device_buffer_tests() &&
         make_view_tests() &&
         run_test(camera, state, copy_image_test) &&
         run_test(camera, state, copy_view_test) &&
+        run_test(camera, state, copy_gray_image_test) &&
+        run_test(camera, state, copy_gray_view_test) &&
         true;
 }
 

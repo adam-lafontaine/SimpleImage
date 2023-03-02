@@ -61,19 +61,70 @@ bool map_rgb_test(img::Image const& src, img::View const& dst)
     img::DeviceBuffer16 buffer16;
     cuda::create_device_buffer(buffer16, width * height * 3);
 
-    auto dv_1 = img::make_view(width, height, buffer32);
-    auto dv_2 = img::make_view(width, height, buffer32);
+    auto src_dv = img::make_view(width, height, buffer32);
+    auto dst_dv = img::make_view(width, height, buffer32);
     auto dst_d = img::make_view_3(width, height, buffer16);
 
-    img::copy_to_device(src_v, dv_1);
+    img::copy_to_device(src_v, src_dv);
 
-    img::map_rgb(dv_1, dst_d);
-    img::map_rgb(dst_d, dv_2);
+    img::map_rgb(src_dv, dst_d);
+    img::map_rgb(dst_d, dst_dv);
 
-    img::copy_to_host(dv_2, dst_v);
+    img::copy_to_host(dst_dv, dst_v);
 
     cuda::destroy_buffer(buffer32);
     cuda::destroy_buffer(buffer16);
 
     return true;
+}
+
+
+bool map_gray_test(img::Image const& src, img::View const& dst)
+{
+    printf("map_gray_test\n");
+
+    auto width = src.width / 2;
+    auto height = src.height;    
+
+    auto r_dst = make_range(width, height);
+    auto r_src = make_range(src.width, src.height);
+    r_src.x_end = src.width;
+    r_src.x_begin = r_src.x_end - width;
+
+    auto src_v = img::sub_view(src, r_src);
+    auto dst_v = img::sub_view(dst, r_dst);
+
+    img::ImageGray src_gray;
+    img::ImageGray dst_gray;
+    img::create_image(src_gray, width, height);
+    img::create_image(dst_gray, width, height);
+
+    auto src_gray_v = img::make_view(src_gray);
+    auto dst_gray_v = img::make_view(dst_gray);
+
+    img::map(src_v, src_gray_v);
+
+    img::DeviceBuffer8 buffer8;
+    cuda::create_device_buffer(buffer8, width * height * 2);
+
+    img::DeviceBuffer16 buffer16;
+    cuda::create_device_buffer(buffer16, width * height);
+
+    auto src_dv = img::make_view(width, height, buffer8);
+    auto dst_dv = img::make_view(width, height, buffer8);
+    auto dst_d = img::make_view_1(width, height, buffer16);
+
+    img::copy_to_device(src_gray_v, src_dv);
+
+    img::map(src_dv, dst_d);
+    img::map(dst_d, dst_dv);
+
+    img::copy_to_host(dst_dv, dst_gray_v);
+
+    img::map(dst_gray_v, dst_v);
+
+    img::destroy_image(src_gray);
+    img::destroy_image(dst_gray);
+    cuda::destroy_buffer(buffer8);
+    cuda::destroy_buffer(buffer16);
 }

@@ -435,11 +435,17 @@ device_copy_tests_c += $(tests_include_h)
 device_copy_tests_o := $(build)/device_copy_tests.o
 object_files += $(device_copy_tests_o)
 
-# device_copy_tests
+# make_view_tests
 make_view_tests_c := $(tests)/make_view_tests.cpp
 make_view_tests_c += $(tests_include_h)
 make_view_tests_o := $(build)/make_view_tests.o
 object_files += $(make_view_tests_o)
+
+# map_rgba_gray_tests
+map_rgba_gray_tests_c := $(tests)/map_rgba_gray_tests.cpp
+map_rgba_gray_tests_c += $(tests_include_h)
+map_rgba_gray_tests_o := $(build)/map_rgba_gray_tests.o
+object_files += $(map_rgba_gray_tests_o)
 
 
 # flags
@@ -504,6 +510,10 @@ $(device_copy_tests_o): $(device_copy_tests_c)
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 $(make_view_tests_o): $(make_view_tests_c)
+	@echo "\n make_view_tests"
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(map_rgba_gray_tests_o): $(map_rgba_gray_tests_c)
 	@echo "\n make_view_tests"
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 

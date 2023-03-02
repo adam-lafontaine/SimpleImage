@@ -73,11 +73,15 @@ template <size_t N>
 static gpu::ViewCHr16<N> as_device(simage::DeviceViewCHr16<N> const& host)
 {
     gpu::ViewCHr16<N> dst;
-    dst.channel_data_ = (gpu::r16*)host.channel_data_;
     dst.channel_width_ = host.channel_width_;
     dst.width = host.width;
     dst.height = host.height;
     dst.range = host.range;
+
+    for (u32 ch = 0; ch < N; ++ch)
+    {
+        dst.channel_data_[ch] = (gpu::r16*)host.channel_data_[ch];
+    }
 
     return dst;
 }
@@ -226,10 +230,10 @@ namespace gpu
 
         auto xy = gpuf::get_thread_xy(src, t);
 
-        auto s = gpuf::xy_at(src, xy);
-        auto d = gpuf::xy_at(dst, xy);
+        auto s = *gpuf::xy_at(src, xy);
+        auto& d = *gpuf::xy_at(dst, xy);
 
-        *d = gpuf::to_channel_r16(*s);
+        d = gpuf::to_channel_r16(s);
     }
 
 
@@ -246,10 +250,10 @@ namespace gpu
 
         auto xy = gpuf::get_thread_xy(src, t);
 
-        auto s = gpuf::xy_at(src, xy);
-        auto d = gpuf::xy_at(dst, xy);
+        auto s = *gpuf::xy_at(src, xy);
+        auto& d = *gpuf::xy_at(dst, xy);
 
-        *d = gpuf::to_channel_u8(*s);
+        d = gpuf::to_channel_u8(s);
     }
 }
 
@@ -308,7 +312,7 @@ namespace gpu
 
         assert(n_threads == src.width * src.height * 4);
 
-        auto cxy = gpuf::get_thread_channel_xy(src, n_threads);
+        auto cxy = gpuf::get_thread_channel_xy(src, t);
 
         auto rgba = gpuf::xy_at(src, cxy.x, cxy.y)->rgba;
         u8 s = 0;
@@ -347,7 +351,7 @@ namespace gpu
 
         assert(n_threads == src.width * src.height * 3);
 
-        auto cxy = gpuf::get_thread_channel_xy(src, n_threads);
+        auto cxy = gpuf::get_thread_channel_xy(src, t);
 
         auto rgba = gpuf::xy_at(src, cxy.x, cxy.y)->rgba;
         u8 s = 0;
@@ -383,7 +387,7 @@ namespace gpu
 
         assert(n_threads == src.width * src.height * 4);
 
-        auto cxy = gpuf::get_thread_channel_xy(src, n_threads);
+        auto cxy = gpuf::get_thread_channel_xy(src, t);
 
         auto s = gpuf::to_channel_u8(*gpuf::channel_xy_at(src, cxy));
         auto& d = gpuf::xy_at(dst, cxy.x, cxy.y)->rgba;
@@ -419,7 +423,7 @@ namespace gpu
 
         assert(n_threads == src.width * src.height * 3);
 
-        auto cxy = gpuf::get_thread_channel_xy(src, n_threads);
+        auto cxy = gpuf::get_thread_channel_xy(src, t);
 
         auto s = gpuf::to_channel_u8(*gpuf::channel_xy_at(src, cxy));
         auto& d = gpuf::xy_at(dst, cxy.x, cxy.y)->rgba;

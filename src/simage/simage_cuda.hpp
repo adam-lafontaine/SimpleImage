@@ -114,6 +114,20 @@ namespace simage
 }
 
 
+/* sub_view */
+
+namespace simage
+{
+	DeviceView4r16 sub_view(DeviceView4r16 const& view, Range2Du32 const& range);
+
+	DeviceView3r16 sub_view(DeviceView3r16 const& view, Range2Du32 const& range);
+
+	DeviceView2r16 sub_view(DeviceView2r16 const& view, Range2Du32 const& range);
+
+	DeviceView4r16 sub_view(DeviceView4r16 const& view, Range2Du32 const& range);
+}
+
+
 /* map gray */
 
 namespace simage

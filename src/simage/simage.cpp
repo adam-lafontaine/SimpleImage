@@ -55,7 +55,7 @@ namespace simage
 	template <typename T, size_t N>
 	static bool verify(ChannelView2D<T,N> const& view)
 	{
-		return view.image_width_ && view.width && view.height && view.channel_data_[0];
+		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
 	}
 
 	template <class IMG_A, class IMG_B>
@@ -126,7 +126,7 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width_ + view.x_begin;
+		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
 		RGBr32p rgb{};
 
@@ -143,7 +143,7 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width_ + view.x_begin;
+		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
 		HSVr32p hsv{};
 
@@ -160,7 +160,7 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width_ + view.x_begin;
+		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
 		LCHr32p lch{};
 
@@ -191,7 +191,7 @@ namespace simage
 
 		assert(y < view.height);
 
-		auto offset = (size_t)((view.y_begin + y) * view.image_width_ + view.x_begin);
+		auto offset = (size_t)((view.y_begin + y) * view.channel_width_ + view.x_begin);
 
 		return view.channel_data_[ch] + offset;
 	}
@@ -204,7 +204,7 @@ namespace simage
 
 		int y_eff = y + y_offset;
 
-		auto offset = (size_t)((view.y_begin + y_eff) * view.image_width_ + view.x_begin);
+		auto offset = (size_t)((view.y_begin + y_eff) * view.channel_width_ + view.x_begin);
 
 		return view.channel_data_[ch] + offset;
 	}
@@ -219,7 +219,7 @@ namespace simage
 	template <size_t N>
 	static void do_make_view(ViewCh2Dr32<N>& view, u32 width, u32 height, Buffer32& buffer)
 	{
-		view.image_width_ = width;
+		view.channel_width_ = width;
 		view.width = width;
 		view.height = height;
 
@@ -1175,7 +1175,7 @@ namespace simage
 	{
 		ViewCh2Dr32<N> sub_view;
 
-		sub_view.image_width_ = view.image_width_;
+		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
 		sub_view.x_end = view.x_begin + range.x_end;
@@ -1259,7 +1259,7 @@ namespace simage
 	{
 		View1r32 view1{};
 
-		view1.matrix_width = view.image_width_;
+		view1.matrix_width = view.channel_width_;
 		view1.range = view.range;
 		view1.width = view.width;
 		view1.height = view.height;
@@ -1346,7 +1346,7 @@ namespace simage
 
 		ViewRGBr32 rgb;
 
-		rgb.image_width_ = view.image_width_;
+		rgb.channel_width_ = view.channel_width_;
 		rgb.width = view.width;
 		rgb.height = view.height;
 		rgb.range = view.range;

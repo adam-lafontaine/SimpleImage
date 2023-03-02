@@ -18,7 +18,7 @@ namespace simage
 	{
 	public:
 
-		u32 image_width_ = 0;
+		u32 channel_width_ = 0;
 
 		T* channel_data_[N] = {};		
 

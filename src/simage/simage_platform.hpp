@@ -179,6 +179,49 @@ namespace simage
 		u8 green;
 		u8 blue;
 	};
+
+
+	enum class RGB : int
+	{
+		R = 0, G = 1, B = 2
+	};
+
+
+	enum class RGBA : int
+	{
+		R = 0, G = 1, B = 2, A = 3
+	};
+
+
+	enum class HSV : int
+	{
+		H = 0, S = 1, V = 2
+	};
+
+
+	enum class LCH : int
+	{
+		L = 0, C = 1, H = 2
+	};
+
+
+	enum class YUV : int
+	{
+		Y = 0, U = 1, V = 2
+	};
+
+
+	enum class GA : int
+	{
+		G = 0, A = 1
+	};
+
+
+	enum class XY : int
+	{
+		X = 0, Y = 1
+	};
+
 #else
 
 	class YUV422u8
@@ -216,7 +259,56 @@ namespace simage
 		u8 red;
 	};
 
-#endif
+
+	enum class RGB : int
+	{
+		R = 2, G = 1, B = 0
+	};
+
+
+	enum class RGBA : int
+	{
+		R = 3, G = 2, B = 1, A = 0
+	};
+
+
+	enum class HSV : int
+	{
+		H = 2, S = 1, V = 0
+	};
+
+
+	enum class LCH : int
+	{
+		L = 2, C = 1, H = 0
+	};
+
+
+	enum class YUV : int
+	{
+		Y = 2, U = 1, V = 0
+	};
+
+
+	enum class GA : int
+	{
+		G = 1, A = 0
+	};
+
+
+	enum class XY : int
+	{
+		X = 1, Y = 0
+	};
+
+#endif	
+
+
+	template <typename T>
+	constexpr inline int id_cast(T channel)
+	{
+		return static_cast<int>(channel);
+	}
 
 
 	using ImageYUV = Matrix2D<YUV2u8>;

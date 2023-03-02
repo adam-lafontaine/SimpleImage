@@ -57,16 +57,22 @@ namespace simage
 				u32 y_end;
 			};
 		};
-    }; 
+    };
 
-    using DeviceView1r16 = DeviceView2D<cuda::r16>;
+    template <size_t N>
+	using DeviceViewCHr16 = DeviceChannelView2D<u16, N>;
 
-    using DeviceView4r16 = DeviceChannelView2D<cuda::r16, 4>;
-	using DeviceView3r16 = DeviceChannelView2D<cuda::r16, 3>;
-	using DeviceView2r16 = DeviceChannelView2D<cuda::r16, 2>;
+    using DeviceView1r16 = DeviceView2D<u16>;
+
+    using DeviceView4r16 = DeviceViewCHr16<4>;
+	using DeviceView3r16 = DeviceViewCHr16<3>;
+	using DeviceView2r16 = DeviceViewCHr16<2>;
 
 	using DeviceView = DeviceView2D<Pixel>;
     using DeviceViewGray = DeviceView2D<u8>;
+
+    using DeviceViewRGBAr16 = DeviceView4r16;
+    using DeviceViewRGBr16 = DeviceView3r16;
 }
 
 
@@ -75,7 +81,7 @@ namespace simage
 namespace simage
 {
     using DeviceBuffer32 = DeviceBuffer<Pixel>;
-    using DeviceBuffer16 = DeviceBuffer<cuda::r16>;
+    using DeviceBuffer16 = DeviceBuffer<u16>;
     using DeviceBuffer8 = DeviceBuffer<u8>;
 
     
@@ -108,9 +114,25 @@ namespace simage
 }
 
 
-/*  */
+/* map gray */
 
 namespace simage
 {
     void map(DeviceViewGray const& src, DeviceView1r16 const& dst);
+
+    void map(DeviceView1r16 const& src, DeviceViewGray const& dst);
+}
+
+
+/* map rgb */
+
+namespace simage
+{
+    void map_rgba(DeviceView const& src, DeviceViewRGBAr16 const& dst);
+
+	void map_rgba(DeviceViewRGBAr16 const& src, DeviceView const& dst);
+
+    void map_rgb(DeviceView const& src, DeviceViewRGBr16 const& dst);
+
+	void map_rgb(DeviceViewRGBr16 const& src, DeviceView const& dst);
 }

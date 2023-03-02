@@ -9,59 +9,6 @@
 namespace mb = memory_buffer;
 
 
-namespace simage
-{
-	enum class RGB : int
-	{
-		R = 0, G = 1, B = 2
-	};
-
-
-	enum class RGBA : int
-	{
-		R = 0, G = 1, B = 2, A = 3
-	};
-
-
-	enum class HSV : int
-	{
-		H = 0, S = 1, V = 2
-	};
-
-
-	enum class LCH : int
-	{
-		L = 0, C = 1, H = 2
-	};
-
-
-	enum class YUV : int
-	{
-		Y = 0, U = 1, V = 2
-	};
-
-
-	enum class GA : int
-	{
-		G = 0, A = 1
-	};
-
-
-	enum class XY : int
-	{
-		X = 0, Y = 1
-	};
-
-
-	template <typename T>
-	constexpr inline int id_cast(T channel)
-	{
-		return static_cast<int>(channel);
-	}
-
-}
-
-
 /* view */
 
 namespace simage

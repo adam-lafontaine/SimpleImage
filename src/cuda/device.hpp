@@ -20,9 +20,6 @@ namespace cuda
     bool no_errors(cstr label);
 
     bool launch_success(cstr label);
-
-
-    using r16 = u16; // half float available on GPU
 }
 
 

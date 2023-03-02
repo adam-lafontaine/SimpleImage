@@ -434,17 +434,17 @@ namespace simage
 
 namespace simage
 {
-	void map(View const& src, ViewGray const& dst);
+	void map_gray(View const& src, ViewGray const& dst);
 
-	void map(ViewGray const& src, View const& dst);
+	void map_gray(ViewGray const& src, View const& dst);
 
 	void map_yuv(ViewYUV const& src, View const& dst);
 
-	void map(ViewYUV const& src, ViewGray const& dst);
+	void map_gray(ViewYUV const& src, ViewGray const& dst);
 
-	void map(ViewBGR const& src, View const& dst);
+	void map_rgb(ViewBGR const& src, View const& dst);
 
-	void map(ViewRGB const& src, View const& dst);
+	void map_rgb(ViewRGB const& src, View const& dst);
 }
 
 

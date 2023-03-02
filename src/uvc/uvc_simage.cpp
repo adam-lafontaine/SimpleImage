@@ -609,7 +609,7 @@ namespace simage
         auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
         auto device_view = sub_view(device.rgb_view, roi);
         
-        map(device_view, camera.frame_roi);
+        map_rgb(device_view, camera.frame_roi);
 
         return true;
     }
@@ -634,7 +634,7 @@ namespace simage
         auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
         auto device_view = sub_view(device.rgb_view, roi);
 
-        map(device_view, dst);
+        map_rgb(device_view, dst);
 
         return true;
     }
@@ -657,7 +657,7 @@ namespace simage
         auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
         auto device_view = sub_view(device.rgb_view, roi);
 
-        map(device_view, camera.frame_roi);
+        map_rgb(device_view, camera.frame_roi);
         grab_cb(camera.frame_roi);
 
         return true;
@@ -684,7 +684,7 @@ namespace simage
         {
             if (grab_and_convert_frame(device))
             {               
-                map(device_view, camera.frame_roi);
+                map_rgb(device_view, camera.frame_roi);
 				grab_cb(camera.frame_roi);
             }
         }

@@ -102,7 +102,7 @@ bool map_gray_test(img::Image const& src, img::View const& dst)
     auto src_gray_v = img::make_view(src_gray);
     auto dst_gray_v = img::make_view(dst_gray);
 
-    img::map(src_v, src_gray_v);
+    img::map_gray(src_v, src_gray_v);
 
     img::DeviceBuffer8 buffer8;
     cuda::create_device_buffer(buffer8, width * height * 2);
@@ -116,15 +116,17 @@ bool map_gray_test(img::Image const& src, img::View const& dst)
 
     img::copy_to_device(src_gray_v, src_dv);
 
-    img::map(src_dv, dst_d);
-    img::map(dst_d, dst_dv);
+    img::map_gray(src_dv, dst_d);
+    img::map_gray(dst_d, dst_dv);
 
     img::copy_to_host(dst_dv, dst_gray_v);
 
-    img::map(dst_gray_v, dst_v);
+    img::map_gray(dst_gray_v, dst_v);
 
     img::destroy_image(src_gray);
     img::destroy_image(dst_gray);
     cuda::destroy_buffer(buffer8);
     cuda::destroy_buffer(buffer16);
+
+    return true;
 }

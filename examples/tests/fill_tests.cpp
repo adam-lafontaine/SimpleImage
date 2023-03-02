@@ -99,7 +99,7 @@ bool fill_view_test()
 
     auto view1 = img::make_view_1(width, height, buffer);
     img::fill(view1, 128);
-    img::map(view1, img::make_view(gray));
+    img::map_gray(view1, img::make_view(gray));
     write_image(gray, "all_gray.bmp");
     mb::reset_buffer(buffer);
 
@@ -152,7 +152,7 @@ bool fill_sub_view_test()
     auto view1 = img::make_view_1(width, height, buffer);
     img::fill(img::sub_view(view1, left), 0);
     img::fill(img::sub_view(view1, right), 255);
-    img::map(view1, img::make_view(gray));
+    img::map_gray(view1, img::make_view(gray));
     write_image(gray, "black_white.bmp");
     mb::reset_buffer(buffer);
 

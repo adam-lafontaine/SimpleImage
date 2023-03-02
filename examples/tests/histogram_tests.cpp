@@ -116,7 +116,7 @@ static bool histogram_fill_test()
     {
         img::make_histograms(view, hists);
         draw(hists, hist_view);
-        img::map(hist_view, dst);
+        img::map_gray(hist_view, dst);
         write_image(hist_image, filename);
     };
 
@@ -178,7 +178,7 @@ static bool histogram_images_test()
     {
         img::make_histograms(img::make_view(image), hists);
         draw(hists, hist_view);
-        img::map(hist_view, dst);
+        img::map_gray(hist_view, dst);
         write_image(hist_image, filename);
     };
 

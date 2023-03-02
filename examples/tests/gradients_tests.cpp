@@ -24,7 +24,7 @@ bool gradients_xy_test()
 	auto src = img::make_view_1(width, height, buffer);
 	auto dst_xy = img::make_view_2(width, height, buffer);
 
-	img::map(view, src);
+	img::map_gray(view, src);
 
 	img::gradients_xy(src, dst_xy);
 
@@ -36,11 +36,11 @@ bool gradients_xy_test()
 	auto const to_abs = [](r32 p) { return p < 0.0f ? -p : p; };
 
 	img::transform(dst_x, src, to_abs);
-	img::map(src, view);
+	img::map_gray(src, view);
 	write_image(image, "x_grad.bmp");
 
 	img::transform(dst_y, src, to_abs);
-	img::map(src, view);
+	img::map_gray(src, view);
 	write_image(image, "y_grad.bmp");
 
 	mb::destroy_buffer(buffer);
@@ -71,7 +71,7 @@ bool edges_test()
 	auto src = img::make_view_1(width, height, buffer);
 	auto dst_xy = img::make_view_2(width, height, buffer);
 
-	img::map(view, src);
+	img::map_gray(view, src);
 
 	img::gradients_xy(src, dst_xy);
 
@@ -79,7 +79,7 @@ bool edges_test()
 	
 	img::transform(dst_xy, src, [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.1f ? 1.0f : 0.0f; });
 
-	img::map(src, view);
+	img::map_gray(src, view);
 	write_image(image, "edges.bmp");
 
 	mb::destroy_buffer(buffer);

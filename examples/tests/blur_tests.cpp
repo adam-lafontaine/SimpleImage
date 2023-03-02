@@ -22,13 +22,13 @@ static bool blur_gray_test()
     auto src = img::make_view_1(width, height, buffer);
     auto dst = img::make_view_1(width, height, buffer);
 
-    img::map(view, src);
+    img::map_gray(view, src);
 
     write_image(chess, "chess.bmp");
 
     img::blur(src, dst);
 
-    img::map(dst, view);
+    img::map_gray(dst, view);
 
     write_image(chess, "chess_blur.bmp");
 
@@ -43,13 +43,13 @@ static bool blur_gray_test()
     src = img::make_view_1(width, height, buffer);
     dst = img::make_view_1(width, height, buffer);
 
-    img::map(view, src);
+    img::map_gray(view, src);
 
     write_image(caddy, "caddy.bmp");
 
     img::blur(src, dst);
 
-    img::map(dst, view);
+    img::map_gray(dst, view);
 
     write_image(caddy, "caddy_blur.bmp");
 

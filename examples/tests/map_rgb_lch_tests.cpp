@@ -137,8 +137,8 @@ static bool map_lch_gray_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
-    img::map(img::make_view(vette_gray), vette_v);
-    img::map(img::make_view(caddy_gray), caddy_v);
+    img::map_gray(img::make_view(vette_gray), vette_v);
+    img::map_gray(img::make_view(caddy_gray), caddy_v);
 
     write_image(vette, "vette_1.bmp");
     write_image(caddy, "caddy_1.bmp");

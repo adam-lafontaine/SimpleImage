@@ -260,7 +260,7 @@ namespace gpu
 
 namespace simage
 {
-    void map(DeviceViewGray const& src, DeviceView1r16 const& dst)
+    void map_gray(DeviceViewGray const& src, DeviceView1r16 const& dst)
     {
         assert(verify(src, dst));
 
@@ -278,7 +278,7 @@ namespace simage
     }
 
 
-    void map(DeviceView1r16 const& src, DeviceViewGray const& dst)
+    void map_gray(DeviceView1r16 const& src, DeviceViewGray const& dst)
     {
         assert(verify(src, dst));
 

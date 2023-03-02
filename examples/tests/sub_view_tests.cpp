@@ -177,14 +177,14 @@ static bool gray_test()
     mb::create_buffer(buffer, width * height);
     
     auto view = img::make_view_1(left_view.width, left_view.height, buffer);
-    img::map(left_view, view);
-    img::map(view, img::make_view(left_dst));
+    img::map_gray(left_view, view);
+    img::map_gray(view, img::make_view(left_dst));
 
     mb::reset_buffer(buffer);
 
     view = img::make_view_1(bottom_view.width, bottom_view.height, buffer);
-    img::map(bottom_view, view);
-    img::map(view, img::make_view(bottom_dst));
+    img::map_gray(bottom_view, view);
+    img::map_gray(view, img::make_view(bottom_dst));
 
     write_image(left_dst, "left.bmp");
     write_image(bottom_dst, "bottom.bmp");

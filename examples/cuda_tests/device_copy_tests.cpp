@@ -70,7 +70,7 @@ bool copy_gray_image_test(img::Image const& src, img::View const& dst)
     img::create_image(gray_dst, width, height);
     auto dst_v = img::make_view(gray_dst);
 
-    img::map(img::make_view(src), src_v);
+    img::map_gray(img::make_view(src), src_v);
 
     img::DeviceBuffer8 buffer;
     cuda::create_device_buffer(buffer, width * height);
@@ -80,7 +80,7 @@ bool copy_gray_image_test(img::Image const& src, img::View const& dst)
     img::copy_to_device(src_v, d_view);
     img::copy_to_host(d_view, dst_v);
 
-    img::map(dst_v, dst);
+    img::map_gray(dst_v, dst);
 
     img::destroy_image(gray_src);
     img::destroy_image(gray_dst);
@@ -122,7 +122,7 @@ bool copy_gray_view_test(img::Image const& src, img::View const& dst)
     img::copy_to_device(src_v, d_view);
     img::copy_to_host(d_view, dst_v);
 
-    img::map(dst_v, img::sub_view(dst, dst_r));
+    img::map_gray(dst_v, img::sub_view(dst, dst_r));
 
     img::destroy_image(gray_src);
     img::destroy_image(gray_dst);

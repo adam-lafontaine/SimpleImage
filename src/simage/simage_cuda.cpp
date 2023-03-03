@@ -77,6 +77,20 @@ namespace simage
 	}
 
 
+    template <class IMG>
+	static bool verify(IMG const& image, Range2Du32 const& range)
+	{
+		return
+			verify(image) &&
+			range.x_begin < range.x_end &&
+			range.y_begin < range.y_end &&
+			range.x_begin < image.width &&
+			range.x_end <= image.width &&
+			range.y_begin < image.height &&
+			range.y_end <= image.height;
+	}
+
+
     template <typename T>
 	static bool verify(DeviceBuffer<T> const& buffer, u32 n_elements)
 	{
@@ -283,7 +297,91 @@ namespace simage
 }
 
 
-/*  */
+/* sub_view */
+
+namespace simage
+{
+    template <size_t N>
+	static DeviceViewCHr16<N> do_sub_view(DeviceViewCHr16<N> const& view, Range2Du32 const& range)
+	{
+		DeviceViewCHr16<N> sub_view;
+
+		sub_view.channel_width_ = view.channel_width_;
+		sub_view.x_begin = view.x_begin + range.x_begin;
+		sub_view.y_begin = view.y_begin + range.y_begin;
+		sub_view.x_end = view.x_begin + range.x_end;
+		sub_view.y_end = view.y_begin + range.y_end;
+		sub_view.width = range.x_end - range.x_begin;
+		sub_view.height = range.y_end - range.y_begin;
+
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			sub_view.channel_data_[ch] = view.channel_data_[ch];
+		}
+
+		return sub_view;
+	}
+
+
+	DeviceView4r16 sub_view(DeviceView4r16 const& view, Range2Du32 const& range)
+    {
+        assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+    }
+
+
+	DeviceView3r16 sub_view(DeviceView3r16 const& view, Range2Du32 const& range)
+    {
+        assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+    }
+
+
+	DeviceView2r16 sub_view(DeviceView2r16 const& view, Range2Du32 const& range)
+    {
+        assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+    }
+
+
+	DeviceView1r16 sub_view(DeviceView1r16 const& view, Range2Du32 const& range)
+    {
+        assert(verify(view, range));
+
+		DeviceView1r16 sub_view;
+
+		sub_view.matrix_data_ = view.matrix_data_;
+		sub_view.matrix_width = view.matrix_width;
+		sub_view.x_begin = view.x_begin + range.x_begin;
+		sub_view.y_begin = view.y_begin + range.y_begin;
+		sub_view.x_end = view.x_begin + range.x_end;
+		sub_view.y_end = view.y_begin + range.y_end;
+		sub_view.width = range.x_end - range.x_begin;
+		sub_view.height = range.y_end - range.y_begin;
+
+		assert(verify(sub_view));
+
+		return sub_view;
+    }
+}
+
+
+/* select channel */
 
 namespace simage
 {

@@ -124,7 +124,7 @@ namespace simage
 
 	DeviceView2r16 sub_view(DeviceView2r16 const& view, Range2Du32 const& range);
 
-	DeviceView4r16 sub_view(DeviceView4r16 const& view, Range2Du32 const& range);
+	DeviceView1r16 sub_view(DeviceView1r16 const& view, Range2Du32 const& range);
 }
 
 

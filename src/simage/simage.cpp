@@ -185,7 +185,7 @@ namespace simage
 
 
 	template <size_t N>
-	static r32* channel_row_begin(ViewCh2Dr32<N> const& view, u32 y, u32 ch)
+	static r32* channel_row_begin(ViewCHr32<N> const& view, u32 y, u32 ch)
 	{
 		assert(verify(view));
 
@@ -198,7 +198,7 @@ namespace simage
 
 
 	template <size_t N>
-	static r32* channel_row_offset_begin(ViewCh2Dr32<N> const& view, u32 y, int y_offset, u32 ch)
+	static r32* channel_row_offset_begin(ViewCHr32<N> const& view, u32 y, int y_offset, u32 ch)
 	{
 		assert(verify(view));
 
@@ -217,7 +217,7 @@ namespace simage
 namespace simage
 {
 	template <size_t N>
-	static void do_make_view(ViewCh2Dr32<N>& view, u32 width, u32 height, Buffer32& buffer)
+	static void do_make_view(ViewCHr32<N>& view, u32 width, u32 height, Buffer32& buffer)
 	{
 		view.channel_width_ = width;
 		view.width = width;
@@ -1171,9 +1171,9 @@ namespace simage
 namespace simage
 {
 	template <size_t N>
-	static ViewCh2Dr32<N> do_sub_view(ViewCh2Dr32<N> const& view, Range2Du32 const& range)
+	static ViewCHr32<N> do_sub_view(ViewCHr32<N> const& view, Range2Du32 const& range)
 	{
-		ViewCh2Dr32<N> sub_view;
+		ViewCHr32<N> sub_view;
 
 		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
@@ -1255,7 +1255,7 @@ namespace simage
 namespace simage
 {
 	template <size_t N>
-	static View1r32 select_channel(ViewCh2Dr32<N> const& view, u32 ch)
+	static View1r32 select_channel(ViewCHr32<N> const& view, u32 ch)
 	{
 		View1r32 view1{};
 
@@ -1382,7 +1382,7 @@ namespace simage
 
 
 	template <size_t N>
-	static void fill_n_channels_no_simd(ViewCh2Dr32<N> const& view, Pixel color)
+	static void fill_n_channels_no_simd(ViewCHr32<N> const& view, Pixel color)
 	{
 		r32 channels[N] = {};
 		for (u32 ch = 0; ch < N; ++ch)
@@ -1416,7 +1416,7 @@ namespace simage
 
 
 	template <size_t N>
-	static void do_fill_n_channels(ViewCh2Dr32<N> const& view, Pixel color)
+	static void do_fill_n_channels(ViewCHr32<N> const& view, Pixel color)
 	{
 		fill_n_channels_no_simd(view, color);
 	}
@@ -1460,7 +1460,7 @@ namespace simage
 
 
 	template <size_t N>
-	static void fill_n_channels_simd(ViewCh2Dr32<N> const& view, Pixel color)
+	static void fill_n_channels_simd(ViewCHr32<N> const& view, Pixel color)
 	{
 		r32 channels[N] = {};
 
@@ -1496,7 +1496,7 @@ namespace simage
 
 
 	template <size_t N>
-	static void do_fill_n_channels(ViewCh2Dr32<N> const& view, Pixel color)
+	static void do_fill_n_channels(ViewCHr32<N> const& view, Pixel color)
 	{
 		if (view.width < simd::VEC_LEN)
 		{
@@ -1639,7 +1639,7 @@ namespace simage
 
 
 	template <size_t N>
-	static std::array<r32, N> average(ViewCh2Dr32<N> const& view)
+	static std::array<r32, N> average(ViewCHr32<N> const& view)
 	{
 		std::array<r32, N> results = { 0 };
 		for (u32 i = 0; i < N; ++i) { results[i] = 0.0f; }

@@ -41,14 +41,14 @@ namespace simage
 
 
 	template <size_t N>
-	using ViewCh2Dr32 = ChannelView2D<r32, N>;
+	using ViewCHr32 = ChannelView2D<r32, N>;
 
 
 	using View1r32 = MatrixView<r32>;
 
-    using View4r32 = ViewCh2Dr32<4>;
-	using View3r32 = ViewCh2Dr32<3>;
-	using View2r32 = ViewCh2Dr32<2>;
+    using View4r32 = ViewCHr32<4>;
+	using View3r32 = ViewCHr32<3>;
+	using View2r32 = ViewCHr32<2>;
 }
 
 

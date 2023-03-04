@@ -385,5 +385,82 @@ namespace simage
 
 namespace simage
 {
-    
+    template <size_t N>
+	static DeviceView1r16 select_channel(DeviceViewCHr16<N> const& view, u32 ch)
+	{
+		DeviceView1r16 view1{};
+
+		view1.matrix_width = view.channel_width_;
+		view1.range = view.range;
+		view1.width = view.width;
+		view1.height = view.height;
+
+		view1.matrix_data_ = view.channel_data_[ch];
+
+		return view1;
+	}
+
+
+    DeviceView1r16 select_channel(DeviceViewRGBAr16 const& view, RGBA channel)
+    {
+        assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+    }
+
+
+	DeviceView1r16 select_channel(DeviceViewRGBr16 const& view, RGB channel)
+    {
+        assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+    }
+
+	//DeviceView1r16 select_channel(DeviceViewHSVr16 const& view, HSV channel);
+
+	//DeviceView1r16 select_channel(DeviceView2r16 const& view, GA channel);
+
+	DeviceView1r16 select_channel(DeviceView2r16 const& view, XY channel)
+    {
+        assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+    }
+
+
+	DeviceViewRGBr16 select_rgb(DeviceViewRGBAr16 const& view)
+    {
+        assert(verify(view));
+
+		DeviceViewRGBr16 rgb;
+
+		rgb.channel_width_ = view.channel_width_;
+		rgb.width = view.width;
+		rgb.height = view.height;
+		rgb.range = view.range;
+
+		rgb.channel_data_[id_cast(RGB::R)] = view.channel_data_[id_cast(RGB::R)];
+		rgb.channel_data_[id_cast(RGB::G)] = view.channel_data_[id_cast(RGB::G)];
+		rgb.channel_data_[id_cast(RGB::B)] = view.channel_data_[id_cast(RGB::B)];
+
+		return rgb;
+    }
 }

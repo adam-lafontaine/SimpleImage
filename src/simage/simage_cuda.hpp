@@ -128,6 +128,25 @@ namespace simage
 }
 
 
+/* select_channel */
+
+namespace simage
+{
+	DeviceView1r16 select_channel(DeviceViewRGBAr16 const& view, RGBA channel);
+
+	DeviceView1r16 select_channel(DeviceViewRGBr16 const& view, RGB channel);
+
+	//DeviceView1r16 select_channel(DeviceViewHSVr16 const& view, HSV channel);
+
+	//DeviceView1r16 select_channel(DeviceView2r16 const& view, GA channel);
+
+	DeviceView1r16 select_channel(DeviceView2r16 const& view, XY channel);
+
+
+	DeviceViewRGBr16 select_rgb(DeviceViewRGBAr16 const& view);
+}
+
+
 /* map gray */
 
 namespace simage

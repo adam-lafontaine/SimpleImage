@@ -163,11 +163,11 @@ namespace simage
     }    
 
 
-    DeviceView1r16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer)
+    DeviceView1u16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer)
     {
         assert(verify(buffer, width * height));
 
-		DeviceView1r16 view;
+		DeviceView1u16 view;
 
 		do_make_view(view, width, height, buffer);
 
@@ -177,11 +177,11 @@ namespace simage
     }
 
 
-    DeviceView2r16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer)
+    DeviceView2u16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer)
     {
         assert(verify(buffer, width * height));
 
-        DeviceView2r16 view;
+        DeviceView2u16 view;
 
         do_make_channel_view(view, width, height, buffer);
 
@@ -191,11 +191,11 @@ namespace simage
     }
 
 
-    DeviceView3r16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer)
+    DeviceView3u16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer)
     {
         assert(verify(buffer, width * height));
 
-        DeviceView3r16 view;
+        DeviceView3u16 view;
 
         do_make_channel_view(view, width, height, buffer);
 
@@ -205,11 +205,11 @@ namespace simage
     }
 
 
-    DeviceView4r16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer)
+    DeviceView4u16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer)
     {
         assert(verify(buffer, width * height));
 
-        DeviceView4r16 view;
+        DeviceView4u16 view;
 
         do_make_channel_view(view, width, height, buffer);
 
@@ -302,9 +302,9 @@ namespace simage
 namespace simage
 {
     template <size_t N>
-	static DeviceViewCHr16<N> do_sub_view(DeviceViewCHr16<N> const& view, Range2Du32 const& range)
+	static DeviceViewCHu16<N> do_sub_view(DeviceViewCHu16<N> const& view, Range2Du32 const& range)
 	{
-		DeviceViewCHr16<N> sub_view;
+		DeviceViewCHu16<N> sub_view;
 
 		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
@@ -323,7 +323,7 @@ namespace simage
 	}
 
 
-	DeviceView4r16 sub_view(DeviceView4r16 const& view, Range2Du32 const& range)
+	DeviceView4u16 sub_view(DeviceView4u16 const& view, Range2Du32 const& range)
     {
         assert(verify(view, range));
 
@@ -335,7 +335,7 @@ namespace simage
     }
 
 
-	DeviceView3r16 sub_view(DeviceView3r16 const& view, Range2Du32 const& range)
+	DeviceView3u16 sub_view(DeviceView3u16 const& view, Range2Du32 const& range)
     {
         assert(verify(view, range));
 
@@ -347,7 +347,7 @@ namespace simage
     }
 
 
-	DeviceView2r16 sub_view(DeviceView2r16 const& view, Range2Du32 const& range)
+	DeviceView2u16 sub_view(DeviceView2u16 const& view, Range2Du32 const& range)
     {
         assert(verify(view, range));
 
@@ -359,11 +359,11 @@ namespace simage
     }
 
 
-	DeviceView1r16 sub_view(DeviceView1r16 const& view, Range2Du32 const& range)
+	DeviceView1u16 sub_view(DeviceView1u16 const& view, Range2Du32 const& range)
     {
         assert(verify(view, range));
 
-		DeviceView1r16 sub_view;
+		DeviceView1u16 sub_view;
 
 		sub_view.matrix_data_ = view.matrix_data_;
 		sub_view.matrix_width = view.matrix_width;
@@ -386,9 +386,9 @@ namespace simage
 namespace simage
 {
     template <size_t N>
-	static DeviceView1r16 select_channel(DeviceViewCHr16<N> const& view, u32 ch)
+	static DeviceView1u16 select_channel(DeviceViewCHu16<N> const& view, u32 ch)
 	{
-		DeviceView1r16 view1{};
+		DeviceView1u16 view1{};
 
 		view1.matrix_width = view.channel_width_;
 		view1.range = view.range;
@@ -401,7 +401,7 @@ namespace simage
 	}
 
 
-    DeviceView1r16 select_channel(DeviceViewRGBAr16 const& view, RGBA channel)
+    DeviceView1u16 select_channel(DeviceViewRGBAu16 const& view, RGBA channel)
     {
         assert(verify(view));
 
@@ -415,7 +415,7 @@ namespace simage
     }
 
 
-	DeviceView1r16 select_channel(DeviceViewRGBr16 const& view, RGB channel)
+	DeviceView1u16 select_channel(DeviceViewRGBu16 const& view, RGB channel)
     {
         assert(verify(view));
 
@@ -428,11 +428,11 @@ namespace simage
 		return view1;
     }
 
-	//DeviceView1r16 select_channel(DeviceViewHSVr16 const& view, HSV channel);
+	//DeviceView1u16 select_channel(DeviceViewHSVu16 const& view, HSV channel);
 
-	//DeviceView1r16 select_channel(DeviceView2r16 const& view, GA channel);
+	//DeviceView1u16 select_channel(DeviceView2u16 const& view, GA channel);
 
-	DeviceView1r16 select_channel(DeviceView2r16 const& view, XY channel)
+	DeviceView1u16 select_channel(DeviceView2u16 const& view, XY channel)
     {
         assert(verify(view));
 
@@ -446,11 +446,11 @@ namespace simage
     }
 
 
-	DeviceViewRGBr16 select_rgb(DeviceViewRGBAr16 const& view)
+	DeviceViewRGBu16 select_rgb(DeviceViewRGBAu16 const& view)
     {
         assert(verify(view));
 
-		DeviceViewRGBr16 rgb;
+		DeviceViewRGBu16 rgb;
 
 		rgb.channel_width_ = view.channel_width_;
 		rgb.width = view.width;

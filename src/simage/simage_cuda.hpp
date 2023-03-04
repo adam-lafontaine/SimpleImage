@@ -60,19 +60,19 @@ namespace simage
     };
 
     template <size_t N>
-	using DeviceViewCHr16 = DeviceChannelView2D<u16, N>;
+	using DeviceViewCHu16 = DeviceChannelView2D<u16, N>;
 
-    using DeviceView1r16 = DeviceView2D<u16>;
+    using DeviceView1u16 = DeviceView2D<u16>;
 
-    using DeviceView4r16 = DeviceViewCHr16<4>;
-	using DeviceView3r16 = DeviceViewCHr16<3>;
-	using DeviceView2r16 = DeviceViewCHr16<2>;
+    using DeviceView4u16 = DeviceViewCHu16<4>;
+	using DeviceView3u16 = DeviceViewCHu16<3>;
+	using DeviceView2u16 = DeviceViewCHu16<2>;
 
 	using DeviceView = DeviceView2D<Pixel>;
     using DeviceViewGray = DeviceView2D<u8>;
 
-    using DeviceViewRGBAr16 = DeviceView4r16;
-    using DeviceViewRGBr16 = DeviceView3r16;
+    using DeviceViewRGBAu16 = DeviceView4u16;
+    using DeviceViewRGBu16 = DeviceView3u16;
 }
 
 
@@ -90,13 +90,13 @@ namespace simage
     DeviceViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
 
 
-    DeviceView1r16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer);
+    DeviceView1u16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer);
 
-    DeviceView2r16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer);
+    DeviceView2u16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer);
 
-    DeviceView3r16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer);
+    DeviceView3u16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer);
 
-    DeviceView4r16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer);
+    DeviceView4u16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer);
 }
 
 
@@ -118,13 +118,13 @@ namespace simage
 
 namespace simage
 {
-	DeviceView4r16 sub_view(DeviceView4r16 const& view, Range2Du32 const& range);
+	DeviceView4u16 sub_view(DeviceView4u16 const& view, Range2Du32 const& range);
 
-	DeviceView3r16 sub_view(DeviceView3r16 const& view, Range2Du32 const& range);
+	DeviceView3u16 sub_view(DeviceView3u16 const& view, Range2Du32 const& range);
 
-	DeviceView2r16 sub_view(DeviceView2r16 const& view, Range2Du32 const& range);
+	DeviceView2u16 sub_view(DeviceView2u16 const& view, Range2Du32 const& range);
 
-	DeviceView1r16 sub_view(DeviceView1r16 const& view, Range2Du32 const& range);
+	DeviceView1u16 sub_view(DeviceView1u16 const& view, Range2Du32 const& range);
 }
 
 
@@ -132,18 +132,18 @@ namespace simage
 
 namespace simage
 {
-	DeviceView1r16 select_channel(DeviceViewRGBAr16 const& view, RGBA channel);
+	DeviceView1u16 select_channel(DeviceViewRGBAu16 const& view, RGBA channel);
 
-	DeviceView1r16 select_channel(DeviceViewRGBr16 const& view, RGB channel);
+	DeviceView1u16 select_channel(DeviceViewRGBu16 const& view, RGB channel);
 
-	//DeviceView1r16 select_channel(DeviceViewHSVr16 const& view, HSV channel);
+	//DeviceView1u16 select_channel(DeviceViewHSVu16 const& view, HSV channel);
 
-	//DeviceView1r16 select_channel(DeviceView2r16 const& view, GA channel);
+	//DeviceView1u16 select_channel(DeviceView2u16 const& view, GA channel);
 
-	DeviceView1r16 select_channel(DeviceView2r16 const& view, XY channel);
+	DeviceView1u16 select_channel(DeviceView2u16 const& view, XY channel);
 
 
-	DeviceViewRGBr16 select_rgb(DeviceViewRGBAr16 const& view);
+	DeviceViewRGBu16 select_rgb(DeviceViewRGBAu16 const& view);
 }
 
 
@@ -151,9 +151,9 @@ namespace simage
 
 namespace simage
 {
-    void map_gray(DeviceViewGray const& src, DeviceView1r16 const& dst);
+    void map_gray(DeviceViewGray const& src, DeviceView1u16 const& dst);
 
-    void map_gray(DeviceView1r16 const& src, DeviceViewGray const& dst);
+    void map_gray(DeviceView1u16 const& src, DeviceViewGray const& dst);
 }
 
 
@@ -161,11 +161,11 @@ namespace simage
 
 namespace simage
 {
-    void map_rgba(DeviceView const& src, DeviceViewRGBAr16 const& dst);
+    void map_rgba(DeviceView const& src, DeviceViewRGBAu16 const& dst);
 
-	void map_rgba(DeviceViewRGBAr16 const& src, DeviceView const& dst);
+	void map_rgba(DeviceViewRGBAu16 const& src, DeviceView const& dst);
 
-    void map_rgb(DeviceView const& src, DeviceViewRGBr16 const& dst);
+    void map_rgb(DeviceView const& src, DeviceViewRGBu16 const& dst);
 
-	void map_rgb(DeviceViewRGBr16 const& src, DeviceView const& dst);
+	void map_rgb(DeviceViewRGBu16 const& src, DeviceView const& dst);
 }

@@ -1,8 +1,6 @@
 #include "simage_cuda.cpp"
 #include "../cuda/cuda_def.cuh"
 
-#include <cuda_fp16.h>
-
 
 using RGBA = simage::RGBA;
 using RGB = simage::RGB;
@@ -14,27 +12,17 @@ using DeviceView2D = simage::DeviceView2D<T>;
 template <typename T, size_t N>
 using DeviceChannelView2D = simage::DeviceChannelView2D<T, N>;
 
+using DeviceView1u16 = simage::DeviceView1u16;
 
-namespace gpu
-{
-    using r16 = __half;
-
-    using View1r16 = DeviceView2D<r16>;
-
-    template <size_t N>
-    using ViewCHr16 = DeviceChannelView2D<r16, N>;
-
-    using View4r16 = ViewCHr16<4>;
-    using View3r16 = ViewCHr16<3>;
-    using View2r16 = ViewCHr16<2>;
-
-    using ViewRGBAr16 = View4r16;
-    using ViewRGBr16 = View3r16;
-}
-
+using DeviceView4u16 = simage::DeviceView4u16;
+using DeviceView3u16 = simage::DeviceView3u16;
+using DeviceView2u16 = simage::DeviceView2u16;
 
 using DeviceView = simage::DeviceView;
 using DeviceViewGray = simage::DeviceViewGray;
+
+using DeviceViewRGBAu16 = simage::DeviceView4u16;
+using DeviceViewRGBu16 = simage::DeviceView3u16;
 
 
 class ChannelXY
@@ -51,39 +39,6 @@ constexpr int THREADS_PER_BLOCK = 512;
 constexpr int calc_thread_blocks(u32 n_threads)
 {
     return (n_threads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-}
-
-
-static gpu::View1r16 as_device(simage::DeviceView1r16 const& host)
-{
-    static_assert(sizeof(gpu::r16) == sizeof(u16));
-
-    gpu::View1r16 dst;
-    dst.matrix_data_ = (gpu::r16*)host.matrix_data_;
-    dst.matrix_width = host.matrix_width;
-    dst.width = host.width;
-    dst.height = host.height;
-    dst.range = host.range;
-
-    return dst;
-}
-
-
-template <size_t N>
-static gpu::ViewCHr16<N> as_device(simage::DeviceViewCHr16<N> const& host)
-{
-    gpu::ViewCHr16<N> dst;
-    dst.channel_width_ = host.channel_width_;
-    dst.width = host.width;
-    dst.height = host.height;
-    dst.range = host.range;
-
-    for (u32 ch = 0; ch < N; ++ch)
-    {
-        dst.channel_data_[ch] = (gpu::r16*)host.channel_data_[ch];
-    }
-
-    return dst;
 }
 
 
@@ -173,25 +128,9 @@ namespace gpuf
 
 
     GPU_FUNCTION
-    inline gpu::r16 to_channel_r16(u8 value)
+    inline u16 to_channel_u16(u8 value)
     {
-        return __float2half(value / 255.0f);
-    }
-
-
-    GPU_CONSTEXPR_FUNCTION
-    inline r32 clamp(r32 value)
-    {
-        if (value < 0.0f)
-        {
-            value = 0.0f;
-        }
-        else if (value > 1.0f)
-        {
-            value = 1.0f;
-        }
-
-        return value;
+        return (u16)value * 256;
     }
 
 
@@ -203,9 +142,9 @@ namespace gpuf
 
 
     GPU_FUNCTION
-    inline u8 to_channel_u8(gpu::r16 value)
+    inline u8 to_channel_u8(u16 value)
     {
-        return round_to_u8(clamp(__half2float(value)) * 255);
+        return u8(value / 256);
     }
 
 
@@ -218,7 +157,7 @@ namespace gpuf
 namespace gpu
 {
     GPU_KERNAL
-    static void to_float_16(DeviceViewGray src, View1r16 dst, u32 n_threads)
+    static void to_unsigned_16(DeviceViewGray src, DeviceView1u16 dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -233,12 +172,12 @@ namespace gpu
         auto s = *gpuf::xy_at(src, xy);
         auto& d = *gpuf::xy_at(dst, xy);
 
-        d = gpuf::to_channel_r16(s);
+        d = gpuf::to_channel_u16(s);
     }
 
 
     GPU_KERNAL
-    static void to_unsigned_8(View1r16 src, DeviceViewGray dst, u32 n_threads)
+    static void to_unsigned_8(DeviceView1u16 src, DeviceViewGray dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -260,7 +199,7 @@ namespace gpu
 
 namespace simage
 {
-    void map_gray(DeviceViewGray const& src, DeviceView1r16 const& dst)
+    void map_gray(DeviceViewGray const& src, DeviceView1u16 const& dst)
     {
         assert(verify(src, dst));
 
@@ -271,14 +210,14 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_float_16, n_blocks, block_size, src, as_device(dst), n_threads);
+        cuda_launch_kernel(gpu::to_unsigned_16, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_float_16");
+        auto result = cuda::launch_success("gpu::to_unsigned_16");
 		assert(result);
     }
 
 
-    void map_gray(DeviceView1r16 const& src, DeviceViewGray const& dst)
+    void map_gray(DeviceView1u16 const& src, DeviceViewGray const& dst)
     {
         assert(verify(src, dst));
 
@@ -289,7 +228,7 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_unsigned_8, n_blocks, block_size, as_device(src), dst, n_threads);
+        cuda_launch_kernel(gpu::to_unsigned_8, n_blocks, block_size, src, dst, n_threads);
 
         auto result = cuda::launch_success("gpu::to_unsigned_8");
 		assert(result);
@@ -302,7 +241,7 @@ namespace simage
 namespace gpu
 {  
     GPU_KERNAL    
-    static void to_rgba_float_16(DeviceView src, ViewRGBAr16 dst, u32 n_threads)
+    static void to_rgba_16(DeviceView src, DeviceViewRGBAu16 dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -336,12 +275,12 @@ namespace gpu
             return;
         }
 
-        d = gpuf::to_channel_r16(s);
+        d = gpuf::to_channel_u16(s);
     }
 
 
     GPU_KERNAL    
-    static void to_rgb_float_16(DeviceView src, ViewRGBr16 dst, u32 n_threads)
+    static void to_rgb_16(DeviceView src, DeviceViewRGBu16 dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -372,12 +311,12 @@ namespace gpu
             return;
         }
 
-        d = gpuf::to_channel_r16(s);
+        d = gpuf::to_channel_u16(s);
     }
     
 
     GPU_KERNAL
-    static void to_rgba_unsigned_8(ViewRGBAr16 src, DeviceView dst, u32 n_threads)
+    static void to_rgba_8(DeviceViewRGBAu16 src, DeviceView dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -413,7 +352,7 @@ namespace gpu
 
 
     GPU_KERNAL
-    static void to_rgb_unsigned_8(ViewRGBr16 src, DeviceView dst, u32 n_threads)
+    static void to_rgb_8(DeviceViewRGBu16 src, DeviceView dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -448,7 +387,7 @@ namespace gpu
 
 namespace simage
 {
-    void map_rgba(DeviceView const& src, DeviceViewRGBAr16 const& dst)
+    void map_rgba(DeviceView const& src, DeviceViewRGBAu16 const& dst)
     {
         assert(verify(src, dst));
 
@@ -459,14 +398,14 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgba_float_16, n_blocks, block_size, src, as_device(dst), n_threads);
+        cuda_launch_kernel(gpu::to_rgba_16, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_rgba_float_16");
+        auto result = cuda::launch_success("gpu::to_rgba_16");
 		assert(result);
     }
 
 
-	void map_rgba(DeviceViewRGBAr16 const& src, DeviceView const& dst)
+	void map_rgba(DeviceViewRGBAu16 const& src, DeviceView const& dst)
     {
         assert(verify(src, dst));
 
@@ -477,14 +416,14 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgba_unsigned_8, n_blocks, block_size, as_device(src), dst, n_threads);
+        cuda_launch_kernel(gpu::to_rgba_8, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_rgba_unsigned_8");
+        auto result = cuda::launch_success("gpu::to_rgba_8");
 		assert(result);
     }
 
 
-    void map_rgb(DeviceView const& src, DeviceViewRGBr16 const& dst)
+    void map_rgb(DeviceView const& src, DeviceViewRGBu16 const& dst)
     {
         assert(verify(src, dst));
 
@@ -495,14 +434,14 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgb_float_16, n_blocks, block_size, src, as_device(dst), n_threads);
+        cuda_launch_kernel(gpu::to_rgb_16, n_blocks, block_size, src, dst, n_threads);
 
         auto result = cuda::launch_success("gpu::to_rgb_float_16");
 		assert(result);
     }
 
 
-	void map_rgb(DeviceViewRGBr16 const& src, DeviceView const& dst)
+	void map_rgb(DeviceViewRGBu16 const& src, DeviceView const& dst)
     {
         assert(verify(src, dst));
 
@@ -513,7 +452,7 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgb_unsigned_8, n_blocks, block_size, as_device(src), dst, n_threads);
+        cuda_launch_kernel(gpu::to_rgb_8, n_blocks, block_size, src, dst, n_threads);
 
         auto result = cuda::launch_success("gpu::to_rgb_unsigned_8");
 		assert(result);

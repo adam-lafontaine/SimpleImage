@@ -10,6 +10,10 @@ namespace color_space
 {
     constexpr auto PI = 3.1415926536f;
 
+    constexpr r32 CHANNEL_U8_MAX = 255.0f;
+
+    constexpr r32 CHANNEL_U16_MAX = 255.0f * 256;
+
     namespace lut
     {
         static constexpr std::array<r32, 256> channel_r32()
@@ -18,7 +22,7 @@ namespace color_space
 
             for (u32 i = 0; i < 256; ++i)
             {
-                lut[i] = i / 255.0f;
+                lut[i] = i / CHANNEL_U8_MAX;
             }
 
             return lut;
@@ -38,6 +42,12 @@ namespace color_space
     }
 
 
+    static constexpr r32 to_channel_r32(u16 value)
+    {
+        return value / CHANNEL_U16_MAX;
+    }
+
+
     inline constexpr r32 clamp(r32 value)
     {
         if (value < 0.0f)
@@ -53,15 +63,33 @@ namespace color_space
     }
 
 
-    inline constexpr u8 round_to_u8(r32 value)
+    inline constexpr u32 round_to_u32(r32 value)
     {
-        return (u8)(u32)(value + 0.5f);
+        return (u32)(value + 0.5f);
     }
 
 
     static constexpr u8 to_channel_u8(r32 value)
     {
-        return round_to_u8(clamp(value) * 255);
+        return (u8)round_to_u32(clamp(value) * CHANNEL_U8_MAX);
+    }
+
+
+    inline constexpr u8 to_channel_u8(u16 value)
+    {
+        return u8(value / 256);
+    }
+
+
+    inline constexpr u16 to_channel_u16(r32 value)
+    {
+        return (u16)round_to_u32(clamp(value) * CHANNEL_U16_MAX);
+    }
+
+
+    inline constexpr u16 to_channel_u16(u8 value)
+    {
+        return (u16)value * 256;
     }
 }
 
@@ -88,6 +116,15 @@ namespace color_space
     };
 
 
+    class RGBu16
+    {
+    public:
+        u16 red;
+        u16 green;
+        u16 blue;
+    };
+
+
     class HSVr32
     {
     public:
@@ -103,6 +140,15 @@ namespace color_space
         u8 hue;
         u8 sat;
         u8 val;
+    };
+
+
+    class HSVu16
+    {
+    public:
+        u16 hue;
+        u16 sat;
+        u16 val;
     };
 
 
@@ -124,6 +170,15 @@ namespace color_space
     };
 
 
+    class LCHu16
+    {
+    public:
+        u16 light;
+        u16 chroma;
+        u16 hue;
+    };
+
+
     class YUVr32
     {
     public:
@@ -139,6 +194,15 @@ namespace color_space
         u8 y;
         u8 u;
         u8 v;
+    };
+
+
+    class YUVu16
+    {
+    public:
+        u16 y;
+        u16 u;
+        u16 v;
     };
 }
 
@@ -161,6 +225,12 @@ namespace gray
     inline constexpr u8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
     {
         return (u8)(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
+    }
+
+
+    inline constexpr u16 u16_from_rgb_u16(u8 r, u8 g, u8 b)
+    {
+        return (u16)(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
     }
     
 }
@@ -408,6 +478,18 @@ namespace hsv
         auto h = cs::to_channel_u8(hsv.hue);
 
         return { h, s, v };
+    }
+
+
+    inline constexpr cs::HSVu16 u16_from_rgb_u16(u8 r, u8 g, u8 b)
+    {
+
+    }
+
+
+    inline constexpr cs::HSVu16 u16_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        
     }
 }
 

@@ -34,7 +34,7 @@ namespace color_space
 namespace color_space
 {
 
-    static constexpr r32 to_channel_r32(u8 value)
+    inline constexpr r32 to_channel_r32(u8 value)
     {
         constexpr auto lut = lut::channel_r32();
 
@@ -42,7 +42,7 @@ namespace color_space
     }
 
 
-    static constexpr r32 to_channel_r32(u16 value)
+    inline constexpr r32 to_channel_r32(u16 value)
     {
         return value / CHANNEL_U16_MAX;
     }
@@ -69,7 +69,7 @@ namespace color_space
     }
 
 
-    static constexpr u8 to_channel_u8(r32 value)
+    inline constexpr u8 to_channel_u8(r32 value)
     {
         return (u8)round_to_u32(clamp(value) * CHANNEL_U8_MAX);
     }
@@ -77,7 +77,7 @@ namespace color_space
 
     inline constexpr u8 to_channel_u8(u16 value)
     {
-        return u8(value / 256);
+        return (u8)(value / 256);
     }
 
 
@@ -411,7 +411,7 @@ namespace hsv
 
 namespace hsv
 {
-    inline constexpr cs::RGBu8 r32_to_rgb_u8(r32 h, r32 s, r32 v)
+    /*inline constexpr cs::RGBu8 r32_to_rgb_u8(r32 h, r32 s, r32 v)
     {
         if (v <= ZERO_F)
         {
@@ -431,22 +431,75 @@ namespace hsv
             cs::to_channel_u8(rgb.green),
             cs::to_channel_u8(rgb.blue)
         };
-    }
+    }*/
 
 
-    inline constexpr cs::HSVr32 r32_from_rgb_u8(u8 r, u8 g, u8 b)
+    /*inline constexpr cs::HSVr32 r32_from_rgb_u8(u8 r, u8 g, u8 b)
     {
         auto R = cs::to_channel_r32(r);
         auto G = cs::to_channel_r32(g);
         auto B = cs::to_channel_r32(b);
 
         return r32_from_rgb_r32(R, G, B);
+    }*/
+
+
+    inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto v = std::max({ r, g, b });        
+
+        auto R = cs::to_channel_r32(r);
+        auto G = cs::to_channel_r32(g);
+        auto B = cs::to_channel_r32(b);
+
+        auto hsv = r32_from_rgb_r32(R, G, B);
+
+        auto h = cs::to_channel_u8(hsv.hue);
+        auto s = cs::to_channel_u8(hsv.sat);
+
+        return { h, s, v };
+    }
+
+
+    inline constexpr cs::HSVu16 u16_from_rgb_u16(u16 r, u16 g, u16 b)
+    {
+        auto v = std::max({ r, g, b });
+
+        auto R = cs::to_channel_r32(r);
+        auto G = cs::to_channel_r32(g);
+        auto B = cs::to_channel_r32(b);
+
+        auto hsv = r32_from_rgb_r32(R, G, B);
+
+        auto h = cs::to_channel_u16(hsv.hue);
+        auto s = cs::to_channel_u16(hsv.sat);
+
+        return { h, s, v };
+    }
+
+
+    inline constexpr cs::HSVu16 u16_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto max = std::max({ r, g, b });
+
+        auto v = cs::to_channel_u16(max);
+
+        auto R = cs::to_channel_r32(r);
+        auto G = cs::to_channel_r32(g);
+        auto B = cs::to_channel_r32(b);
+
+        auto hsv = r32_from_rgb_r32(R, G, B);
+
+        auto h = cs::to_channel_u16(hsv.hue);
+        auto s = cs::to_channel_u16(hsv.sat);
+
+        return { h, s, v };
     }
 
 
     inline constexpr cs::RGBu8 u8_to_rgb_u8(u8 h, u8 s, u8 v)
     {
-        if (!s || !v)
+        if (v == 0 || s == 0)
         {
             return { v, v, v };
         }
@@ -465,31 +518,46 @@ namespace hsv
     }
 
 
-    inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    inline constexpr cs::RGBu16 u16_to_rgb_u16(u16 h, u16 s, u16 v)
     {
-        auto min = std::min({ r, g, b });
-        auto max = std::max({ r, g, b });
+        if (v == 0 || s == 0)
+        {
+            return { v, v, v };
+        }
 
-        auto v = max;
-        u8 s = max == min ? 0 : cs::to_channel_u8((r32)(max - min) / max);
+        auto H = cs::to_channel_r32(h);
+        auto S = cs::to_channel_r32(s);
+        auto V = cs::to_channel_r32(v);
 
-        auto hsv = r32_from_rgb_u8(r, g, b);
+        auto rgb = r32_to_rgb_r32(H, S, V);
 
-        auto h = cs::to_channel_u8(hsv.hue);
-
-        return { h, s, v };
+        return {
+            cs::to_channel_u16(rgb.red),
+            cs::to_channel_u16(rgb.green),
+            cs::to_channel_u16(rgb.blue)
+        };
     }
 
 
-    inline constexpr cs::HSVu16 u16_from_rgb_u16(u8 r, u8 g, u8 b)
+    inline constexpr cs::RGBu8 u16_to_rgb_u8(u16 h, u16 s, u16 v)
     {
-
-    }
-
-
-    inline constexpr cs::HSVu16 u16_from_rgb_u8(u8 r, u8 g, u8 b)
-    {
+        if (v == 0 || s == 0)
+        {
+            auto gray = cs::to_channel_u8(v);
+            return { gray, gray, gray };
+        }
         
+        auto H = cs::to_channel_r32(h);
+        auto S = cs::to_channel_r32(s);
+        auto V = cs::to_channel_r32(v);
+
+        auto rgb = r32_to_rgb_r32(H, S, V);
+
+        return {
+            cs::to_channel_u8(rgb.red),
+            cs::to_channel_u8(rgb.green),
+            cs::to_channel_u8(rgb.blue)
+        };
     }
 }
 
@@ -693,9 +761,9 @@ namespace yuv
         auto V = (rv * r) + (gv * g) + (bv * b) + 128.0f;
 
         return { 
-            cs::round_to_u8(Y),
-            cs::round_to_u8(U),
-            cs::round_to_u8(V)
+            (u8)cs::round_to_u32(Y),
+            (u8)cs::round_to_u32(U),
+            (u8)cs::round_to_u32(V)
         };
     }
 

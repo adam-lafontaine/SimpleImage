@@ -60,9 +60,6 @@ namespace simage
 	constexpr auto RGB_CHANNELS = 3u;
 	constexpr auto RGBA_CHANNELS = 4u;
 
-
-#if IS_LITTLE_ENDIAN
-
 	class RGBAu8
 	{
 	public:
@@ -71,19 +68,6 @@ namespace simage
 		u8 blue;
 		u8 alpha;
 	};
-
-#else
-
-	class RGBAu8
-	{
-	public:
-		u8 alpha;
-		u8 blue;
-		u8 green;
-		u8 red;
-	};
-
-#endif
     
 }
 
@@ -143,8 +127,6 @@ namespace simage
 
 namespace simage
 {
-#if IS_LITTLE_ENDIAN
-
 	class YUV422u8
 	{
 	public:
@@ -180,6 +162,7 @@ namespace simage
 		u8 blue;
 	};
 
+#if IS_LITTLE_ENDIAN
 
 	enum class RGB : int
 	{
@@ -223,42 +206,6 @@ namespace simage
 	};
 
 #else
-
-	class YUV422u8
-	{
-	public:
-		u8 y2;
-		u8 v;
-		u8 y1;
-		u8 u;
-	};
-
-
-	class YUV2u8
-	{
-	public:
-		u8 y;
-		u8 uv;
-	};
-
-
-	class BGRu8
-	{
-	public:
-		u8 red;
-		u8 green;
-		u8 blue;
-	};
-
-
-	class RGBu8
-	{
-	public:
-		u8 blue;
-		u8 green;
-		u8 red;
-	};
-
 
 	enum class RGB : int
 	{

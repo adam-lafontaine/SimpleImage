@@ -344,63 +344,49 @@ namespace hsv
 
         s = range / v;
 
-        auto const r_max = equals(r, max);
-        auto const r_min = equals(r, min);
-        auto const g_max = equals(g, max);
-        auto const g_min = equals(g, min);
-        auto const b_max = equals(b, max);
-        auto const b_min = equals(b, min);
+        auto const r_is_max = equals(r, max);
+        auto const r_is_min = equals(r, min);
+        auto const g_is_max = equals(g, max);
+        auto const g_is_min = equals(g, min);
+        auto const b_is_max = equals(b, max);
+        auto const b_is_min = equals(b, min);
 
-        int h_id =
-            (r_max && g_min && b_min) ? -3 :
-            (r_min && g_max && b_min) ? -2 :
-            (r_min && g_min && b_max) ? -1 :
+        auto delta_h = 1.0f / 6;
+        auto h_id = 0.0f;
+        auto delta_c = 0.0f;
 
-            (r_max && b_min) ? 0 :
-            (g_max && b_min) ? 1 :
-            (g_max && r_min) ? 2 :
-            (b_max && r_min) ? 3 :
-            (b_max && g_min) ? 4 : 5;
-        //(g_min && r_max) ? 5;
-
-        auto h_360 = h_id * 60.0f;
-
-        switch (h_id)
+        if (r_is_max && b_is_min)
         {
-        case -3:
-            h_360 = 0.0f;
-            break;
-        case -2:
-            h_360 = 120.0f;
-            break;
-        case -1:
-            h_360 = 240.0f;
-            break;
-
-        case 0:
-            h_360 += 60.0f * (g - min) / range;
-            break;
-        case 1:
-            h_360 += 60.0f * (max - r) / range;
-            break;
-        case 2:
-            h_360 += 60.0f * (b - min) / range;
-            break;
-        case 3:
-            h_360 += 60.0f * (max - g) / range;
-            break;
-        case 4:
-            h_360 += 60.0f * (r - min) / range;
-            break;
-        case 5:
-            h_360 += 60.0f * (max - b) / range;
-            break;
-        default:
-            h_360 = -360.0f;
-            assert(false);
+            h_id = 0;
+            delta_c = g - min;
+        }
+        else if (g_is_max && b_is_min)
+        {
+            h_id = 1;
+            delta_c = max - r;
+        }
+        else if (g_is_max && r_is_min)
+        {
+            h_id = 2;
+            delta_c = b - min;
+        }
+        else if (b_is_max && r_is_min)
+        {
+            h_id = 3;
+            delta_c = max - g;
+        }
+        else if (b_is_max && g_is_min)
+        {
+            h_id = 4;
+            delta_c = r - min;
+        }
+        else
+        {
+            h_id = 5;
+            delta_c = max - b;
         }
 
-        h = h_360 / 360.0f;
+        h = (delta_h * (h_id + (r32)delta_c / (max - min)));
 
         return { h, s, v };
     }
@@ -411,7 +397,7 @@ namespace hsv
 
 namespace hsv
 {
-    /*inline constexpr cs::RGBu8 r32_to_rgb_u8(r32 h, r32 s, r32 v)
+    inline constexpr cs::RGBu8 r32_to_rgb_u8(r32 h, r32 s, r32 v)
     {
         if (v <= ZERO_F)
         {
@@ -431,17 +417,17 @@ namespace hsv
             cs::to_channel_u8(rgb.green),
             cs::to_channel_u8(rgb.blue)
         };
-    }*/
+    }
 
 
-    /*inline constexpr cs::HSVr32 r32_from_rgb_u8(u8 r, u8 g, u8 b)
+    inline constexpr cs::HSVr32 r32_from_rgb_u8(u8 r, u8 g, u8 b)
     {
         auto R = cs::to_channel_r32(r);
         auto G = cs::to_channel_r32(g);
         auto B = cs::to_channel_r32(b);
 
         return r32_from_rgb_r32(R, G, B);
-    }*/
+    }
 
 
     inline constexpr cs::HSVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)

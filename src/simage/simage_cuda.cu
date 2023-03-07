@@ -34,6 +34,26 @@ public:
 };
 
 
+class RGBu16
+{
+public:
+    u16 red;
+    u16 green;
+    u16 blue;
+};
+
+
+class HSVu16
+{
+public:
+    u16 hue;
+    u16 sat;
+    u16 val;
+};
+
+constexpr u16 CHANNEL_U16_MAX = 255 * 256;
+
+
 constexpr int THREADS_PER_BLOCK = 512;
 
 constexpr int calc_thread_blocks(u32 n_threads)
@@ -42,32 +62,10 @@ constexpr int calc_thread_blocks(u32 n_threads)
 }
 
 
-/*  */
+/* row begin */
 
 namespace gpuf
 {
-    template <typename T>
-	GPU_CONSTEXPR_FUNCTION
-	inline int id_cast(T channel)
-	{
-		return static_cast<int>(channel);
-	}
-	
-
-	template <class VIEW>
-	GPU_FUNCTION
-	static Point2Du32 get_thread_xy(VIEW const& view, u32 thread_id)
-	{
-		// n_threads = width * height
-		Point2Du32 p{};
-
-		p.y = thread_id / view.width;
-		p.x = thread_id - p.y * view.width;
-
-		return p;
-	}
-
-
     template <typename T>
     GPU_FUNCTION
 	inline T* row_begin(DeviceView2D<T> const& view, u32 y)
@@ -76,6 +74,21 @@ namespace gpuf
 	}
 
 
+    template <typename T, size_t N>
+    GPU_FUNCTION
+	inline T* channel_row_begin(DeviceChannelView2D<T, N> const& view, u32 y, u32 ch)
+	{
+		auto offset = (size_t)((view.y_begin + y) * view.channel_width_ + view.x_begin);
+
+		return view.channel_data_[ch] + offset;
+	}
+}
+
+
+/* xy_at */
+
+namespace gpuf
+{
     template <typename T>
     GPU_FUNCTION
 	inline T* xy_at(DeviceView2D<T> const& view, u32 x, u32 y)
@@ -90,6 +103,33 @@ namespace gpuf
     {
         return gpuf::row_begin(view, pt.y) + pt.x;
     }
+
+
+    template <typename T, size_t N>
+    GPU_FUNCTION
+    inline T* channel_xy_at(DeviceChannelView2D<T, N> const& view, ChannelXY const& cxy)
+    {
+        return channel_row_begin(view, cxy.y, cxy.ch) + cxy.x;
+    }
+}
+
+
+/* get_thread_xy */
+
+namespace gpuf
+{
+    template <class VIEW>
+	GPU_FUNCTION
+	static Point2Du32 get_thread_xy(VIEW const& view, u32 thread_id)
+	{
+		// n_threads = width * height
+		Point2Du32 p{};
+
+		p.y = thread_id / view.width;
+		p.x = thread_id - p.y * view.width;
+
+		return p;
+	}
 
 
     template <class VIEW>
@@ -107,27 +147,66 @@ namespace gpuf
 
 		return cxy;
 	}
+}
 
 
-    template <typename T, size_t N>
-    GPU_FUNCTION
-	inline T* channel_row_begin(DeviceChannelView2D<T, N> const& view, u32 y, u32 ch)
+/* conversion */
+
+namespace gpuf
+{
+    template <typename T>
+	GPU_CONSTEXPR_FUNCTION
+	inline int id_cast(T channel)
 	{
-		auto offset = (size_t)((view.y_begin + y) * view.channel_width_ + view.x_begin);
-
-		return view.channel_data_[ch] + offset;
+		return static_cast<int>(channel);
 	}
 
 
-    template <typename T, size_t N>
-    GPU_FUNCTION
-    inline T* channel_xy_at(DeviceChannelView2D<T, N> const& view, ChannelXY const& cxy)
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 clamp(r32 value)
     {
-        return channel_row_begin(view, cxy.y, cxy.ch) + cxy.x;
+        if (value < 0.0f)
+        {
+            value = 0.0f;
+        }
+        else if (value > 1.0f)
+        {
+            value = 1.0f;
+        }
+
+        return value;
     }
 
 
-    GPU_FUNCTION
+    GPU_CONSTEXPR_FUNCTION
+    inline u32 round_to_u32(r32 value)
+    {
+        return (u32)(value + 0.5f);
+    }
+
+
+    GPU_CONSTEXPR_FUNCTION
+    inline u32 round_to_u16(r32 value)
+    {
+        return (u16)(value + 0.5f);
+    }
+
+
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 to_channel_r32(u16 value)
+    {
+        return value / CHANNEL_U16_MAX;
+    }
+
+
+    GPU_CONSTEXPR_FUNCTION
+    inline u16 to_channel_u16(r32 value)
+    {
+        return gpuf::round_to_u16(gpuf::clamp(value) * CHANNEL_U16_MAX);
+    }
+
+
+    GPU_CONSTEXPR_FUNCTION
     inline u16 to_channel_u16(u8 value)
     {
         return (u16)value * 256;
@@ -135,20 +214,163 @@ namespace gpuf
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline u8 round_to_u8(r32 value)
-    {
-        return (u8)(u32)(value + 0.5f);
-    }
-
-
-    GPU_FUNCTION
     inline u8 to_channel_u8(u16 value)
     {
         return u8(value / 256);
     }
 
 
+    GPU_FUNCTION
+    static HSVu16 hsv_u16_from_rgb_u16(u16 r, u16 g, u16 b)
+    {
+        auto max = (u16)umax(r, umax(g, b));
+        auto min = (u16)umin(r, umin(g, b));
 
+        u16 h = 0;
+        u16 s = 0;
+        u16 v = max;
+
+        if (max == min)
+        {
+            return { h, s, v };
+        }
+
+        s = gpuf::to_channel_u16((r32)(max - min) / max);
+
+        auto const r_is_max = r == max;
+        auto const r_is_min = r == min;
+        auto const g_is_max = g == max;
+        auto const g_is_min = g == min;
+        auto const b_is_max = b == max;
+        auto const b_is_min = b == min;
+
+        constexpr u16 delta_h = CHANNEL_U16_MAX / 6;
+        u16 delta_c = 0;        
+        u16 h_id = 0;
+
+        if (r_is_max && b_is_min)
+        {
+            h_id = 0;
+            delta_c = g - min;
+        }
+        else if (g_is_max && b_is_min)
+        {
+            h_id = 1;
+            delta_c = max - r;
+        }
+        else if (g_is_max && r_is_min)
+        {
+            h_id = 2;
+            delta_c = b - min;
+        }
+        else if (b_is_max && r_is_min)
+        {
+            h_id = 3;
+            delta_c = max - g;
+        }
+        else if (b_is_max && g_is_min)
+        {
+            h_id = 4;
+            delta_c = r - min;
+        }
+        else
+        {
+            h_id = 5;
+            delta_c = max - b;
+        }
+
+        h = (u16)(delta_h * (h_id + (r32)delta_c / (max - min)));
+
+        return { h, s, v };
+    }
+
+
+    GPU_FUNCTION
+    static RGBu16 rgb_u16_from_hsv_u16(u16 h, u16 s, u16 v)
+    {
+        if (v == 0 || s == 0)
+        {
+            return { v, v, v };
+        }
+
+        auto max = v;
+        auto range = (r32)s / CHANNEL_U16_MAX * v;
+        auto min = gpuf::round_to_u16(max - range);
+
+        constexpr u16 delta_h = CHANNEL_U16_MAX / 6;
+
+        auto d = (r32)h / delta_h;
+        auto h_id = (int)d;
+        auto ratio = d - h_id;
+
+        auto rise = gpuf::round_to_u16(min + ratio * range);
+        auto fall = gpuf::round_to_u16(max - ratio * range);
+
+        u16 r = 0;
+        u16 g = 0;
+        u16 b = 0;
+
+        switch (h_id)
+        {
+        case 0:
+            r = max;
+            g = rise;
+            b = min;
+            break;
+        case 1:
+            r = fall;
+            g = max;
+            b = min;
+            break;
+        case 2:
+            r = min;
+            g = max;
+            b = rise;
+            break;
+        case 3:
+            r = min;
+            g = fall;
+            b = max;
+            break;
+        case 4:
+            r = rise;
+            g = min;
+            b = max;
+            break;
+        default:
+            r = max;
+            g = min;
+            b = fall;
+            break;
+        }
+
+        return { r, g, b };
+    }
+
+
+    GPU_FUNCTION
+    static HSVu16 hsv_u16_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto R = gpuf::to_channel_u16(r);
+        auto G = gpuf::to_channel_u16(g);
+        auto B = gpuf::to_channel_u16(b);
+
+        return gpuf::hsv_u16_from_rgb_u16(R, G, B);
+    }
+
+
+    GPU_FUNCTION
+    static simage::RGBAu8 rgba_u8_from_hsv_u16(u16 h, u16 s, u16 v)
+    {
+        auto rgb = gpuf::rgb_u16_from_hsv_u16(h, s, v);
+
+        return {
+            gpuf::to_channel_u8(rgb.red),
+            gpuf::to_channel_u8(rgb.green),
+            gpuf::to_channel_u8(rgb.blue),
+            255
+        };
+    }
 }
 
 
@@ -457,4 +679,10 @@ namespace simage
         auto result = cuda::launch_success("gpu::to_rgb_unsigned_8");
 		assert(result);
     }
+}
+
+
+namespace gpuf
+{
+    
 }

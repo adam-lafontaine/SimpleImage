@@ -9,9 +9,9 @@ bool device_buffer_tests();
 bool make_view_tests();
 
 bool copy_image_test(img::Image const& src, img::View const& dst);
-bool copy_view_test(img::Image const& src, img::View const& dst);
+bool copy_sub_view_test(img::Image const& src, img::View const& dst);
 bool copy_gray_image_test(img::Image const& src, img::View const& dst);
-bool copy_gray_view_test(img::Image const& src, img::View const& dst);
+bool copy_gray_sub_view_test(img::Image const& src, img::View const& dst);
 bool map_rgba_test(img::Image const& src, img::View const& dst);
 bool map_rgb_test(img::Image const& src, img::View const& dst);
 bool map_gray_test(img::Image const& src, img::View const& dst);
@@ -45,9 +45,9 @@ static bool test_success(app::AppState& state, img::CameraUSB const& camera)
         device_buffer_tests() &&
         make_view_tests() &&
         run_test(camera, state, copy_image_test) &&
-        run_test(camera, state, copy_view_test) &&
+        run_test(camera, state, copy_sub_view_test) &&
         run_test(camera, state, copy_gray_image_test) &&
-        run_test(camera, state, copy_gray_view_test) &&
+        run_test(camera, state, copy_gray_sub_view_test) &&
         run_test(camera, state, map_rgba_test) &&
         run_test(camera, state, map_rgb_test) &&
         run_test(camera, state, map_gray_test) &&

@@ -73,6 +73,7 @@ namespace simage
 
     using DeviceViewRGBAu16 = DeviceView4u16;
     using DeviceViewRGBu16 = DeviceView3u16;
+	using DeviceViewHSVu16 = DeviceView3u16;
 }
 
 
@@ -168,4 +169,18 @@ namespace simage
     void map_rgb(DeviceView const& src, DeviceViewRGBu16 const& dst);
 
 	void map_rgb(DeviceViewRGBu16 const& src, DeviceView const& dst);
+}
+
+
+/* map hsv */
+
+namespace simage
+{
+	void map_rgb_hsv(DeviceView const& src, DeviceViewHSVu16 const& dst);
+
+	void map_rgb_hsv(DeviceViewRGBu16 const& src, DeviceViewHSVu16 const& dst);
+
+	void map_hsv_rgb(DeviceViewHSVu16 const& src, DeviceView const& dst);
+
+	void map_hsv_rgb(DeviceViewHSVu16 const& src, DeviceViewRGBu16 const& dst);
 }

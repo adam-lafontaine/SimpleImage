@@ -22,12 +22,12 @@ bool copy_image_test(img::Image const& src, img::View const& dst)
 }
 
 
-bool copy_view_test(img::Image const& src, img::View const& dst)
+bool copy_sub_view_test(img::Image const& src, img::View const& dst)
 {
-    printf("copy_view_test\n");
+    printf("copy_sub_view_test\n");
 
     auto width = src.width / 2;
-    auto height = src.height / 2;   
+    auto height = src.height / 2;
 
     auto src_r = make_range(width, height);
     
@@ -90,7 +90,7 @@ bool copy_gray_image_test(img::Image const& src, img::View const& dst)
 }
 
 
-bool copy_gray_view_test(img::Image const& src, img::View const& dst)
+bool copy_gray_sub_view_test(img::Image const& src, img::View const& dst)
 {
     printf("copy_view_test\n");
 
@@ -100,8 +100,10 @@ bool copy_gray_view_test(img::Image const& src, img::View const& dst)
     img::ImageGray gray_dst;
     img::create_image(gray_dst, dst.width, dst.height);
 
+    img::map_gray(img::make_view(src), img::make_view(gray_src));
+
     auto width = src.width / 2;
-    auto height = src.height / 2;   
+    auto height = src.height / 2;    
 
     auto src_r = make_range(width, height);       
     auto src_v = img::sub_view(gray_src, src_r);

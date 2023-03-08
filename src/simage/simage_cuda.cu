@@ -4,6 +4,7 @@
 
 using RGBA = simage::RGBA;
 using RGB = simage::RGB;
+using HSV = simage::HSV;
 
 
 template <typename T>
@@ -23,6 +24,7 @@ using DeviceViewGray = simage::DeviceViewGray;
 
 using DeviceViewRGBAu16 = simage::DeviceView4u16;
 using DeviceViewRGBu16 = simage::DeviceView3u16;
+using DeviceViewHSVu16 = simage::DeviceView3u16;
 
 
 class ChannelXY
@@ -59,94 +61,6 @@ constexpr int THREADS_PER_BLOCK = 512;
 constexpr int calc_thread_blocks(u32 n_threads)
 {
     return (n_threads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-}
-
-
-/* row begin */
-
-namespace gpuf
-{
-    template <typename T>
-    GPU_FUNCTION
-	inline T* row_begin(DeviceView2D<T> const& view, u32 y)
-	{
-		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
-	}
-
-
-    template <typename T, size_t N>
-    GPU_FUNCTION
-	inline T* channel_row_begin(DeviceChannelView2D<T, N> const& view, u32 y, u32 ch)
-	{
-		auto offset = (size_t)((view.y_begin + y) * view.channel_width_ + view.x_begin);
-
-		return view.channel_data_[ch] + offset;
-	}
-}
-
-
-/* xy_at */
-
-namespace gpuf
-{
-    template <typename T>
-    GPU_FUNCTION
-	inline T* xy_at(DeviceView2D<T> const& view, u32 x, u32 y)
-    {
-        return gpuf::row_begin(view, y) + x;
-    }
-
-
-    template <typename T>
-    GPU_FUNCTION
-	inline T* xy_at(DeviceView2D<T> const& view, Point2Du32 const& pt)
-    {
-        return gpuf::row_begin(view, pt.y) + pt.x;
-    }
-
-
-    template <typename T, size_t N>
-    GPU_FUNCTION
-    inline T* channel_xy_at(DeviceChannelView2D<T, N> const& view, ChannelXY const& cxy)
-    {
-        return channel_row_begin(view, cxy.y, cxy.ch) + cxy.x;
-    }
-}
-
-
-/* get_thread_xy */
-
-namespace gpuf
-{
-    template <class VIEW>
-	GPU_FUNCTION
-	static Point2Du32 get_thread_xy(VIEW const& view, u32 thread_id)
-	{
-		// n_threads = width * height
-		Point2Du32 p{};
-
-		p.y = thread_id / view.width;
-		p.x = thread_id - p.y * view.width;
-
-		return p;
-	}
-
-
-    template <class VIEW>
-	GPU_FUNCTION
-	static ChannelXY get_thread_channel_xy(VIEW const& view, u32 thread_id)
-	{
-		auto width = view.width;
-		auto height = view.height;
-
-		ChannelXY cxy{};
-
-		cxy.ch = thread_id / (width * height);
-		cxy.y = (thread_id - width * height * cxy.ch) / width;
-		cxy.x = (thread_id - width * height * cxy.ch) - cxy.y * width;
-
-		return cxy;
-	}
 }
 
 
@@ -221,7 +135,7 @@ namespace gpuf
 
 
     GPU_FUNCTION
-    static HSVu16 hsv_u16_from_rgb_u16(u16 r, u16 g, u16 b)
+    static HSVu16 rgb_u16_to_hsv_u16(u16 r, u16 g, u16 b)
     {
         auto max = (u16)umax(r, umax(g, b));
         auto min = (u16)umin(r, umin(g, b));
@@ -286,7 +200,7 @@ namespace gpuf
 
 
     GPU_FUNCTION
-    static RGBu16 rgb_u16_from_hsv_u16(u16 h, u16 s, u16 v)
+    static RGBu16 hsv_u16_to_rgb_u16(u16 h, u16 s, u16 v)
     {
         if (v == 0 || s == 0)
         {
@@ -349,20 +263,20 @@ namespace gpuf
 
 
     GPU_FUNCTION
-    static HSVu16 hsv_u16_from_rgb_u8(u8 r, u8 g, u8 b)
+    static HSVu16 rgb_u8_to_hsv_u16(u8 r, u8 g, u8 b)
     {
         auto R = gpuf::to_channel_u16(r);
         auto G = gpuf::to_channel_u16(g);
         auto B = gpuf::to_channel_u16(b);
 
-        return gpuf::hsv_u16_from_rgb_u16(R, G, B);
+        return gpuf::rgb_u16_to_hsv_u16(R, G, B);
     }
 
 
     GPU_FUNCTION
-    static simage::RGBAu8 rgba_u8_from_hsv_u16(u16 h, u16 s, u16 v)
+    static simage::RGBAu8 hsv_u16_to_rgba_u8(u16 h, u16 s, u16 v)
     {
-        auto rgb = gpuf::rgb_u16_from_hsv_u16(h, s, v);
+        auto rgb = gpuf::hsv_u16_to_rgb_u16(h, s, v);
 
         return {
             gpuf::to_channel_u8(rgb.red),
@@ -374,12 +288,108 @@ namespace gpuf
 }
 
 
+/* row begin */
+
+namespace gpuf
+{
+    template <typename T>
+    GPU_FUNCTION
+	inline T* row_begin(DeviceView2D<T> const& view, u32 y)
+	{
+		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
+	}
+
+
+    template <typename T, size_t N>
+    GPU_FUNCTION
+	inline T* channel_row_begin(DeviceChannelView2D<T, N> const& view, u32 y, u32 ch)
+	{
+		auto offset = (size_t)((view.y_begin + y) * view.channel_width_ + view.x_begin);
+
+		return view.channel_data_[ch] + offset;
+	}
+}
+
+
+/* xy_at */
+
+namespace gpuf
+{
+    template <typename T>
+    GPU_FUNCTION
+	inline T* xy_at(DeviceView2D<T> const& view, u32 x, u32 y)
+    {
+        return gpuf::row_begin(view, y) + x;
+    }
+
+
+    template <typename T>
+    GPU_FUNCTION
+	inline T* xy_at(DeviceView2D<T> const& view, Point2Du32 const& pt)
+    {
+        return gpuf::row_begin(view, pt.y) + pt.x;
+    }
+
+
+    template <typename T, size_t N, typename CH>
+    GPU_FUNCTION
+    inline T* channel_xy_at(DeviceChannelView2D<T, N> const& view, u32 x, u32 y, CH ch)
+    {
+        return channel_row_begin(view, y, gpuf::id_cast(ch)) + x;
+    }
+
+
+    template <typename T, size_t N>
+    GPU_FUNCTION
+    inline T* channel_xy_at(DeviceChannelView2D<T, N> const& view, ChannelXY const& cxy)
+    {
+        return channel_row_begin(view, cxy.y, cxy.ch) + cxy.x;
+    }
+}
+
+
+/* get_thread_xy */
+
+namespace gpuf
+{
+    template <class VIEW>
+	GPU_FUNCTION
+	static Point2Du32 get_thread_xy(VIEW const& view, u32 thread_id)
+	{
+		// n_threads = width * height
+		Point2Du32 p{};
+
+		p.y = thread_id / view.width;
+		p.x = thread_id - p.y * view.width;
+
+		return p;
+	}
+
+
+    template <class VIEW>
+	GPU_FUNCTION
+	static ChannelXY get_thread_channel_xy(VIEW const& view, u32 thread_id)
+	{
+		auto width = view.width;
+		auto height = view.height;
+
+		ChannelXY cxy{};
+
+		cxy.ch = thread_id / (width * height);
+		cxy.y = (thread_id - width * height * cxy.ch) / width;
+		cxy.x = (thread_id - width * height * cxy.ch) - cxy.y * width;
+
+		return cxy;
+	}
+}
+
+
 /* map gray */
 
 namespace gpu
 {
     GPU_KERNAL
-    static void to_unsigned_16(DeviceViewGray src, DeviceView1u16 dst, u32 n_threads)
+    static void to_gray_16(DeviceViewGray src, DeviceView1u16 dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -399,7 +409,7 @@ namespace gpu
 
 
     GPU_KERNAL
-    static void to_unsigned_8(DeviceView1u16 src, DeviceViewGray dst, u32 n_threads)
+    static void to_gray_8(DeviceView1u16 src, DeviceViewGray dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -432,9 +442,9 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_unsigned_16, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::to_gray_16, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_unsigned_16");
+        auto result = cuda::launch_success("gpu::to_gray_16");
 		assert(result);
     }
 
@@ -450,9 +460,9 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_unsigned_8, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::to_gray_8, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_unsigned_8");
+        auto result = cuda::launch_success("gpu::to_gray_8");
 		assert(result);
     }
 }
@@ -463,7 +473,7 @@ namespace simage
 namespace gpu
 {  
     GPU_KERNAL    
-    static void to_rgba_16(DeviceView src, DeviceViewRGBAu16 dst, u32 n_threads)
+    static void rgba_u8_to_rgba_u16(DeviceView src, DeviceViewRGBAu16 dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -502,7 +512,7 @@ namespace gpu
 
 
     GPU_KERNAL    
-    static void to_rgb_16(DeviceView src, DeviceViewRGBu16 dst, u32 n_threads)
+    static void rgb_u8_to_rgb_u16(DeviceView src, DeviceViewRGBu16 dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -538,7 +548,7 @@ namespace gpu
     
 
     GPU_KERNAL
-    static void to_rgba_8(DeviceViewRGBAu16 src, DeviceView dst, u32 n_threads)
+    static void rgba_u16_to_rgba_u8(DeviceViewRGBAu16 src, DeviceView dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -574,7 +584,7 @@ namespace gpu
 
 
     GPU_KERNAL
-    static void to_rgb_8(DeviceViewRGBu16 src, DeviceView dst, u32 n_threads)
+    static void rgb_u16_to_rgb_u8(DeviceViewRGBu16 src, DeviceView dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -620,9 +630,9 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgba_16, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::rgba_u8_to_rgba_u16, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_rgba_16");
+        auto result = cuda::launch_success("gpu::rgba_u8_to_rgba_u16");
 		assert(result);
     }
 
@@ -638,9 +648,9 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgba_8, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::rgba_u16_to_rgba_u8, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_rgba_8");
+        auto result = cuda::launch_success("gpu::rgba_u16_to_rgba_u8");
 		assert(result);
     }
 
@@ -656,9 +666,9 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgb_16, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::rgb_u8_to_rgb_u16, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_rgb_float_16");
+        auto result = cuda::launch_success("gpu::rgb_u8_to_rgb_u16");
 		assert(result);
     }
 
@@ -674,15 +684,183 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_rgb_8, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::rgb_u16_to_rgb_u8, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_rgb_unsigned_8");
+        auto result = cuda::launch_success("gpu::rgb_u16_to_rgb_u8");
 		assert(result);
     }
 }
 
 
-namespace gpuf
+namespace gpu
 {
-    
+    GPU_KERNAL
+    static void rgb_u8_to_hsv_u16(DeviceView src, DeviceViewHSVu16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = gpuf::xy_at(src, xy)->rgba;
+
+        auto hsv = gpuf::rgb_u8_to_hsv_u16(s.red, s.green, s.blue);
+
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, HSV::H) = hsv.hue;
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, HSV::S) = hsv.sat;
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, HSV::V) = hsv.val;
+    }
+
+
+    GPU_KERNAL
+    static void rgb_u16_to_hsv_u16(DeviceViewRGBu16 src, DeviceViewHSVu16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto r = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::R);
+        auto g = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::G);
+        auto b = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::B);
+
+        auto hsv = gpuf::rgb_u16_to_hsv_u16(r, g, b);
+
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, HSV::H) = hsv.hue;
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, HSV::S) = hsv.sat;
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, HSV::V) = hsv.val;
+    }
+
+
+    GPU_KERNAL
+    static void hsv_u16_to_rgba_u8(DeviceViewHSVu16 src, DeviceView dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto h = *gpuf::channel_xy_at(src, xy.x, xy.y, HSV::H);
+        auto s = *gpuf::channel_xy_at(src, xy.x, xy.y, HSV::S);
+        auto v = *gpuf::channel_xy_at(src, xy.x, xy.y, HSV::V);
+
+        auto& d = gpuf::xy_at(dst, xy.x, xy.y)->rgba;
+
+        d = gpuf::hsv_u16_to_rgba_u8(h, s, v);
+    }
+
+
+    GPU_KERNAL
+    static void hsv_u16_to_rgb_u16(DeviceViewHSVu16 src, DeviceViewRGBu16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto h = *gpuf::channel_xy_at(src, xy.x, xy.y, HSV::H);
+        auto s = *gpuf::channel_xy_at(src, xy.x, xy.y, HSV::S);
+        auto v = *gpuf::channel_xy_at(src, xy.x, xy.y, HSV::V);
+
+        auto rgb = gpuf::hsv_u16_to_rgb_u16(h, s, v);
+
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, RGB::R) = rgb.red;
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, RGB::G) = rgb.green;
+        *gpuf::channel_xy_at(dst, xy.x, xy.y, RGB::B) = rgb.blue;
+    }
+}
+
+
+namespace simage
+{
+    void map_rgb_hsv(DeviceView const& src, DeviceViewHSVu16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::rgb_u8_to_hsv_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::rgb_u8_to_hsv_u16");
+		assert(result);
+    }
+
+
+    void map_rgb_hsv(DeviceViewRGBu16 const& src, DeviceViewHSVu16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::rgb_u16_to_hsv_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::rgb_u16_to_hsv_u16");
+		assert(result);
+    }
+
+
+    void map_hsv_rgb(DeviceViewHSVu16 const& src, DeviceView const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::hsv_u16_to_rgba_u8, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::hsv_u16_to_rgba_u8");
+		assert(result);
+    }
+
+
+    void map_hsv_rgb(DeviceViewHSVu16 const& src, DeviceViewRGBu16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::hsv_u16_to_rgb_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::hsv_u16_to_rgb_u16");
+		assert(result);
+    }
 }

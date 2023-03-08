@@ -447,6 +447,12 @@ map_rgba_gray_tests_c += $(tests_include_h)
 map_rgba_gray_tests_o := $(build)/map_rgba_gray_tests.o
 object_files += $(map_rgba_gray_tests_o)
 
+# map_hsv_tests
+map_hsv_tests_c := $(tests)/map_hsv_tests.cpp
+map_hsv_tests_c += $(tests_include_h)
+map_hsv_tests_o := $(build)/map_hsv_tests.o
+object_files += $(map_hsv_tests_o)
+
 
 # flags
 INCLUDES  :=
@@ -514,7 +520,11 @@ $(make_view_tests_o): $(make_view_tests_c)
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 $(map_rgba_gray_tests_o): $(map_rgba_gray_tests_c)
-	@echo "\n make_view_tests"
+	@echo "\n map_rgba_gray_tests"
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(map_hsv_tests_o): $(map_hsv_tests_c)
+	@echo "\n map_hsv_tests"
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 

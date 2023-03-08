@@ -22,16 +22,16 @@ bool map_rgba_test(img::Image const& src, img::View const& dst)
     img::DeviceBuffer16 buffer16;
     cuda::create_device_buffer(buffer16, width * height * 4);
 
-    auto dv_1 = img::make_view(width, height, buffer32);
-    auto dv_2 = img::make_view(width, height, buffer32);
+    auto src_dv = img::make_view(width, height, buffer32);
+    auto dst_dv = img::make_view(width, height, buffer32);
     auto dst_d = img::make_view_4(width, height, buffer16);
 
-    img::copy_to_device(src_v, dv_1);
+    img::copy_to_device(src_v, src_dv);
 
-    img::map_rgba(dv_1, dst_d);
-    img::map_rgba(dst_d, dv_2);
+    img::map_rgba(src_dv, dst_d);
+    img::map_rgba(dst_d, dst_dv);
 
-    img::copy_to_host(dv_2, dst_v);
+    img::copy_to_host(dst_dv, dst_v);
 
     cuda::destroy_buffer(buffer32);
     cuda::destroy_buffer(buffer16);

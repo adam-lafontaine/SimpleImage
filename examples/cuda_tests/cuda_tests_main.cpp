@@ -15,6 +15,7 @@ bool copy_gray_sub_view_test(img::Image const& src, img::View const& dst);
 bool map_rgba_test(img::Image const& src, img::View const& dst);
 bool map_rgb_test(img::Image const& src, img::View const& dst);
 bool map_gray_test(img::Image const& src, img::View const& dst);
+bool map_hsv_test(img::Image const& src, img::View const& dst);
 
 
 constexpr auto APP_TITLE = "CUDA Tests";
@@ -51,6 +52,7 @@ static bool test_success(app::AppState& state, img::CameraUSB const& camera)
         run_test(camera, state, map_rgba_test) &&
         run_test(camera, state, map_rgb_test) &&
         run_test(camera, state, map_gray_test) &&
+        run_test(camera, state, map_hsv_test) &&
         true;
 }
 

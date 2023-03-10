@@ -674,8 +674,8 @@ namespace yuv
         constexpr r32 bv = -0.10001f;
 
         r32 y = (ry * r) + (gy * g) + (by * b);
-        r32 u = (ru * r) + (gu * g) + (bu * b);
-        r32 v = (rv * r) + (gv * g) + (bv * b);
+        r32 u = (ru * r) + (gu * g) + (bu * b) + 0.5f;
+        r32 v = (rv * r) + (gv * g) + (bv * b) + 0.5f;
 
         return { y, u, v };
     }
@@ -694,6 +694,9 @@ namespace yuv
         constexpr r32 yb = 1.0f;
         constexpr r32 ub = 2.03211f;
         constexpr r32 vb = 0.0f;
+
+        u -= 0.5f;
+        v -= 0.5f;
 
         auto R = (yr * y) + (ur * u) + (vr * v);
         auto G = (yg * y) + (ug * u) + (vg * v);
@@ -715,8 +718,8 @@ namespace yuv
     inline constexpr cs::RGBu8 u8_to_rgb_u8(u8 y, u8 u, u8 v)
     {
         auto Y = cs::to_channel_r32(y);
-        auto U = cs::to_channel_r32(u) - 0.5f;
-        auto V = cs::to_channel_r32(v) - 0.5f;
+        auto U = cs::to_channel_r32(u); // -0.5f;
+        auto V = cs::to_channel_r32(v); // -0.5f;
 
         auto rgb = r32_to_rgb_r32(Y, U, V);
 

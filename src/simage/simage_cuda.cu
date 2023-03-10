@@ -25,6 +25,7 @@ using DeviceViewGray = simage::DeviceViewGray;
 using DeviceViewRGBAu16 = simage::DeviceView4u16;
 using DeviceViewRGBu16 = simage::DeviceView3u16;
 using DeviceViewHSVu16 = simage::DeviceView3u16;
+using DeviceViewYUVu16 = simage::DeviceView3u16;
 
 
 class ChannelXY
@@ -148,11 +149,11 @@ namespace gpuf
     GPU_CONSTEXPR_FUNCTION
     inline r32 to_grayscale_standard(T r, T g, T b)
     {
-        constexpr r32 COEFF_RED = 0.299f;
-        constexpr r32 COEFF_GREEN = 0.587f;
-        constexpr r32 COEFF_BLUE = 0.114f;
+        constexpr r32 COEFF_R = 0.299f;
+        constexpr r32 COEFF_G = 0.587f;
+        constexpr r32 COEFF_B = 0.114f;
 
-        return COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
+        return COEFF_R * r + COEFF_G * g + COEFF_B * b;
     }
 
 
@@ -309,7 +310,85 @@ namespace gpuf
     }
 
 
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 rgb_to_yuv_y(T r, T g, T b)
+    {
+        constexpr r32 COEFF_R = 0.299f;
+        constexpr r32 COEFF_G = 0.587f;
+        constexpr r32 COEFF_B = 0.114f;
 
+        return COEFF_R * r + COEFF_G * g + COEFF_B * b;
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 rgb_to_yuv_u(T r, T g, T b, T scale)
+    {
+        constexpr r32 COEFF_R = -0.14713f;
+        constexpr r32 COEFF_G = -0.28886f;
+        constexpr r32 COEFF_B = 0.436f;
+
+        return COEFF_R * r + COEFF_G * g + COEFF_B * b + scale / 2;
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 rgb_to_yuv_v(T r, T g, T b, T scale)
+    {
+        constexpr r32 COEFF_R = 0.615f;
+        constexpr r32 COEFF_G = -0.51499f;
+        constexpr r32 COEFF_B = -0.10001f;
+
+        return COEFF_R * r + COEFF_G * g + COEFF_B * b + scale / 2;
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 yuv_to_rgb_r(T y, T u, T v, T scale)
+    {
+        constexpr r32 COEFF_Y = 1.0f;
+        constexpr r32 COEFF_U = 0.0f;
+        constexpr r32 COEFF_V = 1.13983f;
+
+        //u -= scale / 2;
+        v -= scale / 2;
+
+        return COEFF_Y * y /*+ COEFF_U * u*/ + COEFF_V * v;
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 yuv_to_rgb_g(T y, T u, T v, T scale)
+    {
+        constexpr r32 COEFF_Y = 1.0f;
+        constexpr r32 COEFF_U = -0.39465f;
+        constexpr r32 COEFF_V = -0.5806f;
+
+        u -= scale / 2;
+        v -= scale / 2;
+
+        return COEFF_Y * y + COEFF_U * u + COEFF_V * v;
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 yuv_to_rgb_b(T y, T u, T v, T scale)
+    {
+        constexpr r32 COEFF_Y = 1.0f;
+        constexpr r32 COEFF_U = 2.03211f;
+        //constexpr r32 COEFF_V = 0.0f;
+
+        u -= scale / 2;
+        //v -= scale / 2;
+
+        return COEFF_Y * y + COEFF_U * u /*+ COEFF_V * v*/;
+    }
 }
 
 
@@ -1041,4 +1120,51 @@ namespace simage
         auto result = cuda::launch_success("gpu::hsv_u16_to_rgb_u16");
 		assert(result);
     }
+}
+
+
+/* map yuv */
+
+namespace gpu
+{
+    GPU_KERNAL
+    static void rgb_u8_to_yuv_u16(DeviceView src, DeviceViewYUVu16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height * 3);
+
+        auto cxy = gpuf::get_thread_channel_xy(src, t);
+
+        auto rgba = gpuf::xy_at(src, cxy.x, cxy.y)->rgba;
+        //u8 s = 0;
+        auto& d = *gpuf::channel_xy_at(dst, cxy);
+
+        switch(cxy.ch)
+        {
+        case gpuf::id_cast(RGB::R):
+            //s = rgba.red;
+            break;
+        case gpuf::id_cast(RGB::G):
+            //s = rgba.green;
+            break;
+        case gpuf::id_cast(RGB::B):
+            //s = rgba.blue;
+            break;
+        default:
+            return;
+        }
+
+        //d = gpuf::channel_u8_to_u16(s);
+    }
+}
+
+
+namespace simage
+{
+
 }

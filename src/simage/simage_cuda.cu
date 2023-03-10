@@ -100,37 +100,59 @@ namespace gpuf
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline u32 round_to_u16(r32 value)
+    inline u16 round_to_u16(r32 value)
     {
         return (u16)(value + 0.5f);
     }
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline r32 to_channel_r32(u16 value)
+    inline u8 round_to_u8(r32 value)
     {
-        return value / CHANNEL_U16_MAX;
+        return (u8)(value + 0.5f);
     }
 
 
+    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline u16 to_channel_u16(r32 value)
+    inline r32 channel_u16_to_r32(T value)
+    {
+        return (r32)value / CHANNEL_U16_MAX;
+    }
+    
+    
+    GPU_CONSTEXPR_FUNCTION
+    inline u16 channel_r32_to_u16(r32 value)
     {
         return gpuf::round_to_u16(gpuf::clamp(value) * CHANNEL_U16_MAX);
     }
 
 
+    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline u16 to_channel_u16(u8 value)
+    inline u16 channel_u8_to_u16(T value)
     {
-        return (u16)value * 256;
+        return (u16)(value * 256);
     }
 
 
+    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline u8 to_channel_u8(u16 value)
+    inline u8 channel_u16_to_u8(T value)
     {
         return u8(value / 256);
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline r32 to_grayscale_standard(T r, T g, T b)
+    {
+        constexpr r32 COEFF_RED = 0.299f;
+        constexpr r32 COEFF_GREEN = 0.587f;
+        constexpr r32 COEFF_BLUE = 0.114f;
+
+        return COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
     }
 
 
@@ -149,7 +171,7 @@ namespace gpuf
             return { h, s, v };
         }
 
-        s = gpuf::to_channel_u16((r32)(max - min) / max);
+        s = gpuf::channel_r32_to_u16((r32)(max - min) / max);
 
         auto const r_is_max = r == max;
         auto const r_is_min = r == min;
@@ -265,9 +287,9 @@ namespace gpuf
     GPU_FUNCTION
     static HSVu16 rgb_u8_to_hsv_u16(u8 r, u8 g, u8 b)
     {
-        auto R = gpuf::to_channel_u16(r);
-        auto G = gpuf::to_channel_u16(g);
-        auto B = gpuf::to_channel_u16(b);
+        auto R = gpuf::channel_u8_to_u16(r);
+        auto G = gpuf::channel_u8_to_u16(g);
+        auto B = gpuf::channel_u8_to_u16(b);
 
         return gpuf::rgb_u16_to_hsv_u16(R, G, B);
     }
@@ -279,12 +301,15 @@ namespace gpuf
         auto rgb = gpuf::hsv_u16_to_rgb_u16(h, s, v);
 
         return {
-            gpuf::to_channel_u8(rgb.red),
-            gpuf::to_channel_u8(rgb.green),
-            gpuf::to_channel_u8(rgb.blue),
+            gpuf::channel_u16_to_u8(rgb.red),
+            gpuf::channel_u16_to_u8(rgb.green),
+            gpuf::channel_u16_to_u8(rgb.blue),
             255
         };
     }
+
+
+
 }
 
 
@@ -389,7 +414,7 @@ namespace gpuf
 namespace gpu
 {
     GPU_KERNAL
-    static void to_gray_16(DeviceViewGray src, DeviceView1u16 dst, u32 n_threads)
+    static void gray_u8_to_gray_u16(DeviceViewGray src, DeviceView1u16 dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -404,12 +429,12 @@ namespace gpu
         auto s = *gpuf::xy_at(src, xy);
         auto& d = *gpuf::xy_at(dst, xy);
 
-        d = gpuf::to_channel_u16(s);
+        d = gpuf::channel_u8_to_u16(s);
     }
 
 
     GPU_KERNAL
-    static void to_gray_8(DeviceView1u16 src, DeviceViewGray dst, u32 n_threads)
+    static void gray_u16_to_gray_u8(DeviceView1u16 src, DeviceViewGray dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -424,7 +449,95 @@ namespace gpu
         auto s = *gpuf::xy_at(src, xy);
         auto& d = *gpuf::xy_at(dst, xy);
 
-        d = gpuf::to_channel_u8(s);
+        d = gpuf::channel_u16_to_u8(s);
+    }
+
+
+    GPU_KERNAL
+    static void rgba_u8_to_gray_u8(DeviceView src, DeviceViewGray dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = gpuf::xy_at(src, xy)->rgba;
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::round_to_u8(gpuf::to_grayscale_standard(s.red, s.green, s.blue));
+    }
+
+
+    GPU_KERNAL
+    static void rgba_u8_to_gray_u16(DeviceView src, DeviceView1u16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = gpuf::xy_at(src, xy)->rgba;
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::channel_u8_to_u16(gpuf::to_grayscale_standard(s.red, s.green, s.blue));
+    }
+
+
+    GPU_KERNAL
+    static void rgb_u16_to_gray_u16(DeviceViewRGBu16 src, DeviceView1u16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto r = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::R);
+        auto g = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::G);
+        auto b = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::B);
+
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::round_to_u16(gpuf::to_grayscale_standard(r, g, b));
+    }
+
+
+    GPU_KERNAL
+    static void gray_u16_to_rgba_u8(DeviceView1u16 src, DeviceView dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = *gpuf::xy_at(src, xy);
+        auto& d = gpuf::xy_at(dst, xy)->rgba;
+
+        d = {
+            gpuf::channel_u16_to_u8(s),
+            gpuf::channel_u16_to_u8(s),
+            gpuf::channel_u16_to_u8(s),
+            255
+        };
     }
 }
 
@@ -442,9 +555,9 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_gray_16, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::gray_u8_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_gray_16");
+        auto result = cuda::launch_success("gpu::gray_u8_to_gray_u16");
 		assert(result);
     }
 
@@ -460,9 +573,63 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-        cuda_launch_kernel(gpu::to_gray_8, n_blocks, block_size, src, dst, n_threads);
+        cuda_launch_kernel(gpu::gray_u16_to_gray_u8, n_blocks, block_size, src, dst, n_threads);
 
-        auto result = cuda::launch_success("gpu::to_gray_8");
+        auto result = cuda::launch_success("gpu::gray_u16_to_gray_u8");
+		assert(result);
+    }
+
+
+    void map_gray(DeviceView const& src, DeviceView1u16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::rgba_u8_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::rgba_u8_to_gray_u16");
+		assert(result);
+    }
+
+
+    void map_gray(DeviceViewRGBu16 const& src, DeviceView1u16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::rgb_u16_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::rgb_u16_to_gray_u16");
+		assert(result);
+    }
+
+
+    void map_gray(DeviceView1u16 const& src, DeviceView const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::gray_u16_to_rgba_u8, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::gray_u16_to_rgba_u8");
 		assert(result);
     }
 }
@@ -507,7 +674,7 @@ namespace gpu
             return;
         }
 
-        d = gpuf::to_channel_u16(s);
+        d = gpuf::channel_u8_to_u16(s);
     }
 
 
@@ -543,7 +710,7 @@ namespace gpu
             return;
         }
 
-        d = gpuf::to_channel_u16(s);
+        d = gpuf::channel_u8_to_u16(s);
     }
     
 
@@ -560,7 +727,7 @@ namespace gpu
 
         auto cxy = gpuf::get_thread_channel_xy(src, t);
 
-        auto s = gpuf::to_channel_u8(*gpuf::channel_xy_at(src, cxy));
+        auto s = gpuf::channel_u16_to_u8(*gpuf::channel_xy_at(src, cxy));
         auto& d = gpuf::xy_at(dst, cxy.x, cxy.y)->rgba;
 
         switch(cxy.ch)
@@ -596,7 +763,7 @@ namespace gpu
 
         auto cxy = gpuf::get_thread_channel_xy(src, t);
 
-        auto s = gpuf::to_channel_u8(*gpuf::channel_xy_at(src, cxy));
+        auto s = gpuf::channel_u16_to_u8(*gpuf::channel_xy_at(src, cxy));
         auto& d = gpuf::xy_at(dst, cxy.x, cxy.y)->rgba;
 
         switch(cxy.ch)
@@ -692,6 +859,8 @@ namespace simage
 }
 
 
+/* map hsv */
+
 namespace gpu
 {
     GPU_KERNAL
@@ -760,6 +929,15 @@ namespace gpu
         auto v = *gpuf::channel_xy_at(src, xy.x, xy.y, HSV::V);
 
         auto& d = gpuf::xy_at(dst, xy.x, xy.y)->rgba;
+
+        /*if (s == 0 || v == 0)
+        {
+            d = { 0, 0, 0, 255 };
+        }
+        else 
+        {
+            d = gpuf::hsv_u16_to_rgba_u8(h, CHANNEL_U16_MAX, CHANNEL_U16_MAX);
+        }*/
 
         d = gpuf::hsv_u16_to_rgba_u8(h, s, v);
     }

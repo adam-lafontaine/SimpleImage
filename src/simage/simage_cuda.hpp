@@ -155,6 +155,13 @@ namespace simage
     void map_gray(DeviceViewGray const& src, DeviceView1u16 const& dst);
 
     void map_gray(DeviceView1u16 const& src, DeviceViewGray const& dst);
+
+	void map_gray(DeviceView const& src, DeviceView1u16 const& dst);
+
+	void map_gray(DeviceViewRGBu16 const& src, DeviceView1u16 const& dst);
+
+	void map_gray(DeviceView1u16 const& src, DeviceView const& dst);
+
 }
 
 

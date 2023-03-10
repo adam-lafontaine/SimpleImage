@@ -228,7 +228,7 @@ namespace gray
     }
 
 
-    inline constexpr u16 u16_from_rgb_u16(u8 r, u8 g, u8 b)
+    inline constexpr u16 u16_from_rgb_u16(u16 r, u16 g, u16 b)
     {
         return (u16)(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
     }

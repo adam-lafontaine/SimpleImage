@@ -353,7 +353,7 @@ namespace gpuf
     inline r32 yuv_to_rgb_r(T y, T u, T v, T scale)
     {
         constexpr r32 COEFF_Y = 1.0f;
-        constexpr r32 COEFF_U = 0.0f;
+        //constexpr r32 COEFF_U = 0.0f;
         constexpr r32 COEFF_V = 1.13983f;
 
         //u -= scale / 2;
@@ -487,232 +487,6 @@ namespace gpuf
 
 		return cxy;
 	}
-}
-
-
-/* map gray */
-
-namespace gpu
-{
-    GPU_KERNAL
-    static void gray_u8_to_gray_u16(DeviceViewGray src, DeviceView1u16 dst, u32 n_threads)
-    {
-        auto t = blockDim.x * blockIdx.x + threadIdx.x;
-		if (t >= n_threads)
-		{
-			return;
-		}
-
-        assert(n_threads == src.width * src.height);
-
-        auto xy = gpuf::get_thread_xy(src, t);
-
-        auto s = *gpuf::xy_at(src, xy);
-        auto& d = *gpuf::xy_at(dst, xy);
-
-        d = gpuf::channel_u8_to_u16(s);
-    }
-
-
-    GPU_KERNAL
-    static void gray_u16_to_gray_u8(DeviceView1u16 src, DeviceViewGray dst, u32 n_threads)
-    {
-        auto t = blockDim.x * blockIdx.x + threadIdx.x;
-		if (t >= n_threads)
-		{
-			return;
-		}
-
-        assert(n_threads == src.width * src.height);
-
-        auto xy = gpuf::get_thread_xy(src, t);
-
-        auto s = *gpuf::xy_at(src, xy);
-        auto& d = *gpuf::xy_at(dst, xy);
-
-        d = gpuf::channel_u16_to_u8(s);
-    }
-
-
-    GPU_KERNAL
-    static void rgba_u8_to_gray_u8(DeviceView src, DeviceViewGray dst, u32 n_threads)
-    {
-        auto t = blockDim.x * blockIdx.x + threadIdx.x;
-		if (t >= n_threads)
-		{
-			return;
-		}
-
-        assert(n_threads == src.width * src.height);
-
-        auto xy = gpuf::get_thread_xy(src, t);
-
-        auto s = gpuf::xy_at(src, xy)->rgba;
-        auto& d = *gpuf::xy_at(dst, xy);
-
-        d = gpuf::round_to_u8(gpuf::to_grayscale_standard(s.red, s.green, s.blue));
-    }
-
-
-    GPU_KERNAL
-    static void rgba_u8_to_gray_u16(DeviceView src, DeviceView1u16 dst, u32 n_threads)
-    {
-        auto t = blockDim.x * blockIdx.x + threadIdx.x;
-		if (t >= n_threads)
-		{
-			return;
-		}
-
-        assert(n_threads == src.width * src.height);
-
-        auto xy = gpuf::get_thread_xy(src, t);
-
-        auto s = gpuf::xy_at(src, xy)->rgba;
-        auto& d = *gpuf::xy_at(dst, xy);
-
-        d = gpuf::channel_u8_to_u16(gpuf::to_grayscale_standard(s.red, s.green, s.blue));
-    }
-
-
-    GPU_KERNAL
-    static void rgb_u16_to_gray_u16(DeviceViewRGBu16 src, DeviceView1u16 dst, u32 n_threads)
-    {
-        auto t = blockDim.x * blockIdx.x + threadIdx.x;
-		if (t >= n_threads)
-		{
-			return;
-		}
-
-        assert(n_threads == src.width * src.height);
-
-        auto xy = gpuf::get_thread_xy(src, t);
-
-        auto r = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::R);
-        auto g = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::G);
-        auto b = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::B);
-
-        auto& d = *gpuf::xy_at(dst, xy);
-
-        d = gpuf::round_to_u16(gpuf::to_grayscale_standard(r, g, b));
-    }
-
-
-    GPU_KERNAL
-    static void gray_u16_to_rgba_u8(DeviceView1u16 src, DeviceView dst, u32 n_threads)
-    {
-        auto t = blockDim.x * blockIdx.x + threadIdx.x;
-		if (t >= n_threads)
-		{
-			return;
-		}
-
-        assert(n_threads == src.width * src.height);
-
-        auto xy = gpuf::get_thread_xy(src, t);
-
-        auto s = *gpuf::xy_at(src, xy);
-        auto& d = gpuf::xy_at(dst, xy)->rgba;
-
-        d = {
-            gpuf::channel_u16_to_u8(s),
-            gpuf::channel_u16_to_u8(s),
-            gpuf::channel_u16_to_u8(s),
-            255
-        };
-    }
-}
-
-
-namespace simage
-{
-    void map_gray(DeviceViewGray const& src, DeviceView1u16 const& dst)
-    {
-        assert(verify(src, dst));
-
-        auto const width = src.width;
-		auto const height = src.height;
-
-		auto const n_threads = width * height;
-		auto const n_blocks = calc_thread_blocks(n_threads);
-		constexpr auto block_size = THREADS_PER_BLOCK;
-
-        cuda_launch_kernel(gpu::gray_u8_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
-
-        auto result = cuda::launch_success("gpu::gray_u8_to_gray_u16");
-		assert(result);
-    }
-
-
-    void map_gray(DeviceView1u16 const& src, DeviceViewGray const& dst)
-    {
-        assert(verify(src, dst));
-
-        auto const width = src.width;
-		auto const height = src.height;
-
-		auto const n_threads = width * height;
-		auto const n_blocks = calc_thread_blocks(n_threads);
-		constexpr auto block_size = THREADS_PER_BLOCK;
-
-        cuda_launch_kernel(gpu::gray_u16_to_gray_u8, n_blocks, block_size, src, dst, n_threads);
-
-        auto result = cuda::launch_success("gpu::gray_u16_to_gray_u8");
-		assert(result);
-    }
-
-
-    void map_gray(DeviceView const& src, DeviceView1u16 const& dst)
-    {
-        assert(verify(src, dst));
-
-        auto const width = src.width;
-		auto const height = src.height;
-
-		auto const n_threads = width * height;
-		auto const n_blocks = calc_thread_blocks(n_threads);
-		constexpr auto block_size = THREADS_PER_BLOCK;
-
-        cuda_launch_kernel(gpu::rgba_u8_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
-
-        auto result = cuda::launch_success("gpu::rgba_u8_to_gray_u16");
-		assert(result);
-    }
-
-
-    void map_gray(DeviceViewRGBu16 const& src, DeviceView1u16 const& dst)
-    {
-        assert(verify(src, dst));
-
-        auto const width = src.width;
-		auto const height = src.height;
-
-		auto const n_threads = width * height;
-		auto const n_blocks = calc_thread_blocks(n_threads);
-		constexpr auto block_size = THREADS_PER_BLOCK;
-
-        cuda_launch_kernel(gpu::rgb_u16_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
-
-        auto result = cuda::launch_success("gpu::rgb_u16_to_gray_u16");
-		assert(result);
-    }
-
-
-    void map_gray(DeviceView1u16 const& src, DeviceView const& dst)
-    {
-        assert(verify(src, dst));
-
-        auto const width = src.width;
-		auto const height = src.height;
-
-		auto const n_threads = width * height;
-		auto const n_blocks = calc_thread_blocks(n_threads);
-		constexpr auto block_size = THREADS_PER_BLOCK;
-
-        cuda_launch_kernel(gpu::gray_u16_to_rgba_u8, n_blocks, block_size, src, dst, n_threads);
-
-        auto result = cuda::launch_success("gpu::gray_u16_to_rgba_u8");
-		assert(result);
-    }
 }
 
 
@@ -935,6 +709,259 @@ namespace simage
         cuda_launch_kernel(gpu::rgb_u16_to_rgb_u8, n_blocks, block_size, src, dst, n_threads);
 
         auto result = cuda::launch_success("gpu::rgb_u16_to_rgb_u8");
+		assert(result);
+    }
+}
+
+
+/* map gray */
+
+namespace gpu
+{
+    GPU_KERNAL
+    static void gray_u8_to_gray_u16(DeviceViewGray src, DeviceView1u16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = *gpuf::xy_at(src, xy);
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::channel_u8_to_u16(s);
+    }
+
+
+    GPU_KERNAL
+    static void gray_u16_to_gray_u8(DeviceView1u16 src, DeviceViewGray dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = *gpuf::xy_at(src, xy);
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::channel_u16_to_u8(s);
+    }
+}
+
+
+namespace simage
+{
+    void map_gray(DeviceViewGray const& src, DeviceView1u16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::gray_u8_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::gray_u8_to_gray_u16");
+		assert(result);
+    }
+
+
+    void map_gray(DeviceView1u16 const& src, DeviceViewGray const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::gray_u16_to_gray_u8, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::gray_u16_to_gray_u8");
+		assert(result);
+    }    
+}
+
+
+/* map rgb gray */
+
+namespace gpu
+{
+    GPU_KERNAL
+    static void rgba_u8_to_gray_u8(DeviceView src, DeviceViewGray dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = gpuf::xy_at(src, xy)->rgba;
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::round_to_u8(gpuf::to_grayscale_standard(s.red, s.green, s.blue));
+    }
+
+
+    GPU_KERNAL
+    static void rgba_u8_to_gray_u16(DeviceView src, DeviceView1u16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = gpuf::xy_at(src, xy)->rgba;
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::channel_u8_to_u16(gpuf::to_grayscale_standard(s.red, s.green, s.blue));
+    }
+
+
+    GPU_KERNAL
+    static void rgb_u16_to_gray_u16(DeviceViewRGBu16 src, DeviceView1u16 dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto r = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::R);
+        auto g = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::G);
+        auto b = *gpuf::channel_xy_at(src, xy.x, xy.y, RGB::B);
+
+        auto& d = *gpuf::xy_at(dst, xy);
+
+        d = gpuf::round_to_u16(gpuf::to_grayscale_standard(r, g, b));
+    }
+
+
+    GPU_KERNAL
+    static void gray_u16_to_rgba_u8(DeviceView1u16 src, DeviceView dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == src.width * src.height);
+
+        auto xy = gpuf::get_thread_xy(src, t);
+
+        auto s = *gpuf::xy_at(src, xy);
+        auto& d = gpuf::xy_at(dst, xy)->rgba;
+
+        d = {
+            gpuf::channel_u16_to_u8(s),
+            gpuf::channel_u16_to_u8(s),
+            gpuf::channel_u16_to_u8(s),
+            255
+        };
+    }
+
+}
+
+
+namespace simage
+{
+    void map_rgb_gray(DeviceView const& src, DeviceViewGray const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::rgba_u8_to_gray_u8, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::rgba_u8_to_gray_u8");
+		assert(result);
+    }
+
+
+    void map_rgb_gray(DeviceView const& src, DeviceView1u16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::rgba_u8_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::rgba_u8_to_gray_u16");
+		assert(result);
+    }
+
+
+    void map_rgb_gray(DeviceViewRGBu16 const& src, DeviceView1u16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::rgb_u16_to_gray_u16, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::rgb_u16_to_gray_u16");
+		assert(result);
+    }
+
+
+    void map_gray_rgb(DeviceView1u16 const& src, DeviceView const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::gray_u16_to_rgba_u8, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::gray_u16_to_rgba_u8");
 		assert(result);
     }
 }

@@ -453,6 +453,12 @@ map_hsv_tests_c += $(tests_include_h)
 map_hsv_tests_o := $(build)/map_hsv_tests.o
 object_files += $(map_hsv_tests_o)
 
+# map_yuv_tests
+map_yuv_tests_c := $(tests)/map_yuv_tests.cpp
+map_yuv_tests_c += $(tests_include_h)
+map_yuv_tests_o := $(build)/map_yuv_tests.o
+object_files += $(map_yuv_tests_o)
+
 
 # flags
 INCLUDES  :=
@@ -525,6 +531,10 @@ $(map_rgba_gray_tests_o): $(map_rgba_gray_tests_c)
 
 $(map_hsv_tests_o): $(map_hsv_tests_c)
 	@echo "\n map_hsv_tests"
+	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+$(map_yuv_tests_o): $(map_yuv_tests_c)
+	@echo "\n map_yuv_tests"
 	$(EXEC) $(NVCC) $(NVCC_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 

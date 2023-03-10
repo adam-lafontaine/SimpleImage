@@ -1,7 +1,7 @@
 #include "tests_include.hpp"
 
 
-bool copy_image_test(img::Image const& src, img::View const& dst)
+bool copy_image_test(img::View const& src, img::View const& dst)
 {
     printf("copy_image_test\n");
 
@@ -13,7 +13,7 @@ bool copy_image_test(img::Image const& src, img::View const& dst)
 
     auto d_view = img::make_view(width, height, buffer);
 
-    img::copy_to_device(img::make_view(src), d_view);
+    img::copy_to_device(src, d_view);
     img::copy_to_host(d_view, dst);
 
     cuda::destroy_buffer(buffer);
@@ -22,7 +22,7 @@ bool copy_image_test(img::Image const& src, img::View const& dst)
 }
 
 
-bool copy_sub_view_test(img::Image const& src, img::View const& dst)
+bool copy_sub_view_test(img::View const& src, img::View const& dst)
 {
     printf("copy_sub_view_test\n");
 
@@ -55,7 +55,7 @@ bool copy_sub_view_test(img::Image const& src, img::View const& dst)
 }
 
 
-bool copy_gray_image_test(img::Image const& src, img::View const& dst)
+bool copy_gray_image_test(img::View const& src, img::View const& dst)
 {
     printf("copy_gray_image_test\n");
 
@@ -70,7 +70,7 @@ bool copy_gray_image_test(img::Image const& src, img::View const& dst)
     img::create_image(gray_dst, width, height);
     auto dst_v = img::make_view(gray_dst);
 
-    img::map_gray(img::make_view(src), src_v);
+    img::map_gray(src, src_v);
 
     img::DeviceBuffer8 buffer;
     cuda::create_device_buffer(buffer, width * height);
@@ -90,7 +90,7 @@ bool copy_gray_image_test(img::Image const& src, img::View const& dst)
 }
 
 
-bool copy_gray_sub_view_test(img::Image const& src, img::View const& dst)
+bool copy_gray_sub_view_test(img::View const& src, img::View const& dst)
 {
     printf("copy_view_test\n");
 
@@ -100,7 +100,7 @@ bool copy_gray_sub_view_test(img::Image const& src, img::View const& dst)
     img::ImageGray gray_dst;
     img::create_image(gray_dst, dst.width, dst.height);
 
-    img::map_gray(img::make_view(src), img::make_view(gray_src));
+    img::map_gray(src, img::make_view(gray_src));
 
     auto width = src.width / 2;
     auto height = src.height / 2;    

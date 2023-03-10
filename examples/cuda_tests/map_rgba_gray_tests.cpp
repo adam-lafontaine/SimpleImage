@@ -1,7 +1,7 @@
 #include "tests_include.hpp"
 
 
-bool map_rgba_test(img::Image const& src, img::View const& dst)
+bool map_rgba_test(img::View const& src, img::View const& dst)
 {
     printf("map_rgba_test\n");
 
@@ -41,7 +41,7 @@ bool map_rgba_test(img::Image const& src, img::View const& dst)
 }
 
 
-bool map_rgb_test(img::Image const& src, img::View const& dst)
+bool map_rgb_test(img::View const& src, img::View const& dst)
 {
     printf("map_rgb_test\n");
 
@@ -81,7 +81,7 @@ bool map_rgb_test(img::Image const& src, img::View const& dst)
 }
 
 
-bool map_gray_test(img::Image const& src, img::View const& dst)
+bool map_gray_test(img::View const& src, img::View const& dst)
 {
     printf("map_gray_test\n");
 

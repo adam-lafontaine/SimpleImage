@@ -8,21 +8,22 @@
 bool device_buffer_tests();
 bool make_view_tests();
 
-bool copy_image_test(img::Image const& src, img::View const& dst);
-bool copy_sub_view_test(img::Image const& src, img::View const& dst);
-bool copy_gray_image_test(img::Image const& src, img::View const& dst);
-bool copy_gray_sub_view_test(img::Image const& src, img::View const& dst);
-bool map_rgba_test(img::Image const& src, img::View const& dst);
-bool map_rgb_test(img::Image const& src, img::View const& dst);
-bool map_gray_test(img::Image const& src, img::View const& dst);
-bool map_hsv_test(img::Image const& src, img::View const& dst);
+bool copy_image_test(img::View const& src, img::View const& dst);
+bool copy_sub_view_test(img::View const& src, img::View const& dst);
+bool copy_gray_image_test(img::View const& src, img::View const& dst);
+bool copy_gray_sub_view_test(img::View const& src, img::View const& dst);
+bool map_rgba_test(img::View const& src, img::View const& dst);
+bool map_rgb_test(img::View const& src, img::View const& dst);
+bool map_gray_test(img::View const& src, img::View const& dst);
+bool map_hsv_test(img::View const& src, img::View const& dst);
+bool map_yuv_test(img::View const& src, img::View const& dst);
 
 
 constexpr auto APP_TITLE = "CUDA Tests";
 constexpr auto APP_VERSION = "1.0";
 
 
-static bool run_test(img::CameraUSB const& camera, app::AppState& state, std::function<bool(img::Image const&, img::View const&)> const& test)
+static bool run_test(img::CameraUSB const& camera, app::AppState& state, std::function<bool(img::View const&, img::View const&)> const& test)
 {
     if (!img::grab_image(camera))
     {
@@ -30,7 +31,7 @@ static bool run_test(img::CameraUSB const& camera, app::AppState& state, std::fu
         return false;
     }
 
-    auto result = test(camera.latest_frame, state.screen_pixels);
+    auto result = test(camera.frame_roi, state.screen_pixels);
     render_once();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -53,6 +54,7 @@ static bool test_success(app::AppState& state, img::CameraUSB const& camera)
         run_test(camera, state, map_rgb_test) &&
         run_test(camera, state, map_gray_test) &&
         run_test(camera, state, map_hsv_test) &&
+        run_test(camera, state, map_yuv_test) &&
         true;
 }
 

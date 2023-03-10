@@ -1,9 +1,9 @@
 #include "tests_include.hpp"
 
 
-bool map_hsv_test(img::View const& src, img::View const& dst)
+bool map_yuv_test(img::View const& src, img::View const& dst)
 {
-    printf("map_hsv_test\n");
+    printf("map_yuv_test\n");
     fill_green(dst);
 
     auto width = src.width;
@@ -19,12 +19,12 @@ bool map_hsv_test(img::View const& src, img::View const& dst)
 
     auto src_dv = img::make_view(width, height, buffer32);
     auto dst_dv = img::make_view(width, height, buffer32);
-    auto hsv_d = img::make_view_3(width, height, buffer16);
+    auto yuv_d = img::make_view_3(width, height, buffer16);
 
     img::copy_to_device(src_v, src_dv);
 
-    img::map_rgb_hsv(src_dv, hsv_d);
-    img::map_hsv_rgb(hsv_d, dst_dv);
+    img::map_rgb_yuv(src_dv, yuv_d);
+    img::map_yuv_rgb(yuv_d, dst_dv);
 
     img::copy_to_host(dst_dv, dst);
 

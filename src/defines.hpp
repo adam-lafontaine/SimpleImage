@@ -68,8 +68,6 @@ using i8 = int8_t;
 using i32 = int32_t;
 using cstr = const char*;
 
-using r32 = f32;
-
 
 #ifdef SIMAGE_NO_PARALLEL
 
@@ -91,6 +89,6 @@ public:
 };
 
 using Point2Du32 = Point2D<u32>;
-using Point2Dr32 = Point2D<r32>;
+using Point2Df32 = Point2D<f32>;
 
 

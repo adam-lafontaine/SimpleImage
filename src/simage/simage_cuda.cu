@@ -133,24 +133,32 @@ namespace color_space
     }
 
 
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline T round_to_unsigned(r32 value)
+    {
+        return (T)(value + 0.5f);
+    }
+
+
     GPU_CONSTEXPR_FUNCTION
     inline u32 round_to_u32(r32 value)
     {
-        return (u32)(value + 0.5f);
+        return gpucs::round_to_unsigned<u32>(value);
     }
 
 
     GPU_CONSTEXPR_FUNCTION
     inline u16 round_to_u16(r32 value)
     {
-        return (u16)(value + 0.5f);
+        return gpucs::round_to_unsigned<u16>(value);
     }
 
 
     GPU_CONSTEXPR_FUNCTION
     inline u8 round_to_u8(r32 value)
     {
-        return (u8)(value + 0.5f);
+        return gpucs::round_to_unsigned<u8>(value);
     }
 
 
@@ -205,6 +213,15 @@ namespace color_space
         constexpr r32 COEFF_B = 0.114f;
 
         return COEFF_R * r + COEFF_G * g + COEFF_B * b;
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
+    inline T rgb_unsigned_to_gray(T r, T g, T b)
+    {
+        auto grayT32 = gpucs::to_grayscale_standard(r, g, b);
+        return gpucs::round_to_unsigned<T>(grayT32);
     }
 
 
@@ -410,8 +427,9 @@ namespace color_space
     }
 
 
+    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    cs::YUVu16 rgb_u8_to_yuv_u16(u8 r, u8 g, u8 b)
+    cs::YUVu16 rgb_to_yuv_u16(T r, T g, T b)
     {
         auto R = gpucs::to_channel_r32(r);
         auto G = gpucs::to_channel_r32(g);
@@ -427,25 +445,9 @@ namespace color_space
     }
 
 
+    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    cs::YUVu16 rgb_u16_to_yuv_u16(u16 r, u16 g, u16 b)
-    {
-        auto R = gpucs::to_channel_r32(r);
-        auto G = gpucs::to_channel_r32(g);
-        auto B = gpucs::to_channel_r32(b);
-
-        auto yuv = gpucs::rgb_r32_to_yuv_r32(R, G, B);
-
-        return {
-            gpucs::to_channel_u16(yuv.y),
-            gpucs::to_channel_u16(yuv.u),
-            gpucs::to_channel_u16(yuv.v),
-        };
-    }
-
-
-    GPU_CONSTEXPR_FUNCTION
-    cs::RGBu8 yuv_u16_to_rgb_u8(u16 y, u16 u, u16 v)
+    cs::RGBu8 yuv_to_rgb_u8(T y, T u, T v)
     {
         auto Y = gpucs::to_channel_r32(y);
         auto U = gpucs::to_channel_r32(u);
@@ -461,8 +463,9 @@ namespace color_space
     }
 
 
+    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    cs::RGBu16 yuv_u16_to_rgb_u16(u16 y, u16 u, u16 v)
+    cs::RGBu16 yuv_to_rgb_u16(T y, T u, T v)
     {
         auto Y = gpucs::to_channel_r32(y);
         auto U = gpucs::to_channel_r32(u);
@@ -913,9 +916,9 @@ namespace gpu
         auto xy = gpuf::get_thread_xy(src, t);
 
         auto s = gpuf::xy_at(src, xy)->rgba;
-        auto& d = *gpuf::xy_at(dst, xy);
+        auto& d = *gpuf::xy_at(dst, xy);        
 
-        d = gpucs::round_to_u8(gpucs::to_grayscale_standard(s.red, s.green, s.blue));
+        d = gpucs::rgb_unsigned_to_gray(s.red, s.green, s.blue); // gpucs::round_to_u8(gpucs::to_grayscale_standard(s.red, s.green, s.blue));
     }
 
 
@@ -935,7 +938,11 @@ namespace gpu
         auto s = gpuf::xy_at(src, xy)->rgba;
         auto& d = *gpuf::xy_at(dst, xy);
 
-        d = gpucs::to_channel_u16(gpucs::to_grayscale_standard(s.red, s.green, s.blue));
+        auto gray8 = gpucs::rgb_unsigned_to_gray(s.red, s.green, s.blue);
+
+        d = gpucs::to_channel_u16(gray8);
+
+        //d = gpucs::to_channel_u16(gpucs::to_grayscale_standard(s.red, s.green, s.blue));
     }
 
 
@@ -958,7 +965,9 @@ namespace gpu
 
         auto& d = *gpuf::xy_at(dst, xy);
 
-        d = gpucs::round_to_u16(gpucs::to_grayscale_standard(r, g, b));
+        d = gpucs::rgb_unsigned_to_gray(r, g, b);
+
+        //d = gpucs::round_to_u16(gpucs::to_grayscale_standard(r, g, b));
     }
 
 
@@ -975,15 +984,10 @@ namespace gpu
 
         auto xy = gpuf::get_thread_xy(src, t);
 
-        auto s = *gpuf::xy_at(src, xy);
+        auto gray = gpucs::to_channel_u8(*gpuf::xy_at(src, xy));
         auto& d = gpuf::xy_at(dst, xy)->rgba;
 
-        d = {
-            gpucs::to_channel_u8(s),
-            gpucs::to_channel_u8(s),
-            gpucs::to_channel_u8(s),
-            255
-        };
+        d = { gray, gray, gray, 255 };
     }
 
 }
@@ -1263,7 +1267,7 @@ namespace gpu
         auto& du = *gpuf::channel_xy_at(dst, xy, YUV::U);
         auto& dv = *gpuf::channel_xy_at(dst, xy, YUV::V);
         
-        auto yuv = gpucs::rgb_u8_to_yuv_u16(s.red, s.green, s.blue);
+        auto yuv = gpucs::rgb_to_yuv_u16(s.red, s.green, s.blue);
 
         dy = yuv.y;
         du = yuv.u;
@@ -1292,7 +1296,7 @@ namespace gpu
         auto& u16 = *gpuf::channel_xy_at(dst, xy, YUV::U);
         auto& v16 = *gpuf::channel_xy_at(dst, xy, YUV::V);
 
-        auto yuv = gpucs::rgb_u16_to_yuv_u16(r16, g16, b16);
+        auto yuv = gpucs::rgb_to_yuv_u16(r16, g16, b16);
 
         y16 = yuv.y;
         u16 = yuv.u;
@@ -1319,7 +1323,7 @@ namespace gpu
 
         auto& rgba = gpuf::xy_at(dst, xy)->rgba;
 
-        auto rgb = gpucs::yuv_u16_to_rgb_u8(y16, u16, v16);
+        auto rgb = gpucs::yuv_to_rgb_u8(y16, u16, v16);
 
         rgba.red = rgb.red;
         rgba.green = rgb.green;
@@ -1349,7 +1353,7 @@ namespace gpu
         auto& g16 = *gpuf::channel_xy_at(dst, xy, RGB::G);
         auto& b16 = *gpuf::channel_xy_at(dst, xy, RGB::B);
 
-        auto rgb = gpucs::yuv_u16_to_rgb_u16(y16, u16, v16);
+        auto rgb = gpucs::yuv_to_rgb_u16(y16, u16, v16);
 
         r16 = rgb.red;
         g16 = rgb.green;
@@ -1357,8 +1361,6 @@ namespace gpu
     }
 }
 
-
-/* map yuv */
 
 namespace simage
 {

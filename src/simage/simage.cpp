@@ -16,7 +16,7 @@ namespace rng = std::ranges;
 
 
 
-static void process_image_by_row(u32 n_rows, id_func_t const& row_func)
+static void process_by_row(u32 n_rows, id_func_t const& row_func)
 {
 	auto const row_begin = 0;
 	auto const row_end = n_rows;
@@ -326,7 +326,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 	
 
@@ -344,7 +344,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -363,7 +363,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 }
 
@@ -396,7 +396,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -421,7 +421,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -563,7 +563,7 @@ namespace simage
 			map_rgba_row_simd(s, dr, dg, db, da, src.width);
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -583,7 +583,7 @@ namespace simage
 			map_rgb_row_simd(s, dr, dg, db, src.width);
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -650,7 +650,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 	
@@ -689,7 +689,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -720,7 +720,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 }
 
@@ -748,7 +748,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -772,7 +772,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -798,7 +798,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -820,7 +820,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 }
 
@@ -848,7 +848,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -872,7 +872,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -898,7 +898,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -920,7 +920,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 }
 
@@ -955,7 +955,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -1089,7 +1089,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(dst.height, row_func);
+		process_by_row(dst.height, row_func);
 	}
 
 
@@ -1139,7 +1139,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(dst.height, row_func);
+		process_by_row(dst.height, row_func);
 	}
 }
 
@@ -1167,7 +1167,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 }
 
@@ -1397,7 +1397,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(view.height, row_func);
+		process_by_row(view.height, row_func);
 	}
 
 
@@ -1422,7 +1422,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(view.height, row_func);
+		process_by_row(view.height, row_func);
 	}
 
 	template <class VIEW, typename COLOR>
@@ -1483,7 +1483,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -1501,7 +1501,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -1520,7 +1520,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -1660,7 +1660,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(dst.height, row_func);
+		process_by_row(dst.height, row_func);
 	}
 
 
@@ -1704,7 +1704,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(dst.height, row_func);
+		process_by_row(dst.height, row_func);
 	}
 
 
@@ -1745,7 +1745,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(dst.height, row_func);
+		process_by_row(dst.height, row_func);
 	}
 }
 #endif
@@ -1786,7 +1786,7 @@ namespace simage
 			}
 		};
 
-		process_image_by_row(src.height, row_func);
+		process_by_row(src.height, row_func);
 	}
 
 

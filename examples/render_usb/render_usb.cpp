@@ -6,23 +6,23 @@
 
 // memory
 img::Buffer32 buffer;
-img::View3r32 view3a;
-img::View2r32 view2a;
-img::View1r32 view1a;
-img::View3r32 view3b;
+img::View3f32 view3a;
+img::View2f32 view2a;
+img::View1f32 view1a;
+img::View3f32 view3b;
 
 
 // tests
-img::View3r32 view_rgb;
-img::View1r32 view_gray;
-img::View2r32 view_grad;
-img::View3r32 view_blur;
-img::View1r32 view_red;
-img::View1r32 view_green;
-img::View1r32 view_blue;
+img::View3f32 view_rgb;
+img::View1f32 view_gray;
+img::View2f32 view_grad;
+img::View3f32 view_blur;
+img::View1f32 view_red;
+img::View1f32 view_green;
+img::View1f32 view_blue;
 
 
-static r32 to_hypot(r32 grad_x, r32 grad_y)
+static f32 to_hypot(f32 grad_x, f32 grad_y)
 {
 	return std::hypotf(grad_x, grad_y);
 }

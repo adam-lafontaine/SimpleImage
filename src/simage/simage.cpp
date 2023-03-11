@@ -89,30 +89,30 @@ namespace simage
 
 namespace simage
 {
-	class RGBr32p
+	class RGBf32p
 	{
 	public:
-		r32* R;
-		r32* G;
-		r32* B;
+		f32* R;
+		f32* G;
+		f32* B;
 	};
 
 
-	class HSVr32p
+	class HSVf32p
 	{
 	public:
-		r32* H;
-		r32* S;
-		r32* V;
+		f32* H;
+		f32* S;
+		f32* V;
 	};
 
 
-	class LCHr32p
+	class LCHf32p
 	{
 	public:
-		r32* L;
-		r32* C;
-		r32* H;
+		f32* L;
+		f32* C;
+		f32* H;
 	};
 }
 
@@ -121,14 +121,14 @@ namespace simage
 
 namespace simage
 {
-	static RGBr32p rgb_row_begin(ViewRGBr32 const& view, u32 y)
+	static RGBf32p rgb_row_begin(ViewRGBf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
-		RGBr32p rgb{};
+		RGBf32p rgb{};
 
 		rgb.R = view.channel_data_[id_cast(RGB::R)] + offset;
 		rgb.G = view.channel_data_[id_cast(RGB::G)] + offset;
@@ -138,14 +138,14 @@ namespace simage
 	}
 
 
-	static HSVr32p hsv_row_begin(ViewHSVr32 const& view, u32 y)
+	static HSVf32p hsv_row_begin(ViewHSVf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
-		HSVr32p hsv{};
+		HSVf32p hsv{};
 
 		hsv.H = view.channel_data_[id_cast(HSV::H)] + offset;
 		hsv.S = view.channel_data_[id_cast(HSV::S)] + offset;
@@ -155,14 +155,14 @@ namespace simage
 	}
 
 
-	static LCHr32p lch_row_begin(ViewLCHr32 const& view, u32 y)
+	static LCHf32p lch_row_begin(ViewLCHf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
 		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
-		LCHr32p lch{};
+		LCHf32p lch{};
 
 		lch.L = view.channel_data_[id_cast(LCH::L)] + offset;
 		lch.C = view.channel_data_[id_cast(LCH::C)] + offset;
@@ -172,7 +172,7 @@ namespace simage
 	}
 
 
-	static r32* row_offset_begin(View1r32 const& view, u32 y, int y_offset)
+	static f32* row_offset_begin(View1f32 const& view, u32 y, int y_offset)
 	{
 		assert(verify(view));
 
@@ -185,7 +185,7 @@ namespace simage
 
 
 	template <size_t N>
-	static r32* channel_row_begin(ViewCHr32<N> const& view, u32 y, u32 ch)
+	static f32* channel_row_begin(ViewCHf32<N> const& view, u32 y, u32 ch)
 	{
 		assert(verify(view));
 
@@ -198,7 +198,7 @@ namespace simage
 
 
 	template <size_t N>
-	static r32* channel_row_offset_begin(ViewCHr32<N> const& view, u32 y, int y_offset, u32 ch)
+	static f32* channel_row_offset_begin(ViewCHf32<N> const& view, u32 y, int y_offset, u32 ch)
 	{
 		assert(verify(view));
 
@@ -217,7 +217,7 @@ namespace simage
 namespace simage
 {
 	template <size_t N>
-	static void do_make_view(ViewCHr32<N>& view, u32 width, u32 height, Buffer32& buffer)
+	static void do_make_view(ViewCHf32<N>& view, u32 width, u32 height, Buffer32& buffer)
 	{
 		view.channel_width_ = width;
 		view.width = width;
@@ -232,11 +232,11 @@ namespace simage
 	}
 
 
-	View1r32 make_view_1(u32 width, u32 height, Buffer32& buffer)
+	View1f32 make_view_1(u32 width, u32 height, Buffer32& buffer)
 	{
 		assert(verify(buffer, width * height));
 
-		View1r32 view;
+		View1f32 view;
 
 		view.matrix_data_ = mb::push_elements(buffer, width * height);
 		view.matrix_width = width;		
@@ -251,11 +251,11 @@ namespace simage
 	}
 
 
-	View2r32 make_view_2(u32 width, u32 height, Buffer32& buffer)
+	View2f32 make_view_2(u32 width, u32 height, Buffer32& buffer)
 	{
 		assert(verify(buffer, width * height * 2));
 
-		View2r32 view;
+		View2f32 view;
 
 		do_make_view(view, width, height, buffer);
 
@@ -265,11 +265,11 @@ namespace simage
 	}
 
 
-	View3r32 make_view_3(u32 width, u32 height, Buffer32& buffer)
+	View3f32 make_view_3(u32 width, u32 height, Buffer32& buffer)
 	{
 		assert(verify(buffer, width * height * 3));
 
-		View3r32 view;
+		View3f32 view;
 
 		do_make_view(view, width, height, buffer);
 
@@ -279,11 +279,11 @@ namespace simage
 	}
 
 
-	View4r32 make_view_4(u32 width, u32 height, Buffer32& buffer)
+	View4f32 make_view_4(u32 width, u32 height, Buffer32& buffer)
 	{
 		assert(verify(buffer, width * height * 4));
 
-		View4r32 view;
+		View4f32 view;
 
 		do_make_view(view, width, height, buffer);
 
@@ -298,7 +298,7 @@ namespace simage
 
 namespace simage
 {
-	void map_gray(ViewGray const& src, View1r32 const& dst)
+	void map_gray(ViewGray const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -308,7 +308,7 @@ namespace simage
 			auto d = row_begin(dst, y);
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = cs::to_channel_r32(s[x]);
+				d[x] = cs::to_channel_f32(s[x]);
 			}
 		};
 
@@ -316,7 +316,7 @@ namespace simage
 	}
 	
 
-	void map_gray(View1r32 const& src, ViewGray const& dst)
+	void map_gray(View1f32 const& src, ViewGray const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -334,7 +334,7 @@ namespace simage
 	}
 
 
-	void map_gray(ViewYUV const& src, View1r32 const& dst)
+	void map_gray(ViewYUV const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -345,7 +345,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = cs::to_channel_r32(s[x].y);
+				d[x] = cs::to_channel_f32(s[x].y);
 			}
 		};
 
@@ -358,7 +358,7 @@ namespace simage
 
 namespace simage
 {	
-	static void map_rgba_no_simd(View const& src, ViewRGBAr32 const& dst)
+	static void map_rgba_no_simd(View const& src, ViewRGBAf32 const& dst)
 	{
 		constexpr auto r = id_cast(RGBA::R);
 		constexpr auto g = id_cast(RGBA::G);
@@ -375,10 +375,10 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x) // TODO: simd
 			{
-				dr[x] = cs::to_channel_r32(s[x].channels[r]);
-				dg[x] = cs::to_channel_r32(s[x].channels[g]);
-				db[x] = cs::to_channel_r32(s[x].channels[b]);
-				da[x] = cs::to_channel_r32(s[x].channels[a]);
+				dr[x] = cs::to_channel_f32(s[x].channels[r]);
+				dg[x] = cs::to_channel_f32(s[x].channels[g]);
+				db[x] = cs::to_channel_f32(s[x].channels[b]);
+				da[x] = cs::to_channel_f32(s[x].channels[a]);
 			}
 		};
 
@@ -386,7 +386,7 @@ namespace simage
 	}
 
 
-	void map_rgb_no_simd(View const& src, ViewRGBr32 const& dst)
+	void map_rgb_no_simd(View const& src, ViewRGBf32 const& dst)
 	{
 		constexpr auto r = id_cast(RGB::R);
 		constexpr auto g = id_cast(RGB::G);
@@ -401,9 +401,9 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x) // TODO: simd
 			{
-				dr[x] = cs::to_channel_r32(s[x].channels[r]);
-				dg[x] = cs::to_channel_r32(s[x].channels[g]);
-				db[x] = cs::to_channel_r32(s[x].channels[b]);
+				dr[x] = cs::to_channel_f32(s[x].channels[r]);
+				dg[x] = cs::to_channel_f32(s[x].channels[g]);
+				db[x] = cs::to_channel_f32(s[x].channels[b]);
 			}
 		};
 
@@ -411,7 +411,7 @@ namespace simage
 	}
 
 
-	void map_rgb_row_no_simd(View const& src, ViewRGBr32 const& dst, u32 y)
+	void map_rgb_row_no_simd(View const& src, ViewRGBf32 const& dst, u32 y)
 	{
 		constexpr auto r = id_cast(RGB::R);
 		constexpr auto g = id_cast(RGB::G);
@@ -424,57 +424,57 @@ namespace simage
 
 		for (u32 x = 0; x < src.width; ++x)
 		{
-			dr[x] = cs::to_channel_r32(s[x].channels[r]);
-			dg[x] = cs::to_channel_r32(s[x].channels[g]);
-			db[x] = cs::to_channel_r32(s[x].channels[b]);
+			dr[x] = cs::to_channel_f32(s[x].channels[r]);
+			dg[x] = cs::to_channel_f32(s[x].channels[g]);
+			db[x] = cs::to_channel_f32(s[x].channels[b]);
 		}
 	}
 
 
 #ifdef SIMAGE_NO_SIMD
 
-	static void do_map_rgba(View const& src, ViewRGBAr32 const& dst)
+	static void do_map_rgba(View const& src, ViewRGBAf32 const& dst)
 	{
 		map_rgba_no_simd(src, dst);
 	}
 
 
-	static void do_map_rgb(View const& src, ViewRGBr32 const& dst)
+	static void do_map_rgb(View const& src, ViewRGBf32 const& dst)
 	{
 		map_rgb_no_simd(src, dst);
 	}
 
 #else
 
-	class Pixelr32Planar
+	class Pixelf32Planar
 	{
 	public:
-		r32 red[simd::VEC_LEN] = { 0 };
-		r32 green[simd::VEC_LEN] = { 0 };
-		r32 blue[simd::VEC_LEN] = { 0 };
-		r32 alpha[simd::VEC_LEN] = { 0 };
+		f32 red[simd::VEC_LEN] = { 0 };
+		f32 green[simd::VEC_LEN] = { 0 };
+		f32 blue[simd::VEC_LEN] = { 0 };
+		f32 alpha[simd::VEC_LEN] = { 0 };
 	};
 
 
-	Pixelr32Planar to_planar(Pixel* p_begin)
+	Pixelf32Planar to_planar(Pixel* p_begin)
 	{
-		Pixelr32Planar planar;
+		Pixelf32Planar planar;
 
 		for (u32 i = 0; i < simd::VEC_LEN; ++i)
 		{
 			auto rgba = p_begin[i].rgba;
 
-			planar.red[i] = cs::to_channel_r32(rgba.red);
-			planar.green[i] = cs::to_channel_r32(rgba.green);
-			planar.blue[i] = cs::to_channel_r32(rgba.blue);
-			planar.alpha[i] = cs::to_channel_r32(rgba.alpha);
+			planar.red[i] = cs::to_channel_f32(rgba.red);
+			planar.green[i] = cs::to_channel_f32(rgba.green);
+			planar.blue[i] = cs::to_channel_f32(rgba.blue);
+			planar.alpha[i] = cs::to_channel_f32(rgba.alpha);
 		}
 
 		return planar;
 	}
 
 
-	static void map_rgba_row_simd(Pixel* src, r32* dr, r32* dg, r32* db, r32* da, u32 length)
+	static void map_rgba_row_simd(Pixel* src, f32* dr, f32* dg, f32* db, f32* da, u32 length)
 	{
 		constexpr u32 STEP = simd::VEC_LEN;
 
@@ -504,7 +504,7 @@ namespace simage
 	}
 
 
-	static void map_rgb_row_simd(Pixel* src, r32* dr, r32* dg, r32* db, u32 length)
+	static void map_rgb_row_simd(Pixel* src, f32* dr, f32* dg, f32* db, u32 length)
 	{
 		constexpr u32 STEP = simd::VEC_LEN;
 
@@ -531,7 +531,7 @@ namespace simage
 	}
 
 
-	static void map_rgba_simd(View const& src, ViewRGBAr32 const& dst)
+	static void map_rgba_simd(View const& src, ViewRGBAf32 const& dst)
 	{
 		constexpr auto r = id_cast(RGBA::R);
 		constexpr auto g = id_cast(RGBA::G);
@@ -553,7 +553,7 @@ namespace simage
 	}
 
 
-	static void map_rgb_simd(View const& src, ViewRGBr32 const& dst)
+	static void map_rgb_simd(View const& src, ViewRGBf32 const& dst)
 	{
 		constexpr auto r = id_cast(RGB::R);
 		constexpr auto g = id_cast(RGB::G);
@@ -573,7 +573,7 @@ namespace simage
 	}
 
 
-	static void do_map_rgba(View const& src, ViewRGBAr32 const& dst)
+	static void do_map_rgba(View const& src, ViewRGBAf32 const& dst)
 	{
 		if (src.width < simd::VEC_LEN)
 		{
@@ -586,7 +586,7 @@ namespace simage
 	}
 
 
-	static void do_map_rgb(View const& src, ViewRGBr32 const& dst)
+	static void do_map_rgb(View const& src, ViewRGBf32 const& dst)
 	{
 		if (src.width < simd::VEC_LEN)
 		{
@@ -602,7 +602,7 @@ namespace simage
 #endif	
 
 
-	void map_rgba(View const& src, ViewRGBAr32 const& dst)
+	void map_rgba(View const& src, ViewRGBAf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -610,7 +610,7 @@ namespace simage
 	}
 
 
-	void map_rgba(ViewRGBAr32 const& src, View const& dst)
+	void map_rgba(ViewRGBAf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -640,7 +640,7 @@ namespace simage
 	}
 
 	
-	void map_rgb(View const& src, ViewRGBr32 const& dst)
+	void map_rgb(View const& src, ViewRGBf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -648,7 +648,7 @@ namespace simage
 	}
 
 
-	void map_rgb(ViewRGBr32 const& src, View const& dst)
+	void map_rgb(ViewRGBf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -679,7 +679,7 @@ namespace simage
 	}
 
 
-	void map_rgb(View1r32 const& src, View const& dst)
+	void map_rgb(View1f32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -715,7 +715,7 @@ namespace simage
 
 namespace simage
 {	
-	void map_rgb_hsv(View const& src, ViewHSVr32 const& dst)
+	void map_rgb_hsv(View const& src, ViewHSVf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -727,7 +727,7 @@ namespace simage
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto rgba = s[x].rgba;
-				auto hsv = hsv::r32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				auto hsv = hsv::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 				d.H[x] = hsv.hue;
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
@@ -738,7 +738,7 @@ namespace simage
 	}
 
 
-	void map_hsv_rgb(ViewHSVr32 const& src, View const& dst)
+	void map_hsv_rgb(ViewHSVf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -749,7 +749,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgba = hsv::r32_to_rgb_u8(s.H[x], s.S[x], s.V[x]);
+				auto rgba = hsv::f32_to_rgb_u8(s.H[x], s.S[x], s.V[x]);
 
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
@@ -762,7 +762,7 @@ namespace simage
 	}
 
 
-	void map_rgb_hsv(ViewRGBr32 const& src, ViewHSVr32 const& dst)
+	void map_rgb_hsv(ViewRGBf32 const& src, ViewHSVf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -777,7 +777,7 @@ namespace simage
 				auto g = s.G[x];
 				auto b = s.B[x];
 
-				auto hsv = hsv::r32_from_rgb_r32(r, g, b);
+				auto hsv = hsv::f32_from_rgb_f32(r, g, b);
 				d.H[x] = hsv.hue;
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
@@ -788,7 +788,7 @@ namespace simage
 	}
 
 
-	void map_hsv_rgb(ViewHSVr32 const& src, ViewRGBr32 const& dst)
+	void map_hsv_rgb(ViewHSVf32 const& src, ViewRGBf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -799,7 +799,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgb = hsv::r32_to_rgb_r32(s.H[x], s.S[x], s.V[x]);
+				auto rgb = hsv::f32_to_rgb_f32(s.H[x], s.S[x], s.V[x]);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
@@ -815,7 +815,7 @@ namespace simage
 
 namespace simage
 {
-	void map_rgb_lch(View const& src, ViewLCHr32 const& dst)
+	void map_rgb_lch(View const& src, ViewLCHf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -827,7 +827,7 @@ namespace simage
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto rgba = s[x].rgba;
-				auto lch = lch::r32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				auto lch = lch::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 				d.L[x] = lch.light;
 				d.C[x] = lch.chroma;
 				d.H[x] = lch.hue;
@@ -838,7 +838,7 @@ namespace simage
 	}
 
 
-	void map_lch_rgb(ViewLCHr32 const& src, View const& dst)
+	void map_lch_rgb(ViewLCHf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -849,7 +849,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgba = lch::r32_to_rgb_u8(s.L[x], s.C[x], s.H[x]);
+				auto rgba = lch::f32_to_rgb_u8(s.L[x], s.C[x], s.H[x]);
 
 				d[x].rgba.red = rgba.red;
 				d[x].rgba.green = rgba.green;
@@ -862,7 +862,7 @@ namespace simage
 	}
 
 
-	void map_rgb_lch(ViewRGBr32 const& src, ViewLCHr32 const& dst)
+	void map_rgb_lch(ViewRGBf32 const& src, ViewLCHf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -877,7 +877,7 @@ namespace simage
 				auto g = s.G[x];
 				auto b = s.B[x];
 
-				auto lch = lch::r32_from_rgb_r32(r, g, b);
+				auto lch = lch::f32_from_rgb_f32(r, g, b);
 				d.L[x] = lch.light;
 				d.C[x] = lch.chroma;
 				d.H[x] = lch.hue;
@@ -888,7 +888,7 @@ namespace simage
 	}
 
 
-	void map_lch_rgb(ViewLCHr32 const& src, ViewRGBr32 const& dst)
+	void map_lch_rgb(ViewLCHf32 const& src, ViewRGBf32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -899,7 +899,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgb = lch::r32_to_rgb_r32(s.L[x], s.C[x], s.H[x]);
+				auto rgb = lch::f32_to_rgb_f32(s.L[x], s.C[x], s.H[x]);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
@@ -915,7 +915,7 @@ namespace simage
 
 namespace simage
 {
-	void map_yuv_rgb_no_simd(ViewYUV const& src, ViewRGBr32 const& dst)
+	void map_yuv_rgb_no_simd(ViewYUV const& src, ViewRGBf32 const& dst)
 	{
 		auto const row_func = [&](u32 y)
 		{
@@ -928,13 +928,13 @@ namespace simage
 				auto yuv = s422[x422];
 
 				auto x = 2 * x422;
-				auto rgb = yuv::u8_to_rgb_r32(yuv.y1, yuv.u, yuv.v);
+				auto rgb = yuv::u8_to_rgb_f32(yuv.y1, yuv.u, yuv.v);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
 
 				++x;
-				rgb = rgb = yuv::u8_to_rgb_r32(yuv.y2, yuv.u, yuv.v);
+				rgb = rgb = yuv::u8_to_rgb_f32(yuv.y2, yuv.u, yuv.v);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
@@ -947,42 +947,42 @@ namespace simage
 
 #ifdef SIMAGE_NO_SIMD
 
-	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
 	{
 		map_yuv_rgb_no_simd(src, dst);
 	}
 
 #else
 
-	class YUV422u8r32Planar
+	class YUV422u8f32Planar
 	{
 	public:
-		r32 y1[simd::VEC_LEN] = { 0 };
-		r32 y2[simd::VEC_LEN] = { 0 };
-		r32 u[simd::VEC_LEN] = { 0 };
-		r32 v[simd::VEC_LEN] = { 0 };
+		f32 y1[simd::VEC_LEN] = { 0 };
+		f32 y2[simd::VEC_LEN] = { 0 };
+		f32 u[simd::VEC_LEN] = { 0 };
+		f32 v[simd::VEC_LEN] = { 0 };
 	};
 
 
-	static YUV422u8r32Planar to_planar(YUV422u8* begin)
+	static YUV422u8f32Planar to_planar(YUV422u8* begin)
 	{
-		YUV422u8r32Planar planar;
+		YUV422u8f32Planar planar;
 
 		for (u32 i = 0; i < simd::VEC_LEN; ++i)
 		{
 			auto yuv = begin[i];
 
-			planar.y1[i] = (r32)yuv.y1;
-			planar.y2[i] = (r32)yuv.y2;
-			planar.u[i] = (r32)yuv.u;
-			planar.v[i] = (r32)yuv.v;
+			planar.y1[i] = (f32)yuv.y1;
+			planar.y2[i] = (f32)yuv.y2;
+			planar.u[i] = (f32)yuv.u;
+			planar.v[i] = (f32)yuv.v;
 		}
 
 		return planar;
 	}
 
 
-	static void map_yuv422_rgb_row(YUV422u8* yuv, r32* dr, r32* dg, r32* db, u32 length)
+	static void map_yuv422_rgb_row(YUV422u8* yuv, f32* dr, f32* dg, f32* db, u32 length)
 	{
 		constexpr u32 STEP = simd::VEC_LEN;
 
@@ -1002,7 +1002,7 @@ namespace simage
 	}
 
 
-	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
 	{
 		if (src.width < simd::VEC_LEN)
 		{
@@ -1020,7 +1020,7 @@ namespace simage
 
 	
 
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
 	{
 		assert(verify(src, dst));
 		assert(src.width % 2 == 0);
@@ -1030,7 +1030,7 @@ namespace simage
 	}
 
 
-	void mipmap_yuv_rgb(ViewYUV const& src, ViewRGBr32 const& dst)
+	void mipmap_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
 	{		
 		static_assert(sizeof(YUV2u8) == 2);
 		assert(verify(src));
@@ -1041,13 +1041,13 @@ namespace simage
 
 		constexpr auto avg4 = [](u8 a, u8 b, u8 c, u8 d) 
 		{
-			auto val = 0.25f * ((r32)a + b + c + d);
+			auto val = 0.25f * ((f32)a + b + c + d);
 			return (u8)(u32)(val + 0.5f);
 		};
 
 		constexpr auto avg2 = [](u8 a, u8 b)
 		{
-			auto val = 0.5f * ((r32)a + b);
+			auto val = 0.5f * ((f32)a + b);
 			return (u8)(u32)(val + 0.5f);
 		};
 
@@ -1068,7 +1068,7 @@ namespace simage
 				u8 u_avg = avg2(yuv1.u, yuv2.u);
 				u8 v_avg = avg2(yuv1.v, yuv2.v);
 
-				auto rgb = yuv::u8_to_rgb_r32(y_avg, u_avg, v_avg);
+				auto rgb = yuv::u8_to_rgb_f32(y_avg, u_avg, v_avg);
 				d.R[x] = rgb.red;
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
@@ -1090,13 +1090,13 @@ namespace simage
 
 		constexpr auto avg4 = [](u8 a, u8 b, u8 c, u8 d)
 		{
-			auto val = 0.25f * ((r32)a + b + c + d);
+			auto val = 0.25f * ((f32)a + b + c + d);
 			return (u8)(u32)(val + 0.5f);
 		};
 
 		constexpr auto avg2 = [](u8 a, u8 b)
 		{
-			auto val = 0.5f * ((r32)a + b);
+			auto val = 0.5f * ((f32)a + b);
 			return (u8)(u32)(val + 0.5f);
 		};
 
@@ -1132,7 +1132,7 @@ namespace simage
 
 namespace simage
 {
-	void map_bgr_rgb(ViewBGR const& src, ViewRGBr32 const& dst)
+	void map_bgr_rgb(ViewBGR const& src, ViewRGBf32 const& dst)
 	{
 		constexpr auto r = id_cast(RGB::R);
 		constexpr auto g = id_cast(RGB::G);
@@ -1147,9 +1147,9 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x) // TODO: simd
 			{
-				dr[x] = cs::to_channel_r32(s[x].red);
-				dg[x] = cs::to_channel_r32(s[x].green);
-				db[x] = cs::to_channel_r32(s[x].blue);
+				dr[x] = cs::to_channel_f32(s[x].red);
+				dg[x] = cs::to_channel_f32(s[x].green);
+				db[x] = cs::to_channel_f32(s[x].blue);
 			}
 		};
 
@@ -1163,9 +1163,9 @@ namespace simage
 namespace simage
 {
 	template <size_t N>
-	static ViewCHr32<N> do_sub_view(ViewCHr32<N> const& view, Range2Du32 const& range)
+	static ViewCHf32<N> do_sub_view(ViewCHf32<N> const& view, Range2Du32 const& range)
 	{
-		ViewCHr32<N> sub_view;
+		ViewCHf32<N> sub_view;
 
 		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
@@ -1184,7 +1184,7 @@ namespace simage
 	}
 
 
-	View4r32 sub_view(View4r32 const& view, Range2Du32 const& range)
+	View4f32 sub_view(View4f32 const& view, Range2Du32 const& range)
 	{
 		assert(verify(view, range));
 
@@ -1196,7 +1196,7 @@ namespace simage
 	}
 
 
-	View3r32 sub_view(View3r32 const& view, Range2Du32 const& range)
+	View3f32 sub_view(View3f32 const& view, Range2Du32 const& range)
 	{
 		assert(verify(view, range));
 
@@ -1208,7 +1208,7 @@ namespace simage
 	}
 
 
-	View2r32 sub_view(View2r32 const& view, Range2Du32 const& range)
+	View2f32 sub_view(View2f32 const& view, Range2Du32 const& range)
 	{
 		assert(verify(view, range));
 
@@ -1220,11 +1220,11 @@ namespace simage
 	}
 
 
-	View1r32 sub_view(View1r32 const& view, Range2Du32 const& range)
+	View1f32 sub_view(View1f32 const& view, Range2Du32 const& range)
 	{
 		assert(verify(view, range));
 
-		View1r32 sub_view;
+		View1f32 sub_view;
 
 		sub_view.matrix_data_ = view.matrix_data_;
 		sub_view.matrix_width = view.matrix_width;
@@ -1247,9 +1247,9 @@ namespace simage
 namespace simage
 {
 	template <size_t N>
-	static View1r32 select_channel(ViewCHr32<N> const& view, u32 ch)
+	static View1f32 select_channel(ViewCHf32<N> const& view, u32 ch)
 	{
-		View1r32 view1{};
+		View1f32 view1{};
 
 		view1.matrix_width = view.channel_width_;
 		view1.range = view.range;
@@ -1262,7 +1262,7 @@ namespace simage
 	}
 
 
-	View1r32 select_channel(ViewRGBAr32 const& view, RGBA channel)
+	View1f32 select_channel(ViewRGBAf32 const& view, RGBA channel)
 	{
 		assert(verify(view));
 
@@ -1276,7 +1276,7 @@ namespace simage
 	}
 
 
-	View1r32 select_channel(ViewRGBr32 const& view, RGB channel)
+	View1f32 select_channel(ViewRGBf32 const& view, RGB channel)
 	{
 		assert(verify(view));
 
@@ -1290,7 +1290,7 @@ namespace simage
 	}
 
 
-	View1r32 select_channel(ViewHSVr32 const& view, HSV channel)
+	View1f32 select_channel(ViewHSVf32 const& view, HSV channel)
 	{
 		assert(verify(view));
 
@@ -1304,7 +1304,7 @@ namespace simage
 	}
 
 
-	View1r32 select_channel(View2r32 const& view, GA channel)
+	View1f32 select_channel(View2f32 const& view, GA channel)
 	{
 		assert(verify(view));
 
@@ -1318,7 +1318,7 @@ namespace simage
 	}
 
 
-	View1r32 select_channel(View2r32 const& view, XY channel)
+	View1f32 select_channel(View2f32 const& view, XY channel)
 	{
 		assert(verify(view));
 
@@ -1332,11 +1332,11 @@ namespace simage
 	}
 
 
-	ViewRGBr32 select_rgb(ViewRGBAr32 const& view)
+	ViewRGBf32 select_rgb(ViewRGBAf32 const& view)
 	{
 		assert(verify(view));
 
-		ViewRGBr32 rgb;
+		ViewRGBf32 rgb;
 
 		rgb.channel_width_ = view.channel_width_;
 		rgb.width = view.width;
@@ -1356,7 +1356,7 @@ namespace simage
 
 namespace simage
 {
-	static void fill_no_simd(View1r32 const& view, r32 gray32)
+	static void fill_no_simd(View1f32 const& view, f32 gray32)
 	{		
 		assert(verify(view));
 
@@ -1374,12 +1374,12 @@ namespace simage
 
 
 	template <size_t N>
-	static void fill_n_channels_no_simd(ViewCHr32<N> const& view, Pixel color)
+	static void fill_n_channels_no_simd(ViewCHf32<N> const& view, Pixel color)
 	{
-		r32 channels[N] = {};
+		f32 channels[N] = {};
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			channels[ch] = cs::to_channel_r32(color.channels[ch]);
+			channels[ch] = cs::to_channel_f32(color.channels[ch]);
 		}
 
 		auto const row_func = [&](u32 y)
@@ -1408,19 +1408,19 @@ namespace simage
 
 
 	template <size_t N>
-	static void do_fill_n_channels(ViewCHr32<N> const& view, Pixel color)
+	static void do_fill_n_channels(ViewCHf32<N> const& view, Pixel color)
 	{
 		fill_n_channels_no_simd(view, color);
 	}
 
 #else
 
-	static void fill_row_simd(r32* dst_begin, r32 value, u32 length)
+	static void fill_row_simd(f32* dst_begin, f32 value, u32 length)
 	{
 		constexpr u32 STEP = simd::VEC_LEN;
 
-		r32* dst = 0;
-		r32* val = &value;
+		f32* dst = 0;
+		f32* val = &value;
 		simd::vec_t vec{};
 
 		auto const do_simd = [&](u32 i) 
@@ -1439,7 +1439,7 @@ namespace simage
 	}
 
 
-	static void fill_simd(View1r32 const& view, r32 gray32)
+	static void fill_simd(View1f32 const& view, f32 gray32)
 	{
 		auto const row_func = [&](u32 y)
 		{
@@ -1452,13 +1452,13 @@ namespace simage
 
 
 	template <size_t N>
-	static void fill_n_channels_simd(ViewCHr32<N> const& view, Pixel color)
+	static void fill_n_channels_simd(ViewCHf32<N> const& view, Pixel color)
 	{
-		r32 channels[N] = {};
+		f32 channels[N] = {};
 
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			channels[ch] = cs::to_channel_r32(color.channels[ch]);
+			channels[ch] = cs::to_channel_f32(color.channels[ch]);
 		}
 
 		auto const row_func = [&](u32 y)
@@ -1474,7 +1474,7 @@ namespace simage
 	}
 
 
-	static void do_fill(View1r32 const& view, r32 gray32)
+	static void do_fill(View1f32 const& view, f32 gray32)
 	{
 		if (view.width < simd::VEC_LEN)
 		{
@@ -1488,7 +1488,7 @@ namespace simage
 
 
 	template <size_t N>
-	static void do_fill_n_channels(ViewCHr32<N> const& view, Pixel color)
+	static void do_fill_n_channels(ViewCHf32<N> const& view, Pixel color)
 	{
 		if (view.width < simd::VEC_LEN)
 		{
@@ -1503,7 +1503,7 @@ namespace simage
 #endif	
 
 
-	void fill(View4r32 const& view, Pixel color)
+	void fill(View4f32 const& view, Pixel color)
 	{
 		assert(verify(view));
 
@@ -1511,7 +1511,7 @@ namespace simage
 	}
 
 
-	void fill(View3r32 const& view, Pixel color)
+	void fill(View3f32 const& view, Pixel color)
 	{
 		assert(verify(view));
 
@@ -1519,11 +1519,11 @@ namespace simage
 	}
 
 
-	void fill(View1r32 const& view, u8 gray)
+	void fill(View1f32 const& view, u8 gray)
 	{
 		assert(verify(view));		
 
-		auto const gray32 = cs::to_channel_r32(gray);
+		auto const gray32 = cs::to_channel_f32(gray);
 
 		do_fill(view, gray32);
 	}
@@ -1534,7 +1534,7 @@ namespace simage
 
 namespace simage
 {
-	void transform(View1r32 const& src, View1r32 const& dst, std::function<r32(r32)> const& func)
+	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func)
 	{
 		assert(verify(src, dst));
 
@@ -1552,7 +1552,7 @@ namespace simage
 	}
 
 
-	void transform(View2r32 const& src, View1r32 const& dst, std::function<r32(r32, r32)> const& func)
+	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func)
 	{
 		assert(verify(src, dst));
 
@@ -1571,7 +1571,7 @@ namespace simage
 	}
 
 
-	void transform(View3r32 const& src, View1r32 const& dst, std::function<r32(r32, r32, r32)> const& func)
+	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func)
 	{
 		assert(verify(src, dst));
 
@@ -1596,9 +1596,9 @@ namespace simage
 
 namespace simage
 {
-	static r32 average(View1r32 const& view)
+	static f32 average(View1f32 const& view)
 	{
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		for (u32 y = 0; y < view.height; ++y)
 		{
@@ -1613,16 +1613,16 @@ namespace simage
 	}
 
 
-	static r32 average(ViewGray const& view)
+	static f32 average(ViewGray const& view)
 	{
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto s = row_begin(view, y);
 			for (u32 x = 0; x < view.width; ++x)
 			{
-				total += cs::to_channel_r32(s[x]);
+				total += cs::to_channel_f32(s[x]);
 			}
 		}
 
@@ -1631,9 +1631,9 @@ namespace simage
 
 
 	template <size_t N>
-	static std::array<r32, N> average(ViewCHr32<N> const& view)
+	static std::array<f32, N> average(ViewCHf32<N> const& view)
 	{
-		std::array<r32, N> results = { 0 };
+		std::array<f32, N> results = { 0 };
 		for (u32 i = 0; i < N; ++i) { results[i] = 0.0f; }
 
 		for (u32 y = 0; y < view.height; ++y)
@@ -1658,11 +1658,11 @@ namespace simage
 	}
 	
 
-	static cs::RGBr32 average(View const& view)
+	static cs::RGBf32 average(View const& view)
 	{	
-		r32 red = 0.0f;
-		r32 green = 0.0f;
-		r32 blue = 0.0f;
+		f32 red = 0.0f;
+		f32 green = 0.0f;
+		f32 blue = 0.0f;
 
 		for (u32 y = 0; y < view.height; ++y)
 		{
@@ -1670,9 +1670,9 @@ namespace simage
 			for (u32 x = 0; x < view.width; ++x)
 			{
 				auto p = s[x].rgba;
-				red += cs::to_channel_r32(p.red);
-				green += cs::to_channel_r32(p.green);
-				blue += cs::to_channel_r32(p.blue);
+				red += cs::to_channel_f32(p.red);
+				green += cs::to_channel_f32(p.green);
+				blue += cs::to_channel_f32(p.blue);
 			}
 		}
 
@@ -1685,7 +1685,7 @@ namespace simage
 
 
 	template <class VIEW>
-	static void do_shrink_1D(VIEW const& src, View1r32 const& dst)
+	static void do_shrink_1D(VIEW const& src, View1f32 const& dst)
 	{
 		auto const row_func = [&](u32 y)
 		{
@@ -1707,7 +1707,7 @@ namespace simage
 	}
 
 
-	void shrink(View1r32 const& src, View1r32 const& dst)
+	void shrink(View1f32 const& src, View1f32 const& dst)
 	{
 		assert(verify(src));
 		assert(verify(dst));
@@ -1718,7 +1718,7 @@ namespace simage
 	}
 
 
-	void shrink(View3r32 const& src, View3r32 const& dst)
+	void shrink(View3f32 const& src, View3f32 const& dst)
 	{
 		assert(verify(src));
 		assert(verify(dst));
@@ -1751,7 +1751,7 @@ namespace simage
 	}
 
 
-	void shrink(ViewGray const& src, View1r32 const& dst)
+	void shrink(ViewGray const& src, View1f32 const& dst)
 	{
 		assert(verify(src));
 		assert(verify(dst));
@@ -1762,7 +1762,7 @@ namespace simage
 	}
 
 
-	void shrink(View const& src, ViewRGBr32 const& dst)
+	void shrink(View const& src, ViewRGBf32 const& dst)
 	{
 		assert(verify(src));
 		assert(verify(dst));
@@ -1797,7 +1797,7 @@ namespace simage
 
 namespace simage
 {
-	static void convolve(View1r32 const& src, View1r32 const& dst, Mat2Dr32 const& kernel)
+	static void convolve(View1f32 const& src, View1f32 const& dst, Mat2Df32 const& kernel)
 	{
 		assert(verify(src, dst));
 		assert(kernel.width % 2 > 0);
@@ -1831,18 +1831,18 @@ namespace simage
 	}
 
 
-	constexpr std::array<r32, 33> make_grad_x_11()
+	constexpr std::array<f32, 33> make_grad_x_11()
 	{
-		/*constexpr std::array<r32, 33> GRAD_X
+		/*constexpr std::array<f32, 33> GRAD_X
 		{
 			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
 			-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
 			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.01f,
 		};*/
 
-		std::array<r32, 33> grad = { 0 };
+		std::array<f32, 33> grad = { 0 };
 
-		r32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
 
 		size_t w = 11;
 
@@ -1860,9 +1860,9 @@ namespace simage
 	}
 
 
-	constexpr std::array<r32, 33> make_grad_y_11()
+	constexpr std::array<f32, 33> make_grad_y_11()
 	{
-		/*constexpr std::array<r32, 33> GRAD_Y
+		/*constexpr std::array<f32, 33> GRAD_Y
 		{
 			-0.02f, -0.06f, -0.02f,
 			-0.03f, -0.09f, -0.03f,
@@ -1877,9 +1877,9 @@ namespace simage
 			 0.02f,  0.06f,  0.02f,
 		};*/
 
-		std::array<r32, 33> grad = { 0 };
+		std::array<f32, 33> grad = { 0 };
 
-		r32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
 
 		size_t w = 3;
 
@@ -1897,9 +1897,9 @@ namespace simage
 	}
 
 
-	constexpr std::array<r32, 15> make_grad_x_5()
+	constexpr std::array<f32, 15> make_grad_x_5()
 	{
-		std::array<r32, 15> grad
+		std::array<f32, 15> grad
 		{
 			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
 			-0.16f, -0.24f, 0.0f, 0.24f, 0.16f
@@ -1910,9 +1910,9 @@ namespace simage
 	}
 
 
-	constexpr std::array<r32, 15> make_grad_y_5()
+	constexpr std::array<f32, 15> make_grad_y_5()
 	{
-		std::array<r32, 15> grad
+		std::array<f32, 15> grad
 		{
 			-0.08f, -0.16f, -0.08f,
 			-0.12f, -0.24f, -0.12f,
@@ -1925,7 +1925,7 @@ namespace simage
 	}
 
 
-	static void zero_outer(View1r32 const& view, u32 n_rows, u32 n_columns)
+	static void zero_outer(View1f32 const& view, u32 n_rows, u32 n_columns)
 	{
 		auto const top_bottom = [&]()
 		{
@@ -1961,7 +1961,7 @@ namespace simage
 	}
 
 
-	void gradients_xy(View1r32 const& src, View2r32 const& xy_dst)
+	void gradients_xy(View1f32 const& src, View2f32 const& xy_dst)
 	{
 		auto x_dst = select_channel(xy_dst, XY::X);
 		auto y_dst = select_channel(xy_dst, XY::Y);
@@ -1979,15 +1979,15 @@ namespace simage
 
 		constexpr u32 kernel_dim_b = (u32)grad_x.size() / kernel_dim_a;
 
-		Mat2Dr32 x_kernel{};
+		Mat2Df32 x_kernel{};
 		x_kernel.width = kernel_dim_a;
 		x_kernel.height = kernel_dim_b;
-		x_kernel.data_ = (r32*)grad_x.data();
+		x_kernel.data_ = (f32*)grad_x.data();
 
-		Mat2Dr32 y_kernel{};
+		Mat2Df32 y_kernel{};
 		y_kernel.width = kernel_dim_b;
 		y_kernel.height = kernel_dim_a;
-		y_kernel.data_ = (r32*)grad_y.data();
+		y_kernel.data_ = (f32*)grad_y.data();
 
 		zero_outer(x_dst, kernel_dim_b / 2, kernel_dim_a / 2);
 		zero_outer(y_dst, kernel_dim_a / 2, kernel_dim_b / 2);
@@ -2014,26 +2014,26 @@ namespace simage
 
 namespace simage
 {
-	static constexpr std::array<r32, 9> make_gauss_3()
+	static constexpr std::array<f32, 9> make_gauss_3()
 	{
 		auto D3 = 16.0f;
-		std::array<r32, 9> kernel = 
+		std::array<f32, 9> kernel = 
 		{
 			1.0f, 2.0f, 1.0f,
 			2.0f, 4.0f, 2.0f,
 			1.0f, 2.0f, 1.0f,
 		};
 
-		rng::for_each(kernel, [D3](r32& v) { v /= D3; });
+		rng::for_each(kernel, [D3](f32& v) { v /= D3; });
 
 		return kernel;
 	}
 
 
-	static constexpr std::array<r32, 25> make_gauss_5()
+	static constexpr std::array<f32, 25> make_gauss_5()
 	{
 		auto D5 = 256.0f;
-		std::array<r32, 25> kernel =
+		std::array<f32, 25> kernel =
 		{
 			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
 			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
@@ -2042,13 +2042,13 @@ namespace simage
 			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
 		};
 
-		rng::for_each(kernel, [D5](r32& v) { v /= D5; });
+		rng::for_each(kernel, [D5](f32& v) { v /= D5; });
 
 		return kernel;
 	}
 
 
-	static void copy_outer(View1r32 const& src, View1r32 const& dst)
+	static void copy_outer(View1f32 const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -2089,7 +2089,7 @@ namespace simage
 	}
 
 
-	static void convolve_gauss_3x3_outer(View1r32 const& src, View1r32 const& dst)
+	static void convolve_gauss_3x3_outer(View1f32 const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -2098,10 +2098,10 @@ namespace simage
 
 		auto constexpr gauss = make_gauss_3();
 
-		Mat2Dr32 kernel{};
+		Mat2Df32 kernel{};
 		kernel.width = 3;
 		kernel.height = 3;
-		kernel.data_ = (r32*)gauss.data();
+		kernel.data_ = (f32*)gauss.data();
 
 		Range2Du32 top{};
 		top.x_begin = 0;
@@ -2129,7 +2129,7 @@ namespace simage
 	}
 
 
-	static void convolve_gauss_5x5(View1r32 const& src, View1r32 const& dst)
+	static void convolve_gauss_5x5(View1f32 const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -2138,16 +2138,16 @@ namespace simage
 
 		auto constexpr gauss = make_gauss_5();
 
-		Mat2Dr32 kernel{};
+		Mat2Df32 kernel{};
 		kernel.width = 5;
 		kernel.height = 5;
-		kernel.data_ = (r32*)gauss.data();
+		kernel.data_ = (f32*)gauss.data();
 
 		convolve(src, dst, kernel);
 	}
 
 
-	void blur(View1r32 const& src, View1r32 const& dst)
+	void blur(View1f32 const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -2173,7 +2173,7 @@ namespace simage
 	}
 
 
-	void blur(View3r32 const& src, View3r32 const& dst)
+	void blur(View3f32 const& src, View3f32 const& dst)
 	{
 		assert(verify(src, dst));
 

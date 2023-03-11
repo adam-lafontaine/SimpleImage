@@ -16,19 +16,19 @@ namespace simd
 	using vec_t = __m256;
 
 
-	static inline vec_t load_broadcast(const r32* a)
+	static inline vec_t load_broadcast(const f32* a)
 	{
 		return _mm256_broadcast_ss(a);
 	}
 
 
-	static inline vec_t load(const r32* a)
+	static inline vec_t load(const f32* a)
 	{
 		return _mm256_load_ps(a);
 	}
 
 
-	static inline void store(r32* dst, vec_t const& a)
+	static inline void store(f32* dst, vec_t const& a)
 	{
 		_mm256_store_ps(dst, a);
 	}
@@ -88,19 +88,19 @@ using vec_t = __m128;
 
 namespace simd
 {
-	static inline vec_t load_broadcast(const r32* a)
+	static inline vec_t load_broadcast(const f32* a)
 	{
 		return _mm_load_ps1(a);
 	}
 
 
-	static inline vec_t load(const r32* a)
+	static inline vec_t load(const f32* a)
 	{
 		return _mm_load_ps(a);
 	}
 
 
-	static inline void store(r32* dst, vec_t const& a)
+	static inline void store(f32* dst, vec_t const& a)
 	{
 		_mm_store_ps(dst, a);
 	}
@@ -160,19 +160,19 @@ using vec_t = float32x4_t;
 
 namespace simd
 {
-	static inline vec_t load_broadcast(const r32* a)
+	static inline vec_t load_broadcast(const f32* a)
 	{
 		return vld1q_dup_f32(a);
 	}
 
 
-	static inline vec_t load(const r32* a)
+	static inline vec_t load(const f32* a)
 	{
 		return vld1q_f32(a);
 	}
 
 
-	static inline void store(r32* dst, vec_t const& a)
+	static inline void store(f32* dst, vec_t const& a)
 	{
 		vst1q_f32(dst, a);
 	}

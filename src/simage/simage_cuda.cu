@@ -32,11 +32,11 @@ namespace color_space
     };
 
 
-    using RGBr32 = RGB<r32>;
+    using RGBf32 = RGB<f32>;
     using RGBu8 = RGB<u8>;
     using RGBu16 = RGB<u16>;
 
-    using YUVr32 = YUV<r32>;
+    using YUVf32 = YUV<f32>;
     using YUVu8 = YUV<u8>;
     using YUVu16 = YUV<u16>;
 }
@@ -118,7 +118,7 @@ namespace color_space
 {
 
     GPU_CONSTEXPR_FUNCTION
-    inline r32 clamp(r32 value)
+    inline f32 clamp(f32 value)
     {
         if (value < 0.0f)
         {
@@ -135,49 +135,49 @@ namespace color_space
 
     template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline T round_to_unsigned(r32 value)
+    inline T round_to_unsigned(f32 value)
     {
         return (T)(value + 0.5f);
     }
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline u32 round_to_u32(r32 value)
+    inline u32 round_to_u32(f32 value)
     {
         return gpucs::round_to_unsigned<u32>(value);
     }
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline u16 round_to_u16(r32 value)
+    inline u16 round_to_u16(f32 value)
     {
         return gpucs::round_to_unsigned<u16>(value);
     }
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline u8 round_to_u8(r32 value)
+    inline u8 round_to_u8(f32 value)
     {
         return gpucs::round_to_unsigned<u8>(value);
     }
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline r32 to_channel_r32(u8 value)
+    inline f32 to_channel_f32(u8 value)
     {
-        return (r32)value / CH_U8_MAX;
+        return (f32)value / CH_U8_MAX;
     }
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline r32 to_channel_r32(u16 value)
+    inline f32 to_channel_f32(u16 value)
     {
-        return (r32)value / CH_U16_MAX;
+        return (f32)value / CH_U16_MAX;
     }
     
     
     GPU_CONSTEXPR_FUNCTION
-    inline u8 to_channel_u8(r32 value)
+    inline u8 to_channel_u8(f32 value)
     {
         return gpucs::round_to_u8(gpucs::clamp(value) * CH_U8_MAX);
     }
@@ -191,7 +191,7 @@ namespace color_space
     
     
     GPU_CONSTEXPR_FUNCTION
-    inline u16 to_channel_u16(r32 value)
+    inline u16 to_channel_u16(f32 value)
     {
         return gpucs::round_to_u16(gpucs::clamp(value) * CH_U16_MAX);
     }
@@ -206,11 +206,11 @@ namespace color_space
 
     template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline r32 to_grayscale_standard(T r, T g, T b)
+    inline f32 to_grayscale_standard(T r, T g, T b)
     {
-        constexpr r32 COEFF_R = 0.299f;
-        constexpr r32 COEFF_G = 0.587f;
-        constexpr r32 COEFF_B = 0.114f;
+        constexpr f32 COEFF_R = 0.299f;
+        constexpr f32 COEFF_G = 0.587f;
+        constexpr f32 COEFF_B = 0.114f;
 
         return COEFF_R * r + COEFF_G * g + COEFF_B * b;
     }
@@ -240,7 +240,7 @@ namespace color_space
             return { h, s, v };
         }
 
-        s = gpucs::to_channel_u16((r32)(max - min) / max);
+        s = gpucs::to_channel_u16((f32)(max - min) / max);
 
         auto const r_is_max = r == max;
         auto const r_is_min = r == min;
@@ -284,7 +284,7 @@ namespace color_space
             delta_c = max - b;
         }
 
-        h = (u16)(delta_h * (h_id + (r32)delta_c / (max - min)));
+        h = (u16)(delta_h * (h_id + (f32)delta_c / (max - min)));
 
         return { h, s, v };
     }
@@ -299,12 +299,12 @@ namespace color_space
         }
 
         auto max = v;
-        auto range = (r32)s / CH_U16_MAX * v;
+        auto range = (f32)s / CH_U16_MAX * v;
         auto min = gpucs::round_to_u16(max - range);
 
         constexpr u16 delta_h = CH_U16_MAX / 6;
 
-        auto d = (r32)h / delta_h;
+        auto d = (f32)h / delta_h;
         auto h_id = (int)d;
         auto ratio = d - h_id;
 
@@ -379,42 +379,42 @@ namespace color_space
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline cs::YUVr32 rgb_r32_to_yuv_r32(r32 r, r32 g, r32 b)
+    inline cs::YUVf32 rgb_f32_to_yuv_f32(f32 r, f32 g, f32 b)
     {
-        constexpr r32 ry = 0.299f;
-        constexpr r32 gy = 0.587f;
-        constexpr r32 by = 0.114f;
+        constexpr f32 ry = 0.299f;
+        constexpr f32 gy = 0.587f;
+        constexpr f32 by = 0.114f;
 
-        constexpr r32 ru = -0.14713f;
-        constexpr r32 gu = -0.28886f;
-        constexpr r32 bu = 0.436f;
+        constexpr f32 ru = -0.14713f;
+        constexpr f32 gu = -0.28886f;
+        constexpr f32 bu = 0.436f;
 
-        constexpr r32 rv = 0.615f;
-        constexpr r32 gv = -0.51499f;
-        constexpr r32 bv = -0.10001f;
+        constexpr f32 rv = 0.615f;
+        constexpr f32 gv = -0.51499f;
+        constexpr f32 bv = -0.10001f;
 
-        r32 y = (ry * r) + (gy * g) + (by * b);
-        r32 u = (ru * r) + (gu * g) + (bu * b) + 0.5f;
-        r32 v = (rv * r) + (gv * g) + (bv * b) + 0.5f;
+        f32 y = (ry * r) + (gy * g) + (by * b);
+        f32 u = (ru * r) + (gu * g) + (bu * b) + 0.5f;
+        f32 v = (rv * r) + (gv * g) + (bv * b) + 0.5f;
 
         return { y, u, v };
     }
 
 
     GPU_CONSTEXPR_FUNCTION
-    inline cs::RGBr32 yuv_r32_to_rgb_r32(r32 y, r32 u, r32 v)
+    inline cs::RGBf32 yuv_f32_to_rgb_f32(f32 y, f32 u, f32 v)
     {
-        constexpr r32 yr = 1.0f;
-        constexpr r32 ur = 0.0f;
-        constexpr r32 vr = 1.13983f;
+        constexpr f32 yr = 1.0f;
+        constexpr f32 ur = 0.0f;
+        constexpr f32 vr = 1.13983f;
 
-        constexpr r32 yg = 1.0f;
-        constexpr r32 ug = -0.39465f;
-        constexpr r32 vg = -0.5806f;
+        constexpr f32 yg = 1.0f;
+        constexpr f32 ug = -0.39465f;
+        constexpr f32 vg = -0.5806f;
 
-        constexpr r32 yb = 1.0f;
-        constexpr r32 ub = 2.03211f;
-        constexpr r32 vb = 0.0f;
+        constexpr f32 yb = 1.0f;
+        constexpr f32 ub = 2.03211f;
+        constexpr f32 vb = 0.0f;
 
         u -= 0.5f;
         v -= 0.5f;
@@ -431,11 +431,11 @@ namespace color_space
     GPU_CONSTEXPR_FUNCTION
     cs::YUVu16 rgb_to_yuv_u8(T r, T g, T b)
     {
-        auto R = gpucs::to_channel_r32(r);
-        auto G = gpucs::to_channel_r32(g);
-        auto B = gpucs::to_channel_r32(b);
+        auto R = gpucs::to_channel_f32(r);
+        auto G = gpucs::to_channel_f32(g);
+        auto B = gpucs::to_channel_f32(b);
 
-        auto yuv = gpucs::rgb_r32_to_yuv_r32(R, G, B);
+        auto yuv = gpucs::rgb_f32_to_yuv_f32(R, G, B);
 
         return {
             gpucs::to_channel_u8(yuv.y),
@@ -449,11 +449,11 @@ namespace color_space
     GPU_CONSTEXPR_FUNCTION
     cs::YUVu16 rgb_to_yuv_u16(T r, T g, T b)
     {
-        auto R = gpucs::to_channel_r32(r);
-        auto G = gpucs::to_channel_r32(g);
-        auto B = gpucs::to_channel_r32(b);
+        auto R = gpucs::to_channel_f32(r);
+        auto G = gpucs::to_channel_f32(g);
+        auto B = gpucs::to_channel_f32(b);
 
-        auto yuv = gpucs::rgb_r32_to_yuv_r32(R, G, B);
+        auto yuv = gpucs::rgb_f32_to_yuv_f32(R, G, B);
 
         return {
             gpucs::to_channel_u16(yuv.y),
@@ -467,11 +467,11 @@ namespace color_space
     GPU_CONSTEXPR_FUNCTION
     cs::RGBu8 yuv_to_rgb_u8(T y, T u, T v)
     {
-        auto Y = gpucs::to_channel_r32(y);
-        auto U = gpucs::to_channel_r32(u);
-        auto V = gpucs::to_channel_r32(v);
+        auto Y = gpucs::to_channel_f32(y);
+        auto U = gpucs::to_channel_f32(u);
+        auto V = gpucs::to_channel_f32(v);
 
-        auto rgb = gpucs::yuv_r32_to_rgb_r32(Y, U, V);
+        auto rgb = gpucs::yuv_f32_to_rgb_f32(Y, U, V);
 
         return {
             gpucs::to_channel_u8(rgb.red),
@@ -485,11 +485,11 @@ namespace color_space
     GPU_CONSTEXPR_FUNCTION
     cs::RGBu16 yuv_to_rgb_u16(T y, T u, T v)
     {
-        auto Y = gpucs::to_channel_r32(y);
-        auto U = gpucs::to_channel_r32(u);
-        auto V = gpucs::to_channel_r32(v);
+        auto Y = gpucs::to_channel_f32(y);
+        auto U = gpucs::to_channel_f32(u);
+        auto V = gpucs::to_channel_f32(v);
 
-        auto rgb = gpucs::yuv_r32_to_rgb_r32(Y, U, V);
+        auto rgb = gpucs::yuv_f32_to_rgb_f32(Y, U, V);
 
         return {
             gpucs::to_channel_u16(rgb.red),

@@ -11,7 +11,7 @@ constexpr u32 HIST_SPACE = 5;
 constexpr auto N_BINS = 64;
 
 
-static void fill_to_top(img::View1r32 const& view, r32 value, u8 color)
+static void fill_to_top(img::View1f32 const& view, f32 value, u8 color)
 {
     assert(value >= 0.0f);
     assert(value <= 1.0f);
@@ -37,7 +37,7 @@ static void fill_to_top(img::View1r32 const& view, r32 value, u8 color)
 }
 
 
-static void draw_histogram(const r32* values, u32 n_bins, img::View1r32 const& dst)
+static void draw_histogram(const f32* values, u32 n_bins, img::View1f32 const& dst)
 {
     u32 space_px = BIN_SPACE;
     auto width = BIN_WIDTH;
@@ -60,7 +60,7 @@ static void draw_histogram(const r32* values, u32 n_bins, img::View1r32 const& d
 }
 
 
-static void draw(img::Histogram12r32& hists, img::View1r32 const& dst)
+static void draw(img::Histogram12f32& hists, img::View1f32 const& dst)
 {
     img::fill(dst, 255);
 
@@ -105,7 +105,7 @@ static bool histogram_fill_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::Histogram12r32 hists;
+    img::Histogram12f32 hists;
     hists.n_bins = N_BINS;
 
     Image image;
@@ -171,7 +171,7 @@ static bool histogram_images_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::Histogram12r32 hists;
+    img::Histogram12f32 hists;
     hists.n_bins = N_BINS;
 
     auto const do_hist = [&](Image const& image, const char* filename)

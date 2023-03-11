@@ -455,12 +455,12 @@ namespace simage
 
 #else
 
-	static void fill_row_simd(r32* dst_begin, r32 value, u32 length)
+	static void fill_row_simd(f32* dst_begin, f32 value, u32 length)
 	{
 		constexpr u32 STEP = simd::VEC_LEN;
 
-		r32* dst = 0;
-		r32* val = &value;
+		f32* dst = 0;
+		f32* val = &value;
 		simd::vec_t vec{};
 
 		auto const do_simd = [&](u32 i)
@@ -481,14 +481,14 @@ namespace simage
 
 	static void fill_simd(View const& view, Pixel color)
 	{
-		static_assert(sizeof(Pixel) == sizeof(r32));
+		static_assert(sizeof(Pixel) == sizeof(f32));
 
-		auto ptr = (r32*)(&color);
+		auto ptr = (f32*)(&color);
 
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(view, y);
-			fill_row_simd((r32*)d, *ptr, view.width);
+			fill_row_simd((f32*)d, *ptr, view.width);
 		};
 
 		process_image_rows(view.height, row_func);
@@ -497,16 +497,16 @@ namespace simage
 
 	static void fill_simd(ViewGray const& view, u8 gray)
 	{
-		static_assert(4 * sizeof(u8) == sizeof(r32));
+		static_assert(4 * sizeof(u8) == sizeof(f32));
 
 		u8 bytes[4] = { gray, gray, gray, gray };
-		auto ptr = (r32*)bytes;
+		auto ptr = (f32*)bytes;
 		auto len32 = view.width / 4;
 
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(view, y);
-			fill_row_simd((r32*)d, *ptr, len32);
+			fill_row_simd((f32*)d, *ptr, len32);
 
 			for (u32 x = len32 * 4; x < view.width; ++x)
 			{
@@ -521,7 +521,7 @@ namespace simage
 	template <class VIEW, typename COLOR>
 	static void do_fill(VIEW const& view, COLOR color)
 	{
-		auto len32 = view.width * sizeof(COLOR) / sizeof(r32);
+		auto len32 = view.width * sizeof(COLOR) / sizeof(f32);
 		if (len32 < simd::VEC_LEN)
 		{
 			fill_no_simd(view, color);
@@ -586,18 +586,18 @@ namespace simage
 
 	static void simd_copy_row(Pixel* src_begin, Pixel* dst_begin, u32 length)
 	{
-		static_assert(sizeof(Pixel) == sizeof(r32));
+		static_assert(sizeof(Pixel) == sizeof(f32));
 
 		constexpr u32 STEP = simd::VEC_LEN;
 
-		r32* src = 0;
-		r32* dst = 0;
+		f32* src = 0;
+		f32* dst = 0;
 		simd::vec_t vec{};
 
 		auto const do_simd = [&](u32 i)
 		{
-			src = (r32*)(src_begin + i);
-			dst = (r32*)(dst_begin + i);
+			src = (f32*)(src_begin + i);
+			dst = (f32*)(dst_begin + i);
 
 			vec = simd::load(src);
 			simd::store(dst, vec);
@@ -614,18 +614,18 @@ namespace simage
 
 	static void simd_copy_row(u8* src_begin, u8* dst_begin, u32 length)
 	{
-		static_assert(sizeof(u8) * 4 == sizeof(r32));
+		static_assert(sizeof(u8) * 4 == sizeof(f32));
 
-		constexpr u32 STEP = simd::VEC_LEN * sizeof(r32) / sizeof(u8);
+		constexpr u32 STEP = simd::VEC_LEN * sizeof(f32) / sizeof(u8);
 
-		r32* src = 0;
-		r32* dst = 0;
+		f32* src = 0;
+		f32* dst = 0;
 		simd::vec_t vec{};
 
 		auto const do_simd = [&](u32 i)
 		{
-			src = (r32*)(src_begin + i);
-			dst = (r32*)(dst_begin + i);
+			src = (f32*)(src_begin + i);
+			dst = (f32*)(dst_begin + i);
 
 			vec = simd::load(src);
 			simd::store(dst, vec);
@@ -920,7 +920,7 @@ namespace simage
 	}
 
 
-	static void make_histograms_from_rgb(View const& src, Histogram12r32& dst)
+	static void make_histograms_from_rgb(View const& src, Histogram12f32& dst)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
@@ -928,7 +928,7 @@ namespace simage
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 red, u8 green, u8 blue) 
 		{
@@ -971,7 +971,7 @@ namespace simage
 	}
 
 
-	static void make_histograms_from_yuv(ViewYUV const& src, Histogram12r32& dst)
+	static void make_histograms_from_yuv(ViewYUV const& src, Histogram12f32& dst)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
@@ -1006,7 +1006,7 @@ namespace simage
 			h_yuv.V[to_hist_bin_u8(yuv_v, n_bins)]++;
 		};
 
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		for_each_yuv(src, update_bins);
 
@@ -1020,7 +1020,7 @@ namespace simage
 	}
 
 
-	static void make_histograms_from_bgr(ViewBGR const& src, Histogram12r32& dst)
+	static void make_histograms_from_bgr(ViewBGR const& src, Histogram12f32& dst)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
@@ -1028,7 +1028,7 @@ namespace simage
 		auto& h_yuv = dst.yuv;
 		auto n_bins = dst.n_bins;
 
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 red, u8 green, u8 blue)
 		{
@@ -1071,7 +1071,7 @@ namespace simage
 	}
 	
 	
-	void make_histograms(View const& src, Histogram12r32& dst)
+	void make_histograms(View const& src, Histogram12f32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(dst.n_bins <= MAX_HIST_BINS);
@@ -1086,7 +1086,7 @@ namespace simage
 	}
 
 
-	void make_histograms(ViewYUV const& src, Histogram12r32& dst)
+	void make_histograms(ViewYUV const& src, Histogram12f32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(dst.n_bins <= MAX_HIST_BINS);
@@ -1101,7 +1101,7 @@ namespace simage
 	}
 
 
-	void make_histograms(ViewBGR const& src, Histogram12r32& dst)
+	void make_histograms(ViewBGR const& src, Histogram12f32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(dst.n_bins <= MAX_HIST_BINS);
@@ -1116,14 +1116,14 @@ namespace simage
 	}
 
 
-	void make_histograms(View const& src, HistRGBr32& dst, u32 n_bins)
+	void make_histograms(View const& src, HistRGBf32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
 		assert(MAX_HIST_BINS % n_bins == 0);
 
 		dst = { 0 };
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 red, u8 green, u8 blue) 
 		{
@@ -1145,14 +1145,14 @@ namespace simage
 	}
 
 
-	void make_histograms(View const& src, HistHSVr32& dst, u32 n_bins)
+	void make_histograms(View const& src, HistHSVf32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
 		assert(MAX_HIST_BINS % n_bins == 0);
 
 		dst = { 0 };
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 red, u8 green, u8 blue) 
 		{
@@ -1180,14 +1180,14 @@ namespace simage
 	}
 
 
-	void make_histograms(View const& src, HistLCHr32& dst, u32 n_bins)
+	void make_histograms(View const& src, HistLCHf32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
 		assert(MAX_HIST_BINS % n_bins == 0);
 
 		dst = { 0 };
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 red, u8 green, u8 blue) 
 		{
@@ -1211,7 +1211,7 @@ namespace simage
 	}
 
 
-	void make_histograms(ViewYUV const& src, HistYUVr32& dst, u32 n_bins)
+	void make_histograms(ViewYUV const& src, HistYUVf32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
@@ -1219,7 +1219,7 @@ namespace simage
 
 		dst = { 0 };
 
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
@@ -1241,7 +1241,7 @@ namespace simage
 	}
 	
 	
-	void make_histograms(ViewYUV const& src, HistRGBr32& dst, u32 n_bins)
+	void make_histograms(ViewYUV const& src, HistRGBf32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
@@ -1249,7 +1249,7 @@ namespace simage
 
 		dst = { 0 };
 
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
@@ -1273,7 +1273,7 @@ namespace simage
 	}
 
 
-	void make_histograms(ViewYUV const& src, HistHSVr32& dst, u32 n_bins)
+	void make_histograms(ViewYUV const& src, HistHSVf32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
@@ -1281,7 +1281,7 @@ namespace simage
 
 		dst = { 0 };
 
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
@@ -1310,7 +1310,7 @@ namespace simage
 	}
 
 
-	void make_histograms(ViewYUV const& src, HistLCHr32& dst, u32 n_bins)
+	void make_histograms(ViewYUV const& src, HistLCHf32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
@@ -1318,7 +1318,7 @@ namespace simage
 
 		dst = { 0 };
 
-		r32 total = 0.0f;
+		f32 total = 0.0f;
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{

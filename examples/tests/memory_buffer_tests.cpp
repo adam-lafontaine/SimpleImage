@@ -5,7 +5,7 @@
 
 namespace mb = memory_buffer;
 
-using Buffer32 = MemoryBuffer<r32>;
+using Buffer32 = MemoryBuffer<f32>;
 
 
 template <typename T>

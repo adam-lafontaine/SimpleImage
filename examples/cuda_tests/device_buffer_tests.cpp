@@ -1,6 +1,6 @@
 #include "tests_include.hpp"
 
-using Buffer32 = DeviceBuffer<r32>;
+using Buffer32 = DeviceBuffer<f32>;
 
 
 template <typename T>

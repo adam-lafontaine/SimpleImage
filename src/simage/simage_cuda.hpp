@@ -183,6 +183,8 @@ namespace simage
 
 	void map_rgb_gray(DeviceViewRGBu16 const& src, DeviceView1u16 const& dst);
 
+	void map_rgb_gray(DeviceViewRGBu16 const& src, DeviceViewGray const& dst);
+
 	void map_gray_rgb(DeviceView1u16 const& src, DeviceView const& dst);
 }
 

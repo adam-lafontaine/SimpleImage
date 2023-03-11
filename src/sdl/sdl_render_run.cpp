@@ -10,8 +10,8 @@
 
 
 // control the framerate of the application
-constexpr r32 TARGET_FRAMERATE_HZ = 60.0f;
-constexpr r32 TARGET_MS_PER_FRAME = 1000.0f / TARGET_FRAMERATE_HZ;
+constexpr f32 TARGET_FRAMERATE_HZ = 60.0f;
+constexpr f32 TARGET_MS_PER_FRAME = 1000.0f / TARGET_FRAMERATE_HZ;
 
 static bool g_running = false;
 
@@ -122,10 +122,10 @@ void render_run(app::AppState& app_state, std::function<void(Input const&)> cons
     int in_current = 0;
     int in_old = 1;
     Stopwatch sw;
-    r64 frame_ms_elapsed = TARGET_MS_PER_FRAME;
+    f64 frame_ms_elapsed = TARGET_MS_PER_FRAME;
     char dbg_title[80] = { 0 };
-    r64 ms_elapsed = 0.0;
-    r64 title_refresh_ms = 500.0;    
+    f64 ms_elapsed = 0.0;
+    f64 title_refresh_ms = 500.0;    
 
     auto const wait_for_framerate = [&]()
     {

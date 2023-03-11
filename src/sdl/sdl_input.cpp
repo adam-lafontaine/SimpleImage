@@ -2,13 +2,13 @@
 #include "../input/input_state.hpp"
 
 
-using r32 = float;
+using f32 = float;
 using u32 = unsigned;
 
 
-static r32 normalize_axis_value(r32 axis)
+static f32 normalize_axis_value(f32 axis)
 {
-	r32 norm = axis / 32768.0f;
+	f32 norm = axis / 32768.0f;
 	if(norm > 1.0f)
 	{
 		return 1.0f;
@@ -23,7 +23,7 @@ static r32 normalize_axis_value(r32 axis)
 }
 
 
-static void record_axis_input(AxisState const& old_state, AxisState& new_state, r32 value)
+static void record_axis_input(AxisState const& old_state, AxisState& new_state, f32 value)
 {
 	new_state.start = old_state.end;
 	new_state.end = normalize_axis_value(value);

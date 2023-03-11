@@ -119,7 +119,7 @@ namespace simage
 	using ImageGray = Matrix2D<u8>;
 	using ViewGray = MatrixView<u8>;
 
-	using Mat2Dr32 = Matrix2D<r32>;
+	using Mat2Df32 = Matrix2D<f32>;
 }
 
 
@@ -402,43 +402,43 @@ namespace simage
 	constexpr u32 MAX_HIST_BINS = 256;
 
 
-	class HistRGBr32
+	class HistRGBf32
 	{
 	public:
-		r32 R[MAX_HIST_BINS];
-		r32 G[MAX_HIST_BINS];
-		r32 B[MAX_HIST_BINS];
+		f32 R[MAX_HIST_BINS];
+		f32 G[MAX_HIST_BINS];
+		f32 B[MAX_HIST_BINS];
 	};
 
 
-	class HistHSVr32
+	class HistHSVf32
 	{
 	public:
-		r32 H[MAX_HIST_BINS];
-		r32 S[MAX_HIST_BINS];
-		r32 V[MAX_HIST_BINS];
+		f32 H[MAX_HIST_BINS];
+		f32 S[MAX_HIST_BINS];
+		f32 V[MAX_HIST_BINS];
 	};
 
 
-	class HistLCHr32
+	class HistLCHf32
 	{
 	public:
-		r32 L[MAX_HIST_BINS];
-		r32 C[MAX_HIST_BINS];
-		r32 H[MAX_HIST_BINS];
+		f32 L[MAX_HIST_BINS];
+		f32 C[MAX_HIST_BINS];
+		f32 H[MAX_HIST_BINS];
 	};
 
 
-	class HistYUVr32
+	class HistYUVf32
 	{
 	public:
-		r32 Y[MAX_HIST_BINS];
-		r32 U[MAX_HIST_BINS];
-		r32 V[MAX_HIST_BINS];
+		f32 Y[MAX_HIST_BINS];
+		f32 U[MAX_HIST_BINS];
+		f32 V[MAX_HIST_BINS];
 	};
 
 
-	class Histogram12r32
+	class Histogram12f32
 	{
 	public:
 
@@ -446,39 +446,39 @@ namespace simage
 		{
 			struct
 			{
-				HistRGBr32 rgb;
-				HistHSVr32 hsv;
-				HistLCHr32 lch;
-				HistYUVr32 yuv;
+				HistRGBf32 rgb;
+				HistHSVf32 hsv;
+				HistLCHf32 lch;
+				HistYUVf32 yuv;
 			};
 
-			r32 list[12][MAX_HIST_BINS] = { 0 };
+			f32 list[12][MAX_HIST_BINS] = { 0 };
 		};
 
 		u32 n_bins = MAX_HIST_BINS;
 	};
 
 
-	void make_histograms(View const& src, Histogram12r32& dst);
+	void make_histograms(View const& src, Histogram12f32& dst);
 
-	void make_histograms(ViewYUV const& src, Histogram12r32& dst);
+	void make_histograms(ViewYUV const& src, Histogram12f32& dst);
 
-	void make_histograms(ViewBGR const& src, Histogram12r32& dst);
+	void make_histograms(ViewBGR const& src, Histogram12f32& dst);
 
 
-	void make_histograms(View const& src, HistRGBr32& dst, u32 n_bins);
+	void make_histograms(View const& src, HistRGBf32& dst, u32 n_bins);
 
-	void make_histograms(View const& src, HistHSVr32& dst, u32 n_bins);
+	void make_histograms(View const& src, HistHSVf32& dst, u32 n_bins);
 
-	void make_histograms(View const& src, HistLCHr32& dst, u32 n_bins);
+	void make_histograms(View const& src, HistLCHf32& dst, u32 n_bins);
 
-	void make_histograms(ViewYUV const& src, HistYUVr32& dst, u32 n_bins);
+	void make_histograms(ViewYUV const& src, HistYUVf32& dst, u32 n_bins);
 
-	void make_histograms(ViewYUV const& src, HistRGBr32& dst, u32 n_bins);
+	void make_histograms(ViewYUV const& src, HistRGBf32& dst, u32 n_bins);
 
-	void make_histograms(ViewYUV const& src, HistHSVr32& dst, u32 n_bins);
+	void make_histograms(ViewYUV const& src, HistHSVf32& dst, u32 n_bins);
 
-	void make_histograms(ViewYUV const& src, HistLCHr32& dst, u32 n_bins);
+	void make_histograms(ViewYUV const& src, HistLCHf32& dst, u32 n_bins);
 
 
 }

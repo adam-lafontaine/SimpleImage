@@ -4,7 +4,7 @@
 #include <cstddef>
 
 using u32 = unsigned;
-using r32 = float;
+using f32 = float;
 
 typedef union button_state_t
 {
@@ -423,11 +423,11 @@ CONTROLLER_Y;
 class AxisState
 {
 public:
-    r32 start;
-    r32 end;
+    f32 start;
+    f32 end;
     
-    r32 min;
-    r32 max;
+    f32 min;
+    f32 max;
 };
 
 
@@ -504,6 +504,6 @@ typedef struct input_t
 	ControllerInput controllers[MAX_CONTROLLERS] = {};
 	u32 num_controllers = 0;
 
-	r32 dt_frame = 0.0;
+	f32 dt_frame = 0.0;
 
 } Input;

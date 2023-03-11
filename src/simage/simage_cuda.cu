@@ -360,81 +360,6 @@ namespace color_space
         };
     }
 
-#if 0    
-    GPU_CONSTEXPR_FUNCTION
-    inline r32 rgb_to_yuv_y(r32 r, r32 g, r32 b)
-    {
-        constexpr r32 COEFF_R = 0.299f;
-        constexpr r32 COEFF_G = 0.587f;
-        constexpr r32 COEFF_B = 0.114f;
-
-        return COEFF_R * r + COEFF_G * g + COEFF_B * b;
-    }
-    
-
-    GPU_CONSTEXPR_FUNCTION
-    inline r32 rgb_to_yuv_u(r32 r, r32 g, r32 b)
-    {
-        constexpr r32 COEFF_R = -0.14713f;
-        constexpr r32 COEFF_G = -0.28886f;
-        constexpr r32 COEFF_B = 0.436f;
-
-        return COEFF_R * r + COEFF_G * g + COEFF_B * b + 0.5f;
-    }
-    
-
-    GPU_CONSTEXPR_FUNCTION
-    inline r32 rgb_to_yuv_v(r32 r, r32 g, r32 b)
-    {
-        constexpr r32 COEFF_R = 0.615f;
-        constexpr r32 COEFF_G = -0.51499f;
-        constexpr r32 COEFF_B = -0.10001f;
-
-        return COEFF_R * r + COEFF_G * g + COEFF_B * b + 0.5f;
-    }
-    
-
-    GPU_CONSTEXPR_FUNCTION
-    inline r32 yuv_to_rgb_r(r32 y, r32 u, r32 v)
-    {
-        constexpr r32 COEFF_Y = 1.0f;
-        //constexpr r32 COEFF_U = 0.0f;
-        constexpr r32 COEFF_V = 1.13983f;
-
-        //u -= 0.5f;
-        v -= 0.5f;
-
-        return COEFF_Y * y /*+ COEFF_U * u*/ + COEFF_V * v;
-    }
-    
-
-    GPU_CONSTEXPR_FUNCTION
-    inline r32 yuv_to_rgb_g(r32 y, r32 u, r32 v)
-    {
-        constexpr r32 COEFF_Y = 1.0f;
-        constexpr r32 COEFF_U = -0.39465f;
-        constexpr r32 COEFF_V = -0.5806f;
-
-        u -= 0.5f;
-        v -= 0.5f;
-
-        return COEFF_Y * y + COEFF_U * u + COEFF_V * v;
-    }
-    
-
-    GPU_CONSTEXPR_FUNCTION
-    inline r32 yuv_to_rgb_b(r32 y, r32 u, r32 v)
-    {
-        constexpr r32 COEFF_Y = 1.0f;
-        constexpr r32 COEFF_U = 2.03211f;
-        //constexpr r32 COEFF_V = 0.0f;
-
-        u -= 0.5f;
-        //v -= 0.5f;
-
-        return COEFF_Y * y + COEFF_U * u /*+ COEFF_V * v*/;
-    }
-#endif
 
     GPU_CONSTEXPR_FUNCTION
     inline cs::YUVr32 rgb_r32_to_yuv_r32(r32 r, r32 g, r32 b)
@@ -481,11 +406,7 @@ namespace color_space
         auto G = (yg * y) + (ug * u) + (vg * v);
         auto B = (yb * y) + (ub * u) + (vb * v);
 
-        return {
-            gpucs::clamp(R),
-            gpucs::clamp(G),
-            gpucs::clamp(B)
-        };
+        return { R, G, B };
     }
 
 

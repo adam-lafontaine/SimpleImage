@@ -40,15 +40,38 @@ namespace simage
 	};
 
 
-	template <size_t N>
-	using ViewCHf32 = ChannelView2D<f32, N>;
+	//template <size_t N>
+	//using ViewCHf32 = ChannelView2D<f32, N>;
 
 
-	using View1f32 = MatrixView<f32>;
+	
 
-    using View4f32 = ViewCHf32<4>;
-	using View3f32 = ViewCHf32<3>;
-	using View2f32 = ViewCHf32<2>;
+	template <typename T>
+	using View4 = ChannelView2D<T, 4>;
+
+	template <typename T>
+	using View3 = ChannelView2D<T, 3>;
+
+	template <typename T>
+	using View2 = ChannelView2D<T, 2>;
+
+	template <typename T>
+	using View1 = MatrixView<T>;
+
+    using View4f32 = View4<f32>;
+	using View3f32 = View3<f32>;
+	using View2f32 = View2<f32>;
+	using View1f32 = View1<f32>;
+
+	using View4u16 = View4<u16>;
+	using View3u16 = View3<u16>;
+	using View2u16 = View2<u16>;
+	using View1u16 = View1<u16>;
+
+
+	template <typename T>
+	using ChViewRGB = ChannelView2D<T, 3>;
+	
 }
 
 
@@ -57,6 +80,7 @@ namespace simage
 namespace simage
 {
 	using Buffer32 = MemoryBuffer<f32>;
+	using Buffer16 = MemoryBuffer<u16>;
 
 	using ViewRGBAf32 = View4f32;
 	using ViewRGBf32 = View3f32;

@@ -89,31 +89,44 @@ namespace simage
 
 namespace simage
 {
-	class RGBf32p
+	template <typename T>
+	class RGBp
 	{
 	public:
-		f32* R;
-		f32* G;
-		f32* B;
+		T* R;
+		T* G;
+		T* B;
 	};
 
 
-	class HSVf32p
+	template <typename T>
+	class HSVp
 	{
 	public:
-		f32* H;
-		f32* S;
-		f32* V;
+		T* H;
+		T* S;
+		T* V;
 	};
 
 
-	class LCHf32p
+	template <typename T>
+	class LCHp
 	{
 	public:
-		f32* L;
-		f32* C;
-		f32* H;
+		T* L;
+		T* C;
+		T* H;
 	};
+
+
+	using RGBf32p = RGBp<f32>;
+	using RGBu16p = RGBp<u16>;
+
+	using HSVf32p = HSVp<f32>;
+	using HSVu16p = HSVp<u16>;
+
+	using LCHf32p = LCHp<f32>;
+	using LCHu16p = LCHp<u16>;
 }
 
 
@@ -172,7 +185,8 @@ namespace simage
 	}
 
 
-	static f32* row_offset_begin(View1f32 const& view, u32 y, int y_offset)
+	template <typename T>
+	static T* row_offset_begin(View1<T> const& view, u32 y, int y_offset)
 	{
 		assert(verify(view));
 
@@ -184,8 +198,8 @@ namespace simage
 	}
 
 
-	template <size_t N>
-	static f32* channel_row_begin(ViewCHf32<N> const& view, u32 y, u32 ch)
+	template <typename T, size_t N>
+	static T* channel_row_begin(ChannelView2D<T, N> const& view, u32 y, u32 ch)
 	{
 		assert(verify(view));
 
@@ -197,8 +211,8 @@ namespace simage
 	}
 
 
-	template <size_t N>
-	static f32* channel_row_offset_begin(ViewCHf32<N> const& view, u32 y, int y_offset, u32 ch)
+	template <typename T, size_t N>
+	static T* channel_row_offset_begin(ChannelView2D<T, N> const& view, u32 y, int y_offset, u32 ch)
 	{
 		assert(verify(view));
 
@@ -216,8 +230,8 @@ namespace simage
 
 namespace simage
 {
-	template <size_t N>
-	static void do_make_view(ViewCHf32<N>& view, u32 width, u32 height, Buffer32& buffer)
+	template <typename T, size_t N>
+	static void do_make_view(ChannelView2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		view.channel_width_ = width;
 		view.width = width;
@@ -1162,10 +1176,10 @@ namespace simage
 
 namespace simage
 {
-	template <size_t N>
-	static ViewCHf32<N> do_sub_view(ViewCHf32<N> const& view, Range2Du32 const& range)
+	template <typename T, size_t N>
+	static ChannelView2D<T, N> do_sub_view(ChannelView2D<T, N> const& view, Range2Du32 const& range)
 	{
-		ViewCHf32<N> sub_view;
+		ChannelView2D<T, N> sub_view;
 
 		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
@@ -1179,6 +1193,28 @@ namespace simage
 		{
 			sub_view.channel_data_[ch] = view.channel_data_[ch];
 		}
+
+		return sub_view;
+	}
+
+
+	template <typename T>
+	View1<T> do_sub_view(View1<T> const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		View1<T> sub_view;
+
+		sub_view.matrix_data_ = view.matrix_data_;
+		sub_view.matrix_width = view.matrix_width;
+		sub_view.x_begin = view.x_begin + range.x_begin;
+		sub_view.y_begin = view.y_begin + range.y_begin;
+		sub_view.x_end = view.x_begin + range.x_end;
+		sub_view.y_end = view.y_begin + range.y_end;
+		sub_view.width = range.x_end - range.x_begin;
+		sub_view.height = range.y_end - range.y_begin;
+
+		assert(verify(sub_view));
 
 		return sub_view;
 	}
@@ -1224,16 +1260,7 @@ namespace simage
 	{
 		assert(verify(view, range));
 
-		View1f32 sub_view;
-
-		sub_view.matrix_data_ = view.matrix_data_;
-		sub_view.matrix_width = view.matrix_width;
-		sub_view.x_begin = view.x_begin + range.x_begin;
-		sub_view.y_begin = view.y_begin + range.y_begin;
-		sub_view.x_end = view.x_begin + range.x_end;
-		sub_view.y_end = view.y_begin + range.y_end;
-		sub_view.width = range.x_end - range.x_begin;
-		sub_view.height = range.y_end - range.y_begin;
+		auto sub_view = do_sub_view(view, range);
 
 		assert(verify(sub_view));
 
@@ -1246,10 +1273,10 @@ namespace simage
 
 namespace simage
 {
-	template <size_t N>
-	static View1f32 select_channel(ViewCHf32<N> const& view, u32 ch)
+	template <typename T, size_t N>
+	static View1<T> select_channel(ChannelView2D<T, N> const& view, u32 ch)
 	{
-		View1f32 view1{};
+		View1<T> view1{};
 
 		view1.matrix_width = view.channel_width_;
 		view1.range = view.range;

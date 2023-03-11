@@ -8,15 +8,15 @@
 namespace rng = std::ranges;
 
 
-static bool equals(r32 lhs, r32 rhs)
+static bool equals(f32 lhs, f32 rhs)
 {
     return std::abs(lhs - rhs) < (1.0f / 255.0f);
 }
 
 
-static bool lch_conversion_r32_test()
+static bool lch_conversion_f32_test()
 {
-    printf("lch converstion_r32_test\n");
+    printf("lch converstion_f32_test\n");
 
     std::vector<int> results(256, 1);
 
@@ -32,8 +32,8 @@ static bool lch_conversion_r32_test()
             {
                 auto blue = b / 255.0f;
 
-                auto lch = lch::r32_from_rgb_r32(red, green, blue);
-                auto rgb = lch::r32_to_rgb_r32(lch.light, lch.chroma, lch.hue);
+                auto lch = lch::f32_from_rgb_f32(red, green, blue);
+                auto rgb = lch::f32_to_rgb_f32(lch.light, lch.chroma, lch.hue);
 
                 if (!equals(red, rgb.red) || !equals(green, rgb.green) || !equals(blue, rgb.blue))
                 {
@@ -277,7 +277,7 @@ bool map_rgb_lch_tests()
     printf("\n*** map_rgb_lch tests ***\n");
 
     auto result =
-        lch_conversion_r32_test() &&
+        lch_conversion_f32_test() &&
         map_lch_test() &&
         map_lch_gray_test() &&
         map_lch_planar_test() &&

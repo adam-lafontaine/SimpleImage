@@ -8,7 +8,7 @@
 namespace rng = std::ranges;
 
 
-static bool equals(r32 lhs, r32 rhs)
+static bool equals(f32 lhs, f32 rhs)
 {
     return std::abs(lhs - rhs) < (1.0f / 255.0f);
 }
@@ -20,9 +20,9 @@ static bool equals(u8 lhs, u8 rhs)
 }
 
 
-static bool hsv_conversion_r32_test()
+static bool hsv_conversion_f32_test()
 {
-    printf("hsv converstion_r32_test\n");
+    printf("hsv converstion_f32_test\n");
 
     std::vector<int> results(256, 1);
 
@@ -38,8 +38,8 @@ static bool hsv_conversion_r32_test()
             {
                 auto blue = b / 255.0f;
 
-                auto hsv = hsv::r32_from_rgb_r32(red, green, blue);
-                auto rgb = hsv::r32_to_rgb_r32(hsv.hue, hsv.sat, hsv.val);
+                auto hsv = hsv::f32_from_rgb_f32(red, green, blue);
+                auto rgb = hsv::f32_to_rgb_f32(hsv.hue, hsv.sat, hsv.val);
 
                 if (!equals(red, rgb.red) || !equals(green, rgb.green) || !equals(blue, rgb.blue))
                 {
@@ -283,7 +283,7 @@ bool map_rgb_hsv_tests()
     printf("\n*** map_rgb_hsv tests ***\n");
 
     auto result = 
-        hsv_conversion_r32_test() &&
+        hsv_conversion_f32_test() &&
         map_hsv_test() &&
         map_hsv_gray_test() &&
         map_hsv_planar_test() &&

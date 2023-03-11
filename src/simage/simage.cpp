@@ -1754,43 +1754,9 @@ namespace simage
 
 namespace simage
 {
-	static void convolve(View1f32 const& src, View1f32 const& dst, Mat2Df32 const& kernel)
+	template <typename T>
+	static void convolve(View1<T> const& src, View1<T> const& dst, Mat2Df32 const& kernel)
 	{
-		assert(verify(src, dst));
-		assert(kernel.width % 2 > 0);
-		assert(kernel.height % 2 > 0);
-
-		int const ry_begin = -(int)kernel.height / 2;
-		int const ry_end = kernel.height / 2 + 1;
-		int const rx_begin = -(int)kernel.width / 2;
-		int const rx_end = kernel.width / 2 + 1;
-
-		auto const row_func = [&](u32 y) 
-		{			
-			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				u32 w = 0;
-				d[x] = 0.0f;
-				for (int ry = ry_begin; ry < ry_end; ++ry)
-				{
-					auto s = row_offset_begin(src, y, ry);
-					for (int rx = rx_begin; rx < rx_end; ++rx)
-					{
-						d[x] += (s + rx)[x] * kernel.data_[w];
-						++w;
-					}
-				}
-			}
-		};
-
-		process_image_by_row(src.height, row_func);
-	}
-
-
-	static void convolve(View1u16 const& src, View1u16 const& dst, Mat2Df32 const& kernel)
-	{
-		assert(verify(src, dst));
 		assert(kernel.width % 2 > 0);
 		assert(kernel.height % 2 > 0);
 
@@ -1811,10 +1777,11 @@ namespace simage
 					auto s = row_offset_begin(src, y, ry);
 					for (int rx = rx_begin; rx < rx_end; ++rx)
 					{
-						total += (s + rx)[x] * kernel.data_[w];
-						d[x] = cs::to_channel_u16(total);
+						total += (s + rx)[x] * kernel.data_[w];						
 						++w;
 					}
+
+					d[x] = (T)total;
 				}
 			}
 		};
@@ -2001,54 +1968,6 @@ namespace simage
 		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
 	}
 
-#if 0
-	void gradients_xy(View1f32 const& src, View2f32 const& xy_dst)
-	{
-		auto x_dst = select_channel(xy_dst, XY::X);
-		auto y_dst = select_channel(xy_dst, XY::Y);
-
-		assert(verify(src, x_dst));
-		assert(verify(src, y_dst));
-
-		constexpr auto grad_x = make_grad_x_11();
-		constexpr auto grad_y = make_grad_y_11();
-		constexpr u32 kernel_dim_a = 11;
-
-		/*constexpr auto grad_x = make_grad_x_5();
-		constexpr auto grad_y = make_grad_y_5();
-		constexpr u32 kernel_dim_a = 5;*/
-
-		constexpr u32 kernel_dim_b = (u32)grad_x.size() / kernel_dim_a;
-
-		Mat2Df32 x_kernel{};
-		x_kernel.width = kernel_dim_a;
-		x_kernel.height = kernel_dim_b;
-		x_kernel.data_ = (f32*)grad_x.data();
-
-		Mat2Df32 y_kernel{};
-		y_kernel.width = kernel_dim_b;
-		y_kernel.height = kernel_dim_a;
-		y_kernel.data_ = (f32*)grad_y.data();
-
-		zero_outer(x_dst, kernel_dim_b / 2, kernel_dim_a / 2);
-		zero_outer(y_dst, kernel_dim_a / 2, kernel_dim_b / 2);
-
-		Range2Du32 x_inner{};
-		x_inner.x_begin = kernel_dim_a / 2;
-		x_inner.x_end = src.width - kernel_dim_a / 2;
-		x_inner.y_begin = kernel_dim_b / 2;
-		x_inner.y_end = src.height - kernel_dim_b / 2;
-
-		Range2Du32 y_inner{};
-		y_inner.x_begin = kernel_dim_b / 2;
-		y_inner.x_end = src.width - kernel_dim_b / 2;
-		y_inner.y_begin = kernel_dim_a / 2;
-		y_inner.y_end = src.height - kernel_dim_a / 2;
-
-		convolve(sub_view(src, x_inner), sub_view(x_dst, x_inner), x_kernel);
-		convolve(sub_view(src, y_inner), sub_view(y_dst, y_inner), y_kernel);
-	}
-#endif
 
 	void gradients_xy(View1f32 const& src, View2f32 const& xy_dst)
 	{

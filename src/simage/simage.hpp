@@ -45,8 +45,6 @@ namespace simage
 
 	template <size_t N>
 	using ViewCHu16 = ChannelView2D<u16, N>;
-
-
 	
 
 	template <typename T>
@@ -71,17 +69,6 @@ namespace simage
 	using View2u16 = View2<u16>;
 	using View1u16 = View1<u16>;
 
-
-	template <typename T>
-	using ChViewRGB = ChannelView2D<T, 3>;
-	
-}
-
-
-/* make_view */
-
-namespace simage
-{
 	using Buffer32 = MemoryBuffer<f32>;
 	using Buffer16 = MemoryBuffer<u16>;
 
@@ -89,8 +76,13 @@ namespace simage
 	using ViewRGBf32 = View3f32;
 	using ViewHSVf32 = View3f32;
 	using ViewLCHf32 = View3f32;
+}
 
 
+/* make_view */
+
+namespace simage
+{
 	View1f32 make_view_1(u32 width, u32 height, Buffer32& buffer);
 
 	View2f32 make_view_2(u32 width, u32 height, Buffer32& buffer);
@@ -238,7 +230,7 @@ namespace simage
 
 
 /* shrink */
-
+/*
 namespace simage
 {
 	void shrink(View1f32 const& src, View1f32 const& dst);
@@ -249,7 +241,7 @@ namespace simage
 
 	void shrink(View const& src, ViewRGBf32 const& dst);
 }
-
+*/
 
 /* gradients */
 

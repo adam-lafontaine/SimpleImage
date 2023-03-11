@@ -929,7 +929,7 @@ namespace simage
 
 namespace simage
 {
-	void map_yuv_rgb_no_simd(ViewYUV const& src, ViewRGBf32 const& dst)
+	static void map_yuv_rgb_no_simd(ViewYUV const& src, ViewRGBf32 const& dst)
 	{
 		auto const row_func = [&](u32 y)
 		{
@@ -959,80 +959,11 @@ namespace simage
 	}
 
 
-#ifdef SIMAGE_NO_SIMD
-
 	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
 	{
 		map_yuv_rgb_no_simd(src, dst);
 	}
 
-#else
-
-	class YUV422u8f32Planar
-	{
-	public:
-		f32 y1[simd::VEC_LEN] = { 0 };
-		f32 y2[simd::VEC_LEN] = { 0 };
-		f32 u[simd::VEC_LEN] = { 0 };
-		f32 v[simd::VEC_LEN] = { 0 };
-	};
-
-
-	static YUV422u8f32Planar to_planar(YUV422u8* begin)
-	{
-		YUV422u8f32Planar planar;
-
-		for (u32 i = 0; i < simd::VEC_LEN; ++i)
-		{
-			auto yuv = begin[i];
-
-			planar.y1[i] = (f32)yuv.y1;
-			planar.y2[i] = (f32)yuv.y2;
-			planar.u[i] = (f32)yuv.u;
-			planar.v[i] = (f32)yuv.v;
-		}
-
-		return planar;
-	}
-
-
-	static void map_yuv422_rgb_row(YUV422u8* yuv, f32* dr, f32* dg, f32* db, u32 length)
-	{
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		auto const do_simd = [&](u32 i)
-		{
-			auto p = to_planar(yuv);
-
-
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
-	{
-		if (src.width < simd::VEC_LEN)
-		{
-			map_yuv_rgb_no_simd(src, dst);
-		}
-		else
-		{
-			map_yuv_rgb_no_simd(src, dst);
-		}		
-	}
-
-
-#endif
-
-
-	
 
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
 	{

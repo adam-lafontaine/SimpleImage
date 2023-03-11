@@ -45,13 +45,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\tests\execute_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\execute_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\stb_simage_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\stb_simage_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\tests_main.cpp">
+    <ClCompile Include="..\..\examples\tests\tests_main.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\util\execute.cpp">
@@ -60,52 +60,49 @@
     <ClCompile Include="..\..\src\simage\simage.cpp">
       <Filter>Source Files\src\simage</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\util\memory_buffer.cpp">
-      <Filter>Source Files\src\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\tests\memory_buffer_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\memory_buffer_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\create_image_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\create_image_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\make_view_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\make_view_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\map_rgb_hsv_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\map_rgb_hsv_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\map_rgb_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\map_rgb_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\map_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\map_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\map_rgb_yuv_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\map_rgb_yuv_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\sub_view_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\sub_view_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\fill_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\fill_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\histogram_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\histogram_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\simage\simage_platform.cpp">
       <Filter>Source Files\src\simage</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\copy_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\copy_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\map_rgb_lch_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\map_rgb_lch_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\gradients_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\gradients_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\tests\blur_tests.cpp">
+    <ClCompile Include="..\..\examples\tests\blur_tests.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\stb\stb_simage.cpp">
@@ -113,7 +110,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\tests\tests_include.hpp">
+    <ClInclude Include="..\..\examples\tests\tests_include.hpp">
       <Filter>Header Files\tests</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\util\execute.hpp">

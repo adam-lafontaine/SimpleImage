@@ -9,71 +9,21 @@
 namespace mb = memory_buffer;
 
 
-namespace simage
-{
-	enum class RGB : int
-	{
-		R = 0, G = 1, B = 2
-	};
-
-
-	enum class RGBA : int
-	{
-		R = 0, G = 1, B = 2, A = 3
-	};
-
-
-	enum class HSV : int
-	{
-		H = 0, S = 1, V = 2
-	};
-
-
-	enum class LCH : int
-	{
-		L = 0, C = 1, H = 2
-	};
-
-
-	enum class YUV : int
-	{
-		Y = 0, U = 1, V = 2
-	};
-
-
-	enum class GA : int
-	{
-		G = 0, A = 1
-	};
-
-
-	enum class XY : int
-	{
-		X = 0, Y = 1
-	};
-
-
-	template <typename T>
-	constexpr inline int id_cast(T channel)
-	{
-		return static_cast<int>(channel);
-	}
-
-}
-
-
 /* view */
 
 namespace simage
 {
-	template <size_t N>
-	class ViewCHr32
+	template <typename T, size_t N>
+	class ChannelView2D
 	{
 	public:
 
-		u32 image_width = 0;
+		u32 channel_width_ = 0;
 
-		r32* image_channel_data[N] = {};
+		T* channel_data_[N] = {};		
+
+		u32 width = 0;
+		u32 height = 0;
 
 		union
 		{
@@ -87,10 +37,11 @@ namespace simage
 				u32 y_end;
 			};
 		};
-
-		u32 width = 0;
-		u32 height = 0;
 	};
+
+
+	template <size_t N>
+	using ViewCHr32 = ChannelView2D<r32, N>;
 
 
 	using View1r32 = MatrixView<r32>;
@@ -123,15 +74,15 @@ namespace simage
 }
 
 
-/* map */
+/* map_gray */
 
 namespace simage
 {
-	void map(ViewGray const& src, View1r32 const& dst);
+	void map_gray(ViewGray const& src, View1r32 const& dst);
 
-	void map(View1r32 const& src, ViewGray const& dst);
+	void map_gray(View1r32 const& src, ViewGray const& dst);
 
-	void map(ViewYUV const& src, View1r32 const& dst);
+	void map_gray(ViewYUV const& src, View1r32 const& dst);
 }
 
 
@@ -289,4 +240,3 @@ namespace simage
 
 	void blur(View3r32 const& src, View3r32 const& dst);
 }
-

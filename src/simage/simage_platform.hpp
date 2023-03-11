@@ -52,12 +52,6 @@ public:
 	T* data_ = nullptr;
 	u32 width = 0;
 	u32 height = 0;
-
-#ifndef NDEBUG
-
-	//~Matrix2D() { assert(!(bool)data_); }
-
-#endif // !NDEBUG
 };
 
 
@@ -66,9 +60,6 @@ namespace simage
 	constexpr auto RGB_CHANNELS = 3u;
 	constexpr auto RGBA_CHANNELS = 4u;
 
-
-#if IS_LITTLE_ENDIAN
-
 	class RGBAu8
 	{
 	public:
@@ -77,19 +68,6 @@ namespace simage
 		u8 blue;
 		u8 alpha;
 	};
-
-#else
-
-	class RGBAu8
-	{
-	public:
-		u8 alpha;
-		u8 blue;
-		u8 green;
-		u8 red;
-	};
-
-#endif
     
 }
 
@@ -114,8 +92,11 @@ namespace simage
 	{
 	public:
 
-		T* matrix_data = 0;
+		T* matrix_data_ = 0;
 		u32 matrix_width = 0;
+
+		u32 width = 0;
+		u32 height = 0;
 
 		union
 		{
@@ -128,10 +109,7 @@ namespace simage
 				u32 y_begin;
 				u32 y_end;
 			};
-		};
-
-		u32 width = 0;
-		u32 height = 0;
+		};		
 	};
 
 
@@ -149,80 +127,135 @@ namespace simage
 
 namespace simage
 {
+	class YUV422u8
+	{
+	public:
+		u8 u;
+		u8 y1;
+		u8 v;
+		u8 y2;
+	};
+
+
+	class YUV2u8
+	{
+	public:
+		u8 uv;
+		u8 y;
+	};
+
+
+	class BGRu8
+	{
+	public:
+		u8 blue;
+		u8 green;
+		u8 red;
+	};
+
+
+	class RGBu8
+	{
+	public:
+		u8 red;
+		u8 green;
+		u8 blue;
+	};
+
 #if IS_LITTLE_ENDIAN
 
-	class YUV422u8
+	enum class RGB : int
 	{
-	public:
-		u8 u;
-		u8 y1;
-		u8 v;
-		u8 y2;
+		R = 0, G = 1, B = 2
 	};
 
 
-	class YUV2u8
+	enum class RGBA : int
 	{
-	public:
-		u8 uv;
-		u8 y;
+		R = 0, G = 1, B = 2, A = 3
 	};
 
 
-	class BGRu8
+	enum class HSV : int
 	{
-	public:
-		u8 blue;
-		u8 green;
-		u8 red;
+		H = 0, S = 1, V = 2
 	};
 
 
-	class RGBu8
+	enum class LCH : int
 	{
-	public:
-		u8 red;
-		u8 green;
-		u8 blue;
+		L = 0, C = 1, H = 2
 	};
+
+
+	enum class YUV : int
+	{
+		Y = 0, U = 1, V = 2
+	};
+
+
+	enum class GA : int
+	{
+		G = 0, A = 1
+	};
+
+
+	enum class XY : int
+	{
+		X = 0, Y = 1
+	};
+
 #else
 
-	class YUV422u8
+	enum class RGB : int
 	{
-	public:
-		u8 y2;
-		u8 v;
-		u8 y1;
-		u8 u;
+		R = 2, G = 1, B = 0
 	};
 
 
-	class YUV2u8
+	enum class RGBA : int
 	{
-	public:
-		u8 y;
-		u8 uv;
+		R = 3, G = 2, B = 1, A = 0
 	};
 
 
-	class BGRu8
+	enum class HSV : int
 	{
-	public:
-		u8 red;
-		u8 green;
-		u8 blue;
+		H = 2, S = 1, V = 0
 	};
 
 
-	class RGBu8
+	enum class LCH : int
 	{
-	public:
-		u8 blue;
-		u8 green;
-		u8 red;
+		L = 2, C = 1, H = 0
 	};
 
-#endif
+
+	enum class YUV : int
+	{
+		Y = 2, U = 1, V = 0
+	};
+
+
+	enum class GA : int
+	{
+		G = 1, A = 0
+	};
+
+
+	enum class XY : int
+	{
+		X = 1, Y = 0
+	};
+
+#endif	
+
+
+	template <typename T>
+	constexpr inline int id_cast(T channel)
+	{
+		return static_cast<int>(channel);
+	}
 
 
 	using ImageYUV = Matrix2D<YUV2u8>;
@@ -348,15 +381,17 @@ namespace simage
 
 namespace simage
 {
-	void map(ViewGray const& src, View const& dst);
+	void map_gray(View const& src, ViewGray const& dst);
+
+	void map_gray(ViewGray const& src, View const& dst);
 
 	void map_yuv(ViewYUV const& src, View const& dst);
 
-	void map(ViewYUV const& src, ViewGray const& dst);
+	void map_gray(ViewYUV const& src, ViewGray const& dst);
 
-	void map(ViewBGR const& src, View const& dst);
+	void map_rgb(ViewBGR const& src, View const& dst);
 
-	void map(ViewRGB const& src, View const& dst);
+	void map_rgb(ViewRGB const& src, View const& dst);
 }
 
 
@@ -463,7 +498,7 @@ namespace simage
 	template <typename T>
 	inline T* row_begin(MatrixView<T> const& view, u32 y)
 	{
-		return view.matrix_data + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
+		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
 }
 

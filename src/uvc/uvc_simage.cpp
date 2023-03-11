@@ -36,7 +36,10 @@ constexpr auto DEVICE_PERMISSION_MSG =
 "Then, for each webcam add the following line:"
 "\n\n"
 "SUBSYSTEMS==\"usb\", ENV{DEVTYPE}==\"usb_device\", ATTRS{idVendor}==\"XXXX\", ATTRS{idProduct}==\"YYYY\", MODE=\"0666\"\n\n"
-"Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the vendor and product ID of your webcams.";
+"Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the vendor and product ID of your webcams."
+"\n\n"
+"Restart the computer for the changes to take effect."
+;
 
 constexpr u8 EXPOSURE_MODE_AUTO = 2;
 constexpr u8 EXPOSURE_MODE_APERTURE = 8;
@@ -147,6 +150,20 @@ static void print_error(const char* msg)
 }
 
 
+static void print_device_permissions_msg()
+{
+#ifndef NDEBUG
+
+printf("\n********** LINUX PERMISSIONS ERROR **********\n\n");
+
+printf("%s", DEVICE_PERMISSION_MSG);
+
+printf("\n\n********** LINUX PERMISSIONS ERROR **********\n\n");
+
+#endif
+}
+
+
 static void print_device_error_info(DeviceListUVC const& list)
 {
 #ifndef NDEBUG
@@ -164,7 +181,7 @@ static void print_device_error_info(DeviceListUVC const& list)
         printf("  Product ID:  0x%04x\n", dev.product_id);
     }
 
-    printf("\n%s\n", DEVICE_PERMISSION_MSG);
+    print_device_permissions_msg();
 
 #endif
 }
@@ -247,6 +264,11 @@ static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
     if (res != UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_open");
+        if (res == UVC_ERROR_ACCESS)
+        {
+            print_device_permissions_msg();
+        }
+        
         return false;
     }        
 
@@ -609,7 +631,7 @@ namespace simage
         auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
         auto device_view = sub_view(device.rgb_view, roi);
         
-        map(device_view, camera.frame_roi);
+        map_rgb(device_view, camera.frame_roi);
 
         return true;
     }
@@ -634,7 +656,7 @@ namespace simage
         auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
         auto device_view = sub_view(device.rgb_view, roi);
 
-        map(device_view, dst);
+        map_rgb(device_view, dst);
 
         return true;
     }
@@ -657,7 +679,7 @@ namespace simage
         auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
         auto device_view = sub_view(device.rgb_view, roi);
 
-        map(device_view, camera.frame_roi);
+        map_rgb(device_view, camera.frame_roi);
         grab_cb(camera.frame_roi);
 
         return true;
@@ -684,7 +706,7 @@ namespace simage
         {
             if (grab_and_convert_frame(device))
             {               
-                map(device_view, camera.frame_roi);
+                map_rgb(device_view, camera.frame_roi);
 				grab_cb(camera.frame_roi);
             }
         }

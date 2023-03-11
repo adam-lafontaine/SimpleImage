@@ -27,7 +27,7 @@ static void set_app_screen_buffer(ScreenMemory const& screen, img::View& app_scr
     app_screen.width = screen.image_width;
     app_screen.height = screen.image_height;
     app_screen.matrix_width = screen.image_width;
-    app_screen.matrix_data = (img::Pixel*)screen.image_data;
+    app_screen.matrix_data_ = (img::Pixel*)screen.image_data;
     app_screen.range = make_range(app_screen);
 }
 
@@ -94,15 +94,27 @@ bool render_init(app::WindowSettings const& window_settings, app::AppState& app_
 }
 
 
+void render_close()
+{
+    close_game_controllers(g_controller_input, g_input[0]);
+    destroy_screen_memory(g_screen);
+    close_sdl();
+}
+
+
+void render_once()
+{
+    render_screen(g_screen);
+}
+
+
 void render_run(app::AppState& app_state, std::function<void(Input const&)> const& on_input)
 {
 
     auto const cleanup = [&]()
     {
         app_state.signal_stop = true;
-        close_game_controllers(g_controller_input, g_input[0]);
-        destroy_screen_memory(g_screen);
-        close_sdl();
+        render_close();
     };    
 
     g_running = true;      

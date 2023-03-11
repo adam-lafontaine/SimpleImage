@@ -2,6 +2,9 @@
 
 #include "../defines.hpp"
 
+#include <cstdlib>
+
+
 template <typename T>
 class MemoryBuffer
 {
@@ -9,22 +12,11 @@ public:
 	T* data_ = nullptr;
 	u32 capacity_ = 0;
 	u32 size_ = 0;
-
-#ifndef NDEBUG
-
-	~MemoryBuffer() { assert(!(bool)data_); }
-
-#endif // !NDEBUG
 };
 
 
 namespace memory_buffer
 {
-	u8* malloc_bytes(size_t n_bytes);
-
-	void free_bytes(void* data);
-
-
 	template <typename T>
 	bool create_buffer(MemoryBuffer<T>& buffer, u32 n_elements)
 	{
@@ -36,7 +28,7 @@ namespace memory_buffer
 			return false;
 		}
 
-		buffer.data_ = (T*)malloc_bytes(n_elements * sizeof(T));		
+		buffer.data_ = (T*)std::malloc(n_elements * sizeof(T));		
 		assert(buffer.data_);
 
 		if (!buffer.data_)
@@ -54,13 +46,15 @@ namespace memory_buffer
 	template <typename T>
 	void destroy_buffer(MemoryBuffer<T>& buffer)
 	{
-		free_bytes(buffer.data_);
+		if (buffer.data_)
+		{
+			std::free(buffer.data_);
+		}		
 
 		buffer.data_ = nullptr;
 		buffer.capacity_ = 0;
 		buffer.size_ = 0;
 	}
-
 
 	template <typename T>
 	void reset_buffer(MemoryBuffer<T>& buffer)

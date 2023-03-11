@@ -36,7 +36,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data_;
 	}
 
 
@@ -94,7 +94,7 @@ static bool grab_and_convert_current_frame(DeviceCV& device)
 	}
 
 	auto& view = device.bgr_views[device.frame_curr];
-	view.matrix_data = (img::BGRu8*)frame.data;
+	view.matrix_data_ = (img::BGRu8*)frame.data;
 
 	return true;
 }

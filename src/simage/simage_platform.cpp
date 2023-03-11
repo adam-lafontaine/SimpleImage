@@ -20,10 +20,9 @@ static void process_image_rows(u32 n_rows, id_func_t const& row_func)
 
 /* verify */
 
-#ifndef NDEBUG
-
 namespace simage
 {
+#ifndef NDEBUG
 	template <typename T>
 	static bool verify(Matrix2D<T> const& image)
 	{
@@ -34,7 +33,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data_;
 	}
 
 
@@ -60,9 +59,9 @@ namespace simage
 			range.y_begin < image.height&&
 			range.y_end <= image.height;
 	}
-}
 
 #endif // !NDEBUG
+}
 
 
 /* platform */
@@ -203,7 +202,7 @@ namespace simage
 	{
 		MatrixView<T> view;
 
-		view.matrix_data = image.data_;
+		view.matrix_data_ = image.data_;
 		view.matrix_width = image.width;
 		view.x_begin = 0;
 		view.y_begin = 0;
@@ -281,7 +280,7 @@ namespace simage
 	{
 		MatrixView<T> sub_view;
 
-		sub_view.matrix_data = image.data_;
+		sub_view.matrix_data_ = image.data_;
 		sub_view.matrix_width = image.width;
 		sub_view.x_begin = range.x_begin;
 		sub_view.y_begin = range.y_begin;
@@ -299,7 +298,7 @@ namespace simage
 	{
 		MatrixView<T> sub_view;
 
-		sub_view.matrix_data = view.matrix_data;
+		sub_view.matrix_data_ = view.matrix_data_;
 		sub_view.matrix_width = view.matrix_width;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
@@ -692,7 +691,27 @@ namespace simage
 
 namespace simage
 {
-	void map(ViewGray const& src, View const& dst)
+	void map_gray(View const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = s[x].rgba;
+				d[x] = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+			}
+		};
+
+		process_image_rows(src.height, row_func);
+	}
+
+
+	void map_gray(ViewGray const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -749,7 +768,7 @@ namespace simage
 	}
 
 
-	void map(ViewYUV const& src, ViewGray const& dst)
+	void map_gray(ViewYUV const& src, ViewGray const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -768,7 +787,7 @@ namespace simage
 	}
 
 
-	void map(ViewBGR const& src, View const& dst)
+	void map_rgb(ViewBGR const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -791,7 +810,7 @@ namespace simage
 	}	
 
 
-	void map(ViewRGB const& src, View const& dst)
+	void map_rgb(ViewRGB const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -813,6 +832,8 @@ namespace simage
 		process_image_rows(src.height, row_func);
 	}
 }
+
+
 
 
 /* make_histograms */

@@ -1,5 +1,4 @@
 #include "simage.hpp"
-#include "../util/memory_buffer.hpp"
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
 //#define SIMAGE_NO_SIMD
@@ -9,18 +8,15 @@
 #endif // !SIMAGE_NO_SIMD
 
 
-
 #include <cmath>
 #include <algorithm>
 
-
-namespace mb = memory_buffer;
 namespace cs = color_space;
 namespace rng = std::ranges;
 
 
 
-static void process_image_rows(u32 n_rows, id_func_t const& row_func)
+static void process_image_by_row(u32 n_rows, id_func_t const& row_func)
 {
 	auto const row_begin = 0;
 	auto const row_end = n_rows;
@@ -31,10 +27,10 @@ static void process_image_rows(u32 n_rows, id_func_t const& row_func)
 
 /* verify */
 
-#ifndef NDEBUG
-
 namespace simage
 {
+#ifndef NDEBUG
+
 	template <typename T>
 	static bool verify(Matrix2D<T> const& image)
 	{
@@ -45,7 +41,7 @@ namespace simage
 	template <typename T>
 	static bool verify(MatrixView<T> const& view)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data;
+		return view.matrix_width && view.width && view.height && view.matrix_data_;
 	}
 
 
@@ -56,10 +52,10 @@ namespace simage
 	}
 
 
-	template <size_t N>
-	static bool verify(ViewCHr32<N> const& view)
+	template <typename T, size_t N>
+	static bool verify(ChannelView2D<T,N> const& view)
 	{
-		return view.image_width && view.width && view.height && view.image_channel_data[0];
+		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
 	}
 
 	template <class IMG_A, class IMG_B>
@@ -84,9 +80,9 @@ namespace simage
 			range.y_begin < image.height &&
 			range.y_end <= image.height;
 	}
-}
 
 #endif // !NDEBUG
+}
 
 
 /* pixels */
@@ -130,13 +126,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
 		RGBr32p rgb{};
 
-		rgb.R = view.image_channel_data[id_cast(RGB::R)] + offset;
-		rgb.G = view.image_channel_data[id_cast(RGB::G)] + offset;
-		rgb.B = view.image_channel_data[id_cast(RGB::B)] + offset;
+		rgb.R = view.channel_data_[id_cast(RGB::R)] + offset;
+		rgb.G = view.channel_data_[id_cast(RGB::G)] + offset;
+		rgb.B = view.channel_data_[id_cast(RGB::B)] + offset;
 
 		return rgb;
 	}
@@ -147,13 +143,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
 		HSVr32p hsv{};
 
-		hsv.H = view.image_channel_data[id_cast(HSV::H)] + offset;
-		hsv.S = view.image_channel_data[id_cast(HSV::S)] + offset;
-		hsv.V = view.image_channel_data[id_cast(HSV::V)] + offset;
+		hsv.H = view.channel_data_[id_cast(HSV::H)] + offset;
+		hsv.S = view.channel_data_[id_cast(HSV::S)] + offset;
+		hsv.V = view.channel_data_[id_cast(HSV::V)] + offset;
 
 		return hsv;
 	}
@@ -164,13 +160,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.image_width + view.x_begin;
+		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
 
 		LCHr32p lch{};
 
-		lch.L = view.image_channel_data[id_cast(LCH::L)] + offset;
-		lch.C = view.image_channel_data[id_cast(LCH::C)] + offset;
-		lch.H = view.image_channel_data[id_cast(LCH::H)] + offset;
+		lch.L = view.channel_data_[id_cast(LCH::L)] + offset;
+		lch.C = view.channel_data_[id_cast(LCH::C)] + offset;
+		lch.H = view.channel_data_[id_cast(LCH::H)] + offset;
 
 		return lch;
 	}
@@ -184,7 +180,7 @@ namespace simage
 
 		auto offset = (size_t)((view.y_begin + y_eff) * view.matrix_width + view.x_begin);
 
-		return view.matrix_data + offset;
+		return view.matrix_data_ + offset;
 	}
 
 
@@ -195,9 +191,9 @@ namespace simage
 
 		assert(y < view.height);
 
-		auto offset = (size_t)((view.y_begin + y) * view.image_width + view.x_begin);
+		auto offset = (size_t)((view.y_begin + y) * view.channel_width_ + view.x_begin);
 
-		return view.image_channel_data[ch] + offset;
+		return view.channel_data_[ch] + offset;
 	}
 
 
@@ -208,9 +204,9 @@ namespace simage
 
 		int y_eff = y + y_offset;
 
-		auto offset = (size_t)((view.y_begin + y_eff) * view.image_width + view.x_begin);
+		auto offset = (size_t)((view.y_begin + y_eff) * view.channel_width_ + view.x_begin);
 
-		return view.image_channel_data[ch] + offset;
+		return view.channel_data_[ch] + offset;
 	}
 
 }
@@ -223,17 +219,15 @@ namespace simage
 	template <size_t N>
 	static void do_make_view(ViewCHr32<N>& view, u32 width, u32 height, Buffer32& buffer)
 	{
-		view.image_width = width;
-		view.x_begin = 0;
-		view.y_begin = 0;
-		view.x_end = width;
-		view.y_end = height;
+		view.channel_width_ = width;
 		view.width = width;
 		view.height = height;
 
+		view.range = make_range(width, height);
+
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			view.image_channel_data[ch] = mb::push_elements(buffer, width * height);
+			view.channel_data_[ch] = mb::push_elements(buffer, width * height);
 		}
 	}
 
@@ -244,14 +238,12 @@ namespace simage
 
 		View1r32 view;
 
-		view.matrix_data = mb::push_elements(buffer, width * height);
-		view.matrix_width = width;
-		view.x_begin = 0;
-		view.y_begin = 0;
-		view.x_end = width;
-		view.y_end = height;
+		view.matrix_data_ = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;		
 		view.width = width;
 		view.height = height;
+
+		view.range = make_range(width, height);
 
 		assert(verify(view));
 
@@ -306,7 +298,7 @@ namespace simage
 
 namespace simage
 {
-	void map(ViewGray const& src, View1r32 const& dst)
+	void map_gray(ViewGray const& src, View1r32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -320,11 +312,11 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 	
 
-	void map(View1r32 const& src, ViewGray const& dst)
+	void map_gray(View1r32 const& src, ViewGray const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -338,11 +330,11 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
-	void map(ViewYUV const& src, View1r32 const& dst)
+	void map_gray(ViewYUV const& src, View1r32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -357,7 +349,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 }
 
@@ -390,7 +382,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -415,7 +407,27 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
+	}
+
+
+	void map_rgb_row_no_simd(View const& src, ViewRGBr32 const& dst, u32 y)
+	{
+		constexpr auto r = id_cast(RGB::R);
+		constexpr auto g = id_cast(RGB::G);
+		constexpr auto b = id_cast(RGB::B);
+
+		auto s = row_begin(src, y);
+		auto dr = channel_row_begin(dst, y, r);
+		auto dg = channel_row_begin(dst, y, g);
+		auto db = channel_row_begin(dst, y, b);
+
+		for (u32 x = 0; x < src.width; ++x)
+		{
+			dr[x] = cs::to_channel_r32(s[x].channels[r]);
+			dg[x] = cs::to_channel_r32(s[x].channels[g]);
+			db[x] = cs::to_channel_r32(s[x].channels[b]);
+		}
 	}
 
 
@@ -430,7 +442,7 @@ namespace simage
 	static void do_map_rgb(View const& src, ViewRGBr32 const& dst)
 	{
 		map_rgb_no_simd(src, dst);
-}
+	}
 
 #else
 
@@ -537,7 +549,7 @@ namespace simage
 			map_rgba_row_simd(s, dr, dg, db, da, src.width);
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -557,7 +569,7 @@ namespace simage
 			map_rgb_row_simd(s, dr, dg, db, src.width);
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -624,7 +636,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 	
@@ -663,7 +675,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -694,7 +706,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 }
 
@@ -722,7 +734,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -746,7 +758,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -772,7 +784,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -794,7 +806,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 }
 
@@ -822,7 +834,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -846,7 +858,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -872,7 +884,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -894,7 +906,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 }
 
@@ -929,7 +941,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -1063,7 +1075,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(dst.height, row_func);
+		process_image_by_row(dst.height, row_func);
 	}
 
 
@@ -1113,7 +1125,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(dst.height, row_func);
+		process_image_by_row(dst.height, row_func);
 	}
 }
 
@@ -1141,7 +1153,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 }
 
@@ -1155,7 +1167,7 @@ namespace simage
 	{
 		ViewCHr32<N> sub_view;
 
-		sub_view.image_width = view.image_width;
+		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
 		sub_view.x_end = view.x_begin + range.x_end;
@@ -1165,7 +1177,7 @@ namespace simage
 
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			sub_view.image_channel_data[ch] = view.image_channel_data[ch];
+			sub_view.channel_data_[ch] = view.channel_data_[ch];
 		}
 
 		return sub_view;
@@ -1214,7 +1226,7 @@ namespace simage
 
 		View1r32 sub_view;
 
-		sub_view.matrix_data = view.matrix_data;
+		sub_view.matrix_data_ = view.matrix_data_;
 		sub_view.matrix_width = view.matrix_width;
 		sub_view.x_begin = view.x_begin + range.x_begin;
 		sub_view.y_begin = view.y_begin + range.y_begin;
@@ -1239,12 +1251,12 @@ namespace simage
 	{
 		View1r32 view1{};
 
-		view1.matrix_width = view.image_width;
+		view1.matrix_width = view.channel_width_;
 		view1.range = view.range;
 		view1.width = view.width;
 		view1.height = view.height;
 
-		view1.matrix_data = view.image_channel_data[ch];
+		view1.matrix_data_ = view.channel_data_[ch];
 
 		return view1;
 	}
@@ -1326,14 +1338,14 @@ namespace simage
 
 		ViewRGBr32 rgb;
 
-		rgb.image_width = view.image_width;
+		rgb.channel_width_ = view.channel_width_;
 		rgb.width = view.width;
 		rgb.height = view.height;
 		rgb.range = view.range;
 
-		rgb.image_channel_data[id_cast(RGB::R)] = view.image_channel_data[id_cast(RGB::R)];
-		rgb.image_channel_data[id_cast(RGB::G)] = view.image_channel_data[id_cast(RGB::G)];
-		rgb.image_channel_data[id_cast(RGB::B)] = view.image_channel_data[id_cast(RGB::B)];
+		rgb.channel_data_[id_cast(RGB::R)] = view.channel_data_[id_cast(RGB::R)];
+		rgb.channel_data_[id_cast(RGB::G)] = view.channel_data_[id_cast(RGB::G)];
+		rgb.channel_data_[id_cast(RGB::B)] = view.channel_data_[id_cast(RGB::B)];
 
 		return rgb;
 	}
@@ -1357,7 +1369,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(view.height, row_func);
+		process_image_by_row(view.height, row_func);
 	}
 
 
@@ -1382,7 +1394,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(view.height, row_func);
+		process_image_by_row(view.height, row_func);
 	}
 
 
@@ -1435,7 +1447,7 @@ namespace simage
 			fill_row_simd(d, gray32, view.width);
 		};
 
-		process_image_rows(view.height, row_func);
+		process_image_by_row(view.height, row_func);
 	}
 
 
@@ -1458,7 +1470,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(view.height, row_func);
+		process_image_by_row(view.height, row_func);
 	}
 
 
@@ -1536,7 +1548,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -1555,7 +1567,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -1575,7 +1587,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 }
 
@@ -1691,7 +1703,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(dst.height, row_func);
+		process_image_by_row(dst.height, row_func);
 	}
 
 
@@ -1735,7 +1747,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(dst.height, row_func);
+		process_image_by_row(dst.height, row_func);
 	}
 
 
@@ -1776,7 +1788,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(dst.height, row_func);
+		process_image_by_row(dst.height, row_func);
 	}
 }
 
@@ -1815,7 +1827,7 @@ namespace simage
 			}
 		};
 
-		process_image_rows(src.height, row_func);
+		process_image_by_row(src.height, row_func);
 	}
 
 
@@ -2185,3 +2197,4 @@ namespace simage
 
 
 #endif // SIMAGE_NO_SIMD
+

@@ -131,6 +131,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\examples\render_tests\tests_def.hpp" />
+    <ClInclude Include="..\..\examples\render_tests\tests_include.hpp" />
     <ClInclude Include="..\..\src\app\app.hpp" />
     <ClInclude Include="..\..\src\defines.hpp" />
     <ClInclude Include="..\..\src\input\input.hpp" />
@@ -144,10 +146,13 @@
     <ClInclude Include="..\..\src\util\execute.hpp" />
     <ClInclude Include="..\..\src\util\memory_buffer.hpp" />
     <ClInclude Include="..\..\src\util\stopwatch.hpp" />
-    <ClInclude Include="..\..\tests_render\tests_def.hpp" />
-    <ClInclude Include="..\..\tests_render\tests_include.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\examples\render_tests\camera_tests.cpp" />
+    <ClCompile Include="..\..\examples\render_tests\fill_tests.cpp" />
+    <ClCompile Include="..\..\examples\render_tests\histogram_tests.cpp" />
+    <ClCompile Include="..\..\examples\render_tests\image_tests.cpp" />
+    <ClCompile Include="..\..\examples\render_tests\tests_render_main.cpp" />
     <ClCompile Include="..\..\src\opencv\opencv_simage.cpp" />
     <ClCompile Include="..\..\src\sdl\sdl_input.cpp" />
     <ClCompile Include="..\..\src\sdl\sdl_render_run.cpp" />
@@ -155,12 +160,6 @@
     <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
     <ClCompile Include="..\..\src\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
-    <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
-    <ClCompile Include="..\..\tests_render\camera_tests.cpp" />
-    <ClCompile Include="..\..\tests_render\fill_tests.cpp" />
-    <ClCompile Include="..\..\tests_render\histogram_tests.cpp" />
-    <ClCompile Include="..\..\tests_render\image_tests.cpp" />
-    <ClCompile Include="..\..\tests_render\tests_render_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

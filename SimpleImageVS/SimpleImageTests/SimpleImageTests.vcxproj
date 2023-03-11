@@ -135,24 +135,23 @@
     <ClCompile Include="..\..\src\simage\simage_platform.cpp" />
     <ClCompile Include="..\..\src\stb\stb_simage.cpp" />
     <ClCompile Include="..\..\src\util\execute.cpp" />
-    <ClCompile Include="..\..\src\util\memory_buffer.cpp" />
-    <ClCompile Include="..\..\tests\blur_tests.cpp" />
-    <ClCompile Include="..\..\tests\copy_tests.cpp" />
-    <ClCompile Include="..\..\tests\create_image_tests.cpp" />
-    <ClCompile Include="..\..\tests\execute_tests.cpp" />
-    <ClCompile Include="..\..\tests\fill_tests.cpp" />
-    <ClCompile Include="..\..\tests\gradients_tests.cpp" />
-    <ClCompile Include="..\..\tests\histogram_tests.cpp" />
-    <ClCompile Include="..\..\tests\make_view_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_rgb_hsv_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_rgb_lch_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_rgb_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_rgb_yuv_tests.cpp" />
-    <ClCompile Include="..\..\tests\map_tests.cpp" />
-    <ClCompile Include="..\..\tests\memory_buffer_tests.cpp" />
-    <ClCompile Include="..\..\tests\stb_simage_tests.cpp" />
-    <ClCompile Include="..\..\tests\sub_view_tests.cpp" />
-    <ClCompile Include="..\..\tests\tests_main.cpp" />
+    <ClCompile Include="..\..\examples\tests\blur_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\copy_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\create_image_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\execute_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\fill_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\gradients_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\histogram_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\make_view_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\map_rgb_hsv_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\map_rgb_lch_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\map_rgb_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\map_rgb_yuv_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\map_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\memory_buffer_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\stb_simage_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\sub_view_tests.cpp" />
+    <ClCompile Include="..\..\examples\tests\tests_main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\defines.hpp" />
@@ -165,7 +164,7 @@
     <ClInclude Include="..\..\src\util\simd.hpp" />
     <ClInclude Include="..\..\src\util\stopwatch.hpp" />
     <ClInclude Include="..\..\src\util\win32_leak_check.h" />
-    <ClInclude Include="..\..\tests\tests_include.hpp" />
+    <ClInclude Include="..\..\examples\tests\tests_include.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -707,7 +707,7 @@ namespace lch
 
     inline cs::RGBu8 u8_to_rgb_u8(u8 l, u8 c, u8 h)
     {
-        auto rgb = f32_to_rgb_f32(l, c, h);
+        auto rgb = rgb_f32_from_lch(l, c, h);
 
         return {
             cs::to_channel_u8(rgb.red),
@@ -719,7 +719,7 @@ namespace lch
 
     inline cs::RGBu16 u8_to_rgb_u16(u8 l, u8 c, u8 h)
     {
-        auto rgb = f32_to_rgb_f32(l, c, h);
+        auto rgb = rgb_f32_from_lch(l, c, h);
 
         return {
             cs::to_channel_u16(rgb.red),
@@ -731,7 +731,7 @@ namespace lch
 
     inline cs::RGBu8 u16_to_rgb_u8(u16 l, u16 c, u16 h)
     {
-        auto rgb = f32_to_rgb_f32(l, c, h);
+        auto rgb = rgb_f32_from_lch(l, c, h);
 
         return {
             cs::to_channel_u8(rgb.red),
@@ -743,7 +743,7 @@ namespace lch
 
     inline cs::RGBu16 u16_to_rgb_u16(u16 l, u16 c, u16 h)
     {
-        auto rgb = f32_to_rgb_f32(l, c, h);
+        auto rgb = rgb_f32_from_lch(l, c, h);
 
         return {
             cs::to_channel_u16(rgb.red),
@@ -814,13 +814,30 @@ namespace yuv
 namespace yuv
 {
     template <typename T>
-    inline constexpr cs::YUVu8 rgb_to_yuv_u8(T r, T g, T b)
+    inline constexpr cs::YUVf32 yuv_f32_from_rgb(T r, T g, T b)
     {
         auto R = cs::to_channel_f32(r);
         auto G = cs::to_channel_f32(g);
         auto B = cs::to_channel_f32(b);
 
-        auto yuv = f32_from_rgb_f32(R, G, B);
+        return f32_from_rgb_f32(R, G, B);
+    }
+
+
+    template <typename T>
+    inline constexpr cs::RGBf32 rgb_f32_from_yuv(T y, T u, T v)
+    {
+        auto Y = cs::to_channel_f32(y);
+        auto U = cs::to_channel_f32(u);
+        auto V = cs::to_channel_f32(v);
+
+        return f32_to_rgb_f32(Y, U, V);
+    }
+
+
+    inline constexpr cs::YUVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto yuv = yuv_f32_from_rgb(r, g, b);
 
         return {
             cs::to_channel_u8(yuv.y),
@@ -830,14 +847,21 @@ namespace yuv
     }
 
 
-    template <typename T>
-    inline constexpr cs::YUVu16 rgb_to_yuv_u16(T r, T g, T b)
+    inline constexpr cs::YUVu8 u8_from_rgb_u16(u16 r, u16 g, u16 b)
     {
-        auto R = cs::to_channel_f32(r);
-        auto G = cs::to_channel_f32(g);
-        auto B = cs::to_channel_f32(b);
+        auto yuv = yuv_f32_from_rgb(r, g, b);
 
-        auto yuv = f32_from_rgb_f32(R, G, B);
+        return {
+            cs::to_channel_u8(yuv.y),
+            cs::to_channel_u8(yuv.u),
+            cs::to_channel_u8(yuv.v),
+        };
+    }
+
+
+    inline constexpr cs::YUVu16 u16_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto yuv = yuv_f32_from_rgb(r, g, b);
 
         return {
             cs::to_channel_u16(yuv.y),
@@ -847,16 +871,23 @@ namespace yuv
     }
 
 
-    template <typename T>
-    inline constexpr cs::RGBu8 yuv_to_rgb_u8(T y, T u, T v)
+    inline constexpr cs::YUVu16 u16_from_rgb_u16(u16 r, u16 g, u16 b)
     {
-        auto Y = cs::to_channel_f32(y);
-        auto U = cs::to_channel_f32(u);
-        auto V = cs::to_channel_f32(v);
+        auto yuv = yuv_f32_from_rgb(r, g, b);
 
-       auto rgb = f32_to_rgb_f32(Y, U, V);
+        return {
+            cs::to_channel_u16(yuv.y),
+            cs::to_channel_u16(yuv.u),
+            cs::to_channel_u16(yuv.v),
+        };
+    }
 
-       return {
+
+    inline constexpr cs::RGBu8 u8_to_rgb_u8(u8 y, u8 u, u8 v)
+    {
+        auto rgb = rgb_f32_from_yuv(y, u, v);
+
+        return {
             cs::to_channel_u8(rgb.red),
             cs::to_channel_u8(rgb.green),
             cs::to_channel_u8(rgb.blue),
@@ -864,16 +895,11 @@ namespace yuv
     }
 
 
-    template <typename T>
-    inline constexpr cs::RGBu16 yuv_to_rgb_u16(T y, T u, T v)
+    inline constexpr cs::RGBu16 u8_to_rgb_u16(u8 y, u8 u, u8 v)
     {
-        auto Y = cs::to_channel_f32(y);
-        auto U = cs::to_channel_f32(u);
-        auto V = cs::to_channel_f32(v);
+        auto rgb = rgb_f32_from_yuv(y, u, v);
 
-       auto rgb = f32_to_rgb_f32(Y, U, V);
-
-       return {
+        return {
             cs::to_channel_u16(rgb.red),
             cs::to_channel_u16(rgb.green),
             cs::to_channel_u16(rgb.blue),
@@ -881,61 +907,33 @@ namespace yuv
     }
 
 
-    inline constexpr cs::YUVu8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
-    {
-        return rgb_to_yuv_u8(r, g, b);
-    }
-
-
-    inline constexpr cs::YUVu8 u8_from_rgb_u16(u16 r, u16 g, u16 b)
-    {
-        return rgb_to_yuv_u8(r, g, b);
-    }
-
-
-    inline constexpr cs::YUVu16 u16_from_rgb_u8(u8 r, u8 g, u8 b)
-    {
-        return rgb_to_yuv_u16(r, g, b);
-    }
-
-
-    inline constexpr cs::YUVu16 u16_from_rgb_u16(u16 r, u16 g, u16 b)
-    {
-        return rgb_to_yuv_u16(r, g, b);
-    }
-
-
-    inline constexpr cs::RGBu8 u8_to_rgb_u8(u8 y, u8 u, u8 v)
-    {
-        return yuv_to_rgb_u8(y, u, v);
-    }
-
-
-    inline constexpr cs::RGBu16 u8_to_rgb_u16(u8 y, u8 u, u8 v)
-    {
-        return yuv_to_rgb_u16(y, u, v);
-    }
-
-
     inline constexpr cs::RGBu8 u16_to_rgb_u8(u16 y, u16 u, u16 v)
     {
-        return yuv_to_rgb_u8(y, u, v);
+        auto rgb = rgb_f32_from_yuv(y, u, v);
+
+        return {
+            cs::to_channel_u8(rgb.red),
+            cs::to_channel_u8(rgb.green),
+            cs::to_channel_u8(rgb.blue),
+        };
     }
 
 
     inline constexpr cs::RGBu16 u16_to_rgb_u16(u16 y, u16 u, u16 v)
     {
-        return yuv_to_rgb_u16(y, u, v);
+        auto rgb = rgb_f32_from_yuv(y, u, v);
+
+        return {
+            cs::to_channel_u16(rgb.red),
+            cs::to_channel_u16(rgb.green),
+            cs::to_channel_u16(rgb.blue),
+        };
     }
 
 
     inline constexpr cs::RGBf32 u8_to_rgb_f32(u8 y, u8 u, u8 v)
     {
-        auto Y = cs::to_channel_f32(y);
-        auto U = cs::to_channel_f32(u);
-        auto V = cs::to_channel_f32(v);
-
-        return f32_to_rgb_f32(Y, U, V);
+        return rgb_f32_from_yuv(y, u, v);
     }
 
 }

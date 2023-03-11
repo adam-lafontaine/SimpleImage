@@ -10,9 +10,9 @@ namespace color_space
 {
     constexpr auto PI = 3.1415926536f;
 
-    constexpr f32 CHANNEL_U8_MAX = 255.0f;
+    constexpr f32 CH_U8_MAX = 255.0f;
 
-    constexpr f32 CHANNEL_U16_MAX = 255.0f * 256;
+    constexpr f32 CH_U16_MAX = 255.0f * 256;
 
     namespace lut
     {
@@ -22,7 +22,7 @@ namespace color_space
 
             for (u32 i = 0; i < 256; ++i)
             {
-                lut[i] = i / CHANNEL_U8_MAX;
+                lut[i] = i / CH_U8_MAX;
             }
 
             return lut;
@@ -44,7 +44,7 @@ namespace color_space
 
     inline constexpr f32 to_channel_f32(u16 value)
     {
-        return value / CHANNEL_U16_MAX;
+        return value / CH_U16_MAX;
     }
 
 
@@ -71,7 +71,7 @@ namespace color_space
 
     inline constexpr u8 to_channel_u8(f32 value)
     {
-        return (u8)round_to_u32(clamp(value) * CHANNEL_U8_MAX);
+        return (u8)round_to_u32(clamp(value) * CH_U8_MAX);
     }
 
 
@@ -83,7 +83,7 @@ namespace color_space
 
     inline constexpr u16 to_channel_u16(f32 value)
     {
-        return (u16)round_to_u32(clamp(value) * CHANNEL_U16_MAX);
+        return (u16)round_to_u32(clamp(value) * CH_U16_MAX);
     }
 
 

@@ -1383,7 +1383,8 @@ namespace simage
 
 namespace simage
 {
-	static void fill_no_simd(View1f32 const& view, f32 gray32)
+	template <typename T>
+	static void fill_no_simd(View1<T> const& view, T grayT)
 	{		
 		assert(verify(view));
 
@@ -1392,7 +1393,7 @@ namespace simage
 			auto d = row_begin(view, y);
 			for (u32 i = 0; i < view.width; ++i)
 			{
-				d[i] = gray32;
+				d[i] = grayT;
 			}
 		};
 
@@ -1424,9 +1425,6 @@ namespace simage
 		process_image_by_row(view.height, row_func);
 	}
 
-
-#ifdef SIMAGE_NO_SIMD
-
 	template <class VIEW, typename COLOR>
 	static void do_fill(VIEW const& view, COLOR color)
 	{
@@ -1439,95 +1437,6 @@ namespace simage
 	{
 		fill_n_channels_no_simd(view, color);
 	}
-
-#else
-
-	static void fill_row_simd(f32* dst_begin, f32 value, u32 length)
-	{
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		f32* dst = 0;
-		f32* val = &value;
-		simd::vec_t vec{};
-
-		auto const do_simd = [&](u32 i) 
-		{
-			dst = dst_begin + i;
-			vec = simd::load_broadcast(val);
-			simd::store(dst, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void fill_simd(View1f32 const& view, f32 gray32)
-	{
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			fill_row_simd(d, gray32, view.width);
-		};
-
-		process_image_by_row(view.height, row_func);
-	}
-
-
-	template <size_t N>
-	static void fill_n_channels_simd(ViewCHf32<N> const& view, Pixel color)
-	{
-		f32 channels[N] = {};
-
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			channels[ch] = cs::to_channel_f32(color.channels[ch]);
-		}
-
-		auto const row_func = [&](u32 y)
-		{
-			for (u32 ch = 0; ch < N; ++ch)
-			{
-				auto d = channel_row_begin(view, y, ch);
-				fill_row_simd(d, channels[ch], view.width);
-			}
-		};
-
-		process_image_by_row(view.height, row_func);
-	}
-
-
-	static void do_fill(View1f32 const& view, f32 gray32)
-	{
-		if (view.width < simd::VEC_LEN)
-		{
-			fill_no_simd(view, gray32);
-		}
-		else
-		{
-			fill_simd(view, gray32);
-		}		
-	}
-
-
-	template <size_t N>
-	static void do_fill_n_channels(ViewCHf32<N> const& view, Pixel color)
-	{
-		if (view.width < simd::VEC_LEN)
-		{
-			fill_n_channels_no_simd(view, color);
-		}
-		else
-		{
-			fill_n_channels_simd(view, color);
-		}		
-	}
-
-#endif	
 
 
 	void fill(View4f32 const& view, Pixel color)
@@ -1561,10 +1470,9 @@ namespace simage
 
 namespace simage
 {
-	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func)
+	template <typename T>
+	static void do_transform_view_1(View1<T> const& src, View1<T> const& dst, std::function<T(T)> const& func)
 	{
-		assert(verify(src, dst));
-
 		auto const row_func = [&](u32 y) 
 		{
 			auto s = row_begin(src, y);
@@ -1579,10 +1487,9 @@ namespace simage
 	}
 
 
-	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func)
+	template <typename T>
+	static void do_transform_view_2_1(View2<T> const& src, View1<T> const& dst, std::function<T(T, T)> const& func)
 	{
-		assert(verify(src, dst));
-
 		auto const row_func = [&](u32 y)
 		{
 			auto s0 = channel_row_begin(src, y, 0);
@@ -1598,10 +1505,9 @@ namespace simage
 	}
 
 
-	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func)
+	template <typename T>
+	static void do_transform_view_3_1(View3<T> const& src, View1<T> const& dst, std::function<T(T, T, T)> const& func)
 	{
-		assert(verify(src, dst));
-
 		auto const row_func = [&](u32 y)
 		{
 			auto s0 = channel_row_begin(src, y, 0);
@@ -1616,11 +1522,35 @@ namespace simage
 
 		process_image_by_row(src.height, row_func);
 	}
+
+
+	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform_view_1(src, dst, func);
+	}
+
+
+	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform_view_2_1(src, dst, func);
+	}
+
+
+	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform_view_3_1(src, dst, func);
+	}
 }
 
 
 /* shrink_view */
-
+#if 0
 namespace simage
 {
 	static f32 average(View1f32 const& view)
@@ -1818,7 +1748,7 @@ namespace simage
 		process_image_by_row(dst.height, row_func);
 	}
 }
-
+#endif
 
 /* gradients */
 
@@ -1848,6 +1778,41 @@ namespace simage
 					for (int rx = rx_begin; rx < rx_end; ++rx)
 					{
 						d[x] += (s + rx)[x] * kernel.data_[w];
+						++w;
+					}
+				}
+			}
+		};
+
+		process_image_by_row(src.height, row_func);
+	}
+
+
+	static void convolve(View1u16 const& src, View1u16 const& dst, Mat2Df32 const& kernel)
+	{
+		assert(verify(src, dst));
+		assert(kernel.width % 2 > 0);
+		assert(kernel.height % 2 > 0);
+
+		int const ry_begin = -(int)kernel.height / 2;
+		int const ry_end = kernel.height / 2 + 1;
+		int const rx_begin = -(int)kernel.width / 2;
+		int const rx_end = kernel.width / 2 + 1;
+
+		auto const row_func = [&](u32 y) 
+		{			
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u32 w = 0;
+				f32 total = 0.0f;
+				for (int ry = ry_begin; ry < ry_end; ++ry)
+				{
+					auto s = row_offset_begin(src, y, ry);
+					for (int rx = rx_begin; rx < rx_end; ++rx)
+					{
+						total += (s + rx)[x] * kernel.data_[w];
+						d[x] = cs::to_channel_u16(total);
 						++w;
 					}
 				}
@@ -1952,7 +1917,8 @@ namespace simage
 	}
 
 
-	static void zero_outer(View1f32 const& view, u32 n_rows, u32 n_columns)
+	template <typename T>
+	static void zero_outer(View1<T> const& view, u32 n_rows, u32 n_columns)
 	{
 		auto const top_bottom = [&]()
 		{
@@ -1962,7 +1928,7 @@ namespace simage
 				auto bottom = row_begin(view, view.height - 1 - r);
 				for (u32 x = 0; x < view.width; ++x)
 				{
-					top[x] = bottom[x] = 0.0f;
+					top[x] = bottom[x] = (T)0;
 				}
 			}
 		};
@@ -1974,7 +1940,7 @@ namespace simage
 				auto row = row_begin(view, y);
 				for (u32 c = 0; c < n_columns; ++c)
 				{
-					row[c] = row[view.width - 1 - c] = 0.0f;
+					row[c] = row[view.width - 1 - c] = (T)0;
 				}
 			}
 		};
@@ -1988,6 +1954,54 @@ namespace simage
 	}
 
 
+	template <typename T>
+	static void do_gradients(View1<T> const& src, View1<T> const& dst, XY ch)
+	{
+		constexpr auto grad_x = make_grad_x_11();
+		constexpr auto grad_y = make_grad_y_11();
+		constexpr u32 dim_max = 11;		
+
+		/*constexpr auto grad_x = make_grad_x_5();
+		constexpr auto grad_y = make_grad_y_5();
+		constexpr u32 dim_max = 5;*/
+
+		constexpr u32 dim_min = (u32)grad_x.size() / dim_max;
+
+		Mat2Df32 kernel{};
+
+		switch (ch)
+		{
+		case XY::X:
+			kernel.data_ = (f32*)grad_x.data();
+			kernel.width = dim_max;
+			kernel.height = dim_min;
+			break;
+		case XY::Y:
+			kernel.data_ = (f32*)grad_y.data();
+			kernel.width = dim_min;
+			kernel.height = dim_max;
+			break;
+		
+		default:
+			assert(false);
+			return;
+		}
+
+		auto w = kernel.width / 2;
+		auto h = kernel.height / 2;
+
+		zero_outer(dst, w, h);
+
+		Range2Du32 inner{};
+		inner.x_begin = w;
+		inner.x_end = src.width - w;
+		inner.y_begin = h;
+		inner.y_end = src.height - h;
+
+		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
+	}
+
+#if 0
 	void gradients_xy(View1f32 const& src, View2f32 const& xy_dst)
 	{
 		auto x_dst = select_channel(xy_dst, XY::X);
@@ -2034,6 +2048,19 @@ namespace simage
 		convolve(sub_view(src, x_inner), sub_view(x_dst, x_inner), x_kernel);
 		convolve(sub_view(src, y_inner), sub_view(y_dst, y_inner), y_kernel);
 	}
+#endif
+
+	void gradients_xy(View1f32 const& src, View2f32 const& xy_dst)
+	{
+		auto x_dst = select_channel(xy_dst, XY::X);
+		auto y_dst = select_channel(xy_dst, XY::Y);
+
+		assert(verify(src, x_dst));
+		assert(verify(src, y_dst));
+
+		do_gradients(src, x_dst, XY::X);
+		do_gradients(src, y_dst, XY::Y);
+	}
 }
 
 
@@ -2075,7 +2102,8 @@ namespace simage
 	}
 
 
-	static void copy_outer(View1f32 const& src, View1f32 const& dst)
+	template <typename T>
+	static void copy_outer(View1<T> const& src, View1<T> const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -2116,7 +2144,8 @@ namespace simage
 	}
 
 
-	static void convolve_gauss_3x3_outer(View1f32 const& src, View1f32 const& dst)
+	template <typename T>
+	static void convolve_gauss_3x3_outer(View1<T> const& src, View1<T> const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -2156,7 +2185,8 @@ namespace simage
 	}
 
 
-	static void convolve_gauss_5x5(View1f32 const& src, View1f32 const& dst)
+	template <typename T>
+	static void convolve_gauss_5x5(View1<T> const& src, View1<T> const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -2174,10 +2204,9 @@ namespace simage
 	}
 
 
-	void blur(View1f32 const& src, View1f32 const& dst)
+	template <typename T>
+	static void blur_1(View1<T> const& src, View1<T> const& dst)
 	{
-		assert(verify(src, dst));
-
 		auto const width = src.width;
 		auto const height = src.height;
 
@@ -2200,28 +2229,30 @@ namespace simage
 	}
 
 
+	template <typename T, size_t N>
+	static void blur_n(ChannelView2D<T, N> const& src, ChannelView2D<T, N> const& dst)
+	{
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			blur_1(select_channel(src, ch), select_channel(dst, ch));
+		}
+	}
+
+
+	void blur(View1f32 const& src, View1f32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		blur_1(src, dst);
+	}
+
+
 	void blur(View3f32 const& src, View3f32 const& dst)
 	{
 		assert(verify(src, dst));
 
-		for (u32 ch = 0; ch < 3; ++ch)
-		{
-			blur(select_channel(src, ch), select_channel(dst, ch));
-		}
+		blur_n(src, dst);
 	}
 }
 
-
-
-
-
-#ifdef SIMAGE_NO_SIMD
-
-
-
-#else
-
-
-
-#endif // SIMAGE_NO_SIMD
 

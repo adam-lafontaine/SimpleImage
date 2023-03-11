@@ -40,8 +40,11 @@ namespace simage
 	};
 
 
-	//template <size_t N>
-	//using ViewCHf32 = ChannelView2D<f32, N>;
+	template <size_t N>
+	using ViewCHf32 = ChannelView2D<f32, N>;
+
+	template <size_t N>
+	using ViewCHu16 = ChannelView2D<u16, N>;
 
 
 	

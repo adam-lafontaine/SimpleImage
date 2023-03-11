@@ -16,6 +16,9 @@ bool map_rgba_test(img::View const& src, img::View const& dst);
 bool map_rgb_test(img::View const& src, img::View const& dst);
 bool map_gray_test(img::View const& src, img::View const& dst);
 bool map_hsv_test(img::View const& src, img::View const& dst);
+bool map_hsv_red_test(img::View const& src, img::View const& dst);
+bool map_hsv_green_test(img::View const& src, img::View const& dst);
+bool map_hsv_blue_test(img::View const& src, img::View const& dst);
 bool map_yuv_test(img::View const& src, img::View const& dst);
 
 
@@ -54,6 +57,9 @@ static bool test_success(app::AppState& state, img::CameraUSB const& camera)
         run_test(camera, state, map_rgb_test) &&
         run_test(camera, state, map_gray_test) &&
         run_test(camera, state, map_hsv_test) &&
+        run_test(camera, state, map_hsv_red_test) &&
+        run_test(camera, state, map_hsv_green_test) &&
+        run_test(camera, state, map_hsv_blue_test) &&
         run_test(camera, state, map_yuv_test) &&
         true;
 }

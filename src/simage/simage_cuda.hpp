@@ -7,7 +7,7 @@
 /* cuda image */
 
 namespace simage
-{
+{	
     template <typename T, size_t N>
 	class DeviceChannelView2D
 	{

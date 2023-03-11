@@ -98,112 +98,60 @@ namespace color_space
 
 namespace color_space
 {   
-    class RGBr32
+    template <typename T>
+    class RGB
     {
     public:
-        r32 red;
-        r32 green;
-        r32 blue;
+        T red;
+        T green;
+        T blue;
+    };
+
+    template <typename T>
+    class HSV
+    {
+    public:
+        T hue;
+        T sat;
+        T val;
     };
 
 
-    class RGBu8
+    template <typename T>
+    class LCH
     {
     public:
-        u8 red;
-        u8 green;
-        u8 blue;
+        T light;
+        T chroma;
+        T hue;
     };
 
 
-    class RGBu16
+    template <typename T>
+    class YUV
     {
     public:
-        u16 red;
-        u16 green;
-        u16 blue;
+        T y;
+        T u;
+        T v;
     };
 
 
-    class HSVr32
-    {
-    public:
-        r32 hue;
-        r32 sat;
-        r32 val;
-    };
+    using RGBr32 = RGB<r32>;
+    using RGBu8 = RGB<u8>;
+    using RGBu16 = RGB<u16>;
 
+    using HSVr32 = HSV<r32>;
+    using HSVu8 = HSV<u8>;
+    using HSVu16 = HSV<u16>;
 
-    class HSVu8
-    {
-    public:
-        u8 hue;
-        u8 sat;
-        u8 val;
-    };
+    using LCHr32 = LCH<r32>;
+    using LCHu8 = LCH<u8>;
+    using LCHu16 = LCH<u16>;
 
-
-    class HSVu16
-    {
-    public:
-        u16 hue;
-        u16 sat;
-        u16 val;
-    };
-
-
-    class LCHr32
-    {
-    public:
-        r32 light;
-        r32 chroma;
-        r32 hue;
-    };
-
-
-    class LCHu8
-    {
-    public:
-        u8 light;
-        u8 chroma;
-        u8 hue;
-    };
-
-
-    class LCHu16
-    {
-    public:
-        u16 light;
-        u16 chroma;
-        u16 hue;
-    };
-
-
-    class YUVr32
-    {
-    public:
-        r32 y;
-        r32 u;
-        r32 v;
-    };
-
-
-    class YUVu8
-    {
-    public:
-        u8 y;
-        u8 u;
-        u8 v;
-    };
-
-
-    class YUVu16
-    {
-    public:
-        u16 y;
-        u16 u;
-        u16 v;
-    };
+    using YUVr32 = YUV<r32>;
+    using YUVu8 = YUV<u8>;
+    using YUVu16 = YUV<u16>;
 }
 
 

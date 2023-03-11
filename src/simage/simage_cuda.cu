@@ -118,9 +118,24 @@ namespace gpuf
 
     template <typename T>
     GPU_CONSTEXPR_FUNCTION
+    inline r32 channel_u8_to_r32(T value)
+    {
+        return (r32)value / CH_U8_MAX;
+    }
+
+
+    template <typename T>
+    GPU_CONSTEXPR_FUNCTION
     inline r32 channel_u16_to_r32(T value)
     {
         return (r32)value / CH_U16_MAX;
+    }
+    
+    
+    GPU_CONSTEXPR_FUNCTION
+    inline u8 channel_r32_to_u8(r32 value)
+    {
+        return gpuf::round_to_u8(gpuf::clamp(value) * CH_U8_MAX);
     }
     
     
@@ -311,10 +326,9 @@ namespace gpuf
         };
     }
 
-
-    template <typename T>
+    
     GPU_CONSTEXPR_FUNCTION
-    inline r32 rgb_to_yuv_y(T r, T g, T b)
+    inline r32 rgb_to_yuv_y(r32 r, r32 g, r32 b)
     {
         constexpr r32 COEFF_R = 0.299f;
         constexpr r32 COEFF_G = 0.587f;
@@ -322,72 +336,67 @@ namespace gpuf
 
         return COEFF_R * r + COEFF_G * g + COEFF_B * b;
     }
+    
 
-
-    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline r32 rgb_to_yuv_u(T r, T g, T b, T scale)
+    inline r32 rgb_to_yuv_u(r32 r, r32 g, r32 b)
     {
         constexpr r32 COEFF_R = -0.14713f;
         constexpr r32 COEFF_G = -0.28886f;
         constexpr r32 COEFF_B = 0.436f;
 
-        return COEFF_R * r + COEFF_G * g + COEFF_B * b + scale / 2;
+        return COEFF_R * r + COEFF_G * g + COEFF_B * b + 0.5f;
     }
+    
 
-
-    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline r32 rgb_to_yuv_v(T r, T g, T b, T scale)
+    inline r32 rgb_to_yuv_v(r32 r, r32 g, r32 b)
     {
         constexpr r32 COEFF_R = 0.615f;
         constexpr r32 COEFF_G = -0.51499f;
         constexpr r32 COEFF_B = -0.10001f;
 
-        return COEFF_R * r + COEFF_G * g + COEFF_B * b + scale / 2;
+        return COEFF_R * r + COEFF_G * g + COEFF_B * b + 0.5f;
     }
+    
 
-
-    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline r32 yuv_to_rgb_r(T y, T u, T v, T scale)
+    inline r32 yuv_to_rgb_r(r32 y, r32 u, r32 v)
     {
         constexpr r32 COEFF_Y = 1.0f;
         //constexpr r32 COEFF_U = 0.0f;
         constexpr r32 COEFF_V = 1.13983f;
 
-        //u -= scale / 2;
-        v -= scale / 2;
+        //u -= 0.5f;
+        v -= 0.5f;
 
         return COEFF_Y * y /*+ COEFF_U * u*/ + COEFF_V * v;
     }
+    
 
-
-    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline r32 yuv_to_rgb_g(T y, T u, T v, T scale)
+    inline r32 yuv_to_rgb_g(r32 y, r32 u, r32 v)
     {
         constexpr r32 COEFF_Y = 1.0f;
         constexpr r32 COEFF_U = -0.39465f;
         constexpr r32 COEFF_V = -0.5806f;
 
-        u -= scale / 2;
-        v -= scale / 2;
+        u -= 0.5f;
+        v -= 0.5f;
 
         return COEFF_Y * y + COEFF_U * u + COEFF_V * v;
     }
+    
 
-
-    template <typename T>
     GPU_CONSTEXPR_FUNCTION
-    inline r32 yuv_to_rgb_b(T y, T u, T v, T scale)
+    inline r32 yuv_to_rgb_b(r32 y, r32 u, r32 v)
     {
         constexpr r32 COEFF_Y = 1.0f;
         constexpr r32 COEFF_U = 2.03211f;
         //constexpr r32 COEFF_V = 0.0f;
 
-        u -= scale / 2;
-        //v -= scale / 2;
+        u -= 0.5f;
+        //v -= 0.5f;
 
         return COEFF_Y * y + COEFF_U * u /*+ COEFF_V * v*/;
     }
@@ -1170,25 +1179,30 @@ namespace gpu
         auto cxy = gpuf::get_thread_channel_xy(src, t);
 
         auto rgba = gpuf::xy_at(src, cxy.x, cxy.y)->rgba;
-        r32 value = (r32)CH_U8_MAX;
+        auto r = gpuf::channel_u8_to_r32(rgba.red);
+        auto g = gpuf::channel_u8_to_r32(rgba.green);
+        auto b = gpuf::channel_u8_to_r32(rgba.blue);
+        
+        r32 value = 1.0f;
+
         auto& d = *gpuf::channel_xy_at(dst, cxy);
 
         switch(cxy.ch)
         {
         case gpuf::id_cast(YUV::Y):
-            value = gpuf::rgb_to_yuv_y(rgba.red, rgba.green, rgba.blue);
+            value = gpuf::rgb_to_yuv_y(r, g, b);
             break;
         case gpuf::id_cast(YUV::U):
-            value = gpuf::rgb_to_yuv_u(rgba.red, rgba.green, rgba.blue, CH_U8_MAX);
+            value = gpuf::rgb_to_yuv_u(r, g, b);
             break;
         case gpuf::id_cast(YUV::V):
-            value = gpuf::rgb_to_yuv_v(rgba.red, rgba.green, rgba.blue, CH_U8_MAX);
+            value = gpuf::rgb_to_yuv_v(r, g, b);
             break;
         default:
             return;
         }
 
-        d = gpuf::channel_u8_to_u16(value);
+        d = gpuf::channel_r32_to_u16(value);
     }
 
 
@@ -1205,11 +1219,15 @@ namespace gpu
 
         auto cxy = gpuf::get_thread_channel_xy(src, t);
 
-        auto r = *gpuf::channel_xy_at(src, cxy.x, cxy.y, RGB::R);
-        auto g = *gpuf::channel_xy_at(src, cxy.x, cxy.y, RGB::G);
-        auto b = *gpuf::channel_xy_at(src, cxy.x, cxy.y, RGB::B);
+        auto r16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, RGB::R);
+        auto g16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, RGB::G);
+        auto b16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, RGB::B);
 
-        r32 value = (r32)CH_U16_MAX;
+        auto r = gpuf::channel_u16_to_r32(r16);
+        auto g = gpuf::channel_u16_to_r32(g16);
+        auto b = gpuf::channel_u16_to_r32(b16);
+        
+        r32 value = 1.0f;
 
         auto& d = *gpuf::channel_xy_at(dst, cxy);
 
@@ -1219,16 +1237,16 @@ namespace gpu
             value = gpuf::rgb_to_yuv_y(r, g, b);
             break;
         case gpuf::id_cast(YUV::U):
-            value = gpuf::rgb_to_yuv_u(r, g, b, CH_U16_MAX);
+            value = gpuf::rgb_to_yuv_u(r, g, b);
             break;
         case gpuf::id_cast(YUV::V):
-            value = gpuf::rgb_to_yuv_v(r, g, b, CH_U16_MAX);
+            value = gpuf::rgb_to_yuv_v(r, g, b);
             break;
         default:
             return;
         }
 
-        d = gpuf::round_to_u16(value);
+        d = gpuf::channel_r32_to_u16(value);
     }
 
 
@@ -1245,30 +1263,34 @@ namespace gpu
 
         auto cxy = gpuf::get_thread_channel_xy(src, t);
 
-        auto y = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::Y);
-        auto u = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::U);
-        auto v = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::V);
+        auto y16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::Y);
+        auto u16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::U);
+        auto v16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::V);
 
-        r32 value = (r32)CH_U16_MAX;
+        auto y = gpuf::channel_u16_to_r32(y16);
+        auto u = gpuf::channel_u16_to_r32(u16);
+        auto v = gpuf::channel_u16_to_r32(v16);
+
+        r32 value = 1.0f;
 
         auto& d = gpuf::xy_at(dst, cxy.x, cxy.y)->channels[cxy.ch];
 
         switch(cxy.ch)
         {
         case gpuf::id_cast(RGB::R):
-            value = gpuf::yuv_to_rgb_r(y, u, v, CH_U16_MAX);
+            value = gpuf::yuv_to_rgb_r(y, u, v);
             break;
         case gpuf::id_cast(RGB::G):
-            value = gpuf::yuv_to_rgb_g(y, u, v, CH_U16_MAX);
+            value = gpuf::yuv_to_rgb_g(y, u, v);
             break;
         case gpuf::id_cast(RGB::B):
-            value = gpuf::yuv_to_rgb_b(y, u, v, CH_U16_MAX);
+            value = gpuf::yuv_to_rgb_b(y, u, v);
             break;
         default:
             return;
         }
 
-        d = gpuf::channel_u16_to_u8(value);
+        d = gpuf::channel_r32_to_u8(value);
     }
 
 
@@ -1285,30 +1307,34 @@ namespace gpu
 
         auto cxy = gpuf::get_thread_channel_xy(src, t);
 
-        auto y = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::Y);
-        auto u = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::U);
-        auto v = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::V);
+        auto y16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::Y);
+        auto u16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::U);
+        auto v16 = *gpuf::channel_xy_at(src, cxy.x, cxy.y, YUV::V);
 
-        r32 value = (r32)CH_U16_MAX;
+        auto y = gpuf::channel_u16_to_r32(y16);
+        auto u = gpuf::channel_u16_to_r32(u16);
+        auto v = gpuf::channel_u16_to_r32(v16);
+
+        r32 value = 1.0f;
 
         auto& d = *gpuf::channel_xy_at(dst, cxy.x, cxy.y, cxy.ch);
 
         switch(cxy.ch)
         {
         case gpuf::id_cast(RGB::R):
-            value = gpuf::yuv_to_rgb_r(y, u, v, CH_U16_MAX);
+            value = gpuf::yuv_to_rgb_r(y, u, v);
             break;
         case gpuf::id_cast(RGB::G):
-            value = gpuf::yuv_to_rgb_g(y, u, v, CH_U16_MAX);
+            value = gpuf::yuv_to_rgb_g(y, u, v);
             break;
         case gpuf::id_cast(RGB::B):
-            value = gpuf::yuv_to_rgb_b(y, u, v, CH_U16_MAX);
+            value = gpuf::yuv_to_rgb_b(y, u, v);
             break;
         default:
             return;
         }
 
-        d = gpuf::round_to_u16(value);
+        d = gpuf::channel_r32_to_u16(value);
     }
 }
 

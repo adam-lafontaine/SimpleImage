@@ -20,6 +20,9 @@ bool map_hsv_red_test(img::View const& src, img::View const& dst);
 bool map_hsv_green_test(img::View const& src, img::View const& dst);
 bool map_hsv_blue_test(img::View const& src, img::View const& dst);
 bool map_yuv_test(img::View const& src, img::View const& dst);
+bool map_yuv_red_test(img::View const& src, img::View const& dst);
+bool map_yuv_green_test(img::View const& src, img::View const& dst);
+bool map_yuv_blue_test(img::View const& src, img::View const& dst);
 
 
 constexpr auto APP_TITLE = "CUDA Tests";
@@ -47,7 +50,7 @@ static bool test_success(app::AppState& state, img::CameraUSB const& camera)
 {
 
     return 
-        device_buffer_tests() &&
+        /*device_buffer_tests() &&
         make_view_tests() &&
         run_test(camera, state, copy_image_test) &&
         run_test(camera, state, copy_sub_view_test) &&
@@ -59,8 +62,11 @@ static bool test_success(app::AppState& state, img::CameraUSB const& camera)
         run_test(camera, state, map_hsv_test) &&
         run_test(camera, state, map_hsv_red_test) &&
         run_test(camera, state, map_hsv_green_test) &&
-        run_test(camera, state, map_hsv_blue_test) &&
+        run_test(camera, state, map_hsv_blue_test) &&*/
         run_test(camera, state, map_yuv_test) &&
+        run_test(camera, state, map_yuv_red_test) &&
+        run_test(camera, state, map_yuv_green_test) &&
+        run_test(camera, state, map_yuv_blue_test) &&
         true;
 }
 

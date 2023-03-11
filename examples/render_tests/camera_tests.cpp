@@ -24,7 +24,7 @@ public:
 };
 
 
-static void fill_to_top(img::View1r32 const& view, r32 value, u8 color)
+static void fill_to_top(img::View1f32 const& view, f32 value, u8 color)
 {
 	assert(value >= 0.0f);
 	assert(value <= 1.0f);
@@ -50,7 +50,7 @@ static void fill_to_top(img::View1r32 const& view, r32 value, u8 color)
 }
 
 
-static void draw_histogram(const r32* values, img::View1r32 const& dst, HistParams const& props)
+static void draw_histogram(const f32* values, img::View1f32 const& dst, HistParams const& props)
 {
 	u32 space_px = props.bin_space;
 	auto width = props.bin_width;
@@ -73,7 +73,7 @@ static void draw_histogram(const r32* values, img::View1r32 const& dst, HistPara
 }
 
 
-static void draw(img::Histogram12r32& hists, img::View1r32 const& dst, HistParams const& props)
+static void draw(img::Histogram12f32& hists, img::View1f32 const& dst, HistParams const& props)
 {
 	img::fill(dst, 255);
 
@@ -140,7 +140,7 @@ void camera_callback_test(img::View const& out)
 	auto gray = img::make_view_1(width, height, buffer);
 	auto grad = img::make_view_2(width, height, buffer);
 
-	auto const to_hypot = [](r32 grad_x, r32 grad_y) { return std::hypotf(grad_x, grad_y); };
+	auto const to_hypot = [](f32 grad_x, f32 grad_y) { return std::hypotf(grad_x, grad_y); };
 
 	auto const grab_cb = [&](img::View const& src)
 	{
@@ -186,7 +186,7 @@ void camera_histogram_test(img::View const& out)
 
 	auto hist_view = img::make_view_1(width, height, buffer);
 
-	img::Histogram12r32 hists;
+	img::Histogram12f32 hists;
 	hists.n_bins = N_BINS;
 
 	auto const grab_cb = [&](img::View const& src)
@@ -232,7 +232,7 @@ void camera_continuous_test(img::View const& out)
 
 	auto view_rgb = img::make_view_3(w, height, buffer);
 	auto view_gray = img::make_view_1(w, height, buffer);
-	r32 f = 1.0f;
+	f32 f = 1.0f;
 
 	Stopwatch sw;
 	sw.start();
@@ -241,7 +241,7 @@ void camera_continuous_test(img::View const& out)
 	{
 		img::map_rgb(img::sub_view(src, range), view_rgb);
 		img::transform_gray(view_rgb, view_gray);
-		img::transform(view_gray, view_gray, [&](r32 p){ return p * f; });
+		img::transform(view_gray, view_gray, [&](f32 p){ return p * f; });
 		img::map_rgb(view_gray, img::sub_view(out, range));
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(2 * frame_count));

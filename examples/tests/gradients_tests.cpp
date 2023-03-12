@@ -33,14 +33,16 @@ bool gradients_xy_test()
 
 	write_image(image, "chess.bmp");
 
-	auto const to_abs = [](f32 p) { return p < 0.0f ? -p : p; };
+	//auto const to_abs = [](f32 p) { return p < 0.0f ? -p : p; };
 
-	img::transform(dst_x, src, to_abs);
-	img::map_gray(src, view);
+	//img::transform(dst_x, src, to_abs);
+	//img::map_gray(src, view);
+	img::map_gray(dst_x, view);
 	write_image(image, "x_grad.bmp");
 
-	img::transform(dst_y, src, to_abs);
-	img::map_gray(src, view);
+	//img::transform(dst_y, src, to_abs);
+	//img::map_gray(src, view);
+	img::map_gray(dst_y, view);
 	write_image(image, "y_grad.bmp");
 
 	mb::destroy_buffer(buffer);

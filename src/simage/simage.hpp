@@ -63,15 +63,68 @@ namespace simage
 	using View3u16 = View3<u16>;
 	using View2u16 = View2<u16>;
 	using View1u16 = View1<u16>;
+
+	using View4i16 = View4<i16>;
+	using View3i16 = View3<i16>;
+	using View2i16 = View2<i16>;
+	using View1i16 = View1<i16>;
+
+	/*using View4f32 = View4<f32>;
+	using View3f32 = View3<f32>;
+	using View2f32 = View2<f32>;
+	using View1f32 = View1<f32>;*/
 	
 	using Buffer16 = MemoryBuffer<u16>;
+	//using Buffer32 = MemoryBuffer<f32>;
 
 	using ViewRGBAu16 = View4u16;
 	using ViewRGBu16 = View3u16;
 	using ViewHSVu16 = View3u16;
 	using ViewLCHu16 = View3u16;
+}
 
-    
+
+/* reinterpret_view */
+
+namespace simage
+{
+	template <typename ST, typename DT, size_t N>
+	ChannelView2D<DT, N> reinterpret_view(ChannelView2D<ST, N> const& src, DT n)
+	{
+		static_assert(sizeof(ST) == sizeof(DT));
+
+		ChannelView2D<DT, N> dst;
+
+		dst.channel_width_ = src.channel_width_;
+		dst.width = src.width;
+		dst.height = src.height;
+		dst.range = src.range;
+
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			dst.channel_data_[ch] = (DT*)src.channel_data_[ch];
+		}
+
+		return dst;
+	}
+
+
+	template <typename ST, typename DT>
+	View1<DT> reinterpret_view(View1<ST> const& src)
+	{
+		static_assert(sizeof(ST) == sizeof(DT));
+
+		View1<DT> dst;
+
+		dst.width = src.width;
+		dst.height = src.height;
+		dst.range = src.range;
+
+		dst.matrix_data_ = (DT*)src.matrix_data_;
+
+		return dst;
+	}
+
 }
 
 
@@ -86,6 +139,40 @@ namespace simage
 	View3u16 make_view_3(u32 width, u32 height, Buffer16& buffer);
 
 	View4u16 make_view_4(u32 width, u32 height, Buffer16& buffer);
+}
+
+
+/* sub_view */
+
+namespace simage
+{
+	View4u16 sub_view(View4u16 const& view, Range2Du32 const& range);
+
+	View3u16 sub_view(View3u16 const& view, Range2Du32 const& range);
+
+	View2u16 sub_view(View2u16 const& view, Range2Du32 const& range);
+
+	View1u16 sub_view(View1u16 const& view, Range2Du32 const& range);
+}
+
+
+/* select_channel */
+
+namespace simage
+{
+	View1u16 select_channel(ViewRGBAu16 const& view, RGBA channel);
+
+	View1u16 select_channel(ViewRGBu16 const& view, RGB channel);
+
+	View1u16 select_channel(ViewHSVu16 const& view, HSV channel);
+
+	View1u16 select_channel(View2u16 const& view, GA channel);
+
+	View1u16 select_channel(View2u16 const& view, XY channel);
+
+
+	ViewRGBu16 select_rgb(ViewRGBAu16 const& view);
+
 }
 
 
@@ -162,39 +249,6 @@ namespace simage
 }
 
 
-/* sub_view */
-
-namespace simage
-{
-	View4u16 sub_view(View4u16 const& view, Range2Du32 const& range);
-
-	View3u16 sub_view(View3u16 const& view, Range2Du32 const& range);
-
-	View2u16 sub_view(View2u16 const& view, Range2Du32 const& range);
-
-	View1u16 sub_view(View1u16 const& view, Range2Du32 const& range);
-}
-
-
-/* select_channel */
-
-namespace simage
-{
-	View1u16 select_channel(ViewRGBAu16 const& view, RGBA channel);
-
-	View1u16 select_channel(ViewRGBu16 const& view, RGB channel);
-
-	View1u16 select_channel(ViewHSVu16 const& view, HSV channel);
-
-	View1u16 select_channel(View2u16 const& view, GA channel);
-
-	View1u16 select_channel(View2u16 const& view, XY channel);
-
-
-	ViewRGBu16 select_rgb(ViewRGBAu16 const& view);
-}
-
-
 /* fill */
 
 namespace simage
@@ -243,7 +297,7 @@ namespace simage
 
 namespace simage
 {
-	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst);
+	void gradients_xy(View1u16 const& src, View2i16 const& xy_dst);
 }
 
 

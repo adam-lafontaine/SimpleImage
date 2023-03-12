@@ -65,6 +65,7 @@ using u64 = uint64_t;
 using f32 = float;
 using f64 = double;
 using i8 = int8_t;
+using i16 = short;
 using i32 = int32_t;
 using cstr = const char*;
 

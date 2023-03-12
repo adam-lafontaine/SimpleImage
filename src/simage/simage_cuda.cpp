@@ -11,30 +11,6 @@ static void process_image_by_row(u32 n_rows, id_func_t const& row_func)
 }
 
 /*
-
-    using View4f32 = View4<f32>;
-	using View3f32 = View3<f32>;
-	using View2f32 = View2<f32>;
-	using View1f32 = View1<f32>;
-
-	using View4u16 = View4<u16>;
-	using View3u16 = View3<u16>;
-	using View2u16 = View2<u16>;
-	using View1u16 = View1<u16>;
-
-	using Buffer32 = MemoryBuffer<f32>;
-	using Buffer16 = MemoryBuffer<u16>;
-
-	using ViewRGBAf32 = View4f32;
-	using ViewRGBf32 = View3f32;
-	using ViewHSVf32 = View3f32;
-	using ViewLCHf32 = View3f32;
-
-
-
-*/
-
-
 namespace simage
 {
     template <typename T>
@@ -55,7 +31,7 @@ namespace simage
         return dst;
     }
 }
-
+*/
 
 /* verify */
 

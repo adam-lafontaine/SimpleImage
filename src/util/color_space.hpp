@@ -81,13 +81,13 @@ namespace color_space
     }
 
 
-    inline constexpr u32 round_to_u16(f32 value)
+    inline constexpr u16 round_to_u16(f32 value)
     {
         return round_to_unsigned<u16>(value);
     }
 
 
-    inline constexpr u32 round_to_u8(f32 value)
+    inline constexpr u8 round_to_u8(f32 value)
     {
         return round_to_unsigned<u8>(value);
     }

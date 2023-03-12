@@ -231,7 +231,7 @@ namespace simage
 namespace simage
 {
 	template <typename T, size_t N>
-	static void do_make_view(ChannelView2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	static void do_make_view_n(ChannelView2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		view.channel_width_ = width;
 		view.width = width;
@@ -246,18 +246,25 @@ namespace simage
 	}
 
 
-	View1u16 make_view_1(u32 width, u32 height, Buffer16& buffer)
+	template <typename T>
+	static void do_make_view_1(View1<T>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
-		assert(verify(buffer, width * height));
-
-		View1u16 view;
-
 		view.matrix_data_ = mb::push_elements(buffer, width * height);
 		view.matrix_width = width;		
 		view.width = width;
 		view.height = height;
 
 		view.range = make_range(width, height);
+	}
+
+
+	View1u16 make_view_1(u32 width, u32 height, Buffer16& buffer)
+	{
+		assert(verify(buffer, width * height));
+
+		View1u16 view;
+
+		do_make_view_1(view, width, height, buffer);
 
 		assert(verify(view));
 
@@ -271,7 +278,7 @@ namespace simage
 
 		View2u16 view;
 
-		do_make_view(view, width, height, buffer);
+		do_make_view_n(view, width, height, buffer);
 
 		assert(verify(view));
 
@@ -285,7 +292,7 @@ namespace simage
 
 		View3u16 view;
 
-		do_make_view(view, width, height, buffer);
+		do_make_view_n(view, width, height, buffer);
 
 		assert(verify(view));
 
@@ -299,11 +306,216 @@ namespace simage
 
 		View4u16 view;
 
-		do_make_view(view, width, height, buffer);
+		do_make_view_n(view, width, height, buffer);
 
 		assert(verify(view));
 
 		return view;
+	}
+}
+
+
+/* sub_view */
+
+namespace simage
+{
+	template <typename T, size_t N>
+	static ChannelView2D<T, N> do_sub_view(ChannelView2D<T, N> const& view, Range2Du32 const& range)
+	{
+		ChannelView2D<T, N> sub_view;
+
+		sub_view.channel_width_ = view.channel_width_;
+		sub_view.x_begin = view.x_begin + range.x_begin;
+		sub_view.y_begin = view.y_begin + range.y_begin;
+		sub_view.x_end = view.x_begin + range.x_end;
+		sub_view.y_end = view.y_begin + range.y_end;
+		sub_view.width = range.x_end - range.x_begin;
+		sub_view.height = range.y_end - range.y_begin;
+
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			sub_view.channel_data_[ch] = view.channel_data_[ch];
+		}
+
+		return sub_view;
+	}
+
+
+	template <typename T>
+	View1<T> do_sub_view(View1<T> const& view, Range2Du32 const& range)
+	{
+		View1<T> sub_view;
+
+		sub_view.matrix_data_ = view.matrix_data_;
+		sub_view.matrix_width = view.matrix_width;
+		sub_view.x_begin = view.x_begin + range.x_begin;
+		sub_view.y_begin = view.y_begin + range.y_begin;
+		sub_view.x_end = view.x_begin + range.x_end;
+		sub_view.y_end = view.y_begin + range.y_end;
+		sub_view.width = range.x_end - range.x_begin;
+		sub_view.height = range.y_end - range.y_begin;
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	View4u16 sub_view(View4u16 const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	View3u16 sub_view(View3u16 const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	View2u16 sub_view(View2u16 const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	View1u16 sub_view(View1u16 const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+}
+
+
+/* select_channel */
+
+namespace simage
+{
+	template <typename T, size_t N, typename CH>
+	static View1<T> select_channel(ChannelView2D<T, N> const& view, CH ch)
+	{
+		View1<T> view1{};
+
+		view1.matrix_width = view.channel_width_;
+		view1.range = view.range;
+		view1.width = view.width;
+		view1.height = view.height;
+
+		view1.matrix_data_ = view.channel_data_[id_cast(ch)];
+
+		return view1;
+	}
+
+
+	View1u16 select_channel(ViewRGBAu16 const& view, RGBA channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1u16 select_channel(ViewRGBu16 const& view, RGB channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1u16 select_channel(ViewHSVu16 const& view, HSV channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1u16 select_channel(View2u16 const& view, GA channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1u16 select_channel(View2u16 const& view, XY channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	ViewRGBu16 select_rgb(ViewRGBAu16 const& view)
+	{
+		assert(verify(view));
+
+		ViewRGBu16 rgb;
+
+		rgb.channel_width_ = view.channel_width_;
+		rgb.width = view.width;
+		rgb.height = view.height;
+		rgb.range = view.range;
+
+		rgb.channel_data_[id_cast(RGB::R)] = view.channel_data_[id_cast(RGB::R)];
+		rgb.channel_data_[id_cast(RGB::G)] = view.channel_data_[id_cast(RGB::G)];
+		rgb.channel_data_[id_cast(RGB::B)] = view.channel_data_[id_cast(RGB::B)];
+
+		return rgb;
 	}
 }
 
@@ -1103,213 +1315,6 @@ namespace simage
 }
 
 
-/* sub_view */
-
-namespace simage
-{
-	template <typename T, size_t N>
-	static ChannelView2D<T, N> do_sub_view(ChannelView2D<T, N> const& view, Range2Du32 const& range)
-	{
-		ChannelView2D<T, N> sub_view;
-
-		sub_view.channel_width_ = view.channel_width_;
-		sub_view.x_begin = view.x_begin + range.x_begin;
-		sub_view.y_begin = view.y_begin + range.y_begin;
-		sub_view.x_end = view.x_begin + range.x_end;
-		sub_view.y_end = view.y_begin + range.y_end;
-		sub_view.width = range.x_end - range.x_begin;
-		sub_view.height = range.y_end - range.y_begin;
-
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			sub_view.channel_data_[ch] = view.channel_data_[ch];
-		}
-
-		return sub_view;
-	}
-
-
-	template <typename T>
-	View1<T> do_sub_view(View1<T> const& view, Range2Du32 const& range)
-	{
-		assert(verify(view, range));
-
-		View1<T> sub_view;
-
-		sub_view.matrix_data_ = view.matrix_data_;
-		sub_view.matrix_width = view.matrix_width;
-		sub_view.x_begin = view.x_begin + range.x_begin;
-		sub_view.y_begin = view.y_begin + range.y_begin;
-		sub_view.x_end = view.x_begin + range.x_end;
-		sub_view.y_end = view.y_begin + range.y_end;
-		sub_view.width = range.x_end - range.x_begin;
-		sub_view.height = range.y_end - range.y_begin;
-
-		assert(verify(sub_view));
-
-		return sub_view;
-	}
-
-
-	View4u16 sub_view(View4u16 const& view, Range2Du32 const& range)
-	{
-		assert(verify(view, range));
-
-		auto sub_view = do_sub_view(view, range);
-
-		assert(verify(sub_view));
-
-		return sub_view;
-	}
-
-
-	View3u16 sub_view(View3u16 const& view, Range2Du32 const& range)
-	{
-		assert(verify(view, range));
-
-		auto sub_view = do_sub_view(view, range);
-
-		assert(verify(sub_view));
-
-		return sub_view;
-	}
-
-
-	View2u16 sub_view(View2u16 const& view, Range2Du32 const& range)
-	{
-		assert(verify(view, range));
-
-		auto sub_view = do_sub_view(view, range);
-
-		assert(verify(sub_view));
-
-		return sub_view;
-	}
-
-
-	View1u16 sub_view(View1u16 const& view, Range2Du32 const& range)
-	{
-		assert(verify(view, range));
-
-		auto sub_view = do_sub_view(view, range);
-
-		assert(verify(sub_view));
-
-		return sub_view;
-	}
-}
-
-
-/* select_channel */
-
-namespace simage
-{
-	template <typename T, size_t N>
-	static View1<T> select_channel(ChannelView2D<T, N> const& view, u32 ch)
-	{
-		View1<T> view1{};
-
-		view1.matrix_width = view.channel_width_;
-		view1.range = view.range;
-		view1.width = view.width;
-		view1.height = view.height;
-
-		view1.matrix_data_ = view.channel_data_[ch];
-
-		return view1;
-	}
-
-
-	View1u16 select_channel(ViewRGBAu16 const& view, RGBA channel)
-	{
-		assert(verify(view));
-
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
-
-		assert(verify(view1));
-
-		return view1;
-	}
-
-
-	View1u16 select_channel(ViewRGBu16 const& view, RGB channel)
-	{
-		assert(verify(view));
-
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
-
-		assert(verify(view1));
-
-		return view1;
-	}
-
-
-	View1u16 select_channel(ViewHSVu16 const& view, HSV channel)
-	{
-		assert(verify(view));
-
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
-
-		assert(verify(view1));
-
-		return view1;
-	}
-
-
-	View1u16 select_channel(View2u16 const& view, GA channel)
-	{
-		assert(verify(view));
-
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
-
-		assert(verify(view1));
-
-		return view1;
-	}
-
-
-	View1u16 select_channel(View2u16 const& view, XY channel)
-	{
-		assert(verify(view));
-
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
-
-		assert(verify(view1));
-
-		return view1;
-	}
-
-
-	ViewRGBu16 select_rgb(ViewRGBAu16 const& view)
-	{
-		assert(verify(view));
-
-		ViewRGBu16 rgb;
-
-		rgb.channel_width_ = view.channel_width_;
-		rgb.width = view.width;
-		rgb.height = view.height;
-		rgb.range = view.range;
-
-		rgb.channel_data_[id_cast(RGB::R)] = view.channel_data_[id_cast(RGB::R)];
-		rgb.channel_data_[id_cast(RGB::G)] = view.channel_data_[id_cast(RGB::G)];
-		rgb.channel_data_[id_cast(RGB::B)] = view.channel_data_[id_cast(RGB::B)];
-
-		return rgb;
-	}
-}
-
-
 /* fill */
 
 namespace simage
@@ -1685,8 +1690,7 @@ namespace simage
 
 namespace simage
 {
-	template <typename T>
-	static void convolve(View1<T> const& src, View1<T> const& dst, Mat2Df32 const& kernel)
+	static void convolve(View1u16 const& src, View1i16 const& dst, Mat2Df32 const& kernel)
 	{
 		assert(kernel.width % 2 > 0);
 		assert(kernel.height % 2 > 0);
@@ -1712,7 +1716,7 @@ namespace simage
 						++w;
 					}
 
-					d[x] = (T)total;
+					d[x] = (i16)(total / 2);
 				}
 			}
 		};
@@ -1851,39 +1855,17 @@ namespace simage
 		execute(f_list);
 	}
 
-
-	template <typename T>
-	static void do_gradients(View1<T> const& src, View1<T> const& dst, XY ch)
+	
+	static void do_gradients_x(View1u16 const& src, View1i16 const& dst)
 	{
-		constexpr auto grad_x = make_grad_x_11();
-		constexpr auto grad_y = make_grad_y_11();
-		constexpr u32 dim_max = 11;		
-
-		/*constexpr auto grad_x = make_grad_x_5();
-		constexpr auto grad_y = make_grad_y_5();
-		constexpr u32 dim_max = 5;*/
-
-		constexpr u32 dim_min = (u32)grad_x.size() / dim_max;
+		constexpr auto grad_y = make_grad_x_11();
+		constexpr u32 dim_max = 11;
+		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
 
 		Mat2Df32 kernel{};
-
-		switch (ch)
-		{
-		case XY::X:
-			kernel.data_ = (f32*)grad_x.data();
-			kernel.width = dim_max;
-			kernel.height = dim_min;
-			break;
-		case XY::Y:
-			kernel.data_ = (f32*)grad_y.data();
-			kernel.width = dim_min;
-			kernel.height = dim_max;
-			break;
-		
-		default:
-			assert(false);
-			return;
-		}
+		kernel.data_ = (f32*)grad_y.data();
+		kernel.width = dim_max;
+		kernel.height = dim_min;
 
 		auto w = kernel.width / 2;
 		auto h = kernel.height / 2;
@@ -1896,11 +1878,37 @@ namespace simage
 		inner.y_begin = h;
 		inner.y_end = src.height - h;
 
-		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
+		convolve(sub_view(src, inner), do_sub_view(dst, inner), kernel);
 	}
 
 
-	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst)
+	static void do_gradients_y(View1u16 const& src, View1i16 const& dst)
+	{
+		constexpr auto grad_y = make_grad_y_11();
+		constexpr u32 dim_max = 11;
+		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
+
+		Mat2Df32 kernel{};
+		kernel.data_ = (f32*)grad_y.data();
+		kernel.width = dim_min;
+		kernel.height = dim_max;
+
+		auto w = kernel.width / 2;
+		auto h = kernel.height / 2;
+
+		zero_outer(dst, w, h);
+
+		Range2Du32 inner{};
+		inner.x_begin = w;
+		inner.x_end = src.width - w;
+		inner.y_begin = h;
+		inner.y_end = src.height - h;
+
+		convolve(sub_view(src, inner), do_sub_view(dst, inner), kernel);
+	}
+
+
+	void gradients_xy(View1u16 const& src, View2i16 const& xy_dst)
 	{
 		auto x_dst = select_channel(xy_dst, XY::X);
 		auto y_dst = select_channel(xy_dst, XY::Y);
@@ -1908,8 +1916,8 @@ namespace simage
 		assert(verify(src, x_dst));
 		assert(verify(src, y_dst));
 
-		do_gradients(src, x_dst, XY::X);
-		do_gradients(src, y_dst, XY::Y);
+		do_gradients_x(src, x_dst);
+		do_gradients_y(src, y_dst);
 	}
 }
 

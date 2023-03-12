@@ -5,27 +5,27 @@
 
 
 // memory
-img::Buffer32 buffer;
-img::View3f32 view3a;
-img::View2f32 view2a;
-img::View1f32 view1a;
-img::View3f32 view3b;
+img::Buffer16 buffer;
+img::View3u16 view3a;
+img::View2u16 view2a;
+img::View1u16 view1a;
+img::View3u16 view3b;
 
 
 // tests
-img::View3f32 view_rgb;
-img::View1f32 view_gray;
-img::View2f32 view_grad;
-img::View3f32 view_blur;
-img::View1f32 view_red;
-img::View1f32 view_green;
-img::View1f32 view_blue;
+img::View3u16 view_rgb;
+img::View1u16 view_gray;
+img::View2u16 view_grad;
+img::View3u16 view_blur;
+img::View1u16 view_red;
+img::View1u16 view_green;
+img::View1u16 view_blue;
 
-
-static f32 to_hypot(f32 grad_x, f32 grad_y)
+/*
+static u16 to_hypot(u16 grad_x, u16 grad_y)
 {
 	return std::hypotf(grad_x, grad_y);
-}
+}*/
 
 
 void close_camera_procs()

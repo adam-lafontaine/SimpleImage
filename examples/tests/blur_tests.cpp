@@ -16,7 +16,7 @@ static bool blur_gray_test()
     auto height = chess.height;
     auto view = img::make_view(chess);
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 2);
 
     auto src = img::make_view_1(width, height, buffer);
@@ -76,7 +76,7 @@ static bool blur_rgb_test()
     auto height = chess.height;
     auto view = img::make_view(chess);
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 6);
 
     auto src = img::make_view_3(width, height, buffer);

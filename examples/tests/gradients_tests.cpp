@@ -18,7 +18,7 @@ bool gradients_xy_test()
 	auto width = view.width;
 	auto height = view.height;
 
-	img::Buffer32 buffer;
+	img::Buffer16 buffer;
 	mb::create_buffer(buffer, width * height * 3);
 
 	auto src = img::make_view_1(width, height, buffer);
@@ -65,7 +65,7 @@ bool edges_test()
 	auto width = view.width;
 	auto height = view.height;
 
-	img::Buffer32 buffer;
+	img::Buffer16 buffer;
 	mb::create_buffer(buffer, width * height * 3);
 
 	auto src = img::make_view_1(width, height, buffer);

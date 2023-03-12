@@ -33,7 +33,7 @@ static bool map_test()
     img::map_gray(vette_v, img::make_view(image));
     write_image(image, "vette_gray_4ch.bmp");
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 2);
 
     auto view_vette = img::make_view_1(width, height, buffer);

@@ -84,7 +84,7 @@ static bool map_lch_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 3 * 2);
 
     auto lch_vette = img::make_view_3(width, height, buffer);
@@ -143,7 +143,7 @@ static bool map_lch_gray_test()
     write_image(vette, "vette_1.bmp");
     write_image(caddy, "caddy_1.bmp");
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 3 * 2);
 
     auto lch_vette = img::make_view_3(width, height, buffer);
@@ -196,7 +196,7 @@ static bool map_lch_planar_test()
     auto vette_v = img::make_view(vette);
     auto caddy_v = img::make_view(caddy);
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 3 * 4);
 
     auto rgb_vette = img::make_view_3(width, height, buffer);

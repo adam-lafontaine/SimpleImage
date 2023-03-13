@@ -24,7 +24,7 @@ public:
 };
 
 
-static void fill_to_top(img::View1f32 const& view, f32 value, u8 color)
+static void fill_to_top(img::View1u8 const& view, f32 value, u8 color)
 {
 	assert(value >= 0.0f);
 	assert(value <= 1.0f);
@@ -50,7 +50,7 @@ static void fill_to_top(img::View1f32 const& view, f32 value, u8 color)
 }
 
 
-static void draw_histogram(const f32* values, img::View1f32 const& dst, HistParams const& props)
+static void draw_histogram(const f32* values, img::View1u8 const& dst, HistParams const& props)
 {
 	u32 space_px = props.bin_space;
 	auto width = props.bin_width;
@@ -73,7 +73,7 @@ static void draw_histogram(const f32* values, img::View1f32 const& dst, HistPara
 }
 
 
-static void draw(img::Histogram12f32& hists, img::View1f32 const& dst, HistParams const& props)
+static void draw(img::Histogram12f32& hists, img::View1u8 const& dst, HistParams const& props)
 {
 	img::fill(dst, 255);
 
@@ -133,7 +133,7 @@ void camera_callback_test(img::View const& out)
 
 	auto dst = img::sub_view(out, make_range(width, height));
 
-	img::Buffer32 buffer;
+	img::Buffer16 buffer;
 	mb::create_buffer(buffer, width * height * 6);
 
 	auto rgb = img::make_view_3(width, height, buffer);
@@ -180,11 +180,10 @@ void camera_histogram_test(img::View const& out)
 	params.hist_space = HIST_SPACE;
 	params.bin_width = (width + BIN_SPACE - 2 * HIST_SPACE) / N_BINS - BIN_SPACE;
 	params.hist_height = (height - HIST_SPACE) / 12 - HIST_SPACE;
-
-	img::Buffer32 buffer;
-	mb::create_buffer(buffer, width * height);
-
-	auto hist_view = img::make_view_1(width, height, buffer);
+	
+	img::ImageGray hist_image;
+	img::create_image(hist_image, width, height);
+	auto hist_view = img::make_view(hist_image);
 
 	img::Histogram12f32 hists;
 	hists.n_bins = N_BINS;
@@ -193,7 +192,7 @@ void camera_histogram_test(img::View const& out)
 	{
 		img::make_histograms(src, hists);
 		draw(hists, hist_view, params);
-		img::map_rgb(hist_view, out);
+		img::map_gray(hist_view, out);
 	};
 
 	if (!img::grab_image(camera, grab_cb))
@@ -201,7 +200,7 @@ void camera_histogram_test(img::View const& out)
 		printf("Error camera_histogram_test / grab_image\n");
 	}
 
-	mb::destroy_buffer(buffer);
+	img::destroy_image(hist_image);
 	img::close_camera(camera);
 }
 
@@ -227,7 +226,7 @@ void camera_continuous_test(img::View const& out)
 	u32 w = width / n_images;
 	auto range = make_range(w, height);
 
-	img::Buffer32 buffer;
+	img::Buffer16 buffer;
 	mb::create_buffer(buffer, w * height * 4);
 
 	auto view_rgb = img::make_view_3(w, height, buffer);

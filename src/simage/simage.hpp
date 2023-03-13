@@ -64,6 +64,8 @@ namespace simage
 	using View2u16 = View2<u16>;
 	using View1u16 = View1<u16>;
 
+	using View1u8 = ViewGray;
+
 	/*using View4i16 = View4<i16>;
 	using View3i16 = View3<i16>;
 	using View2i16 = View2<i16>;
@@ -80,7 +82,7 @@ namespace simage
 	using ViewRGBAu16 = View4u16;
 	using ViewRGBu16 = View3u16;
 	using ViewHSVu16 = View3u16;
-	using ViewLCHu16 = View3u16;
+	using ViewLCHu16 = View3u16;	
 }
 
 #if 0
@@ -181,9 +183,9 @@ namespace simage
 
 namespace simage
 {
-	void map_gray(ViewGray const& src, View1u16 const& dst);
+	void map_gray(View1u8 const& src, View1u16 const& dst);
 
-	void map_gray(View1u16 const& src, ViewGray const& dst);
+	void map_gray(View1u16 const& src, View1u8 const& dst);
 
 	void map_gray(ViewYUV const& src, View1u16 const& dst);
 }
@@ -295,7 +297,7 @@ namespace simage
 
 	void shrink(View3u16 const& src, View3u16 const& dst);
 
-	void shrink(ViewGray const& src, View1u16 const& dst);
+	void shrink(View1u8 const& src, View1u16 const& dst);
 
 	void shrink(View const& src, ViewRGBu16 const& dst);
 }

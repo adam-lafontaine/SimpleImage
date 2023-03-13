@@ -1482,6 +1482,54 @@ namespace simage
 
 		do_transform_view_3_1(src, dst, func);
 	}
+
+
+	void transform_f32(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32)
+	{
+		assert(verify(src, dst));
+
+		auto const func = [&](u16 p)
+		{
+			auto p32 = cs::to_channel_f32(p);
+			auto res32 = func32(p32);
+			return cs::to_channel_u16(res32);
+		};
+
+		transform(src, dst, func);
+	}
+
+
+	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32)
+	{
+		assert(verify(src, dst));
+
+		auto const func = [&](u16 x, u16 y)
+		{
+			auto x32 = cs::to_channel_f32(x);
+			auto y32 = cs::to_channel_f32(y);
+			auto res32 = func32(x32, y32);
+			return cs::to_channel_u16(res32);
+		};
+
+		transform(src, dst, func);
+	}
+
+
+	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32)
+	{
+		assert(verify(src, dst));
+
+		auto const func = [&](u16 x, u16 y, u16 z)
+		{
+			auto x32 = cs::to_channel_f32(x);
+			auto y32 = cs::to_channel_f32(y);
+			auto z32 = cs::to_channel_f32(z);
+			auto res32 = func32(x32, y32, z32);
+			return cs::to_channel_u16(res32);
+		};
+
+		transform(src, dst, func);
+	}
 }
 
 
@@ -1690,7 +1738,7 @@ namespace simage
 
 namespace simage
 {
-	static void convolve(View1u16 const& src, View1i16 const& dst, Mat2Df32 const& kernel)
+	static void convolve(View1u16 const& src, View1u16 const& dst, Mat2Df32 const& kernel)
 	{
 		assert(kernel.width % 2 > 0);
 		assert(kernel.height % 2 > 0);
@@ -1716,7 +1764,7 @@ namespace simage
 						++w;
 					}
 
-					d[x] = (i16)(total / 2);
+					d[x] = (u16)std::abs(total); // (i16)(total / 2);
 				}
 			}
 		};
@@ -1856,7 +1904,7 @@ namespace simage
 	}
 
 	
-	static void do_gradients_x(View1u16 const& src, View1i16 const& dst)
+	static void gradients_x(View1u16 const& src, View1u16 const& dst)
 	{
 		constexpr auto grad_y = make_grad_x_11();
 		constexpr u32 dim_max = 11;
@@ -1878,11 +1926,11 @@ namespace simage
 		inner.y_begin = h;
 		inner.y_end = src.height - h;
 
-		convolve(sub_view(src, inner), do_sub_view(dst, inner), kernel);
+		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
 	}
 
 
-	static void do_gradients_y(View1u16 const& src, View1i16 const& dst)
+	static void gradients_y(View1u16 const& src, View1u16 const& dst)
 	{
 		constexpr auto grad_y = make_grad_y_11();
 		constexpr u32 dim_max = 11;
@@ -1904,11 +1952,11 @@ namespace simage
 		inner.y_begin = h;
 		inner.y_end = src.height - h;
 
-		convolve(sub_view(src, inner), do_sub_view(dst, inner), kernel);
+		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
 	}
 
 
-	void gradients_xy(View1u16 const& src, View2i16 const& xy_dst)
+	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst)
 	{
 		auto x_dst = select_channel(xy_dst, XY::X);
 		auto y_dst = select_channel(xy_dst, XY::Y);
@@ -1916,8 +1964,8 @@ namespace simage
 		assert(verify(src, x_dst));
 		assert(verify(src, y_dst));
 
-		do_gradients_x(src, x_dst);
-		do_gradients_y(src, y_dst);
+		gradients_x(src, x_dst);
+		gradients_y(src, y_dst);
 	}
 }
 

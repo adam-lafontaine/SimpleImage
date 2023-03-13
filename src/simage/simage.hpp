@@ -64,10 +64,10 @@ namespace simage
 	using View2u16 = View2<u16>;
 	using View1u16 = View1<u16>;
 
-	using View4i16 = View4<i16>;
+	/*using View4i16 = View4<i16>;
 	using View3i16 = View3<i16>;
 	using View2i16 = View2<i16>;
-	using View1i16 = View1<i16>;
+	using View1i16 = View1<i16>;*/
 
 	/*using View4f32 = View4<f32>;
 	using View3f32 = View3<f32>;
@@ -83,7 +83,7 @@ namespace simage
 	using ViewLCHu16 = View3u16;
 }
 
-
+#if 0
 /* reinterpret_view */
 
 namespace simage
@@ -126,6 +126,7 @@ namespace simage
 	}
 
 }
+#endif
 
 
 /* make_view */
@@ -274,8 +275,15 @@ namespace simage
 	
 	inline void transform_gray(ViewRGBu16 const& src, View1u16 const& dst)
 	{
-		return transform(src, dst, [](u16 red, u16 green, u16 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
+		return transform(src, dst, [](u16 red, u16 green, u16 blue) { return (u16)(0.299f * red + 0.587f * green + 0.114f * blue); });
 	}
+
+
+	void transform_f32(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32);
+
+	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
+
+	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
 }
 
 
@@ -297,7 +305,7 @@ namespace simage
 
 namespace simage
 {
-	void gradients_xy(View1u16 const& src, View2i16 const& xy_dst);
+	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst);
 }
 
 

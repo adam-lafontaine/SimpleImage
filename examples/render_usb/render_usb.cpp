@@ -22,12 +22,6 @@ img::View1u16 view_green;
 img::View1u16 view_blue;
 
 
-/*static u16 to_hypot(u16 grad_x, u16 grad_y)
-{
-	return std::hypotf(grad_x, grad_y);
-}*/
-
-
 static f32 to_hypot(f32 grad_x, f32 grad_y)
 {
 	return std::hypotf(grad_x, grad_y);

@@ -65,19 +65,8 @@ namespace simage
 	using View1u16 = View1<u16>;
 
 	using View1u8 = ViewGray;
-
-	/*using View4i16 = View4<i16>;
-	using View3i16 = View3<i16>;
-	using View2i16 = View2<i16>;
-	using View1i16 = View1<i16>;*/
-
-	/*using View4f32 = View4<f32>;
-	using View3f32 = View3<f32>;
-	using View2f32 = View2<f32>;
-	using View1f32 = View1<f32>;*/
 	
 	using Buffer16 = MemoryBuffer<u16>;
-	//using Buffer32 = MemoryBuffer<f32>;
 
 	using ViewRGBAu16 = View4u16;
 	using ViewRGBu16 = View3u16;
@@ -287,10 +276,6 @@ namespace simage
 	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
 
 	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
-
-
-	template <typename T>
-	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<T(T, T)> const& func) = delete;
 }
 
 

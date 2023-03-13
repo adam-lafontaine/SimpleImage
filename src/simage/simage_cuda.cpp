@@ -2,7 +2,7 @@
 #include "../util/execute.hpp"
 
 
-static void process_image_by_row(u32 n_rows, id_func_t const& row_func)
+static void process_by_row(u32 n_rows, id_func_t const& row_func)
 {
 	auto const row_begin = 0;
 	auto const row_end = n_rows;
@@ -10,28 +10,18 @@ static void process_image_by_row(u32 n_rows, id_func_t const& row_func)
 	process_range(row_begin, row_end, row_func);
 }
 
-/*
+
+/* row begin */
+
 namespace simage
 {
-    template <typename T>
-    using HostView = MatrixView<T>;
-
-
-    template <typename T>
-    static HostView<T> as_host_view(DeviceView2D<T> const& view)
-    {
-        HostView<T> dst;
-
-        dst.matrix_data_ = view.matrix_data_;
-        dst.matrix_width = view.matrix_width;
-        dst.width = view.width;        
-        dst.height = view.height;
-        dst.range = view.range;
-
-        return dst;
-    }
+	template <typename T>
+	inline T* row_begin(DeviceView2D<T> const& view, u32 y)
+	{
+		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
+	}
 }
-*/
+
 
 /* verify */
 
@@ -229,16 +219,15 @@ namespace simage
         assert(verify(src, dst));
 
         auto const bytes_per_row = sizeof(Pixel) * src.width;
-        auto const device = as_host_view(dst);
 
         auto const row_func = [&](u32 y)
         {
             auto h = row_begin(src, y);
-            auto d = row_begin(device, y);
+            auto d = row_begin(dst, y);
             if(!cuda::memcpy_to_device(h, d, bytes_per_row)) { assert(false); }
         };
 
-        process_image_by_row(src.height, row_func);
+        process_by_row(src.height, row_func);
 	}
 
 
@@ -247,16 +236,15 @@ namespace simage
         assert(verify(src, dst));
 
         auto const bytes_per_row = sizeof(u8) * src.width;
-        auto const device = as_host_view(dst);
 
         auto const row_func = [&](u32 y)
         {
             auto h = row_begin(src, y);
-            auto d = row_begin(device, y);
+            auto d = row_begin(dst, y);
             if(!cuda::memcpy_to_device(h, d, bytes_per_row)) { assert(false); }
         };
 
-        process_image_by_row(src.height, row_func);
+        process_by_row(src.height, row_func);
     }
 
 
@@ -265,16 +253,15 @@ namespace simage
         assert(verify(src, dst));
 
         auto const bytes_per_row = sizeof(Pixel) * src.width;
-        auto const device = as_host_view(src);
 
         auto const row_func = [&](u32 y)
         {
             auto h = row_begin(dst, y);
-            auto d = row_begin(device, y);
+            auto d = row_begin(src, y);
             if(!cuda::memcpy_to_host(d, h, bytes_per_row)) { assert(false); }
         };
 
-        process_image_by_row(src.height, row_func);
+        process_by_row(src.height, row_func);
 	}
 
 
@@ -283,16 +270,15 @@ namespace simage
         assert(verify(src, dst));
 
         auto const bytes_per_row = sizeof(u8) * src.width;
-        auto const device = as_host_view(src);
 
         auto const row_func = [&](u32 y)
         {
             auto h = row_begin(dst, y);
-            auto d = row_begin(device, y);
+            auto d = row_begin(src, y);
             if(!cuda::memcpy_to_host(d, h, bytes_per_row)) { assert(false); }
         };
 
-        process_image_by_row(src.height, row_func);
+        process_by_row(src.height, row_func);
     }
 }
 

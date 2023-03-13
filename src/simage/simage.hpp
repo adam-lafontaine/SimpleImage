@@ -85,8 +85,9 @@ namespace simage
 	using ViewLCHu16 = View3u16;	
 }
 
-#if 0
+
 /* reinterpret_view */
+#if 0
 
 namespace simage
 {
@@ -286,6 +287,10 @@ namespace simage
 	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
 
 	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
+
+
+	template <typename T>
+	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<T(T, T)> const& func) = delete;
 }
 
 

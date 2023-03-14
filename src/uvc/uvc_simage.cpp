@@ -1,7 +1,7 @@
 #include "../simage/simage_platform.hpp"
 
 #define LIBUVC_IMPLEMENTATION 1
-#include "../uvc/libuvc.h"
+#include "../uvc/libuvc2.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -9,6 +9,8 @@
 #ifndef NDEBUG
 #include <cstdio>
 #endif
+
+using namespace uvc;
 
 namespace img = simage;
 

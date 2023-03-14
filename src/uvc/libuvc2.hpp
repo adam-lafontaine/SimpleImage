@@ -832,7 +832,7 @@ namespace uvc
 
 }
 
-// #ifdef LIBUVC_IMPLEMENTATION
+#ifdef LIBUVC_IMPLEMENTATION
 
 namespace uvc
 {
@@ -9408,6 +9408,6 @@ namespace uvc
 #endif // CTRL_GEN_C
 }
 
-// #endif // LIBUVC_IMPLEMENTATION
+#endif // LIBUVC_IMPLEMENTATION
 
 #endif // !def(LIBUVC_H)

@@ -1,6 +1,6 @@
 #include "../simage/simage_platform.hpp"
 
-#define LIBUVC_IMPLEMENTATION 1
+#define LIBuvc::IMPLEMENTATION 1
 #include "../uvc/libuvc2.hpp"
 
 #include <vector>
@@ -10,7 +10,7 @@
 #include <cstdio>
 #endif
 
-using namespace uvc;
+//using namespace uvc;
 
 namespace img = simage;
 
@@ -78,15 +78,18 @@ namespace simage
 #endif
 
 
+
+
+
 class DeviceUVC
 {
 public:
-    uvc_device_t* p_device = nullptr;
-    uvc_device_handle_t* h_device = nullptr;
-    uvc_stream_ctrl_t* ctrl = nullptr;
-    uvc_stream_handle_t* h_stream = nullptr;
+    uvc::device* p_device = nullptr;
+    uvc::device_handle* h_device = nullptr;
+    uvc::stream_ctrl* ctrl = nullptr;
+    uvc::stream_handle* h_stream = nullptr;
 
-    uvc_frame_t* rgb_frame = nullptr;
+    uvc::frame* rgb_frame = nullptr;
     img::ViewRGB rgb_view;
 
     int device_id = -1;
@@ -108,10 +111,10 @@ public:
 class DeviceListUVC
 {
 public:
-    uvc_context_t *context = nullptr;
-    uvc_device_t** device_list = nullptr;
+    uvc::context* context = nullptr;
+    uvc::device** device_list = nullptr;
 
-    std::vector<uvc_stream_ctrl_t> stream_ctrl_list;
+    std::vector<uvc::stream_ctrl> stream_ctrl_list;
 
     std::vector<DeviceUVC> devices;
 
@@ -132,7 +135,7 @@ static void free_device_frame(DeviceUVC& device)
 }
 
 
-static void print_uvc_error(uvc_error_t err, const char* msg)
+static void print_uvc_error(uvc::error err, const char* msg)
 {
 #ifndef NDEBUG
 
@@ -258,15 +261,15 @@ static void disconnect_device(DeviceUVC& device)
 }
 
 
-static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
+static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
 {
     device.ctrl = ctrl;
 
     auto res = uvc_open(device.p_device, &device.h_device);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         print_uvc_error(res, "uvc_open");
-        if (res == UVC_ERROR_ACCESS)
+        if (res == uvc::ERROR_ACCESS)
         {
             print_device_permissions_msg();
         }
@@ -274,23 +277,23 @@ static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
         return false;
     }        
 
-    const uvc_format_desc_t* format_desc = uvc_get_format_descs(device.h_device);
-    const uvc_frame_desc_t* frame_desc = format_desc->frame_descs;
-    enum uvc_frame_format frame_format;
+    const uvc::format_desc* format_desc = uvc_get_format_descs(device.h_device);
+    const uvc::frame_desc* frame_desc = format_desc->frame_descs;
+    uvc::frame_format frame_format;
     int width = 640;
     int height = 480;
     int fps = 30;
 
     switch (format_desc->bDescriptorSubtype) 
     {
-    case UVC_VS_FORMAT_MJPEG:
-        frame_format = UVC_FRAME_FORMAT_MJPEG;
+    case uvc::VS_FORMAT_MJPEG:
+        frame_format = uvc::FRAME_FORMAT_MJPEG;
         break;
-    case UVC_VS_FORMAT_FRAME_BASED:
-        frame_format = UVC_FRAME_FORMAT_H264;
+    case uvc::VS_FORMAT_FRAME_BASED:
+        frame_format = uvc::FRAME_FORMAT_H264;
         break;
     default:
-        frame_format = UVC_FRAME_FORMAT_YUYV;
+        frame_format = uvc::FRAME_FORMAT_YUYV;
         break;
     }
 
@@ -314,7 +317,7 @@ static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
         width, height, fps /* width, height, fps */
     );
 
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         print_uvc_error(res, "uvc_get_stream_ctrl_format_size");
         disconnect_device(device);
@@ -331,10 +334,10 @@ static bool connect_device(DeviceUVC& device, uvc_stream_ctrl_t* ctrl)
 
 static bool enumerate_devices(DeviceListUVC& list)
 {
-    uvc_device_descriptor_t* desc;
+    uvc::device_descriptor* desc;
 
     auto res = uvc_init(&list.context, NULL);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         print_uvc_error(res, "uvc_init");
         uvc_exit(list.context);
@@ -342,7 +345,7 @@ static bool enumerate_devices(DeviceListUVC& list)
     }
 
     res = uvc_get_device_list(list.context, &list.device_list);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         print_uvc_error(res, "uvc_get_device_list");
         uvc_exit(list.context);
@@ -362,7 +365,7 @@ static bool enumerate_devices(DeviceListUVC& list)
         device.p_device = list.device_list[i];
 
         res = uvc_get_device_descriptor(device.p_device, &desc);
-        if (res != UVC_SUCCESS)
+        if (res != uvc::SUCCESS)
         {
             print_uvc_error(res, "uvc_get_device_descriptor");
             continue;
@@ -383,7 +386,7 @@ static bool enumerate_devices(DeviceListUVC& list)
     }
 
     // allocate for stream info
-    std::vector<uvc_stream_ctrl_t> ctrls(list.devices.size());
+    std::vector<uvc::stream_ctrl> ctrls(list.devices.size());
     list.stream_ctrl_list = std::move(ctrls);
 
     list.is_connected = false;
@@ -417,14 +420,14 @@ static bool start_device_single_frame(DeviceUVC& device)
     }
 
     auto res = uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_open_ctrl");
         return false;
     }
 
     res = uvc_stream_start(device.h_stream, 0, (void*)12345, 0);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_start");
         uvc_stream_close(device.h_stream);
@@ -440,17 +443,17 @@ static bool start_device_single_frame(DeviceUVC& device)
 static void enable_exposure_mode(DeviceUVC const& device)
 {
     auto res = uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_AUTO);
-    if (res == UVC_SUCCESS)
+    if (res == uvc::SUCCESS)
     {
         return;
     }
 
     print_uvc_error(res, "uvc_set_ae_mode... auto");
 
-    if (res == UVC_ERROR_PIPE)
+    if (res == uvc::ERROR_PIPE)
     {
         res = uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_APERTURE);
-        if (res != UVC_SUCCESS)
+        if (res != uvc::SUCCESS)
         {
             print_uvc_error(res, "uvc_set_ae_mode... aperture");
         }
@@ -486,10 +489,10 @@ static void close_all_devices()
 
 static bool grab_and_convert_frame(DeviceUVC& device)
 {
-    uvc_frame_t* frame;
+    uvc::frame* frame;
 
     auto res = uvc_stream_get_frame(device.h_stream, &frame, 0);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");
         return false;
@@ -498,7 +501,7 @@ static bool grab_and_convert_frame(DeviceUVC& device)
     auto rgb = device.rgb_frame;
 
     res = uvc_any2rgb(frame, rgb);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {  
         print_uvc_error(res, "uvc_any2rgb");
         return false;
@@ -721,15 +724,15 @@ namespace simage
 
 static void print_connected_device_info_raw(uvc_context_t *ctx)
 {
-    uvc_device_t** list;
-    uvc_device_t* dev;
-    uvc_device_descriptor_t* desc;
-    uvc_error_t res;
+    uvc::device** list;
+    uvc::device* dev;
+    uvc::device_descriptor* desc;
+    uvc::error res;
 
     printf("Finding connected UVC devices\n");
 
     res = uvc_get_device_list(ctx, &list);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         printf("Unable to get devices\n");
         return;
@@ -746,7 +749,7 @@ static void print_connected_device_info_raw(uvc_context_t *ctx)
 
         // Retrieve the device descriptor
         res = uvc_get_device_descriptor(dev, &desc);
-        if (res != UVC_SUCCESS)
+        if (res != uvc::SUCCESS)
         {
             printf("Error retrieving device descriptor: %d\n", res);
             continue;
@@ -771,13 +774,13 @@ static void print_connected_device_info_raw(uvc_context_t *ctx)
 static bool example()
 {
     uvc_context_t *ctx;
-    uvc_device_t *dev;
+    uvc::device *dev;
     uvc_device_handle_t *devh;
-    uvc_stream_ctrl_t ctrl;
-    uvc_error_t res;
+    uvc::stream_ctrl ctrl;
+    uvc::error res;
 
     res = uvc_init(&ctx, NULL);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         uvc_perror(res, "uvc_init");
         //return res;
@@ -790,37 +793,37 @@ static bool example()
     const char* serial_number = NULL;
 
     res = uvc_find_device(ctx, &dev, vendor_id, product_id, serial_number);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         uvc_perror(res, "uvc_find_device");
         return false;
     }
 
     res = uvc_open(dev, &devh);
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         uvc_perror(res, "uvc_open"); /* unable to open device */
         print_connected_device_info_raw(ctx);
         return false;
     }        
 
-    const uvc_format_desc_t *format_desc = uvc_get_format_descs(devh);
-    const uvc_frame_desc_t *frame_desc = format_desc->frame_descs;
-    enum uvc_frame_format frame_format;
+    const uvc::format_desc *format_desc = uvc_get_format_descs(devh);
+    const uvc::frame_desc *frame_desc = format_desc->frame_descs;
+    enum uvc::frame_format frame_format;
     int width = 640;
     int height = 480;
     int fps = 30;
 
     switch (format_desc->bDescriptorSubtype) 
     {
-    case UVC_VS_FORMAT_MJPEG:
-        frame_format = UVC_FRAME_FORMAT_MJPEG;
+    case uvc::VS_FORMAT_MJPEG:
+        frame_format = uvc::FRAME_FORMAT_MJPEG;
         break;
-    case UVC_VS_FORMAT_FRAME_BASED:
-        frame_format = UVC_FRAME_FORMAT_H264;
+    case uvc::VS_FORMAT_FRAME_BASED:
+        frame_format = uvc::FRAME_FORMAT_H264;
         break;
     default:
-        frame_format = UVC_FRAME_FORMAT_YUYV;
+        frame_format = uvc::FRAME_FORMAT_YUYV;
         break;
     }
 
@@ -842,7 +845,7 @@ static bool example()
     /* Print out the result */
     uvc_print_stream_ctrl(&ctrl, stdout);
 
-    if (res != UVC_SUCCESS)
+    if (res != uvc::SUCCESS)
     {
         uvc_perror(res, "get_mode"); /* device doesn't provide a matching stream */
 

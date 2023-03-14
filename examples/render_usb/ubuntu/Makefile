@@ -47,7 +47,6 @@ stb_h += $(stb)/stb_image.h
 stb_h += $(defines_h)
 
 # uvc
-#uvc_h := $(uvc)/libuvc.h
 uvc_h := $(uvc)/libuvc2.hpp
 
 # simage

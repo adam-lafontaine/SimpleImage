@@ -19,11 +19,8 @@ public:
 };
 
 
-static void fill_to_top(img::View1f32 const& view, f32 value, u8 color)
+static void fill_to_top(img::View1u8 const& view, f32 value, u8 color)
 {
-    assert(value >= 0.0f);
-    assert(value <= 1.0f);
-
     int y_begin = (int)(view.height * (1.0f - value));
 
     auto r = make_range(view);
@@ -45,7 +42,7 @@ static void fill_to_top(img::View1f32 const& view, f32 value, u8 color)
 }
 
 
-static void draw_histogram(const f32* values, img::View1f32 const& dst, HistParams const& props)
+static void draw_histogram(const f32* values, img::View1u8 const& dst, HistParams const& props)
 {
     u32 space_px = props.bin_space;
     auto width = props.bin_width;
@@ -68,7 +65,7 @@ static void draw_histogram(const f32* values, img::View1f32 const& dst, HistPara
 }
 
 
-static void draw(img::Histogram12f32& hists, img::View1f32 const& dst, HistParams const& props)
+static void draw(img::Histogram12f32& hists, img::View1u8 const& dst, HistParams const& props)
 {
     img::fill(dst, 255);
 
@@ -104,10 +101,9 @@ void histogram_image_test(img::View const& out)
     params.bin_width = (width + BIN_SPACE - 2 * HIST_SPACE) / N_BINS - BIN_SPACE;
     params.hist_height = (height - HIST_SPACE) / 12 - HIST_SPACE;
 
-    img::Buffer32 buffer;
-    mb::create_buffer(buffer, width * height);
-
-    auto hist_view = img::make_view_1(width, height, buffer);
+    img::ImageGray hist_image;
+    img::create_image(hist_image, width, height);
+    auto hist_view = img::make_view(hist_image);
 
     img::Histogram12f32 hists;
     hists.n_bins = N_BINS;
@@ -117,8 +113,9 @@ void histogram_image_test(img::View const& out)
 
     img::make_histograms(img::make_view(vette), hists);
     draw(hists, hist_view, params);
-    img::map_rgb(hist_view, out);
 
-    mb::destroy_buffer(buffer);
+    img::map_gray(hist_view, out);
+
+    img::destroy_image(hist_image);
     img::destroy_image(vette);
 }

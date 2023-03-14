@@ -21,7 +21,7 @@ static bool image_test()
     Image vette;    
     Image left_dst;
     Image bottom_dst;
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
 
     auto const cleanup = [&]()
     {
@@ -115,7 +115,7 @@ static bool gray_test()
     GrayImage caddy;
     GrayImage bottom_dst;
     GrayImage left_dst;
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
 
     auto const cleanup = [&]()
     {

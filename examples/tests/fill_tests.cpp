@@ -94,7 +94,7 @@ bool fill_view_test()
     Image image;
     img::create_image(image, width, height);
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 4);
 
     auto view1 = img::make_view_1(width, height, buffer);
@@ -146,7 +146,7 @@ bool fill_sub_view_test()
     Image image;
     img::create_image(image, width, height);
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 3);
 
     auto view1 = img::make_view_1(width, height, buffer);

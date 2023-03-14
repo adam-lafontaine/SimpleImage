@@ -18,7 +18,7 @@ bool gradients_xy_test()
 	auto width = view.width;
 	auto height = view.height;
 
-	img::Buffer32 buffer;
+	img::Buffer16 buffer;
 	mb::create_buffer(buffer, width * height * 3);
 
 	auto src = img::make_view_1(width, height, buffer);
@@ -33,14 +33,16 @@ bool gradients_xy_test()
 
 	write_image(image, "chess.bmp");
 
-	auto const to_abs = [](f32 p) { return p < 0.0f ? -p : p; };
+	//auto const to_abs = [](f32 p) { return p < 0.0f ? -p : p; };
 
-	img::transform(dst_x, src, to_abs);
-	img::map_gray(src, view);
+	//img::transform(dst_x, src, to_abs);
+	//img::map_gray(src, view);
+	img::map_gray(dst_x, view);
 	write_image(image, "x_grad.bmp");
 
-	img::transform(dst_y, src, to_abs);
-	img::map_gray(src, view);
+	//img::transform(dst_y, src, to_abs);
+	//img::map_gray(src, view);
+	img::map_gray(dst_y, view);
 	write_image(image, "y_grad.bmp");
 
 	mb::destroy_buffer(buffer);
@@ -65,7 +67,7 @@ bool edges_test()
 	auto width = view.width;
 	auto height = view.height;
 
-	img::Buffer32 buffer;
+	img::Buffer16 buffer;
 	mb::create_buffer(buffer, width * height * 3);
 
 	auto src = img::make_view_1(width, height, buffer);
@@ -77,7 +79,7 @@ bool edges_test()
 
 	write_image(image, "chess.bmp");
 	
-	img::transform(dst_xy, src, [](f32 grad_x, f32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.1f ? 1.0f : 0.0f; });
+	img::transform_f32(dst_xy, src, [](f32 grad_x, f32 grad_y) { return std::hypotf(grad_x, grad_y) > 0.1f ? 1.0f : 0.0f; });
 
 	img::map_gray(src, view);
 	write_image(image, "edges.bmp");

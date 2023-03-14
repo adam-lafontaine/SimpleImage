@@ -131,7 +131,7 @@ static bool test_from_buffer()
         return result;
     };
 
-    img::Buffer32 buffer;
+    img::Buffer16 buffer;
     mb::create_buffer(buffer, width * height * 10);
 
     auto const cleanup = [&](){ mb::destroy_buffer(buffer); };

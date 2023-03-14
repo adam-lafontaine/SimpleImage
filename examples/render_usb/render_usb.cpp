@@ -5,21 +5,21 @@
 
 
 // memory
-img::Buffer32 buffer;
-img::View3f32 view3a;
-img::View2f32 view2a;
-img::View1f32 view1a;
-img::View3f32 view3b;
+img::Buffer16 buffer;
+img::View3u16 view3a;
+img::View2u16 view2a;
+img::View1u16 view1a;
+img::View3u16 view3b;
 
 
 // tests
-img::View3f32 view_rgb;
-img::View1f32 view_gray;
-img::View2f32 view_grad;
-img::View3f32 view_blur;
-img::View1f32 view_red;
-img::View1f32 view_green;
-img::View1f32 view_blue;
+img::View3u16 view_rgb;
+img::View1u16 view_gray;
+img::View2u16 view_grad;
+img::View3u16 view_blur;
+img::View1u16 view_red;
+img::View1u16 view_green;
+img::View1u16 view_blue;
 
 
 static f32 to_hypot(f32 grad_x, f32 grad_y)
@@ -90,7 +90,7 @@ void show_gradients(img::View const& src, img::View const& dst)
 	img::map_rgb(src, view_rgb);
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
-	img::transform(view_grad, view_gray, to_hypot);
+	img::transform_f32(view_grad, view_gray, to_hypot);
 	img::map_rgb(view_gray, dst);
 }
 
@@ -101,7 +101,7 @@ void show_gradients_red(img::View const& src, img::View const& dst)
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
 
-	img::transform(view_grad, view_red, to_hypot);
+	img::transform_f32(view_grad, view_red, to_hypot);
 	img::fill(view_green, 0);
 	img::fill(view_blue, 0);
 
@@ -115,7 +115,7 @@ void show_gradients_green(img::View const& src, img::View const& dst)
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
 
-	img::transform(view_grad, view_green, to_hypot);
+	img::transform_f32(view_grad, view_green, to_hypot);
 	img::fill(view_red, 0);
 	img::fill(view_blue, 0);
 
@@ -129,7 +129,7 @@ void show_gradients_blue(img::View const& src, img::View const& dst)
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
 
-	img::transform(view_grad, view_blue, to_hypot);
+	img::transform_f32(view_grad, view_blue, to_hypot);
 	img::fill(view_green, 0);
 	img::fill(view_red, 0);
 

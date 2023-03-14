@@ -163,6 +163,13 @@ namespace color_space
 
 
     GPU_CONSTEXPR_FUNCTION
+    inline f32 to_channel_f32(f32 value)
+    {
+        return clamp(value);
+    }
+
+
+    GPU_CONSTEXPR_FUNCTION
     inline f32 to_channel_f32(u8 value)
     {
         return (f32)value / CH_U8_MAX;

@@ -1583,9 +1583,10 @@ namespace uvc
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
+//#include <pthread.h>
 #include <signal.h>
 #include <libusb.h>
+#include <thread>
 
 namespace uvc
 {
@@ -1853,7 +1854,8 @@ namespace uvc
         uint8_t *outbuf, *holdbuf;
         pthread_mutex_t cb_mutex;
         pthread_cond_t cb_cond;
-        pthread_t cb_thread;
+        //pthread_t cb_thread;
+        std::thread cb_thread;
         uint32_t last_polled_seq;
         uvc_frame_callback_t *user_cb;
         void *user_ptr;
@@ -1903,7 +1905,8 @@ namespace uvc
         uint8_t own_usb_ctx;
         /** List of open devices in this context */
         uvc_device_handle_t *open_devices;
-        pthread_t handler_thread;
+        //pthread_t handler_thread;
+        std::thread handler_thread;
         int kill_handler_thread;
     };
 
@@ -3237,7 +3240,8 @@ namespace uvc
          */
         if (cb)
         {
-            pthread_create(&strmh->cb_thread, NULL, _uvc_user_caller, (void *)strmh);
+            //pthread_create(&strmh->cb_thread, NULL, _uvc_user_caller, (void *)strmh);
+            strmh->cb_thread = std::thread(_uvc_user_caller, (void *)strmh);
         }
 
         for (transfer_id = 0; transfer_id < LIBUVC_NUM_TRANSFER_BUFS;
@@ -3554,7 +3558,8 @@ namespace uvc
         {
             /* wait for the thread to stop (triggered by
              * LIBUSB_TRANSFER_CANCELLED transfer) */
-            pthread_join(strmh->cb_thread, NULL);
+            //pthread_join(strmh->cb_thread, NULL);
+            strmh->cb_thread.join();
         }
 
         return UVC_SUCCESS;
@@ -3687,7 +3692,11 @@ namespace uvc
     void uvc_start_handler_thread(uvc_context_t *ctx)
     {
         if (ctx->own_usb_ctx)
-            pthread_create(&ctx->handler_thread, NULL, _uvc_handle_events, (void *)ctx);
+        {
+            //pthread_create(&ctx->handler_thread, NULL, _uvc_handle_events, (void *)ctx);
+            ctx->handler_thread = std::thread(_uvc_handle_events, (void *)ctx);
+        }
+            
     }
 
 #endif // INIT_C
@@ -6601,7 +6610,8 @@ namespace uvc
         {
             ctx->kill_handler_thread = 1;
             libusb_close(devh->usb_devh);
-            pthread_join(ctx->handler_thread, NULL);
+            //pthread_join(ctx->handler_thread, NULL);
+            ctx->handler_thread.join();
         }
         else
         {

@@ -832,6 +832,32 @@ namespace uvc
 
 }
 
+
+namespace uvc
+{
+    using device = uvc_device_t;
+    using device_handle = uvc_device_handle_t;
+    using device_descriptor = uvc_device_descriptor_t;
+    using stream_ctrl = uvc_stream_ctrl_t;
+    using stream_handle = uvc_stream_handle_t;
+    using frame = uvc_frame_t;
+    using context = uvc_context_t;
+    using error = uvc_error_t;
+    using format_desc = uvc_format_desc_t;
+    using frame_desc = uvc_frame_desc_t;
+    using frame_format = uvc_frame_format;
+
+    constexpr auto SUCCESS = UVC_SUCCESS;
+    constexpr auto ERROR_ACCESS = UVC_ERROR_ACCESS;
+    constexpr auto VS_FORMAT_MJPEG = UVC_VS_FORMAT_MJPEG;
+    constexpr auto FRAME_FORMAT_MJPEG = UVC_FRAME_FORMAT_MJPEG;
+    constexpr auto VS_FORMAT_FRAME_BASED = UVC_VS_FORMAT_FRAME_BASED;
+    constexpr auto FRAME_FORMAT_H264 = UVC_FRAME_FORMAT_H264;
+    constexpr auto FRAME_FORMAT_YUYV = UVC_FRAME_FORMAT_YUYV;
+    constexpr auto ERROR_PIPE = UVC_ERROR_PIPE;
+}
+
+
 #ifdef LIBUVC_IMPLEMENTATION
 
 namespace uvc

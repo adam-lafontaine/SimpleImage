@@ -1837,7 +1837,8 @@ namespace uvc
 #define LIBUVC_XFER_META_BUF_SIZE (4 * 1024)
 
 
-//#define CPP_THREAD 1
+//#define CPP_THREAD
+//#define CPP_MUTEX
 
 
     struct uvc_stream_handle
@@ -1860,19 +1861,20 @@ namespace uvc
         size_t got_bytes, hold_bytes;
         uint8_t *outbuf, *holdbuf;
 
-#ifdef CPP_THREAD
-
-        std::mutex cb_mutex;        
-        std::condition_variable cb_cond;
+#ifdef CPP_THREAD        
         std::thread cb_thread;
-
-#else
-
-        pthread_mutex_t cb_mutex;
-        pthread_cond_t cb_cond;
+#else        
         pthread_t cb_thread;
 
-#endif // CPP_THREAD        
+#endif // CPP_THREAD
+
+#ifdef CPP_MUTEX
+        std::mutex cb_mutex;        
+        std::condition_variable cb_cond;
+#else
+        pthread_mutex_t cb_mutex;
+        pthread_cond_t cb_cond;
+#endif // CPP_MUTEX
 
         uint32_t last_polled_seq;
         uvc_frame_callback_t *user_cb;
@@ -1889,126 +1891,93 @@ namespace uvc
     };
 
 
-    static void stream_thread_init(uvc_stream_handle* strmh)
+    static void stream_mutex_init(uvc_stream_handle* strmh)
     {
-#ifdef CPP_THREAD
-
+#ifdef CPP_MUTEX
         // do nothing?
-
 #else
-
         pthread_mutex_init(&strmh->cb_mutex, NULL);
         pthread_cond_init(&strmh->cb_cond, NULL);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
-    static void stream_thread_destroy(uvc_stream_handle* strmh)
+    static void stream_mutex_destroy(uvc_stream_handle* strmh)
     {
-#ifdef CPP_THREAD
-
+#ifdef CPP_MUTEX
         // do nothing?
-
 #else
-
         pthread_cond_destroy(&strmh->cb_cond);
         pthread_mutex_destroy(&strmh->cb_mutex);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
     static void stream_thread_create(uvc_stream_handle* strmh, void *(*start_f)(void *))
     {
 #ifdef CPP_THREAD
-
         strmh->cb_thread = std::thread(start_f, (void *)strmh);
-
 #else
-
         pthread_create(&strmh->cb_thread, NULL, start_f, (void *)strmh);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
     static void stream_thread_join(uvc_stream_handle* strmh)
     {
 #ifdef CPP_THREAD
-
         strmh->cb_thread.join();
-
 #else
-
         pthread_join(strmh->cb_thread, NULL);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
-    static void stream_thread_lock(uvc_stream_handle* strmh)
+    static void stream_mutex_lock(uvc_stream_handle* strmh)
     {
-#ifdef CPP_THREAD
-
+#ifdef CPP_MUTEX
         strmh->cb_mutex.lock();
-
 #else
-
         pthread_mutex_lock(&strmh->cb_mutex);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
-    static void stream_thread_unlock(uvc_stream_handle* strmh)
+    static void stream_mutex_unlock(uvc_stream_handle* strmh)
     {
-#ifdef CPP_THREAD
-
+#ifdef CPP_MUTEX
         strmh->cb_mutex.unlock();
-
 #else
-
         pthread_mutex_unlock(&strmh->cb_mutex);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
-    static void stream_thread_wait(uvc_stream_handle* strmh)
+    static void stream_mutex_wait(uvc_stream_handle* strmh)
     {
-#ifdef CPP_THREAD
-
+#ifdef CPP_MUTEX
         std::unique_lock<std::mutex> lock(strmh->cb_mutex);
         strmh->cb_cond.wait(lock);
-
 #else
-
         pthread_cond_wait(&strmh->cb_cond, &strmh->cb_mutex);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
-    static void stream_thread_broadcast(uvc_stream_handle* strmh)
+    static void stream_mutex_broadcast(uvc_stream_handle* strmh)
     {
-#ifdef CPP_THREAD
-
+#ifdef CPP_MUTEX
         strmh->cb_cond.notify_all();
-
 #else
-
         pthread_cond_broadcast(&strmh->cb_cond);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
 
-    static int stream_thread_wait_for(uvc_stream_handle* strmh, timespec* ts)
+    static int stream_mutex_wait_for(uvc_stream_handle* strmh, timespec* ts)
     {
-#ifdef CPP_THREAD
-
+#ifdef CPP_MUTEX
         std::unique_lock<std::mutex> lock(strmh->cb_mutex);
 
         ts->tv_nsec;
@@ -2021,12 +1990,9 @@ namespace uvc
 
         // other return codes?
         return status == std::cv_status::timeout ? ETIMEDOUT : 0;
-
 #else
-
         return pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, ts);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
@@ -2068,16 +2034,11 @@ namespace uvc
         /** List of open devices in this context */
         uvc_device_handle_t *open_devices;
 
-#ifdef CPP_THREAD
-        
+#ifdef CPP_THREAD        
         std::thread handler_thread;
-
 #else
-
         pthread_t handler_thread;
-
-
-#endif // CPP_THREAD
+#endif
 
         int kill_handler_thread;
     };
@@ -2086,28 +2047,20 @@ namespace uvc
     static void handler_thread_create(uvc_context_t* ctx, void *(*start_f)(void *))
     {
 #ifdef CPP_THREAD
-
         ctx->handler_thread = std::thread(start_f, (void *)ctx);
-
 #else
-
         pthread_create(&ctx->handler_thread, NULL, start_f, (void *)ctx);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
     static void handler_thread_join(uvc_context_t* ctx)
     {
 #ifdef CPP_THREAD
-
         ctx->handler_thread.join();
-
 #else
-
         pthread_join(ctx->handler_thread, NULL);
-
-#endif // CPP_THREAD 
+#endif
     }
 
 
@@ -2801,7 +2754,7 @@ namespace uvc
         uint8_t *tmp_buf;
 
         //pthread_mutex_lock(&strmh->cb_mutex);
-        stream_thread_lock(strmh);
+        stream_mutex_lock(strmh);
 
         (void)clock_gettime(CLOCK_MONOTONIC, &strmh->capture_time_finished);
 
@@ -2821,9 +2774,9 @@ namespace uvc
         strmh->meta_hold_bytes = strmh->meta_got_bytes;
 
         //pthread_cond_broadcast(&strmh->cb_cond);
-        stream_thread_broadcast(strmh);
+        stream_mutex_broadcast(strmh);
         //pthread_mutex_unlock(&strmh->cb_mutex);
-        stream_thread_unlock(strmh);
+        stream_mutex_unlock(strmh);
 
         strmh->seq++;
         strmh->got_bytes = 0;
@@ -3007,7 +2960,7 @@ namespace uvc
             int i;
             UVC_DEBUG("not retrying transfer, status = %d", transfer->status);
             //pthread_mutex_lock(&strmh->cb_mutex);
-            stream_thread_lock(strmh);
+            stream_mutex_lock(strmh);
 
             /* Mark transfer as deleted. */
             for (i = 0; i < LIBUVC_NUM_TRANSFER_BUFS; i++)
@@ -3029,9 +2982,9 @@ namespace uvc
             resubmit = 0;
 
             //pthread_cond_broadcast(&strmh->cb_cond);
-            stream_thread_broadcast(strmh);
+            stream_mutex_broadcast(strmh);
             //pthread_mutex_unlock(&strmh->cb_mutex);
-            stream_thread_unlock(strmh);
+            stream_mutex_unlock(strmh);
 
             break;
         }
@@ -3051,7 +3004,7 @@ namespace uvc
                 {
                     int i;
                     //pthread_mutex_lock(&strmh->cb_mutex);
-                    stream_thread_lock(strmh);
+                    stream_mutex_lock(strmh);
 
                     /* Mark transfer as deleted. */
                     for (i = 0; i < LIBUVC_NUM_TRANSFER_BUFS; i++)
@@ -3071,16 +3024,16 @@ namespace uvc
                     }
 
                     //pthread_cond_broadcast(&strmh->cb_cond);
-                    stream_thread_broadcast(strmh);
+                    stream_mutex_broadcast(strmh);
                     //pthread_mutex_unlock(&strmh->cb_mutex);
-                    stream_thread_unlock(strmh);
+                    stream_mutex_unlock(strmh);
                 }
             }
             else
             {
                 int i;
                 //pthread_mutex_lock(&strmh->cb_mutex);
-                stream_thread_lock(strmh);
+                stream_mutex_lock(strmh);
 
                 /* Mark transfer as deleted. */
                 for (i = 0; i < LIBUVC_NUM_TRANSFER_BUFS; i++)
@@ -3100,9 +3053,9 @@ namespace uvc
                 }
 
                 //pthread_cond_broadcast(&strmh->cb_cond);
-                stream_thread_broadcast(strmh);
+                stream_mutex_broadcast(strmh);
                 //pthread_mutex_unlock(&strmh->cb_mutex);
-                stream_thread_unlock(strmh);
+                stream_mutex_unlock(strmh);
             }
         }
     }
@@ -3247,7 +3200,7 @@ namespace uvc
 
         //pthread_mutex_init(&strmh->cb_mutex, NULL);
         //pthread_cond_init(&strmh->cb_cond, NULL);
-        stream_thread_init(strmh);
+        stream_mutex_init(strmh);
 
         DL_APPEND(devh->streams, strmh);
 
@@ -3522,18 +3475,18 @@ namespace uvc
         do
         {
             //pthread_mutex_lock(&strmh->cb_mutex);
-            stream_thread_lock(strmh);
+            stream_mutex_lock(strmh);
 
             while (strmh->running && last_seq == strmh->hold_seq)
             {
                 //pthread_cond_wait(&strmh->cb_cond, &strmh->cb_mutex);
-                stream_thread_wait(strmh);
+                stream_mutex_wait(strmh);
             }
 
             if (!strmh->running)
             {
                 //pthread_mutex_unlock(&strmh->cb_mutex);
-                stream_thread_unlock(strmh);
+                stream_mutex_unlock(strmh);
                 break;
             }
 
@@ -3541,7 +3494,7 @@ namespace uvc
             _uvc_populate_frame(strmh);
 
             //pthread_mutex_unlock(&strmh->cb_mutex);
-            stream_thread_unlock(strmh);
+            stream_mutex_unlock(strmh);
 
             strmh->user_cb(&strmh->frame, strmh->user_ptr);
         } while (1);
@@ -3640,7 +3593,7 @@ namespace uvc
             return UVC_ERROR_CALLBACK_EXISTS;
 
         //pthread_mutex_lock(&strmh->cb_mutex);
-        stream_thread_lock(strmh);
+        stream_mutex_lock(strmh);
 
         if (strmh->last_polled_seq < strmh->hold_seq)
         {
@@ -3653,7 +3606,7 @@ namespace uvc
             if (timeout_us == 0)
             {
                 //pthread_cond_wait(&strmh->cb_cond, &strmh->cb_mutex);
-                stream_thread_wait(strmh);
+                stream_mutex_wait(strmh);
             }
             else
             {
@@ -3682,14 +3635,14 @@ namespace uvc
                 ts.tv_nsec = ts.tv_nsec % 1000000000;
 
                 //int err = pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, &ts);
-                int err = stream_thread_wait_for(strmh, &ts);  
+                int err = stream_mutex_wait_for(strmh, &ts);  
 
                 // TODO: How should we handle EINVAL?
                 if (err)
                 {
                     *frame = NULL;
                     //pthread_mutex_unlock(&strmh->cb_mutex);
-                    stream_thread_unlock(strmh);
+                    stream_mutex_unlock(strmh);
                     
                     return err == ETIMEDOUT ? UVC_ERROR_TIMEOUT : UVC_ERROR_OTHER;
                 }
@@ -3712,7 +3665,7 @@ namespace uvc
         }
 
         //pthread_mutex_unlock(&strmh->cb_mutex);
-        stream_thread_unlock(strmh);
+        stream_mutex_unlock(strmh);
 
         return UVC_SUCCESS;
     }
@@ -3751,7 +3704,7 @@ namespace uvc
         strmh->running = 0;
 
         //pthread_mutex_lock(&strmh->cb_mutex);
-        stream_thread_lock(strmh);
+        stream_mutex_lock(strmh);
 
         /* Attempt to cancel any running transfers, we can't free them just yet because they aren't
          *   necessarily completed but they will be free'd in _uvc_stream_callback().
@@ -3773,14 +3726,14 @@ namespace uvc
             if (i == LIBUVC_NUM_TRANSFER_BUFS)
                 break;
             //pthread_cond_wait(&strmh->cb_cond, &strmh->cb_mutex);
-            stream_thread_wait(strmh);
+            stream_mutex_wait(strmh);
 
         } while (1);
         // Kick the user thread awake
         //pthread_cond_broadcast(&strmh->cb_cond);
-        stream_thread_broadcast(strmh);
+        stream_mutex_broadcast(strmh);
         //pthread_mutex_unlock(&strmh->cb_mutex);
-        stream_thread_unlock(strmh);
+        stream_mutex_unlock(strmh);
 
         /** @todo stop the actual stream, camera side? */
 
@@ -3820,7 +3773,7 @@ namespace uvc
 
         //pthread_cond_destroy(&strmh->cb_cond);
         //pthread_mutex_destroy(&strmh->cb_mutex);
-        stream_thread_destroy(strmh);
+        stream_mutex_destroy(strmh);
 
         DL_DELETE(strmh->devh->streams, strmh);
         free(strmh);

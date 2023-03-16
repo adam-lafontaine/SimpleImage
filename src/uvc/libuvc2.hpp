@@ -376,10 +376,13 @@ namespace uvc
     typedef struct uvc_stream_handle uvc_stream_handle_t;
 
 
+#ifdef _WIN32
+
     struct timeval {
         long    tv_sec;         /* seconds */
         long    tv_usec;        /* and microseconds */
     };
+#endif
 
 
     /** Representation of the interface that brings data into the UVC device */
@@ -1624,9 +1627,9 @@ namespace uvc
 
 namespace uvc
 {
-    static void print_libusb_error(int err)
+    static void print_libusb_error(auto err)
     {
-        printf("libusb error:\n%s\n", libusb_strerror(err));
+        printf("libusb error:\n%s\n", libusb_strerror((libusb_error)err));
     }
 }
 
@@ -5321,7 +5324,7 @@ namespace uvc
 
         if (ret != UVC_SUCCESS)
         {
-            print_libusb_error((int)ret);
+            print_libusb_error(ret);
             UVC_EXIT(ret);
             return ret;
         }
@@ -5383,7 +5386,7 @@ namespace uvc
 
             if (ret)
             {
-                print_libusb_error((int)ret);
+                print_libusb_error(ret);
                 fprintf(stderr,
                         "uvc: device has a status interrupt endpoint, but unable to read from it\n");
                 goto fail;
@@ -5445,7 +5448,7 @@ namespace uvc
 
         if (ret != 0)
         {
-            print_libusb_error((int)ret);
+            print_libusb_error(ret);
             free(internal_info);
             UVC_EXIT(UVC_ERROR_IO);
             return UVC_ERROR_IO;
@@ -5565,7 +5568,7 @@ namespace uvc
 
         if (ret != UVC_SUCCESS)
         {
-            print_libusb_error((int)ret);
+            print_libusb_error(ret);
             UVC_EXIT(ret);
             return ret;
         }
@@ -5578,22 +5581,9 @@ namespace uvc
 
         int bytes = libusb_get_string_descriptor_ascii(
             usb_devh, usb_desc.iSerialNumber, buf, sizeof(buf));
-        /*
-        if (bytes > 0)
-            desc_internal->serialNumber = strdup((const char *)buf);
+        
 
-        bytes = libusb_get_string_descriptor_ascii(
-            usb_devh, usb_desc.iManufacturer, buf, sizeof(buf));
-
-        if (bytes > 0)
-            desc_internal->manufacturer = strdup((const char *)buf);
-
-        bytes = libusb_get_string_descriptor_ascii(
-            usb_devh, usb_desc.iProduct, buf, sizeof(buf));
-
-        if (bytes > 0)
-            desc_internal->product = strdup((const char *)buf);
-        */
+#ifdef _WIN32
 
         if (bytes > 0)
             desc_internal->serialNumber = _strdup((const char*)buf);
@@ -5609,6 +5599,24 @@ namespace uvc
 
         if (bytes > 0)
             desc_internal->product = _strdup((const char*)buf);
+#else
+        
+        if (bytes > 0)
+            desc_internal->serialNumber = strdup((const char *)buf);
+
+        bytes = libusb_get_string_descriptor_ascii(
+            usb_devh, usb_desc.iManufacturer, buf, sizeof(buf));
+
+        if (bytes > 0)
+            desc_internal->manufacturer = strdup((const char *)buf);
+
+        bytes = libusb_get_string_descriptor_ascii(
+            usb_devh, usb_desc.iProduct, buf, sizeof(buf));
+
+        if (bytes > 0)
+            desc_internal->product = strdup((const char *)buf);        
+
+#endif
 
         *desc = desc_internal;
 
@@ -5642,7 +5650,7 @@ namespace uvc
 
         if (ret != UVC_SUCCESS)
         {
-            print_libusb_error((int)ret);
+            print_libusb_error(ret);
             UVC_EXIT(ret);
             return ret;
         }
@@ -5657,22 +5665,9 @@ namespace uvc
 
             int bytes = libusb_get_string_descriptor_ascii(
                 usb_devh, usb_desc.iSerialNumber, buf, sizeof(buf));
-            /*
-            if (bytes > 0)
-                desc_internal->serialNumber = strdup((const char *)buf);
+            
 
-            bytes = libusb_get_string_descriptor_ascii(
-                usb_devh, usb_desc.iManufacturer, buf, sizeof(buf));
-
-            if (bytes > 0)
-                desc_internal->manufacturer = strdup((const char *)buf);
-
-            bytes = libusb_get_string_descriptor_ascii(
-                usb_devh, usb_desc.iProduct, buf, sizeof(buf));
-
-            if (bytes > 0)
-                desc_internal->product = strdup((const char *)buf);
-            */
+#ifdef _WIN32
 
             if (bytes > 0)
                 desc_internal->serialNumber = _strdup((const char*)buf);
@@ -5688,6 +5683,28 @@ namespace uvc
 
             if (bytes > 0)
                 desc_internal->product = _strdup((const char*)buf);
+
+#else
+            
+            if (bytes > 0)
+                desc_internal->serialNumber = strdup((const char *)buf);
+
+            bytes = libusb_get_string_descriptor_ascii(
+                usb_devh, usb_desc.iManufacturer, buf, sizeof(buf));
+
+            if (bytes > 0)
+                desc_internal->manufacturer = strdup((const char *)buf);
+
+            bytes = libusb_get_string_descriptor_ascii(
+                usb_devh, usb_desc.iProduct, buf, sizeof(buf));
+
+            if (bytes > 0)
+                desc_internal->product = strdup((const char *)buf);            
+
+#endif // _WIN32
+
+
+            
 
             libusb_close(usb_devh);
         }
@@ -6134,7 +6151,7 @@ namespace uvc
             }
             else
             {
-                print_libusb_error((int)ret);
+                print_libusb_error(ret);
                 UVC_DEBUG("error reattaching kernel driver to interface %d: %s",
                           idx, uvc_strerror(ret));
             }
@@ -7186,7 +7203,7 @@ namespace uvc
 
         if (ret < 0)
         {
-            print_libusb_error((int)ret);
+            print_libusb_error(ret);
             return ret;
         }
         else

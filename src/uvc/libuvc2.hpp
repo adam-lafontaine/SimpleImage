@@ -3,6 +3,12 @@
 
 #define LIBUVC_HAS_JPEG 1
 
+#ifndef  NDEBUG
+//#define UVC_DEBUGGING
+#endif // ! NDEBUG
+
+
+
 #include <stdio.h> // FILE
 #include <stdint.h>
 
@@ -368,6 +374,13 @@ namespace uvc
      */
     struct uvc_stream_handle;
     typedef struct uvc_stream_handle uvc_stream_handle_t;
+
+
+    struct timeval {
+        long    tv_sec;         /* seconds */
+        long    tv_usec;        /* and microseconds */
+    };
+
 
     /** Representation of the interface that brings data into the UVC device */
     typedef struct uvc_input_terminal
@@ -1583,18 +1596,49 @@ namespace uvc
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-//#include <pthread.h>
+
 #include <signal.h>
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
+//#include <libusb.h>
+
+#include <chrono>
+
+
+#ifdef _WIN32
+
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <chrono>
+#include <winsock.h>
+
+#define CPP_THREAD
+#define CPP_MUTEX
+
+#else
+
+#include <pthread.h>
+
+#endif // _WIN32
+
+
+
+namespace uvc
+{
+    static void print_libusb_error(int err)
+    {
+        printf("libusb error:\n%s\n", libusb_strerror(err));
+    }
+}
+
 
 namespace uvc
 {
 #define LIBUVC_INTERNAL_H
 #ifdef LIBUVC_INTERNAL_H
+
+    
+
+
 
 /** Converts an unaligned four-byte little-endian integer into an int32 */
 #define DW_TO_INT(p) ((p)[0] | ((p)[1] << 8) | ((p)[2] << 16) | ((p)[3] << 24))
@@ -1835,10 +1879,6 @@ namespace uvc
 #endif
 
 #define LIBUVC_XFER_META_BUF_SIZE (4 * 1024)
-
-
-//#define CPP_THREAD
-//#define CPP_MUTEX
 
 
     struct uvc_stream_handle
@@ -2746,6 +2786,8 @@ namespace uvc
         return res;
     }
 
+    namespace chr = std::chrono;
+
     /** @internal
      * @brief Swap the working buffer with the presented buffer and notify consumers
      */
@@ -2756,7 +2798,12 @@ namespace uvc
         //pthread_mutex_lock(&strmh->cb_mutex);
         stream_mutex_lock(strmh);
 
-        (void)clock_gettime(CLOCK_MONOTONIC, &strmh->capture_time_finished);
+        auto time = chr::system_clock::now().time_since_epoch();
+
+        strmh->capture_time_finished.tv_nsec = (long)chr::duration_cast<chr::nanoseconds>(time).count();
+        strmh->capture_time_finished.tv_sec = (long)chr::duration_cast<chr::seconds>(time).count();
+
+        //(void)clock_gettime(CLOCK_MONOTONIC, &strmh->capture_time_finished);
 
         /* swap the buffers */
         tmp_buf = strmh->holdbuf;
@@ -5065,8 +5112,8 @@ namespace uvc
     {
         uvc_error_t ret = UVC_SUCCESS;
 
-        uvc_device_t **list;
-        uvc_device_t *test_dev;
+        uvc_device_t **list = 0;
+        uvc_device_t *test_dev = 0;
         int dev_idx;
         int found_dev;
 
@@ -5096,12 +5143,12 @@ namespace uvc
             uvc_free_device_descriptor(desc);
         }
 
-        if (found_dev)
+        if (found_dev && test_dev)
             uvc_ref_device(test_dev);
 
         uvc_free_device_list(list, 1);
 
-        if (found_dev)
+        if (found_dev && test_dev)
         {
             *dev = test_dev;
             UVC_EXIT(UVC_SUCCESS);
@@ -5267,13 +5314,14 @@ namespace uvc
         uvc_error_t ret;
         struct libusb_device_handle *usb_devh;
 
-        UVC_ENTER();
+        UVC_ENTER();        
 
         ret = (uvc_error_t)libusb_open(dev->usb_dev, &usb_devh);
         UVC_DEBUG("libusb_open() = %d", ret);
 
         if (ret != UVC_SUCCESS)
         {
+            print_libusb_error((int)ret);
             UVC_EXIT(ret);
             return ret;
         }
@@ -5335,6 +5383,7 @@ namespace uvc
 
             if (ret)
             {
+                print_libusb_error((int)ret);
                 fprintf(stderr,
                         "uvc: device has a status interrupt endpoint, but unable to read from it\n");
                 goto fail;
@@ -5380,7 +5429,7 @@ namespace uvc
     uvc_error_t uvc_get_device_info(uvc_device_handle_t *devh,
                                     uvc_device_info_t **info)
     {
-        uvc_error_t ret;
+        //uvc_error_t ret;
         uvc_device_info_t *internal_info;
 
         UVC_ENTER();
@@ -5392,10 +5441,11 @@ namespace uvc
             return UVC_ERROR_NO_MEM;
         }
 
-        if (libusb_get_config_descriptor(devh->dev->usb_dev,
-                                         0,
-                                         &(internal_info->config)) != 0)
+        auto ret = (uvc_error_t)libusb_get_config_descriptor(devh->dev->usb_dev, 0, &(internal_info->config));
+
+        if (ret != 0)
         {
+            print_libusb_error((int)ret);
             free(internal_info);
             UVC_EXIT(UVC_ERROR_IO);
             return UVC_ERROR_IO;
@@ -5515,6 +5565,7 @@ namespace uvc
 
         if (ret != UVC_SUCCESS)
         {
+            print_libusb_error((int)ret);
             UVC_EXIT(ret);
             return ret;
         }
@@ -5527,7 +5578,7 @@ namespace uvc
 
         int bytes = libusb_get_string_descriptor_ascii(
             usb_devh, usb_desc.iSerialNumber, buf, sizeof(buf));
-
+        /*
         if (bytes > 0)
             desc_internal->serialNumber = strdup((const char *)buf);
 
@@ -5542,6 +5593,22 @@ namespace uvc
 
         if (bytes > 0)
             desc_internal->product = strdup((const char *)buf);
+        */
+
+        if (bytes > 0)
+            desc_internal->serialNumber = _strdup((const char*)buf);
+
+        bytes = libusb_get_string_descriptor_ascii(
+            usb_devh, usb_desc.iManufacturer, buf, sizeof(buf));
+
+        if (bytes > 0)
+            desc_internal->manufacturer = _strdup((const char*)buf);
+
+        bytes = libusb_get_string_descriptor_ascii(
+            usb_devh, usb_desc.iProduct, buf, sizeof(buf));
+
+        if (bytes > 0)
+            desc_internal->product = _strdup((const char*)buf);
 
         *desc = desc_internal;
 
@@ -5575,6 +5642,7 @@ namespace uvc
 
         if (ret != UVC_SUCCESS)
         {
+            print_libusb_error((int)ret);
             UVC_EXIT(ret);
             return ret;
         }
@@ -5589,7 +5657,7 @@ namespace uvc
 
             int bytes = libusb_get_string_descriptor_ascii(
                 usb_devh, usb_desc.iSerialNumber, buf, sizeof(buf));
-
+            /*
             if (bytes > 0)
                 desc_internal->serialNumber = strdup((const char *)buf);
 
@@ -5604,6 +5672,22 @@ namespace uvc
 
             if (bytes > 0)
                 desc_internal->product = strdup((const char *)buf);
+            */
+
+            if (bytes > 0)
+                desc_internal->serialNumber = _strdup((const char*)buf);
+
+            bytes = libusb_get_string_descriptor_ascii(
+                usb_devh, usb_desc.iManufacturer, buf, sizeof(buf));
+
+            if (bytes > 0)
+                desc_internal->manufacturer = _strdup((const char*)buf);
+
+            bytes = libusb_get_string_descriptor_ascii(
+                usb_devh, usb_desc.iProduct, buf, sizeof(buf));
+
+            if (bytes > 0)
+                desc_internal->product = _strdup((const char*)buf);
 
             libusb_close(usb_devh);
         }
@@ -6050,6 +6134,7 @@ namespace uvc
             }
             else
             {
+                print_libusb_error((int)ret);
                 UVC_DEBUG("error reattaching kernel driver to interface %d: %s",
                           idx, uvc_strerror(ret));
             }
@@ -7100,7 +7185,10 @@ namespace uvc
             0 /* timeout */);
 
         if (ret < 0)
+        {
+            print_libusb_error((int)ret);
             return ret;
+        }
         else
             return (unsigned short)SW_TO_SHORT(buf);
     }

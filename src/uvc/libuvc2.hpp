@@ -1891,6 +1891,26 @@ namespace uvc
     };
 
 
+    static void stream_thread_create(uvc_stream_handle* strmh, void *(*start_f)(void *))
+    {
+#ifdef CPP_THREAD
+        strmh->cb_thread = std::thread(start_f, (void *)strmh);
+#else
+        pthread_create(&strmh->cb_thread, NULL, start_f, (void *)strmh);
+#endif
+    }
+
+
+    static void stream_thread_join(uvc_stream_handle* strmh)
+    {
+#ifdef CPP_THREAD
+        strmh->cb_thread.join();
+#else
+        pthread_join(strmh->cb_thread, NULL);
+#endif
+    }
+
+
     static void stream_mutex_init(uvc_stream_handle* strmh)
     {
 #ifdef CPP_MUTEX
@@ -1909,26 +1929,6 @@ namespace uvc
 #else
         pthread_cond_destroy(&strmh->cb_cond);
         pthread_mutex_destroy(&strmh->cb_mutex);
-#endif
-    }
-
-
-    static void stream_thread_create(uvc_stream_handle* strmh, void *(*start_f)(void *))
-    {
-#ifdef CPP_THREAD
-        strmh->cb_thread = std::thread(start_f, (void *)strmh);
-#else
-        pthread_create(&strmh->cb_thread, NULL, start_f, (void *)strmh);
-#endif
-    }
-
-
-    static void stream_thread_join(uvc_stream_handle* strmh)
-    {
-#ifdef CPP_THREAD
-        strmh->cb_thread.join();
-#else
-        pthread_join(strmh->cb_thread, NULL);
 #endif
     }
 

@@ -61,6 +61,15 @@
     <Filter Include="Source Files\src\opencv">
       <UniqueIdentifier>{1461c9f9-abea-4c58-abc7-b94b7df6c943}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\src\uvc">
+      <UniqueIdentifier>{5682cbb2-7494-4f91-b044-cf5b85f85f73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\src\uvc\lib">
+      <UniqueIdentifier>{d55db526-a481-4a85-adb0-6f7ecb6722fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\uvc">
+      <UniqueIdentifier>{42f545a6-b949-4521-b3c7-1b45ccd8d489}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\examples\render_usb\render_usb_main.cpp">
@@ -87,8 +96,8 @@
     <ClCompile Include="..\..\examples\render_usb\render_usb.cpp">
       <Filter>Source Files\render_usb</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
-      <Filter>Source Files\src\opencv</Filter>
+    <ClCompile Include="..\..\src\uvc\uvc_simage.cpp">
+      <Filter>Source Files\src\uvc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +142,12 @@
     </ClInclude>
     <ClInclude Include="..\..\examples\render_usb\proc_def.hpp">
       <Filter>Header Files\render_usb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uvc\libuvc2.hpp">
+      <Filter>Header Files\src\uvc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uvc\lib\libusb.h">
+      <Filter>Header Files\src\uvc\lib</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

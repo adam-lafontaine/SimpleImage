@@ -490,6 +490,7 @@ namespace uvc
         const char *product;
     } uvc_device_descriptor_t;
 
+
     /** An image frame received from the UVC device
      * @ingroup streaming
      */
@@ -1601,8 +1602,7 @@ namespace uvc
 #include <string.h>
 
 #include <signal.h>
-#include <libusb-1.0/libusb.h>
-//#include <libusb.h>
+
 
 #include <chrono>
 
@@ -1613,12 +1613,25 @@ namespace uvc
 #include <mutex>
 #include <condition_variable>
 #include <winsock.h>
+#include "lib/libusb.h"
+
+#ifdef NDEBUG
+
+#pragma comment (lib,"../../src/uvc/lib/x64/libusb-1.0.lib")
+
+#else
+
+#pragma comment (lib,"../../src/uvc/lib/x64dbg/libusb-1.0.lib")
+
+#endif
 
 #define CPP_THREAD
 #define CPP_MUTEX
 
 #else
 
+#include <libusb-1.0/libusb.h>
+//#include <libusb.h>
 #include <pthread.h>
 
 #endif // _WIN32

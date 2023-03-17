@@ -1,7 +1,7 @@
 #include "simage.hpp"
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
-//#define SIMAGE_NO_SIMD
+#define SIMAGE_NO_SIMD
 
 #ifndef SIMAGE_NO_SIMD
 #include "../util/simd.hpp"

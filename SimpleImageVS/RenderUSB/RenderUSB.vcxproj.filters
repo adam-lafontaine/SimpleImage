@@ -84,11 +84,11 @@
     <ClCompile Include="..\..\src\stb\stb_simage.cpp">
       <Filter>Source Files\src\stb</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
-      <Filter>Source Files\src\opencv</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\examples\render_usb\render_usb.cpp">
       <Filter>Source Files\render_usb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\opencv\opencv_simage.cpp">
+      <Filter>Source Files\src\opencv</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

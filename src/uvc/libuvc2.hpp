@@ -4451,6 +4451,50 @@ namespace uvc
 #endif // FRAME_C
 }
 
+
+namespace uvc
+{
+namespace xtra
+{
+    uvc_error_t uvc_uyvy2y(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_UYVY)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
+        out->step = in->width;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *py = (uint8_t *)out->data;
+        uint8_t *py_end = py + out->data_bytes;
+
+        while (py < py_end)
+        {
+            py[0] = pyuv[1];
+
+            py += 1;
+            pyuv += 2;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uvc_any2y(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        return UVC_ERROR_INVALID_PARAM; // TODO
+    }
+}}
+
 namespace uvc
 {
 #define FRAME_MJPEG_C

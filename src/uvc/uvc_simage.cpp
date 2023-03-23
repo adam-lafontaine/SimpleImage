@@ -78,7 +78,12 @@ namespace simage
 #endif
 
 
+typedef uvc::uvc_error_t(convert_frame_callback_t)(uvc::uvc_frame_t *in, uvc::uvc_frame_t *out);
 
+static uvc::uvc_error_t convert_frame_error(uvc::uvc_frame_t *in, uvc::uvc_frame_t *out)
+{
+    return uvc::UVC_ERROR_NOT_SUPPORTED;
+}
 
 
 class DeviceUVC
@@ -88,6 +93,8 @@ public:
     uvc::device_handle* h_device = nullptr;
     uvc::stream_ctrl* ctrl = nullptr;
     uvc::stream_handle* h_stream = nullptr;
+
+    convert_frame_callback_t* convert_frame = convert_frame_error;
 
     uvc::frame* rgb_frame = nullptr;
     img::ViewRGB rgb_view;
@@ -288,12 +295,14 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
     {
     case uvc::VS_FORMAT_MJPEG:
         frame_format = uvc::FRAME_FORMAT_MJPEG;
+        device.convert_frame = uvc::uvc_any2rgb;
         break;
     case uvc::VS_FORMAT_FRAME_BASED:
         frame_format = uvc::FRAME_FORMAT_H264;
         break;
     default:
         frame_format = uvc::FRAME_FORMAT_YUYV;
+        device.convert_frame = uvc::uvc_any2rgb;
         break;
     }
 
@@ -500,7 +509,8 @@ static bool grab_and_convert_frame(DeviceUVC& device)
 
     auto rgb = device.rgb_frame;
 
-    res = uvc::uvc_any2rgb(frame, rgb);
+    //res = uvc::uvc_any2rgb(frame, rgb);
+    res = device.convert_frame(frame, rgb);
     if (res != uvc::SUCCESS)
     {  
         print_uvc_error(res, "uvc_any2rgb");
@@ -595,23 +605,6 @@ namespace simage
 		{
 			return;
 		}
-
-        /*auto& device = g_device_list.devices[camera.device_id];
-        if (device.is_streaming)
-        {
-            stop_device(device);
-        }
-
-        if (device.is_connected)
-        {
-            disconnect_device(device);
-        }
-
-        if (device.rgb_frame)
-        {
-            uvc::uvc_free_frame(device.rgb_frame);
-            device.rgb_frame = nullptr;
-        }*/
 
         close_all_devices();
     }

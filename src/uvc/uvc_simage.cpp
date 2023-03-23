@@ -78,9 +78,9 @@ namespace simage
 #endif
 
 
-typedef uvc::uvc_error_t(convert_frame_callback_t)(uvc::uvc_frame_t *in, uvc::uvc_frame_t *out);
+typedef uvc::uvc_error_t(convert_frame_callback_t)(uvc::frame *in, uvc::frame *out);
 
-static uvc::uvc_error_t convert_frame_error(uvc::uvc_frame_t *in, uvc::uvc_frame_t *out)
+static uvc::uvc_error_t convert_frame_error(uvc::frame *in, uvc::frame *out)
 {
     return uvc::UVC_ERROR_NOT_SUPPORTED;
 }
@@ -273,10 +273,10 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
     device.ctrl = ctrl;
 
     auto res = uvc::uvc_open(device.p_device, &device.h_device);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_open");
-        if (res == uvc::ERROR_ACCESS)
+        if (res == uvc::UVC_ERROR_ACCESS)
         {
             print_device_permissions_msg();
         }
@@ -293,16 +293,15 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
 
     switch (format_desc->bDescriptorSubtype) 
     {
-    case uvc::VS_FORMAT_MJPEG:
-        frame_format = uvc::FRAME_FORMAT_MJPEG;
-        device.convert_frame = uvc::uvc_any2rgb;
+    case uvc::UVC_VS_FORMAT_MJPEG:
+        frame_format = uvc::UVC_FRAME_FORMAT_MJPEG;
+        
         break;
-    case uvc::VS_FORMAT_FRAME_BASED:
-        frame_format = uvc::FRAME_FORMAT_H264;
+    case uvc::UVC_VS_FORMAT_FRAME_BASED:
+        frame_format = uvc::UVC_FRAME_FORMAT_H264;
         break;
     default:
-        frame_format = uvc::FRAME_FORMAT_YUYV;
-        device.convert_frame = uvc::uvc_any2rgb;
+        frame_format = uvc::UVC_FRAME_FORMAT_YUYV;
         break;
     }
 
@@ -326,7 +325,7 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
         width, height, fps /* width, height, fps */
     );
 
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_get_stream_ctrl_format_size");
         disconnect_device(device);
@@ -346,7 +345,7 @@ static bool enumerate_devices(DeviceListUVC& list)
     uvc::device_descriptor* desc;
 
     auto res = uvc::uvc_init(&list.context, NULL);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_init");
         uvc::uvc_exit(list.context);
@@ -354,7 +353,7 @@ static bool enumerate_devices(DeviceListUVC& list)
     }
 
     res = uvc::uvc_get_device_list(list.context, &list.device_list);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_get_device_list");
         uvc::uvc_exit(list.context);
@@ -374,7 +373,7 @@ static bool enumerate_devices(DeviceListUVC& list)
         device.p_device = list.device_list[i];
 
         res = uvc::uvc_get_device_descriptor(device.p_device, &desc);
-        if (res != uvc::SUCCESS)
+        if (res != uvc::UVC_SUCCESS)
         {
             print_uvc_error(res, "uvc_get_device_descriptor");
             continue;
@@ -421,6 +420,66 @@ static void stop_device(DeviceUVC& device)
 }
 
 
+static void enable_exposure_mode(DeviceUVC const& device)
+{
+    auto res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_AUTO);
+    if (res == uvc::UVC_SUCCESS)
+    {
+        return;
+    }
+
+    print_uvc_error(res, "uvc_set_ae_mode... auto");
+
+    if (res == uvc::UVC_ERROR_PIPE)
+    {
+        res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_APERTURE);
+        if (res != uvc::UVC_SUCCESS)
+        {
+            print_uvc_error(res, "uvc_set_ae_mode... aperture");
+        }
+    }
+}
+
+
+static bool set_frame_format(DeviceUVC& device)
+{
+    uvc::frame* frame;
+
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &frame, 0);
+    if (res != uvc::UVC_SUCCESS)
+    {
+        print_uvc_error(res, "uvc_stream_get_frame");
+        return false;
+    }
+
+    switch(frame->frame_format)
+    {
+    case uvc::UVC_FRAME_FORMAT_YUYV:
+        device.convert_frame = uvc::uvc_yuyv2rgb;
+        break;
+    case uvc::UVC_FRAME_FORMAT_UYVY:
+        device.convert_frame = uvc::uvc_uyvy2rgb;
+        break;
+    case uvc::UVC_FRAME_FORMAT_MJPEG:
+        device.convert_frame = uvc::uvc_mjpeg2rgb;
+        break;
+    case uvc::UVC_FRAME_FORMAT_GRAY8:
+
+        break;
+    case uvc::UVC_FRAME_FORMAT_GRAY16:
+
+        break;
+    case uvc::UVC_FRAME_FORMAT_NV12:
+
+        break;
+    default:
+        break;
+    }
+
+    return true;
+}
+
+
 static bool start_device_single_frame(DeviceUVC& device)
 { 
     if (device.is_streaming)
@@ -429,14 +488,14 @@ static bool start_device_single_frame(DeviceUVC& device)
     }
 
     auto res = uvc::uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_open_ctrl");
         return false;
     }
 
     res = uvc::uvc_stream_start(device.h_stream, 0, (void*)12345, 0);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_start");
         uvc::uvc_stream_close(device.h_stream);
@@ -445,28 +504,14 @@ static bool start_device_single_frame(DeviceUVC& device)
 
     device.is_streaming = true;
 
+    enable_exposure_mode(device);
+
+    if (!set_frame_format(device))
+    {
+        return false;
+    }
+
     return true;
-}
-
-
-static void enable_exposure_mode(DeviceUVC const& device)
-{
-    auto res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_AUTO);
-    if (res == uvc::SUCCESS)
-    {
-        return;
-    }
-
-    print_uvc_error(res, "uvc_set_ae_mode... auto");
-
-    if (res == uvc::ERROR_PIPE)
-    {
-        res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_APERTURE);
-        if (res != uvc::SUCCESS)
-        {
-            print_uvc_error(res, "uvc_set_ae_mode... aperture");
-        }
-    }
 }
 
 
@@ -501,17 +546,16 @@ static bool grab_and_convert_frame(DeviceUVC& device)
     uvc::frame* frame;
 
     auto res = uvc::uvc_stream_get_frame(device.h_stream, &frame, 0);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");
         return false;
     }
 
     auto rgb = device.rgb_frame;
-
-    //res = uvc::uvc_any2rgb(frame, rgb);
+    
     res = device.convert_frame(frame, rgb);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "uvc_any2rgb");
         return false;
@@ -589,8 +633,6 @@ namespace simage
         }
         
         camera.is_open = true;
-
-        enable_exposure_mode(device);
 
         return true;        
     }

@@ -42,23 +42,23 @@ static void run_selected_proc(Input const& input, img::CameraUSB const& camera, 
 
 static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 {
-	if (camera.frame_roi.width == app_screen.width && camera.frame_roi.height == app_screen.height)
+	if (camera.rgb_roi.width == app_screen.width && camera.rgb_roi.height == app_screen.height)
 	{
 		return;
 	}	
 
 	// change camera roi if it is larger than the screen
-	auto roi_camera = make_range(camera.frame_roi.width, camera.frame_roi.height);
+	auto roi_camera = make_range(camera.rgb_roi.width, camera.rgb_roi.height);
 
-	if (camera.frame_roi.width > app_screen.width)
+	if (camera.rgb_roi.width > app_screen.width)
 	{
-		roi_camera.x_begin = (camera.frame_roi.width - app_screen.width) / 2;
+		roi_camera.x_begin = (camera.rgb_roi.width - app_screen.width) / 2;
 		roi_camera.x_end = roi_camera.x_begin + app_screen.width;
 	}
 
-	if (camera.frame_roi.height > app_screen.height)
+	if (camera.rgb_roi.height > app_screen.height)
 	{
-		roi_camera.y_begin = (camera.frame_roi.height - app_screen.height) / 2;
+		roi_camera.y_begin = (camera.rgb_roi.height - app_screen.height) / 2;
 		roi_camera.y_end = roi_camera.y_begin + app_screen.height;
 	}
 
@@ -68,17 +68,17 @@ static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 	u32 x_adj_screen = 0;
 	u32 y_adj_screen = 0;
 	
-	if (camera.frame_roi.width < app_screen.width)
+	if (camera.rgb_roi.width < app_screen.width)
 	{
-		x_adj_screen = (app_screen.width - camera.frame_roi.width) / 2;
+		x_adj_screen = (app_screen.width - camera.rgb_roi.width) / 2;
 	}
 	
-	if (camera.frame_roi.height < app_screen.height)
+	if (camera.rgb_roi.height < app_screen.height)
 	{
-		y_adj_screen = (app_screen.height - camera.frame_roi.height) / 2;
+		y_adj_screen = (app_screen.height - camera.rgb_roi.height) / 2;
 	}
 	
-	auto roi_screen = make_range(camera.frame_roi.width, camera.frame_roi.height);
+	auto roi_screen = make_range(camera.rgb_roi.width, camera.rgb_roi.height);
 
 	roi_screen.x_begin += x_adj_screen;
 	roi_screen.x_end += x_adj_screen;
@@ -100,8 +100,8 @@ int main()
 	app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
-	window_settings.screen_width = camera.image_width;
-	window_settings.screen_height = camera.image_height;
+	window_settings.screen_width = camera.frame_width;
+	window_settings.screen_height = camera.frame_height;
 
 	app::AppState app_state;
 

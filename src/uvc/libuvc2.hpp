@@ -3963,12 +3963,14 @@ namespace uvc
             }
             if (!frame->data)
                 return UVC_ERROR_NO_MEM;
+
             return UVC_SUCCESS;
         }
         else
         {
             if (!frame->data || frame->data_bytes < need_bytes)
                 return UVC_ERROR_NO_MEM;
+
             return UVC_SUCCESS;
         }
     }
@@ -9749,12 +9751,25 @@ namespace uvc
 {
 namespace xtra
 {
+    static uvc_error_t uvc_ensure_frame_size(uvc_frame_t *frame, size_t need_bytes)
+    {
+        if (!frame->data || frame->data_bytes < need_bytes)
+        {
+            return UVC_ERROR_NO_MEM;
+        }            
+            
+        return UVC_SUCCESS;
+    }
+
+
     uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out)
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_YUYV);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;
@@ -9785,8 +9800,10 @@ namespace xtra
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_UYVY);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;
@@ -9818,8 +9835,10 @@ namespace xtra
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_MJPEG);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;
@@ -9838,8 +9857,10 @@ namespace xtra
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_MJPEG);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;
@@ -9860,8 +9881,10 @@ namespace xtra
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_BGR);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;
@@ -9894,8 +9917,10 @@ namespace xtra
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_GRAY8);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;
@@ -9928,8 +9953,10 @@ namespace xtra
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_UYVY);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;
@@ -9960,8 +9987,10 @@ namespace xtra
     {
         assert(in->frame_format == UVC_FRAME_FORMAT_YUYV);
 
-        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+        if (xtra::uvc_ensure_frame_size(out, in->width * in->height) < 0)
+        {
             return UVC_ERROR_NO_MEM;
+        }            
 
         out->width = in->width;
         out->height = in->height;

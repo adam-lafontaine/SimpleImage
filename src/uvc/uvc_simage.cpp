@@ -94,7 +94,8 @@ public:
     uvc::stream_ctrl* ctrl = nullptr;
     uvc::stream_handle* h_stream = nullptr;
 
-    convert_frame_callback_t* convert_frame = convert_frame_error;
+    convert_frame_callback_t* convert_rgb = convert_frame_error;
+    convert_frame_callback_t* convert_gray = convert_frame_error;
 
     uvc::frame* uvc_frame = nullptr;
 
@@ -442,7 +443,7 @@ static void enable_exposure_mode(DeviceUVC const& device)
 }
 
 
-static bool set_frame_format_rgb(DeviceUVC& device)
+static bool set_frame_formats(DeviceUVC& device)
 {
     uvc::frame* frame;
 
@@ -456,22 +457,28 @@ static bool set_frame_format_rgb(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        device.convert_frame = uvc::xtra::uvc_yuyv2rgb;
+        device.convert_rgb = uvc::xtra::uvc_yuyv2rgb;
+        device.convert_gray = uvc::xtra::uvc_yuyv2y;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        device.convert_frame = uvc::xtra::uvc_uyvy2rgb;
+        device.convert_rgb = uvc::xtra::uvc_uyvy2rgb;
+        device.convert_gray = uvc::xtra::uvc_uyvy2y;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
-        device.convert_frame = uvc::xtra::uvc_mjpeg2rgb;
+        device.convert_rgb = uvc::xtra::uvc_mjpeg2rgb;
+        device.convert_gray = uvc::xtra::uvc_mjpeg2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_RGB:
-        device.convert_frame = uvc::uvc_duplicate_frame;
+        device.convert_rgb = uvc::xtra::uvc_duplicate_frame;
+        // rgb2gray
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        device.convert_frame = uvc::xtra::uvc_bgr2rgb;
+        device.convert_rgb = uvc::xtra::uvc_bgr2rgb;
+        // bgr2gray
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
-        device.convert_frame = uvc::xtra::uvc_gray2rgb;
+        device.convert_rgb = uvc::xtra::uvc_gray2rgb;
+        device.convert_gray = uvc::xtra::uvc_duplicate_frame;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
 
@@ -545,21 +552,45 @@ static void close_all_devices()
 
 static bool grab_and_convert_frame_rgb(DeviceUVC& device)
 {
-    uvc::frame* frame;
+    uvc::frame* in_frame;
 
-    auto res = uvc::uvc_stream_get_frame(device.h_stream, &frame, 0);
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame, 0);
     if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");
         return false;
     }
 
-    auto rgb = device.uvc_frame;
+    auto out_frame = device.uvc_frame;
     
-    res = device.convert_frame(frame, rgb);
+    res = device.convert_rgb(in_frame, out_frame);
     if (res != uvc::UVC_SUCCESS)
     {  
-        print_uvc_error(res, "uvc_any2rgb");
+        print_uvc_error(res, "device.convert_rgb");
+        return false;
+    }
+
+    return true;
+}
+
+
+static bool grab_and_convert_frame_gray(DeviceUVC& device)
+{
+    uvc::frame* in_frame;
+
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame, 0);
+    if (res != uvc::UVC_SUCCESS)
+    {
+        print_uvc_error(res, "uvc_stream_get_frame");
+        return false;
+    }
+
+    auto out_frame = device.uvc_frame;
+    
+    res = device.convert_gray(in_frame, out_frame);
+    if (res != uvc::UVC_SUCCESS)
+    {  
+        print_uvc_error(res, "device.convert_gray");
         return false;
     }
 
@@ -665,7 +696,7 @@ namespace simage
             return false;
         }        
 
-        if (!set_frame_format_rgb(device))
+        if (!set_frame_formats(device))
         {
             return false;
         }

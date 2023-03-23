@@ -839,6 +839,8 @@ namespace uvc
 {
 namespace xtra
 {
+    uvc_error_t uvc_duplicate_frame(uvc_frame_t *in, uvc_frame_t *out);
+
     uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out);
     uvc_error_t uvc_uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out);
 
@@ -9758,6 +9760,38 @@ namespace xtra
             return UVC_ERROR_NO_MEM;
         }            
             
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uvc_duplicate_frame(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (xtra::uvc_ensure_frame_size(out, in->data_bytes) < 0)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        if (in->metadata && in->metadata_bytes > 0)
+        {
+            if (!out->metadata_bytes || out->metadata_bytes < in->metadata_bytes)
+            {
+                return UVC_ERROR_NO_MEM;
+            }
+
+            memcpy(out->metadata, in->metadata, in->metadata_bytes);
+        }        
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = in->frame_format;
+        out->step = in->step;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        memcpy(out->data, in->data, in->data_bytes);
+
         return UVC_SUCCESS;
     }
 

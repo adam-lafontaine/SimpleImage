@@ -97,21 +97,6 @@ namespace uvc
         UVC_FRAME_FORMAT_COUNT,
     };
 
-    /* UVC_COLOR_FORMAT_* have been replaced with UVC_FRAME_FORMAT_*. Please use
-        * UVC_FRAME_FORMAT_* instead of using these. */
-    /*
-    #define UVC_COLOR_FORMAT_UNKNOWN UVC_FRAME_FORMAT_UNKNOWN
-    #define UVC_COLOR_FORMAT_UNCOMPRESSED UVC_FRAME_FORMAT_UNCOMPRESSED
-    #define UVC_COLOR_FORMAT_COMPRESSED UVC_FRAME_FORMAT_COMPRESSED
-    #define UVC_COLOR_FORMAT_YUYV UVC_FRAME_FORMAT_YUYV
-    #define UVC_COLOR_FORMAT_UYVY UVC_FRAME_FORMAT_UYVY
-    #define UVC_COLOR_FORMAT_RGB UVC_FRAME_FORMAT_RGB
-    #define UVC_COLOR_FORMAT_BGR UVC_FRAME_FORMAT_BGR
-    #define UVC_COLOR_FORMAT_MJPEG UVC_FRAME_FORMAT_MJPEG
-    #define UVC_COLOR_FORMAT_GRAY8 UVC_FRAME_FORMAT_GRAY8
-    #define UVC_COLOR_FORMAT_GRAY16 UVC_FRAME_FORMAT_GRAY16
-    #define UVC_COLOR_FORMAT_NV12 UVC_FRAME_FORMAT_NV12
-    */
 
     /** VideoStreaming interface descriptor subtype (A.6) */
     enum uvc_vs_desc_subtype
@@ -848,6 +833,27 @@ namespace uvc
 #endif
 
 }
+
+
+namespace uvc
+{
+namespace xtra
+{
+    uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t uvc_uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out);
+
+#ifdef LIBUVC_HAS_JPEG
+    uvc_error_t uvc_mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t uvc_mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out);
+#endif    
+
+    uvc_error_t uvc_bgr2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t uvc_gray2rgb(uvc_frame_t *in, uvc_frame_t *out);
+
+    uvc_error_t uvc_uyvy2y(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t uvc_yuyv2y(uvc_frame_t *in, uvc_frame_t *out);
+
+}}
 
 
 namespace uvc
@@ -4442,49 +4448,6 @@ namespace uvc
 #endif // FRAME_C
 }
 
-
-namespace uvc
-{
-namespace xtra
-{
-    uvc_error_t uvc_uyvy2y(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_UYVY)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *py = (uint8_t *)out->data;
-        uint8_t *py_end = py + out->data_bytes;
-
-        while (py < py_end)
-        {
-            py[0] = pyuv[1];
-
-            py += 1;
-            pyuv += 2;
-        }
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t uvc_any2y(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        return UVC_ERROR_INVALID_PARAM; // TODO
-    }
-}}
 
 namespace uvc
 {
@@ -9780,6 +9743,250 @@ namespace uvc
 
 #endif // CTRL_GEN_C
 }
+
+
+namespace uvc
+{
+namespace xtra
+{
+    uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_YUYV);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *prgb = (uint8_t *)out->data;
+        uint8_t *prgb_end = prgb + out->data_bytes;
+
+        while (prgb < prgb_end)
+        {
+            IYUYV2RGB_8(pyuv, prgb);
+
+            prgb += 3 * 8;
+            pyuv += 2 * 8;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uvc_uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_UYVY);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *prgb = (uint8_t *)out->data;
+        uint8_t *prgb_end = prgb + out->data_bytes;
+
+        while (prgb < prgb_end)
+        {
+            IUYVY2RGB_8(pyuv, prgb);
+
+            prgb += 3 * 8;
+            pyuv += 2 * 8;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+#ifdef LIBUVC_HAS_JPEG
+
+    uvc_error_t uvc_mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_MJPEG);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        return uvc_mjpeg_convert(in, out);
+    }
+
+
+    uvc_error_t uvc_mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_MJPEG);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
+        out->step = in->width;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        return uvc_mjpeg_convert(in, out);
+    }
+
+#endif 
+
+
+    uvc_error_t uvc_bgr2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_BGR);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pbgr = (uint8_t *)in->data;
+        uint8_t *prgb = (uint8_t *)out->data;
+        uint8_t *prgb_end = prgb + out->data_bytes;
+
+        while (prgb < prgb_end)
+        {
+            prgb[0] = pbgr[2];
+            prgb[1] = pbgr[1];
+            prgb[2] = pbgr[0];
+
+            prgb += 3;
+            pbgr += 3;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uvc_gray2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_GRAY8);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pgray = (uint8_t *)in->data;
+        uint8_t *prgb = (uint8_t *)out->data;
+        uint8_t *prgb_end = prgb + out->data_bytes;
+
+        while (prgb < prgb_end)
+        {
+            prgb[0] = pgray[0];
+            prgb[1] = pgray[0];
+            prgb[2] = pgray[0];
+
+            prgb += 3;
+            pgray += 1;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uvc_uyvy2y(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_UYVY);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
+        out->step = in->width;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *py = (uint8_t *)out->data;
+        uint8_t *py_end = py + out->data_bytes;
+
+        while (py < py_end)
+        {
+            py[0] = pyuv[1];
+
+            py += 1;
+            pyuv += 2;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uvc_yuyv2y(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        assert(in->frame_format == UVC_FRAME_FORMAT_YUYV);
+
+        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
+        out->step = in->width;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *py = (uint8_t *)out->data;
+        uint8_t *py_end = py + out->data_bytes;
+
+        while (py < py_end)
+        {
+            py[0] = pyuv[0];
+
+            py += 1;
+            pyuv += 2;
+        }
+
+        return UVC_SUCCESS;
+    }
+}}
 
 #endif // LIBUVC_IMPLEMENTATION
 

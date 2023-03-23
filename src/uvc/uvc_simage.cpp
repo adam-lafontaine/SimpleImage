@@ -455,16 +455,22 @@ static bool set_frame_format(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        device.convert_frame = uvc::uvc_yuyv2rgb;
+        device.convert_frame = uvc::xtra::uvc_yuyv2rgb;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        device.convert_frame = uvc::uvc_uyvy2rgb;
+        device.convert_frame = uvc::xtra::uvc_uyvy2rgb;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
-        device.convert_frame = uvc::uvc_mjpeg2rgb;
+        device.convert_frame = uvc::xtra::uvc_mjpeg2rgb;
+        break;
+    case uvc::UVC_FRAME_FORMAT_RGB:
+        device.convert_frame = uvc::uvc_duplicate_frame;
+        break;
+    case uvc::UVC_FRAME_FORMAT_BGR:
+        device.convert_frame = uvc::xtra::uvc_bgr2rgb;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
-
+        device.convert_frame = uvc::xtra::uvc_gray2rgb;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
 

@@ -21,6 +21,9 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	camera_rgb_callback_test,
 	camera_histogram_test,
 	camera_rgb_continuous_test,
+	camera_gray_test,
+	camera_gray_callback_test,
+	camera_gray_continuous_test,
 };
 
 

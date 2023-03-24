@@ -20,3 +20,9 @@ void camera_rgb_callback_test(img::View const& out);
 void camera_histogram_test(img::View const& out);
 
 void camera_rgb_continuous_test(img::View const& out);
+
+void camera_gray_test(img::View const& out);
+
+void camera_gray_callback_test(img::View const& out);
+
+void camera_gray_continuous_test(img::View const& out);

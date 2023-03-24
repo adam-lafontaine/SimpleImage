@@ -254,3 +254,123 @@ void camera_rgb_continuous_test(img::View const& out)
 	img::close_camera(camera);
 	mb::destroy_buffer(buffer);
 }
+
+
+void camera_gray_test(img::View const& out)
+{
+ 	img::CameraUSB camera;
+
+	if (!img::open_camera(camera))
+	{
+		printf("Error camera_test / open_camera\n");
+		return;
+	}
+
+	auto dst = img::sub_view(out, make_range(camera.frame_width, camera.frame_height));
+
+	img::ImageGray gray;
+	img::create_image(gray, dst.width, dst.height);
+	auto view = img::make_view(gray);
+
+	if (!img::grab_gray(camera, view))
+	{
+		printf("Error camera_test / grab_image\n");
+	}
+
+	img::map_gray(view, dst);
+
+	img::destroy_image(gray);
+	img::close_camera(camera);
+}
+
+
+void camera_gray_callback_test(img::View const& out)
+{
+	img::CameraUSB camera;
+
+	if (!img::open_camera(camera))
+	{
+		printf("Error camera_callback_test / open_camera\n");
+		return;
+	}
+
+	auto width = camera.frame_width;
+	auto height = camera.frame_height;
+
+	auto dst = img::sub_view(out, make_range(width, height));
+
+	img::Buffer16 buffer;
+	mb::create_buffer(buffer, width * height * 1);
+
+	auto view = img::make_view_1(width, height, buffer);
+
+	auto const invert = [](f32 c){ return 1.0f - c; };
+
+	auto const grab_cb = [&](img::ViewGray const& src)
+	{
+		img::map_gray(src, view);
+		img::transform_f32(view, view, invert);
+		img::map_rgb(view, dst);
+	};
+
+	if (!img::grab_gray(camera, grab_cb))
+	{
+		printf("Error camera_callback_test / grab_image\n");
+	}
+
+	mb::destroy_buffer(buffer);
+	img::close_camera(camera);
+}
+
+
+void camera_gray_continuous_test(img::View const& out)
+{
+	img::CameraUSB camera;
+
+	if (!img::open_camera(camera))
+	{
+		printf("Error camera_continuous_test / open_camera\n");
+		return;
+	}
+
+	auto width = camera.frame_width;
+	auto height = camera.frame_height;
+
+	auto n_images = 128;
+
+	auto frame_count = 0;
+	auto const grab_condition = [&]() { return frame_count < n_images; };
+
+	u32 w = width / n_images;
+	auto range = make_range(w, height);
+
+	img::Buffer16 buffer;
+	mb::create_buffer(buffer, w * height * 1);
+
+	auto view = img::make_view_1(w, height, buffer);
+	f32 f = 1.0f;
+
+	Stopwatch sw;
+	sw.start();
+
+	auto const grab_cb = [&](img::ViewGray const& src)
+	{
+		img::map_gray(img::sub_view(src, range), view);
+		img::transform_f32(view, view, [&](f32 p){ return p * f; });
+		img::map_rgb(view, img::sub_view(out, range));
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(2 * frame_count));
+		printf("frame: %d, time: %f ms\n", frame_count, sw.get_time_milli());
+		sw.start();
+
+		range.x_begin += w;
+		range.x_end += w;
+		f = f == 1.0f ? 0.5f : 1.0f;
+		++frame_count;		
+	};
+	
+	img::grab_gray_continuous(camera, grab_cb, grab_condition);
+	
+	img::close_camera(camera);
+	mb::destroy_buffer(buffer);
+}

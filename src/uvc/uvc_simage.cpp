@@ -834,7 +834,7 @@ namespace simage
         
         while (grab_condition())
         {
-            if (grab_and_convert_frame_rgb(device))
+            if (grab_and_convert_frame_gray(device))
             { 
 				grab_cb(device_view);
             }

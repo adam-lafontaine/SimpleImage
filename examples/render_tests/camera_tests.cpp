@@ -107,9 +107,9 @@ void camera_test(img::View const& out)
 		return;
 	}
 
-	auto dst = img::sub_view(out, make_range(camera.image_width, camera.image_height));
+	auto dst = img::sub_view(out, make_range(camera.frame_width, camera.frame_height));
 
-	if (!img::grab_image(camera, dst))
+	if (!img::grab_rgb(camera, dst))
 	{
 		printf("Error camera_test / grab_image\n");
 	}
@@ -128,8 +128,8 @@ void camera_callback_test(img::View const& out)
 		return;
 	}
 
-	auto width = camera.image_width;
-	auto height = camera.image_height;
+	auto width = camera.frame_width;
+	auto height = camera.frame_height;
 
 	auto dst = img::sub_view(out, make_range(width, height));
 
@@ -151,7 +151,7 @@ void camera_callback_test(img::View const& out)
 		img::map_rgb(gray, dst);
 	};
 
-	if (!img::grab_image(camera, grab_cb))
+	if (!img::grab_rgb(camera, grab_cb))
 	{
 		printf("Error camera_callback_test / grab_image\n");
 	}
@@ -195,7 +195,7 @@ void camera_histogram_test(img::View const& out)
 		img::map_gray(hist_view, out);
 	};
 
-	if (!img::grab_image(camera, grab_cb))
+	if (!img::grab_rgb(camera, grab_cb))
 	{
 		printf("Error camera_histogram_test / grab_image\n");
 	}
@@ -215,8 +215,8 @@ void camera_continuous_test(img::View const& out)
 		return;
 	}
 
-	auto width = camera.image_width;
-	auto height = camera.image_height;
+	auto width = camera.frame_width;
+	auto height = camera.frame_height;
 
 	auto n_images = 128;
 
@@ -253,7 +253,7 @@ void camera_continuous_test(img::View const& out)
 		++frame_count;		
 	};
 	
-	img::grab_continuous(camera, grab_cb, grab_condition);
+	img::grab_rgb_continuous(camera, grab_cb, grab_condition);
 	
 	img::close_camera(camera);
 	mb::destroy_buffer(buffer);

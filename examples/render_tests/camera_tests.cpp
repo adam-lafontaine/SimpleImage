@@ -97,7 +97,7 @@ static void draw(img::Histogram12f32& hists, img::View1u8 const& dst, HistParams
 }
 
 
-void camera_test(img::View const& out)
+void camera_rgb_test(img::View const& out)
 {
  	img::CameraUSB camera;
 
@@ -118,7 +118,7 @@ void camera_test(img::View const& out)
 }
 
 
-void camera_callback_test(img::View const& out)
+void camera_rgb_callback_test(img::View const& out)
 {
 	img::CameraUSB camera;
 
@@ -134,21 +134,18 @@ void camera_callback_test(img::View const& out)
 	auto dst = img::sub_view(out, make_range(width, height));
 
 	img::Buffer16 buffer;
-	mb::create_buffer(buffer, width * height * 6);
+	mb::create_buffer(buffer, width * height * 3);
 
 	auto rgb = img::make_view_3(width, height, buffer);
-	auto gray = img::make_view_1(width, height, buffer);
-	auto grad = img::make_view_2(width, height, buffer);
+	auto red = img::select_channel(rgb, img::RGB::R);
 
-	auto const to_hypot = [](f32 grad_x, f32 grad_y) { return std::hypotf(grad_x, grad_y); };
+	auto const invert = [](f32 c){ return 1.0f - c; };
 
 	auto const grab_cb = [&](img::View const& src)
 	{
 		img::map_rgb(src, rgb);
-		img::transform_gray(rgb, gray);
-		img::gradients_xy(gray, grad);
-		img::transform(grad, gray, to_hypot);
-		img::map_rgb(gray, dst);
+		img::transform_f32(red, red, invert);
+		img::map_rgb(rgb, dst);
 	};
 
 	if (!img::grab_rgb(camera, grab_cb))
@@ -205,7 +202,7 @@ void camera_histogram_test(img::View const& out)
 }
 
 
-void camera_continuous_test(img::View const& out)
+void camera_rgb_continuous_test(img::View const& out)
 {
 	img::CameraUSB camera;
 
@@ -227,10 +224,10 @@ void camera_continuous_test(img::View const& out)
 	auto range = make_range(w, height);
 
 	img::Buffer16 buffer;
-	mb::create_buffer(buffer, w * height * 4);
+	mb::create_buffer(buffer, w * height * 3);
 
 	auto view_rgb = img::make_view_3(w, height, buffer);
-	auto view_gray = img::make_view_1(w, height, buffer);
+	auto green = img::select_channel(view_rgb, img::RGB::G);
 	f32 f = 1.0f;
 
 	Stopwatch sw;
@@ -239,9 +236,8 @@ void camera_continuous_test(img::View const& out)
 	auto const grab_cb = [&](img::View const& src)
 	{
 		img::map_rgb(img::sub_view(src, range), view_rgb);
-		img::transform_gray(view_rgb, view_gray);
-		img::transform(view_gray, view_gray, [&](f32 p){ return p * f; });
-		img::map_rgb(view_gray, img::sub_view(out, range));
+		img::transform_f32(green, green, [&](f32 p){ return p * f; });
+		img::map_rgb(view_rgb, img::sub_view(out, range));
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(2 * frame_count));
 		printf("frame: %d, time: %f ms\n", frame_count, sw.get_time_milli());

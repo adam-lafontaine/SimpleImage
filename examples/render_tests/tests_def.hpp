@@ -13,10 +13,10 @@ void resize_image_test(img::View const& out_view);
 
 void histogram_image_test(img::View const& out);
 
-void camera_test(img::View const& out);
+void camera_rgb_test(img::View const& out);
 
-void camera_callback_test(img::View const& out);
+void camera_rgb_callback_test(img::View const& out);
 
 void camera_histogram_test(img::View const& out);
 
-void camera_continuous_test(img::View const& out);
+void camera_rgb_continuous_test(img::View const& out);

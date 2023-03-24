@@ -36,29 +36,29 @@ static void run_selected_proc(Input const& input, img::CameraUSB const& camera, 
 		return;
 	}
 
-	img::grab_image(camera, [&](img::View const& src) { proc_list[proc_id](src, dst); });
+	img::grab_rgb(camera, [&](img::View const& src) { proc_list[proc_id](src, dst); });
 }
 
 
 static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 {
-	if (camera.rgb_roi.width == app_screen.width && camera.rgb_roi.height == app_screen.height)
+	if (camera.frame_width == app_screen.width && camera.frame_height == app_screen.height)
 	{
 		return;
 	}	
 
 	// change camera roi if it is larger than the screen
-	auto roi_camera = make_range(camera.rgb_roi.width, camera.rgb_roi.height);
+	auto roi_camera = make_range(camera.frame_width, camera.frame_height);
 
-	if (camera.rgb_roi.width > app_screen.width)
+	if (camera.frame_width > app_screen.width)
 	{
-		roi_camera.x_begin = (camera.rgb_roi.width - app_screen.width) / 2;
+		roi_camera.x_begin = (camera.frame_width - app_screen.width) / 2;
 		roi_camera.x_end = roi_camera.x_begin + app_screen.width;
 	}
 
-	if (camera.rgb_roi.height > app_screen.height)
+	if (camera.frame_height > app_screen.height)
 	{
-		roi_camera.y_begin = (camera.rgb_roi.height - app_screen.height) / 2;
+		roi_camera.y_begin = (camera.frame_height - app_screen.height) / 2;
 		roi_camera.y_end = roi_camera.y_begin + app_screen.height;
 	}
 
@@ -68,17 +68,17 @@ static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 	u32 x_adj_screen = 0;
 	u32 y_adj_screen = 0;
 	
-	if (camera.rgb_roi.width < app_screen.width)
+	if (camera.frame_width < app_screen.width)
 	{
-		x_adj_screen = (app_screen.width - camera.rgb_roi.width) / 2;
+		x_adj_screen = (app_screen.width - camera.frame_width) / 2;
 	}
 	
-	if (camera.rgb_roi.height < app_screen.height)
+	if (camera.frame_height < app_screen.height)
 	{
-		y_adj_screen = (app_screen.height - camera.rgb_roi.height) / 2;
+		y_adj_screen = (app_screen.height - camera.frame_height) / 2;
 	}
 	
-	auto roi_screen = make_range(camera.rgb_roi.width, camera.rgb_roi.height);
+	auto roi_screen = make_range(camera.frame_width, camera.frame_height);
 
 	roi_screen.x_begin += x_adj_screen;
 	roi_screen.x_end += x_adj_screen;

@@ -36,8 +36,8 @@ void close_camera_procs()
 
 bool init_camera_procs(img::CameraUSB const& camera)
 {
-	auto width = camera.rgb_roi.width;
-	auto height = camera.rgb_roi.height;
+	auto width = camera.frame_width;
+	auto height = camera.frame_height;
 
 	auto n_channels = 9;
 

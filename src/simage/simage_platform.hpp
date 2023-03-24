@@ -623,15 +623,19 @@ namespace simage
 		u32 frame_height = 0;
 		u32 max_fps = 0;
 
-		u8* frame_data;
+		Image frame_image;
 
-		View rgb_roi;
-		ViewGray gray_roi;
+		//u8* frame_data;
+		//View rgb_roi;
+		//ViewGray gray_roi;
+
+		Range2Du32 roi;
 
 		bool is_open;
 	};
 	
 	using rgb_callback = std::function<void(View const&)>;
+	using gray_callback = std::function<void(ViewGray const&)>;
 	using bool_f = std::function<bool()>;
 
 
@@ -639,13 +643,21 @@ namespace simage
 
 	void close_camera(CameraUSB& camera);
 
-	bool grab_image(CameraUSB const& camera);
+	//bool grab_rgb(CameraUSB const& camera);
 
-	bool grab_image(CameraUSB const& camera, View const& dst);
+	bool grab_rgb(CameraUSB const& camera, View const& dst);
 
-	bool grab_image(CameraUSB const& camera, rgb_callback const& grab_cb);
+	bool grab_rgb(CameraUSB const& camera, rgb_callback const& grab_cb);
 
-	bool grab_continuous(CameraUSB const& camera, rgb_callback const& grab_cb, bool_f const& grab_condition);
+	bool grab_rgb_continuous(CameraUSB const& camera, rgb_callback const& grab_cb, bool_f const& grab_condition);
+/*
+	bool grab_gray(CameraUSB const& camera);
 
-	void set_roi(CameraUSB& camera, Range2Du32 const& roi);
+	bool grab_gray(CameraUSB const& camera, ViewGray const& dst);
+
+	bool grab_gray(CameraUSB const& camera, gray_callback const& grab_cb);
+
+	bool grab_gray_continuous(CameraUSB const& camera, gray_callback const& grab_cb, bool_f const& grab_condition);
+*/
+	void set_roi(CameraUSB& camera, Range2Du32 roi);
 }

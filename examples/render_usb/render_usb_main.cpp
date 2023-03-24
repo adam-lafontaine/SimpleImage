@@ -5,7 +5,7 @@
 constexpr auto APP_TITLE = "Render USB";
 constexpr auto APP_VERSION = "1.0";
 
-static std::vector<std::function<void(img::View const&, img::View const&)>> proc_list =
+static std::vector<std::function<void(img::View const&, img::View const&)>> rgb_proc_list =
 {
 	show_camera,
 	show_blur,
@@ -17,26 +17,41 @@ static std::vector<std::function<void(img::View const&, img::View const&)>> proc
 };
 
 
-static void run_selected_proc(Input const& input, img::CameraUSB const& camera, img::View const& dst)
+static std::vector<std::function<void(img::ViewGray const&, img::View const&)>> gray_proc_list = 
+{
+	show_camera_gray,
+	show_inverted_gray,
+};
+
+
+static void run_selected_rgb_proc(Input const& input, img::CameraUSB const& camera, img::View const& dst)
 {
 	static int proc_id = -1;
 
 	if (input.keyboard.space_key.pressed)
 	{
 		proc_id++;
-
-		if (proc_id >= proc_list.size())
-		{
-			proc_id = 0;
-		}
 	}
 
-	if (proc_id < 0 || proc_id >= proc_list.size())
+	if (proc_id < 0)
 	{
 		return;
 	}
 
-	img::grab_rgb(camera, [&](img::View const& src) { proc_list[proc_id](src, dst); });
+	if (proc_id < rgb_proc_list.size())
+	{
+		img::grab_rgb(camera, [&](img::View const& src) { rgb_proc_list[proc_id](src, dst); });
+		return;
+	}
+
+	if (proc_id < rgb_proc_list.size() + gray_proc_list.size())
+	{
+		auto id = proc_id - rgb_proc_list.size();
+		img::grab_gray(camera, [&](img::ViewGray const& src) { gray_proc_list[id](src, dst); });
+		return;
+	}	
+
+	proc_id = 0;	
 }
 
 
@@ -122,7 +137,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, out_view); });
+	render_run(app_state, [&](auto const& input) { run_selected_rgb_proc(input, camera, out_view); });
 
 	img::close_camera(camera);
 	close_camera_procs();

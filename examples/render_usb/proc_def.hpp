@@ -23,3 +23,7 @@ void show_gradients_red(img::View const& src, img::View const& dst);
 void show_gradients_green(img::View const& src, img::View const& dst);
 
 void show_gradients_blue(img::View const& src, img::View const& dst);
+
+void show_camera_gray(img::ViewGray const& src, img::View const& dst);
+
+void show_inverted_gray(img::ViewGray const& src, img::View const& dst);

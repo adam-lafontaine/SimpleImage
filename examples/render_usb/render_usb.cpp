@@ -135,3 +135,19 @@ void show_gradients_blue(img::View const& src, img::View const& dst)
 
 	img::map_rgb(view_rgb, dst);
 }
+
+
+void show_camera_gray(img::ViewGray const& src, img::View const& dst)
+{
+	img::map_gray(src, dst);
+}
+
+
+void show_inverted_gray(img::ViewGray const& src, img::View const& dst)
+{
+	img::map_gray(src, view_gray);
+
+	img::transform_f32(view_gray, view_gray, [](f32 p){ return 1.0f - p; });
+
+	img::map_rgb(view_gray, dst);
+}

@@ -92,20 +92,22 @@ static bool grab_and_convert_frame_bgr(DeviceCV& device)
 
 static bool grab_and_convert_frame_gray(DeviceCV& device)
 {
-	auto& cap = device.capture;
-
-	if (!cap.grab())
+	if (!grab_and_convert_frame_bgr(device))
 	{
 		return false;
 	}
 
-	auto& frame = device.bgr_frame;
-
-	if (!cap.retrieve(frame))
+	auto const to_gray = [&](u32 i) 
 	{
-		return false;
-	}
+		auto src = device.bgr_image.data_[i];
+		auto& dst = device.gray_image.data_[i];
+		auto gray = 0.299f * src.red + 0.587f * src.green + 0.114f * src.blue;
+		dst = (uint8_t)(gray + 0.5f);
+	};
 
+	auto n_pixels = device.bgr_image.width * device.bgr_image.height;
+
+	process_range(0, n_pixels, to_gray);
 
 	return true;
 }
@@ -258,6 +260,7 @@ namespace simage
 		{
 			if (grab_and_convert_frame_bgr(device))
 			{
+				device_view = sub_view(device.bgr_image, camera.roi);
 				map_rgb(device_view, camera_view);
 				grab_cb(camera_view);
 			}

@@ -43,6 +43,7 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 		test_id = 0;
 	}
 
+
 	tests[test_id](app_state.screen_pixels);
 }
 

@@ -457,28 +457,28 @@ static bool set_frame_formats(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        device.convert_rgb = uvc::xtra::uvc_yuyv2rgb;
-        device.convert_gray = uvc::xtra::uvc_yuyv2y;
+        device.convert_rgb = uvc::xtra::yuyv2rgb;
+        device.convert_gray = uvc::xtra::yuyv2y;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        device.convert_rgb = uvc::xtra::uvc_uyvy2rgb;
-        device.convert_gray = uvc::xtra::uvc_uyvy2y;
+        device.convert_rgb = uvc::xtra::uyvy2rgb;
+        device.convert_gray = uvc::xtra::uyvy2y;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
-        device.convert_rgb = uvc::xtra::uvc_mjpeg2rgb;
-        device.convert_gray = uvc::xtra::uvc_mjpeg2gray;
+        device.convert_rgb = uvc::xtra::mjpeg2rgb;
+        device.convert_gray = uvc::xtra::mjpeg2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_RGB:
-        device.convert_rgb = uvc::xtra::uvc_duplicate_frame;
-        // rgb2gray
+        device.convert_rgb = uvc::xtra::duplicate_frame;
+        device.convert_gray = uvc::xtra::rgb2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        device.convert_rgb = uvc::xtra::uvc_bgr2rgb;
-        // bgr2gray
+        device.convert_rgb = uvc::xtra::bgr2rgb;
+        device.convert_gray = uvc::xtra::bgr2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
-        device.convert_rgb = uvc::xtra::uvc_gray2rgb;
-        device.convert_gray = uvc::xtra::uvc_duplicate_frame;
+        device.convert_rgb = uvc::xtra::gray2rgb;
+        device.convert_gray = uvc::xtra::duplicate_frame;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
 
@@ -600,28 +600,6 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
 
 namespace simage
 {
-    /*static Image make_frame_rgb(CameraUSB const& camera)
-    {
-        Image rgb;
-        rgb.width = camera.frame_width;
-        rgb.height = camera.frame_height;
-        rgb.data_ = (Pixel*)camera.frame_data;
-
-        return rgb;
-    }
-
-
-    static ImageGray make_frame_gray(CameraUSB const& camera)
-    {
-        ImageGray gray;
-        gray.width = camera.frame_width;
-        gray.height = camera.frame_height;
-        gray.data_ = camera.frame_data;
-
-        return gray;
-    }
-*/
-
     static bool camera_is_initialized(CameraUSB const& camera)
     {
         return camera.is_open
@@ -665,7 +643,7 @@ namespace simage
         set_roi(camera, roi);
 
         free_device_frame(device);
-        size_t frame_max_bytes = device.frame_width * device.frame_height * 3;
+        size_t frame_max_bytes = device.frame_width * device.frame_height * 4;
 
         device.uvc_frame = uvc::uvc_allocate_frame(frame_max_bytes);
         if (!device.uvc_frame)
@@ -794,9 +772,6 @@ namespace simage
         return true;
     }
 
-/*
-    
-
 
 	bool grab_gray(CameraUSB const& camera, ViewGray const& dst)
     {
@@ -814,8 +789,7 @@ namespace simage
             return false;
         }
 
-        auto roi = make_range(camera.gray_roi.width, camera.gray_roi.height);
-        auto device_view = sub_view(device.gray_view, roi);
+        auto device_view = sub_view(device.gray_view, camera.roi);
 
         copy(device_view, dst);
 
@@ -837,11 +811,9 @@ namespace simage
             return false;
         }
 
-        auto roi = make_range(camera.gray_roi.width, camera.gray_roi.height);
-        auto device_view = sub_view(device.gray_view, roi);
+        auto device_view = sub_view(device.gray_view, camera.roi);
 
-        copy(device_view, camera.gray_roi);
-        grab_cb(camera.gray_roi);
+        grab_cb(device_view);
 
         return true;
     }
@@ -857,31 +829,29 @@ namespace simage
         }
 
         auto& device = g_device_list.devices[camera.device_id];
-
-        auto roi = make_range(camera.gray_roi.width, camera.gray_roi.height);
-        auto device_view = sub_view(device.gray_view, roi);
+        
+        auto device_view = sub_view(device.gray_view, camera.roi);
         
         while (grab_condition())
         {
             if (grab_and_convert_frame_rgb(device))
-            {               
-                map_rgb(device_view, camera.rgb_roi);
-				grab_cb(camera.rgb_roi);
+            { 
+				grab_cb(device_view);
             }
         }
 
         return true;
     }
-*/
+
 
     void set_roi(CameraUSB& camera, Range2Du32 roi)
     {
-        //auto rgb = make_frame_rgb(camera);
-        //camera.rgb_roi = sub_view(rgb, roi);
-
-        //auto gray = make_frame_gray(camera);
-        //camera.gray_roi = sub_view(gray, roi);
-
-        camera.roi = roi;
+        if (roi.x_end <= camera.frame_image.width &&
+            roi.x_begin < roi.x_end &&
+            roi.y_end <= camera.frame_height &&
+            roi.y_begin < roi.y_end)
+        {
+            camera.roi = roi;
+        }        
     }
 }

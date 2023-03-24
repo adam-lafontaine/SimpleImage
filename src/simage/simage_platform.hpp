@@ -625,10 +625,6 @@ namespace simage
 
 		Image frame_image;
 
-		//u8* frame_data;
-		//View rgb_roi;
-		//ViewGray gray_roi;
-
 		Range2Du32 roi;
 
 		bool is_open;
@@ -643,21 +639,17 @@ namespace simage
 
 	void close_camera(CameraUSB& camera);
 
-	//bool grab_rgb(CameraUSB const& camera);
-
 	bool grab_rgb(CameraUSB const& camera, View const& dst);
 
 	bool grab_rgb(CameraUSB const& camera, rgb_callback const& grab_cb);
 
 	bool grab_rgb_continuous(CameraUSB const& camera, rgb_callback const& grab_cb, bool_f const& grab_condition);
-/*
-	bool grab_gray(CameraUSB const& camera);
-
+	
 	bool grab_gray(CameraUSB const& camera, ViewGray const& dst);
 
 	bool grab_gray(CameraUSB const& camera, gray_callback const& grab_cb);
 
 	bool grab_gray_continuous(CameraUSB const& camera, gray_callback const& grab_cb, bool_f const& grab_condition);
-*/
+
 	void set_roi(CameraUSB& camera, Range2Du32 roi);
 }

@@ -841,17 +841,17 @@ namespace opt
 {
     uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out);
 
-    uvc_error_t yuyv2rgb(uvc_frame_t *in, u8* out);
-    uvc_error_t uyvy2rgb(uvc_frame_t *in, u8* out);
+    uvc_error_t yuyv2rgba(uvc_frame_t *in, u8* out);
+    uvc_error_t uyvy2rgba(uvc_frame_t *in, u8* out);
 
 #ifdef LIBUVC_HAS_JPEG
-    uvc_error_t mjpeg2rgb(uvc_frame_t *in, u8* out);
+    //uvc_error_t mjpeg2rgb(uvc_frame_t *in, u8* out);
     uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out);
     uvc_error_t mjpeg2gray(uvc_frame_t *in, u8* out);
 #endif    
 
-    uvc_error_t bgr2rgb(uvc_frame_t *in, u8* out);
-    uvc_error_t gray2rgb(uvc_frame_t *in, u8* out);
+    uvc_error_t bgr2rgba(uvc_frame_t *in, u8* out);
+    uvc_error_t gray2rgba(uvc_frame_t *in, u8* out);
 
     uvc_error_t uyvy2y(uvc_frame_t *in, u8* out);
     uvc_error_t yuyv2y(uvc_frame_t *in, u8* out);
@@ -9783,7 +9783,7 @@ namespace opt
     }
 
 
-    uvc_error_t yuyv2rgb(uvc_frame_t *in, u8* out)
+    uvc_error_t yuyv2rgba(uvc_frame_t *in, u8* out)
     {
         if (!out)
         {

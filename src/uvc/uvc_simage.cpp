@@ -97,9 +97,9 @@ public:
     convert_frame_callback_t* convert_rgb = convert_frame_error;
     convert_frame_callback_t* convert_gray = convert_frame_error;
 
-    u8* frame_data = nullptr;
+    img::Image frame_image;
 
-    img::ViewRGB rgb_view;
+    img::View rgb_view;
     img::ViewGray gray_view;    
 
     int device_id = -1;
@@ -447,28 +447,28 @@ static bool set_frame_formats(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        device.convert_rgb = uvc::par::yuyv2rgb;
-        device.convert_gray = uvc::par::yuyv2y;
+        device.convert_rgb = uvc::opt::yuyv2rgb;
+        device.convert_gray = uvc::opt::yuyv2y;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        device.convert_rgb = uvc::par::uyvy2rgb;
-        device.convert_gray = uvc::par::uyvy2y;
+        device.convert_rgb = uvc::opt::uyvy2rgb;
+        device.convert_gray = uvc::opt::uyvy2y;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
-        device.convert_rgb = uvc::par::mjpeg2rgb;
-        device.convert_gray = uvc::par::mjpeg2gray;
+        device.convert_rgb = uvc::opt::mjpeg2rgba;
+        device.convert_gray = uvc::opt::mjpeg2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_RGB:
-        device.convert_rgb = uvc::par::duplicate_frame;
-        device.convert_gray = uvc::par::rgb2gray;
+        device.convert_rgb = uvc::opt::duplicate_frame;
+        device.convert_gray = uvc::opt::rgb2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        device.convert_rgb = uvc::par::bgr2rgb;
-        device.convert_gray = uvc::par::bgr2gray;
+        device.convert_rgb = uvc::opt::bgr2rgb;
+        device.convert_gray = uvc::opt::bgr2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
-        device.convert_rgb = uvc::par::gray2rgb;
-        device.convert_gray = uvc::par::duplicate_frame;
+        device.convert_rgb = uvc::opt::gray2rgb;
+        device.convert_gray = uvc::opt::duplicate_frame;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
 
@@ -525,10 +525,7 @@ static void close_all_devices()
     {
         stop_device(device);
         disconnect_device(device);
-        if (device.frame_data)
-        {
-            std::free(device.frame_data);
-        }        
+        img::destroy_image(device.frame_image);
     }
     
     g_device_list.is_connected = false;
@@ -554,7 +551,7 @@ static bool grab_and_convert_frame_rgb(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_rgb(in_frame, device.frame_data);
+    res = device.convert_rgb(in_frame, (u8*)device.frame_image.data_);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_rgb");
@@ -576,7 +573,7 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_gray(in_frame, device.frame_data);
+    res = device.convert_gray(in_frame, (u8*)device.frame_image.data_);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_gray");
@@ -621,44 +618,38 @@ namespace simage
             uvc::uvc_free_device_list(g_device_list.device_list, 0);
             uvc::uvc_exit(g_device_list.context);
             destroy_image(camera.frame_image);
-            if (device.frame_data)
-            {
-                std::free(device.frame_data);
-            }  
+            destroy_image(device.frame_image);
             return false;
         };
 
-        camera.device_id = device.device_id;
-        camera.frame_width = device.frame_width;
-        camera.frame_height = device.frame_height;
-        camera.max_fps = device.fps;
+        auto width = device.frame_width;
+        auto height = device.frame_height;
 
-        if (!create_image(camera.frame_image, camera.frame_width, camera.frame_height))
+        camera.device_id = device.device_id;
+        camera.max_fps = device.fps;
+        camera.frame_width = width;
+        camera.frame_height = height;        
+
+        if (!create_image(camera.frame_image, width, height))
         {
             return fail();
         }
 
-        device.frame_data = (u8*)std::malloc(camera.frame_width * camera.frame_height * sizeof(RGBu8));
-        if(!device.frame_data)
+        if (!create_image(device.frame_image, width, height))
         {
             return fail();
-        }        
+        }
 
-        ImageRGB rgb;
-        rgb.width = device.frame_width;
-        rgb.height = device.frame_height;
-        rgb.data_ = (RGBu8*)device.frame_data;
-
-        device.rgb_view = img::make_view(rgb);
+        device.rgb_view = img::make_view(device.frame_image);
 
         ImageGray gray;
-        gray.width = rgb.width;
-        gray.height = rgb.height;
-        gray.data_ = (u8*)rgb.data_;
+        gray.width = width;
+        gray.height = height;
+        gray.data_ = (u8*)device.frame_image.data_;
 
         device.gray_view = img::make_view(gray);
 
-        auto roi = make_range(camera.frame_width, camera.frame_height);       
+        auto roi = make_range(width, height);       
         set_roi(camera, roi);
 
         if (!start_device_single_frame(device))
@@ -710,7 +701,7 @@ namespace simage
 
         auto device_view = sub_view(device.rgb_view, camera.roi);
 
-        map_rgb(device_view, dst);
+        copy(device_view, dst);
 
         return true;
     }
@@ -733,7 +724,7 @@ namespace simage
         auto device_view = sub_view(device.rgb_view, camera.roi);
         auto camera_view = sub_view(camera.frame_image, camera.roi);
 
-        map_rgb(device_view, camera_view);
+        copy(device_view, camera_view);
         grab_cb(camera_view);
 
         return true;
@@ -758,7 +749,7 @@ namespace simage
         {
             if (grab_and_convert_frame_rgb(device))
             {               
-                map_rgb(device_view, camera_view);
+                copy(device_view, camera_view);
                 grab_cb(camera_view);
             }
         }

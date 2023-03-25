@@ -837,26 +837,27 @@ namespace uvc
 
 namespace uvc
 {
-namespace par
+namespace opt
 {
-    uvc_error_t duplicate_frame(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out);
 
-    uvc_error_t yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t yuyv2rgb(uvc_frame_t *in, u8* out);
+    uvc_error_t uyvy2rgb(uvc_frame_t *in, u8* out);
 
 #ifdef LIBUVC_HAS_JPEG
-    uvc_error_t mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t mjpeg2rgb(uvc_frame_t *in, u8* out);
+    uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out);
+    uvc_error_t mjpeg2gray(uvc_frame_t *in, u8* out);
 #endif    
 
-    uvc_error_t bgr2rgb(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t gray2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t bgr2rgb(uvc_frame_t *in, u8* out);
+    uvc_error_t gray2rgb(uvc_frame_t *in, u8* out);
 
-    uvc_error_t uyvy2y(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t yuyv2y(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t uyvy2y(uvc_frame_t *in, u8* out);
+    uvc_error_t yuyv2y(uvc_frame_t *in, u8* out);
 
-    uvc_error_t rgb2gray(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t bgr2gray(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t rgb2gray(uvc_frame_t *in, u8* out);
+    uvc_error_t bgr2gray(uvc_frame_t *in, u8* out);
 
 }}
 
@@ -9754,18 +9755,15 @@ namespace uvc
 
 namespace uvc
 {
-namespace par
-{
-    static uvc_error_t ensure_frame_size(uvc_frame_t *frame, size_t need_bytes)
+namespace opt
+{ 
+    enum class image_format : int
     {
-        if (!frame->data || frame->data_bytes < need_bytes)
-        {
-            return UVC_ERROR_NO_MEM;
-        }            
-            
-        return UVC_SUCCESS;
-    }
-
+        UNKNOWN,
+        RGB8,
+        RGBA8,
+        GRAY8
+    };
 
     uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out)
     {
@@ -9838,76 +9836,17 @@ namespace par
 
 #ifdef LIBUVC_HAS_JPEG
 
-
-    struct jpeg_data {
-        struct jpeg_decompress_struct *cinfo;
-        JSAMPARRAY buffer;
-        int start_scanline;
-        int num_scanlines;
-    };
-
-    void *read_scanlines(void *arg) {
-        struct jpeg_data *data = (struct jpeg_data *)arg;
-        int num_scanlines = jpeg_read_scanlines(data->cinfo, data->buffer, data->num_scanlines);
-        return NULL;
-    }
-
-
-    void do_jpeg()
-    {
-        // Open the input JPEG file and initialize the decompress structure
-        struct jpeg_decompress_struct cinfo;
-        jpeg_create_decompress(&cinfo);
-        FILE *infile = fopen("input.jpg", "rb");
-        jpeg_stdio_src(&cinfo, infile);
-        jpeg_read_header(&cinfo, TRUE);
-        jpeg_start_decompress(&cinfo);
-
-        // Divide the image into multiple blocks
-        int num_blocks = 4;
-        int block_size = cinfo.output_height / num_blocks;
-        pthread_t threads[num_blocks];
-        struct jpeg_data data[num_blocks];
-
-        // Allocate a buffer for the image data
-        JSAMPARRAY buffer;
-        buffer = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * cinfo.output_height);
-        for (int i = 0; i < cinfo.output_height; i++) {
-            buffer[i] = (JSAMPROW)malloc(sizeof(JSAMPLE) * cinfo.output_width * cinfo.output_components);
-        }
-
-        // Read the scanlines for each block in parallel
-        for (int i = 0; i < num_blocks; i++) {
-            data[i].cinfo = &cinfo;
-            data[i].buffer = buffer + i * block_size;
-            data[i].start_scanline = i * block_size;
-            data[i].num_scanlines = block_size;
-            pthread_create(&threads[i], NULL, read_scanlines, &data[i]);
-        }
-
-        // Wait for all threads to finish
-        for (int i = 0; i < num_blocks; i++) {
-            pthread_join(threads[i], NULL);
-        }
-
-        // Clean up and close the input JPEG file
-        jpeg_finish_decompress(&cinfo);
-        jpeg_destroy_decompress(&cinfo);
-        fclose(infile);
-    }
-
-
     class jpeg_info_t
     {
     public:
         struct jpeg_decompress_struct dinfo;
-        struct error_mgr jerr;        
+        struct error_mgr jerr;
 
-        u32 step = 0;
+        u32 out_step = 0;
     };
 
 
-    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, uvc_frame_format out_format)
+    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, auto out_format)
     {
         auto& jerr = jinfo.jerr;
         auto& dinfo = jinfo.dinfo;
@@ -9937,15 +9876,19 @@ namespace par
             insert_huff_tables(&dinfo);
         }
 
-        switch (out_format)
+        switch ((image_format)out_format)
         {
-        case UVC_FRAME_FORMAT_RGB:
+        case image_format::RGB8:
             dinfo.out_color_space = JCS_RGB;
-            jinfo.step = jframe->width * 3;
+            jinfo.out_step = jframe->width * 3;
             break;
-        case UVC_FRAME_FORMAT_GRAY8:
+        case image_format::RGBA8:
+            dinfo.out_color_space = JCS_EXT_RGBA;
+            jinfo.out_step = jframe->width * 4;
+            break;
+        case image_format::GRAY8:
             dinfo.out_color_space = JCS_GRAYSCALE;
-            jinfo.step = jframe->width;
+            jinfo.out_step = jframe->width;
             break;
         default:
             return fail();
@@ -9957,9 +9900,11 @@ namespace par
     }
 
 
-
-    static uvc_error_t mjpeg_convert_block(uvc_frame_t *in, u8* out, uvc_frame_format out_format, size_t row_begin, size_t n_rows)
+    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, auto out_format)
     {
+        // not actually parallel
+
+
         jpeg_info_t jinfo;
         if (!setup_jpeg(jinfo, in, out_format))
         {
@@ -9968,78 +9913,23 @@ namespace par
 
         auto& dinfo = jinfo.dinfo;
 
-        u8* out_array[1] = { 0 };
+        constexpr u32 n_out_rows = 16;
+
+        u8* out_array[n_out_rows] = { 0 };
 
         jpeg_start_decompress(&dinfo);
 
-        auto lines_read = row_begin;
-
+        size_t lines_read = 0;
+        
         while (dinfo.output_scanline < dinfo.output_height)
         {
-            out_array[0] = (u8*)out + lines_read * jinfo.step;
-            
-            lines_read += jpeg_read_scanlines(&dinfo, out_array, 1);
-            dinfo.output_scanline = dinfo.output_height - n_rows + lines_read;
-        }
-
-        jpeg_finish_decompress(&dinfo);
-        jpeg_destroy_decompress(&dinfo);
-
-        return UVC_SUCCESS;
-    }
-
-
-    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
-    {
-        jpeg_info_t jinfo;
-        if (!setup_jpeg(jinfo, in, out_format))
-        {
-            return UVC_ERROR_OTHER;
-        }
-
-        auto& dinfo = jinfo.dinfo;
-
-        u8* out_array[1] = { 0 };
-
-        jpeg_start_decompress(&dinfo);
-
-        size_t row_begin = 0;
-        size_t n_rows = 200; // dinfo.output_height;
-
-        auto lines_read = row_begin;
-
-        while (dinfo.output_scanline < dinfo.output_height)
-        {
-            out_array[0] = (u8*)out + lines_read * jinfo.step;
-            
-            lines_read += jpeg_read_scanlines(&dinfo, out_array, 1);
-            dinfo.output_scanline = dinfo.output_height - n_rows + lines_read;
-        }
-
-
-        /*int num_blocks = 4;
-        int block_size = dinfo.output_height / num_blocks;
-        struct jpeg_data data[num_blocks];
-
-        auto const convert_block = [&](u32 i)
-        {
-            auto scan_start = i * block_size;
-
-            for (u32 r = 0; r < block_size; ++r)
+            for (u32 i = 0; i < n_out_rows; ++i)
             {
-                constexpr int n_scanlines = 1;
-                unsigned char *buffer[n_scanlines] = {(unsigned char *)out + r * scan_start * step};
-                jpeg_read_scanlines(&dinfo, buffer, n_scanlines);
-            }
-        };
-
-        execute({
-            [&](){ convert_block(0); },
-            [&](){ convert_block(1); },
-            [&](){ convert_block(2); },
-            [&](){ convert_block(3); },
-        });*/
-
+                out_array[i] = (u8*)out + (lines_read + i) * jinfo.out_step;
+            }           
+            
+            lines_read += jpeg_read_scanlines(&dinfo, out_array, 1);
+        }
 
         jpeg_finish_decompress(&dinfo);
         jpeg_destroy_decompress(&dinfo);
@@ -10055,7 +9945,18 @@ namespace par
             return UVC_ERROR_NO_MEM;
         }
 
-        return par::mjpeg_convert_block(in, out, UVC_FRAME_FORMAT_RGB, 0, in->height);
+        return opt::mjpeg_convert(in, out, image_format::RGB8);
+    }
+
+
+    uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        return opt::mjpeg_convert(in, out, image_format::RGBA8);
     }
 
 
@@ -10066,7 +9967,7 @@ namespace par
             return UVC_ERROR_NO_MEM;
         }
 
-        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_GRAY8);
+        return opt::mjpeg_convert(in, out, image_format::GRAY8);
     }
 
 #endif 
@@ -10239,3 +10140,4 @@ namespace par
 #endif // LIBUVC_IMPLEMENTATION
 
 #endif // !def(LIBUVC_H)
+

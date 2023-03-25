@@ -103,6 +103,8 @@ object_files += $(stb_simage_o)
 # uvc_simage
 uvc_simage_c := $(uvc)/uvc_simage.cpp
 uvc_simage_c += $(simage_platform_h)
+uvc_simage_c += $(execute_h)
+uvc_simage_c += $(color_space_h)
 uvc_simage_c += $(uvc_h)
 uvc_simage_o := $(build)/uvc_simage.o
 object_files += $(uvc_simage_o)

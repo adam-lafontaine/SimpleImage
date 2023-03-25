@@ -97,7 +97,7 @@ public:
     convert_frame_callback_t* convert_rgb = convert_frame_error;
     convert_frame_callback_t* convert_gray = convert_frame_error;
 
-    uvc::frame* uvc_frame = nullptr;
+    u8* frame_data = nullptr;
 
     img::ViewRGB rgb_view;
     img::ViewGray gray_view;    
@@ -133,16 +133,6 @@ public:
 
 
 static DeviceListUVC g_device_list;
-
-
-static void free_device_frame(DeviceUVC& device)
-{
-    if (device.uvc_frame)
-    {
-        uvc::uvc_free_frame(device.uvc_frame);
-        device.uvc_frame = nullptr;
-    }
-}
 
 
 static void print_uvc_error(uvc::error err, const char* msg)
@@ -535,7 +525,10 @@ static void close_all_devices()
     {
         stop_device(device);
         disconnect_device(device);
-        free_device_frame(device);
+        if (device.frame_data)
+        {
+            std::free(device.frame_data);
+        }        
     }
     
     g_device_list.is_connected = false;
@@ -560,10 +553,8 @@ static bool grab_and_convert_frame_rgb(DeviceUVC& device)
         print_uvc_error(res, "uvc_stream_get_frame");
         return false;
     }
-
-    auto out_data = (u8*)(device.uvc_frame->data);
     
-    res = device.convert_rgb(in_frame, out_data);
+    res = device.convert_rgb(in_frame, device.frame_data);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_rgb");
@@ -584,10 +575,8 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
         print_uvc_error(res, "uvc_stream_get_frame");
         return false;
     }
-
-    auto out_data = (u8*)(device.uvc_frame->data);
     
-    res = device.convert_gray(in_frame, out_data);
+    res = device.convert_gray(in_frame, device.frame_data);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_gray");
@@ -623,9 +612,21 @@ namespace simage
         {
             print_error("No connected devices available");
             return false;
-        }
+        }        
 
         auto& device = *result;
+
+        auto const fail = [&]()
+        {
+            uvc::uvc_free_device_list(g_device_list.device_list, 0);
+            uvc::uvc_exit(g_device_list.context);
+            destroy_image(camera.frame_image);
+            if (device.frame_data)
+            {
+                std::free(device.frame_data);
+            }  
+            return false;
+        };
 
         camera.device_id = device.device_id;
         camera.frame_width = device.frame_width;
@@ -634,29 +635,19 @@ namespace simage
 
         if (!create_image(camera.frame_image, camera.frame_width, camera.frame_height))
         {
-            uvc::uvc_free_device_list(g_device_list.device_list, 0);
-            uvc::uvc_exit(g_device_list.context);
-            return false;
+            return fail();
         }
 
-        auto roi = make_range(camera.frame_width, camera.frame_height);       
-        set_roi(camera, roi);
-
-        free_device_frame(device);
-        size_t frame_max_bytes = device.frame_width * device.frame_height * 4;
-
-        device.uvc_frame = uvc::uvc_allocate_frame(frame_max_bytes);
-        if (!device.uvc_frame)
+        device.frame_data = (u8*)std::malloc(camera.frame_width * camera.frame_height * sizeof(RGBu8));
+        if(!device.frame_data)
         {
-            print_error("Error allocating frame memory");
-            free_device_frame(device);
-            return false;
-        }
+            return fail();
+        }        
 
         ImageRGB rgb;
         rgb.width = device.frame_width;
         rgb.height = device.frame_height;
-        rgb.data_ = (RGBu8*)device.uvc_frame->data;
+        rgb.data_ = (RGBu8*)device.frame_data;
 
         device.rgb_view = img::make_view(rgb);
 
@@ -667,14 +658,17 @@ namespace simage
 
         device.gray_view = img::make_view(gray);
 
+        auto roi = make_range(camera.frame_width, camera.frame_height);       
+        set_roi(camera, roi);
+
         if (!start_device_single_frame(device))
         {
-            return false;
+            return fail();
         }        
 
         if (!set_frame_formats(device))
         {
-            return false;
+            return fail();
         }
         
         camera.is_open = true;

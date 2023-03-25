@@ -97,21 +97,6 @@ namespace uvc
         UVC_FRAME_FORMAT_COUNT,
     };
 
-    /* UVC_COLOR_FORMAT_* have been replaced with UVC_FRAME_FORMAT_*. Please use
-        * UVC_FRAME_FORMAT_* instead of using these. */
-    /*
-    #define UVC_COLOR_FORMAT_UNKNOWN UVC_FRAME_FORMAT_UNKNOWN
-    #define UVC_COLOR_FORMAT_UNCOMPRESSED UVC_FRAME_FORMAT_UNCOMPRESSED
-    #define UVC_COLOR_FORMAT_COMPRESSED UVC_FRAME_FORMAT_COMPRESSED
-    #define UVC_COLOR_FORMAT_YUYV UVC_FRAME_FORMAT_YUYV
-    #define UVC_COLOR_FORMAT_UYVY UVC_FRAME_FORMAT_UYVY
-    #define UVC_COLOR_FORMAT_RGB UVC_FRAME_FORMAT_RGB
-    #define UVC_COLOR_FORMAT_BGR UVC_FRAME_FORMAT_BGR
-    #define UVC_COLOR_FORMAT_MJPEG UVC_FRAME_FORMAT_MJPEG
-    #define UVC_COLOR_FORMAT_GRAY8 UVC_FRAME_FORMAT_GRAY8
-    #define UVC_COLOR_FORMAT_GRAY16 UVC_FRAME_FORMAT_GRAY16
-    #define UVC_COLOR_FORMAT_NV12 UVC_FRAME_FORMAT_NV12
-    */
 
     /** VideoStreaming interface descriptor subtype (A.6) */
     enum uvc_vs_desc_subtype
@@ -852,6 +837,32 @@ namespace uvc
 
 namespace uvc
 {
+namespace par
+{
+    uvc_error_t duplicate_frame(uvc_frame_t *in, uvc_frame_t *out);
+
+    uvc_error_t yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out);
+
+#ifdef LIBUVC_HAS_JPEG
+    uvc_error_t mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out);
+#endif    
+
+    uvc_error_t bgr2rgb(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t gray2rgb(uvc_frame_t *in, uvc_frame_t *out);
+
+    uvc_error_t uyvy2y(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t yuyv2y(uvc_frame_t *in, uvc_frame_t *out);
+
+    uvc_error_t rgb2gray(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t bgr2gray(uvc_frame_t *in, uvc_frame_t *out);
+
+}}
+
+
+namespace uvc
+{
     using device = uvc_device_t;
     using device_handle = uvc_device_handle_t;
     using device_descriptor = uvc_device_descriptor_t;
@@ -863,15 +874,6 @@ namespace uvc
     using format_desc = uvc_format_desc_t;
     using frame_desc = uvc_frame_desc_t;
     using frame_format = uvc_frame_format;
-
-    constexpr auto SUCCESS = UVC_SUCCESS;
-    constexpr auto ERROR_ACCESS = UVC_ERROR_ACCESS;
-    constexpr auto VS_FORMAT_MJPEG = UVC_VS_FORMAT_MJPEG;
-    constexpr auto FRAME_FORMAT_MJPEG = UVC_FRAME_FORMAT_MJPEG;
-    constexpr auto VS_FORMAT_FRAME_BASED = UVC_VS_FORMAT_FRAME_BASED;
-    constexpr auto FRAME_FORMAT_H264 = UVC_FRAME_FORMAT_H264;
-    constexpr auto FRAME_FORMAT_YUYV = UVC_FRAME_FORMAT_YUYV;
-    constexpr auto ERROR_PIPE = UVC_ERROR_PIPE;
 }
 
 
@@ -1596,14 +1598,14 @@ namespace uvc
 #endif /* UTLIST_H */
 }
 
+
+#include "../util/execute.hpp"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <signal.h>
-
-
 #include <chrono>
 
 
@@ -3966,12 +3968,14 @@ namespace uvc
             }
             if (!frame->data)
                 return UVC_ERROR_NO_MEM;
+
             return UVC_SUCCESS;
         }
         else
         {
             if (!frame->data || frame->data_bytes < need_bytes)
                 return UVC_ERROR_NO_MEM;
+
             return UVC_SUCCESS;
         }
     }
@@ -4450,6 +4454,7 @@ namespace uvc
 
 #endif // FRAME_C
 }
+
 
 namespace uvc
 {
@@ -9745,6 +9750,347 @@ namespace uvc
 
 #endif // CTRL_GEN_C
 }
+
+
+namespace uvc
+{
+namespace par
+{
+    static uvc_error_t ensure_frame_size(uvc_frame_t *frame, size_t need_bytes)
+    {
+        if (!frame->data || frame->data_bytes < need_bytes)
+        {
+            return UVC_ERROR_NO_MEM;
+        }            
+            
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto const copy = [&](u32 i)
+        {
+            out[i] = ((u8*)in->data)[i];
+        };
+
+        process_range(0, in->data_bytes, copy);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t yuyv2rgb(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto yuv_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2 * 8;
+            auto rgb = rgb_begin + i * 3 * 8;
+
+            IYUYV2RGB_8(yuv, rgb);
+        };        
+
+        auto n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels / (3 * 8), to_rgb);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uyvy2rgb(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto yuv_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2 * 8;
+            auto rgb = rgb_begin + i * 3 * 8;
+
+            IUYVY2RGB_8(yuv, rgb);
+        };
+
+        auto n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels / (3 * 8), to_rgb);
+
+        return UVC_SUCCESS;
+    }
+
+#ifdef LIBUVC_HAS_JPEG
+
+    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
+    {
+        struct jpeg_decompress_struct dinfo;
+        struct error_mgr jerr;
+        size_t lines_read;
+        dinfo.err = jpeg_std_error(&jerr.super);
+        jerr.super.error_exit = _error_exit;
+
+        auto const fail = [&]()
+        {
+            jpeg_destroy_decompress(&dinfo);
+            return UVC_ERROR_OTHER;
+        };
+
+        if (setjmp(jerr.jmp))
+        {
+            return fail();
+        }
+
+        jpeg_create_decompress(&dinfo);
+        jpeg_mem_src(&dinfo, (unsigned char *)in->data, in->data_bytes);
+        jpeg_read_header(&dinfo, TRUE);
+
+        if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
+        {
+            /* This frame is missing the Huffman tables: fill in the standard ones */
+            insert_huff_tables(&dinfo);
+        }
+
+        unsigned int step = 0;
+
+        switch (out_format)
+        {
+        case UVC_FRAME_FORMAT_RGB:
+            dinfo.out_color_space = JCS_RGB;
+            step = in->width * 3;
+            break;
+        case UVC_FRAME_FORMAT_GRAY8:
+            dinfo.out_color_space = JCS_GRAYSCALE;
+            step = in->width;
+            break;
+        default:
+            return fail();
+        }
+
+        dinfo.dct_method = JDCT_IFAST;
+
+        jpeg_start_decompress(&dinfo);        
+
+        lines_read = 0;
+        while (dinfo.output_scanline < dinfo.output_height)
+        {
+            unsigned char *buffer[1] = {(unsigned char *)out + lines_read * step};
+            int num_scanlines;
+
+            num_scanlines = jpeg_read_scanlines(&dinfo, buffer, 1);
+            lines_read += num_scanlines;
+        }
+
+        jpeg_finish_decompress(&dinfo);
+        jpeg_destroy_decompress(&dinfo);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t mjpeg2rgb(uvc_frame_t* in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_RGB);
+    }
+
+
+    uvc_error_t mjpeg2gray(uvc_frame_t* in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_GRAY8);
+    }
+
+#endif 
+
+
+    uvc_error_t bgr2rgb(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto bgr_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto bgr = bgr_begin + i * 3;
+            auto rgb = bgr_begin + i * 3;
+
+            rgb[0] = bgr[2];
+            rgb[1] = bgr[1];
+            rgb[2] = bgr[0];
+        };
+        
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_rgb);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t gray2rgb(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto gray_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto gray = gray_begin + i;
+            auto rgb = rgb_begin + i * 3;
+
+            rgb[0] = gray[0];
+            rgb[1] = gray[0];
+            rgb[2] = gray[0];
+        };
+        
+        auto const n_pixels = in->width * in-> height;
+
+        process_range(0, n_pixels, to_rgb);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t uyvy2y(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto yuv_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
+
+        auto const to_gray = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2;
+            auto gray = gray_begin + i;
+
+            gray[0] = yuv[1];
+        };
+        
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_gray);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t yuyv2y(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto yuv_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
+
+        auto const to_gray = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2;
+            auto gray = gray_begin + i;
+
+            gray[0] = yuv[0];
+        };
+        
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_gray);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t rgb2gray(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto rgb_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
+
+        auto const to_gray = [&](u32 i)
+        {
+            auto red = rgb_begin + i * 3;
+            auto green = red + 1;
+            auto blue = green + 1;
+            auto gray = gray_begin + i;
+
+            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
+        };
+        
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_gray);
+
+        return UVC_SUCCESS;
+    }
+
+
+    uvc_error_t bgr2gray(uvc_frame_t *in, u8* out)
+    {
+        if (!out)
+        {
+            return UVC_ERROR_NO_MEM;
+        }
+
+        auto bgr_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
+
+        auto const to_gray = [&](u32 i)
+        {
+            auto blue = bgr_begin + i * 3;
+            auto green = blue + 1;
+            auto red = green + 1;
+            auto gray = gray_begin + i;
+
+            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
+        };
+
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_gray);
+
+        return UVC_SUCCESS;
+    }
+}}
 
 #endif // LIBUVC_IMPLEMENTATION
 

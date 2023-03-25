@@ -5,7 +5,7 @@
 constexpr auto APP_TITLE = "Render USB";
 constexpr auto APP_VERSION = "1.0";
 
-static std::vector<std::function<void(img::View const&, img::View const&)>> proc_list =
+static std::vector<std::function<void(img::View const&, img::View const&)>> rgb_proc_list =
 {
 	show_camera,
 	show_blur,
@@ -17,48 +17,63 @@ static std::vector<std::function<void(img::View const&, img::View const&)>> proc
 };
 
 
-static void run_selected_proc(Input const& input, img::CameraUSB const& camera, img::View const& dst)
+static std::vector<std::function<void(img::ViewGray const&, img::View const&)>> gray_proc_list = 
+{
+	show_camera_gray,
+	show_inverted_gray,
+};
+
+
+static void run_selected_rgb_proc(Input const& input, img::CameraUSB const& camera, img::View const& dst)
 {
 	static int proc_id = -1;
 
 	if (input.keyboard.space_key.pressed)
 	{
 		proc_id++;
-
-		if (proc_id >= proc_list.size())
-		{
-			proc_id = 0;
-		}
 	}
 
-	if (proc_id < 0 || proc_id >= proc_list.size())
+	if (proc_id < 0)
 	{
 		return;
 	}
 
-	img::grab_image(camera, [&](img::View const& src) { proc_list[proc_id](src, dst); });
+	if (proc_id < rgb_proc_list.size())
+	{
+		img::grab_rgb(camera, [&](img::View const& src) { rgb_proc_list[proc_id](src, dst); });
+		return;
+	}
+
+	if (proc_id < rgb_proc_list.size() + gray_proc_list.size())
+	{
+		auto id = proc_id - rgb_proc_list.size();
+		img::grab_gray(camera, [&](img::ViewGray const& src) { gray_proc_list[id](src, dst); });
+		return;
+	}	
+
+	proc_id = 0;	
 }
 
 
 static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 {
-	if (camera.frame_roi.width == app_screen.width && camera.frame_roi.height == app_screen.height)
+	if (camera.frame_width == app_screen.width && camera.frame_height == app_screen.height)
 	{
 		return;
 	}	
 
 	// change camera roi if it is larger than the screen
-	auto roi_camera = make_range(camera.frame_roi.width, camera.frame_roi.height);
+	auto roi_camera = make_range(camera.frame_width, camera.frame_height);
 
-	if (camera.frame_roi.width > app_screen.width)
+	if (camera.frame_width > app_screen.width)
 	{
-		roi_camera.x_begin = (camera.frame_roi.width - app_screen.width) / 2;
+		roi_camera.x_begin = (camera.frame_width - app_screen.width) / 2;
 		roi_camera.x_end = roi_camera.x_begin + app_screen.width;
 	}
 
-	if (camera.frame_roi.height > app_screen.height)
+	if (camera.frame_height > app_screen.height)
 	{
-		roi_camera.y_begin = (camera.frame_roi.height - app_screen.height) / 2;
+		roi_camera.y_begin = (camera.frame_height - app_screen.height) / 2;
 		roi_camera.y_end = roi_camera.y_begin + app_screen.height;
 	}
 
@@ -68,17 +83,17 @@ static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 	u32 x_adj_screen = 0;
 	u32 y_adj_screen = 0;
 	
-	if (camera.frame_roi.width < app_screen.width)
+	if (camera.frame_width < app_screen.width)
 	{
-		x_adj_screen = (app_screen.width - camera.frame_roi.width) / 2;
+		x_adj_screen = (app_screen.width - camera.frame_width) / 2;
 	}
 	
-	if (camera.frame_roi.height < app_screen.height)
+	if (camera.frame_height < app_screen.height)
 	{
-		y_adj_screen = (app_screen.height - camera.frame_roi.height) / 2;
+		y_adj_screen = (app_screen.height - camera.frame_height) / 2;
 	}
 	
-	auto roi_screen = make_range(camera.frame_roi.width, camera.frame_roi.height);
+	auto roi_screen = make_range(camera.frame_width, camera.frame_height);
 
 	roi_screen.x_begin += x_adj_screen;
 	roi_screen.x_end += x_adj_screen;
@@ -100,8 +115,8 @@ int main()
 	app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
-	window_settings.screen_width = camera.image_width;
-	window_settings.screen_height = camera.image_height;
+	window_settings.screen_width = camera.frame_width;
+	window_settings.screen_height = camera.frame_height;
 
 	app::AppState app_state;
 
@@ -122,7 +137,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	render_run(app_state, [&](auto const& input) { run_selected_proc(input, camera, out_view); });
+	render_run(app_state, [&](auto const& input) { run_selected_rgb_proc(input, camera, out_view); });
 
 	img::close_camera(camera);
 	close_camera_procs();

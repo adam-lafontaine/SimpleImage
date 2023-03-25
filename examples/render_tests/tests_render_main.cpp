@@ -17,10 +17,13 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	copy_image_test,
 	resize_image_test,
 	histogram_image_test,
-	camera_test,
-	camera_callback_test,
+	camera_rgb_test,
+	camera_rgb_callback_test,
 	camera_histogram_test,
-	camera_continuous_test,
+	camera_rgb_continuous_test,
+	camera_gray_test,
+	camera_gray_callback_test,
+	camera_gray_continuous_test,
 };
 
 
@@ -39,6 +42,7 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 	{
 		test_id = 0;
 	}
+
 
 	tests[test_id](app_state.screen_pixels);
 }

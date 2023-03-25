@@ -62,7 +62,7 @@ namespace simage
 
 	static bool verify(CameraUSB const& camera)
 	{
-		return camera.image_width && camera.image_height && camera.max_fps && camera.device_id >= 0;
+		return camera.frame_width && camera.frame_height && camera.max_fps && camera.device_id >= 0;
 	}
 
 
@@ -70,15 +70,20 @@ namespace simage
 	static bool verify(CameraUSB const& camera, MatrixView<T> const& view)
 	{
 		return verify(camera) && verify(view) &&
-			camera.image_width == view.width &&
-			camera.image_height == view.height;
+			camera.frame_width == view.width &&
+			camera.frame_height == view.height;
 	}
 }
 
 #endif
 
 
+typedef uvc::uvc_error_t(convert_frame_callback_t)(uvc::frame* in, u8* out);
 
+static uvc::uvc_error_t convert_frame_error(uvc::frame* in, u8* out)
+{
+    return uvc::UVC_ERROR_NOT_SUPPORTED;
+}
 
 
 class DeviceUVC
@@ -89,8 +94,13 @@ public:
     uvc::stream_ctrl* ctrl = nullptr;
     uvc::stream_handle* h_stream = nullptr;
 
-    uvc::frame* rgb_frame = nullptr;
+    convert_frame_callback_t* convert_rgb = convert_frame_error;
+    convert_frame_callback_t* convert_gray = convert_frame_error;
+
+    u8* frame_data = nullptr;
+
     img::ViewRGB rgb_view;
+    img::ViewGray gray_view;    
 
     int device_id = -1;
 
@@ -123,16 +133,6 @@ public:
 
 
 static DeviceListUVC g_device_list;
-
-
-static void free_device_frame(DeviceUVC& device)
-{
-    if (device.rgb_frame)
-    {
-        uvc::uvc_free_frame(device.rgb_frame);
-        device.rgb_frame = nullptr;
-    }
-}
 
 
 static void print_uvc_error(uvc::error err, const char* msg)
@@ -266,10 +266,10 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
     device.ctrl = ctrl;
 
     auto res = uvc::uvc_open(device.p_device, &device.h_device);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_open");
-        if (res == uvc::ERROR_ACCESS)
+        if (res == uvc::UVC_ERROR_ACCESS)
         {
             print_device_permissions_msg();
         }
@@ -286,14 +286,14 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
 
     switch (format_desc->bDescriptorSubtype) 
     {
-    case uvc::VS_FORMAT_MJPEG:
-        frame_format = uvc::FRAME_FORMAT_MJPEG;
+    case uvc::UVC_VS_FORMAT_MJPEG:
+        frame_format = uvc::UVC_FRAME_FORMAT_MJPEG;        
         break;
-    case uvc::VS_FORMAT_FRAME_BASED:
-        frame_format = uvc::FRAME_FORMAT_H264;
+    case uvc::UVC_VS_FORMAT_FRAME_BASED:
+        frame_format = uvc::UVC_FRAME_FORMAT_H264;
         break;
     default:
-        frame_format = uvc::FRAME_FORMAT_YUYV;
+        frame_format = uvc::UVC_FRAME_FORMAT_YUYV;
         break;
     }
 
@@ -317,7 +317,7 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
         width, height, fps /* width, height, fps */
     );
 
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_get_stream_ctrl_format_size");
         disconnect_device(device);
@@ -337,7 +337,7 @@ static bool enumerate_devices(DeviceListUVC& list)
     uvc::device_descriptor* desc;
 
     auto res = uvc::uvc_init(&list.context, NULL);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_init");
         uvc::uvc_exit(list.context);
@@ -345,7 +345,7 @@ static bool enumerate_devices(DeviceListUVC& list)
     }
 
     res = uvc::uvc_get_device_list(list.context, &list.device_list);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_get_device_list");
         uvc::uvc_exit(list.context);
@@ -365,7 +365,7 @@ static bool enumerate_devices(DeviceListUVC& list)
         device.p_device = list.device_list[i];
 
         res = uvc::uvc_get_device_descriptor(device.p_device, &desc);
-        if (res != uvc::SUCCESS)
+        if (res != uvc::UVC_SUCCESS)
         {
             print_uvc_error(res, "uvc_get_device_descriptor");
             continue;
@@ -412,6 +412,78 @@ static void stop_device(DeviceUVC& device)
 }
 
 
+static void enable_exposure_mode(DeviceUVC const& device)
+{
+    auto res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_AUTO);
+    if (res == uvc::UVC_SUCCESS)
+    {
+        return;
+    }
+
+    print_uvc_error(res, "uvc_set_ae_mode... auto");
+
+    if (res == uvc::UVC_ERROR_PIPE)
+    {
+        res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_APERTURE);
+        if (res != uvc::UVC_SUCCESS)
+        {
+            print_uvc_error(res, "uvc_set_ae_mode... aperture");
+        }
+    }
+}
+
+
+static bool set_frame_formats(DeviceUVC& device)
+{
+    uvc::frame* frame;
+
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &frame, 0);
+    if (res != uvc::UVC_SUCCESS)
+    {
+        print_uvc_error(res, "uvc_stream_get_frame");
+        return false;
+    }
+
+    switch(frame->frame_format)
+    {
+    case uvc::UVC_FRAME_FORMAT_YUYV:
+        device.convert_rgb = uvc::par::yuyv2rgb;
+        device.convert_gray = uvc::par::yuyv2y;
+        break;
+    case uvc::UVC_FRAME_FORMAT_UYVY:
+        device.convert_rgb = uvc::par::uyvy2rgb;
+        device.convert_gray = uvc::par::uyvy2y;
+        break;
+    case uvc::UVC_FRAME_FORMAT_MJPEG:
+        device.convert_rgb = uvc::par::mjpeg2rgb;
+        device.convert_gray = uvc::par::mjpeg2gray;
+        break;
+    case uvc::UVC_FRAME_FORMAT_RGB:
+        device.convert_rgb = uvc::par::duplicate_frame;
+        device.convert_gray = uvc::par::rgb2gray;
+        break;
+    case uvc::UVC_FRAME_FORMAT_BGR:
+        device.convert_rgb = uvc::par::bgr2rgb;
+        device.convert_gray = uvc::par::bgr2gray;
+        break;
+    case uvc::UVC_FRAME_FORMAT_GRAY8:
+        device.convert_rgb = uvc::par::gray2rgb;
+        device.convert_gray = uvc::par::duplicate_frame;
+        break;
+    case uvc::UVC_FRAME_FORMAT_GRAY16:
+
+        break;
+    case uvc::UVC_FRAME_FORMAT_NV12:
+
+        break;
+    default:
+        break;
+    }
+
+    return true;
+}
+
+
 static bool start_device_single_frame(DeviceUVC& device)
 { 
     if (device.is_streaming)
@@ -420,14 +492,14 @@ static bool start_device_single_frame(DeviceUVC& device)
     }
 
     auto res = uvc::uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_open_ctrl");
         return false;
     }
 
     res = uvc::uvc_stream_start(device.h_stream, 0, (void*)12345, 0);
-    if (res != uvc::SUCCESS)
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_start");
         uvc::uvc_stream_close(device.h_stream);
@@ -436,28 +508,9 @@ static bool start_device_single_frame(DeviceUVC& device)
 
     device.is_streaming = true;
 
+    enable_exposure_mode(device);
+
     return true;
-}
-
-
-static void enable_exposure_mode(DeviceUVC const& device)
-{
-    auto res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_AUTO);
-    if (res == uvc::SUCCESS)
-    {
-        return;
-    }
-
-    print_uvc_error(res, "uvc_set_ae_mode... auto");
-
-    if (res == uvc::ERROR_PIPE)
-    {
-        res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_APERTURE);
-        if (res != uvc::SUCCESS)
-        {
-            print_uvc_error(res, "uvc_set_ae_mode... aperture");
-        }
-    }
 }
 
 
@@ -472,7 +525,10 @@ static void close_all_devices()
     {
         stop_device(device);
         disconnect_device(device);
-        free_device_frame(device);
+        if (device.frame_data)
+        {
+            std::free(device.frame_data);
+        }        
     }
     
     g_device_list.is_connected = false;
@@ -487,23 +543,43 @@ static void close_all_devices()
 }
 
 
-static bool grab_and_convert_frame(DeviceUVC& device)
+static bool grab_and_convert_frame_rgb(DeviceUVC& device)
 {
-    uvc::frame* frame;
+    uvc::frame* in_frame;
 
-    auto res = uvc::uvc_stream_get_frame(device.h_stream, &frame, 0);
-    if (res != uvc::SUCCESS)
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame, 0);
+    if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");
         return false;
     }
-
-    auto rgb = device.rgb_frame;
-
-    res = uvc::uvc_any2rgb(frame, rgb);
-    if (res != uvc::SUCCESS)
+    
+    res = device.convert_rgb(in_frame, device.frame_data);
+    if (res != uvc::UVC_SUCCESS)
     {  
-        print_uvc_error(res, "uvc_any2rgb");
+        print_uvc_error(res, "device.convert_rgb");
+        return false;
+    }
+
+    return true;
+}
+
+
+static bool grab_and_convert_frame_gray(DeviceUVC& device)
+{
+    uvc::frame* in_frame;
+
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame, 0);
+    if (res != uvc::UVC_SUCCESS)
+    {
+        print_uvc_error(res, "uvc_stream_get_frame");
+        return false;
+    }
+    
+    res = device.convert_gray(in_frame, device.frame_data);
+    if (res != uvc::UVC_SUCCESS)
+    {  
+        print_uvc_error(res, "device.convert_gray");
         return false;
     }
 
@@ -536,51 +612,66 @@ namespace simage
         {
             print_error("No connected devices available");
             return false;
-        }
+        }        
 
         auto& device = *result;
 
-        camera.device_id = device.device_id;
-        camera.image_width = device.frame_width;
-        camera.image_height = device.frame_height;
-        camera.max_fps = device.fps;
-
-        if (!create_image(camera.latest_frame, camera.image_width, camera.image_height))
+        auto const fail = [&]()
         {
             uvc::uvc_free_device_list(g_device_list.device_list, 0);
             uvc::uvc_exit(g_device_list.context);
+            destroy_image(camera.frame_image);
+            if (device.frame_data)
+            {
+                std::free(device.frame_data);
+            }  
             return false;
-        }
+        };
 
-        camera.frame_roi = img::make_view(camera.latest_frame);
+        camera.device_id = device.device_id;
+        camera.frame_width = device.frame_width;
+        camera.frame_height = device.frame_height;
+        camera.max_fps = device.fps;
 
-        free_device_frame(device);
-
-        size_t frame_bytes = device.frame_width * device.frame_height * 3;
-
-        device.rgb_frame = uvc::uvc_allocate_frame(frame_bytes);
-        if (!device.rgb_frame)
+        if (!create_image(camera.frame_image, camera.frame_width, camera.frame_height))
         {
-            print_error("Error allocating frame memory");
-            free_device_frame(device);
-            return false;
+            return fail();
         }
+
+        device.frame_data = (u8*)std::malloc(camera.frame_width * camera.frame_height * sizeof(RGBu8));
+        if(!device.frame_data)
+        {
+            return fail();
+        }        
 
         ImageRGB rgb;
         rgb.width = device.frame_width;
         rgb.height = device.frame_height;
-        rgb.data_ = (RGBu8*)device.rgb_frame->data;
+        rgb.data_ = (RGBu8*)device.frame_data;
 
         device.rgb_view = img::make_view(rgb);
 
+        ImageGray gray;
+        gray.width = rgb.width;
+        gray.height = rgb.height;
+        gray.data_ = (u8*)rgb.data_;
+
+        device.gray_view = img::make_view(gray);
+
+        auto roi = make_range(camera.frame_width, camera.frame_height);       
+        set_roi(camera, roi);
+
         if (!start_device_single_frame(device))
         {
-            return false;
+            return fail();
+        }        
+
+        if (!set_frame_formats(device))
+        {
+            return fail();
         }
         
         camera.is_open = true;
-
-        enable_exposure_mode(device);
 
         return true;        
     }
@@ -589,35 +680,19 @@ namespace simage
     void close_camera(CameraUSB& camera)
     {
         camera.is_open = false;
-        destroy_image(camera.latest_frame);
+
+        destroy_image(camera.frame_image);
 
         if (camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
 		{
 			return;
 		}
 
-        /*auto& device = g_device_list.devices[camera.device_id];
-        if (device.is_streaming)
-        {
-            stop_device(device);
-        }
-
-        if (device.is_connected)
-        {
-            disconnect_device(device);
-        }
-
-        if (device.rgb_frame)
-        {
-            uvc::uvc_free_frame(device.rgb_frame);
-            device.rgb_frame = nullptr;
-        }*/
-
         close_all_devices();
     }
+    
 
-
-    bool grab_image(CameraUSB const& camera)
+    bool grab_rgb(CameraUSB const& camera, View const& dst)
     {
         assert(verify(camera));
         
@@ -628,38 +703,12 @@ namespace simage
         
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_and_convert_frame(device))
+        if (!grab_and_convert_frame_rgb(device))
         {
             return false;
         }
 
-        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
-        auto device_view = sub_view(device.rgb_view, roi);
-        
-        map_rgb(device_view, camera.frame_roi);
-
-        return true;
-    }
-
-
-    bool grab_image(CameraUSB const& camera, View const& dst)
-    {
-        assert(verify(camera));
-        
-        if (!camera_is_initialized(camera))
-        {
-            return false;
-        }
-        
-        auto& device = g_device_list.devices[camera.device_id];
-
-        if (!grab_and_convert_frame(device))
-        {
-            return false;
-        }
-
-        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
-        auto device_view = sub_view(device.rgb_view, roi);
+        auto device_view = sub_view(device.rgb_view, camera.roi);
 
         map_rgb(device_view, dst);
 
@@ -667,7 +716,7 @@ namespace simage
     }
 
 
-	bool grab_image(CameraUSB const& camera, view_callback const& grab_cb)
+	bool grab_rgb(CameraUSB const& camera, rgb_callback const& grab_cb)
     {
         if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
 		{
@@ -676,22 +725,22 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
 
-        if (!grab_and_convert_frame(device))
+        if (!grab_and_convert_frame_rgb(device))
         {
             return false;
         }
 
-        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
-        auto device_view = sub_view(device.rgb_view, roi);
+        auto device_view = sub_view(device.rgb_view, camera.roi);
+        auto camera_view = sub_view(camera.frame_image, camera.roi);
 
-        map_rgb(device_view, camera.frame_roi);
-        grab_cb(camera.frame_roi);
+        map_rgb(device_view, camera_view);
+        grab_cb(camera_view);
 
         return true;
     }
 
 
-    bool grab_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+    bool grab_rgb_continuous(CameraUSB const& camera, rgb_callback const& grab_cb, bool_f const& grab_condition)
     {
         assert(verify(camera));
         
@@ -702,20 +751,101 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
 
-        auto roi = make_range(camera.frame_roi.width, camera.frame_roi.height);
-        auto device_view = sub_view(device.rgb_view, roi);
-
-        auto frame_view = make_view(camera.latest_frame);
+        auto device_view = sub_view(device.rgb_view, camera.roi);
+        auto camera_view = sub_view(camera.frame_image, camera.roi);
         
         while (grab_condition())
         {
-            if (grab_and_convert_frame(device))
+            if (grab_and_convert_frame_rgb(device))
             {               
-                map_rgb(device_view, camera.frame_roi);
-				grab_cb(camera.frame_roi);
+                map_rgb(device_view, camera_view);
+                grab_cb(camera_view);
             }
         }
 
         return true;
+    }
+
+
+	bool grab_gray(CameraUSB const& camera, ViewGray const& dst)
+    {
+        assert(verify(camera));
+        
+        if (!camera_is_initialized(camera))
+        {
+            return false;
+        }
+        
+        auto& device = g_device_list.devices[camera.device_id];
+
+        if (!grab_and_convert_frame_gray(device))
+        {
+            return false;
+        }
+
+        auto device_view = sub_view(device.gray_view, camera.roi);
+
+        copy(device_view, dst);
+
+        return true;
+    }
+
+
+	bool grab_gray(CameraUSB const& camera, gray_callback const& grab_cb)
+    {
+        if (!camera.is_open || camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
+		{
+			return false;
+		}
+
+        auto& device = g_device_list.devices[camera.device_id];
+
+        if (!grab_and_convert_frame_gray(device))
+        {
+            return false;
+        }
+
+        auto device_view = sub_view(device.gray_view, camera.roi);
+
+        grab_cb(device_view);
+
+        return true;
+    }
+
+
+	bool grab_gray_continuous(CameraUSB const& camera, gray_callback const& grab_cb, bool_f const& grab_condition)
+    {
+        assert(verify(camera));
+        
+        if (!camera_is_initialized(camera))
+        {
+            return false;
+        }
+
+        auto& device = g_device_list.devices[camera.device_id];
+        
+        auto device_view = sub_view(device.gray_view, camera.roi);
+        
+        while (grab_condition())
+        {
+            if (grab_and_convert_frame_gray(device))
+            { 
+				grab_cb(device_view);
+            }
+        }
+
+        return true;
+    }
+
+
+    void set_roi(CameraUSB& camera, Range2Du32 roi)
+    {
+        if (roi.x_end <= camera.frame_image.width &&
+            roi.x_begin < roi.x_end &&
+            roi.y_end <= camera.frame_height &&
+            roi.y_begin < roi.y_end)
+        {
+            camera.roi = roi;
+        }        
     }
 }

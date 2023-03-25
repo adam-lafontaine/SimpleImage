@@ -183,6 +183,8 @@ namespace color_space
 
 namespace gray
 {
+    namespace cs = color_space;
+
     constexpr f32 COEFF_RED = 0.299f;
     constexpr f32 COEFF_GREEN = 0.587f;
     constexpr f32 COEFF_BLUE = 0.114f;
@@ -196,13 +198,13 @@ namespace gray
 
     inline constexpr u8 u8_from_rgb_u8(u8 r, u8 g, u8 b)
     {
-        return (u8)(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
+        return cs::round_to_u8(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
     }
 
 
     inline constexpr u16 u16_from_rgb_u16(u16 r, u16 g, u16 b)
     {
-        return (u16)(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
+        return cs::round_to_u16(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
     }
     
 }

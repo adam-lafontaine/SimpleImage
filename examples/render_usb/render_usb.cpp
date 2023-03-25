@@ -36,8 +36,8 @@ void close_camera_procs()
 
 bool init_camera_procs(img::CameraUSB const& camera)
 {
-	auto width = camera.frame_roi.width;
-	auto height = camera.frame_roi.height;
+	auto width = camera.frame_width;
+	auto height = camera.frame_height;
 
 	auto n_channels = 9;
 
@@ -134,4 +134,20 @@ void show_gradients_blue(img::View const& src, img::View const& dst)
 	img::fill(view_red, 0);
 
 	img::map_rgb(view_rgb, dst);
+}
+
+
+void show_camera_gray(img::ViewGray const& src, img::View const& dst)
+{
+	img::map_gray(src, dst);
+}
+
+
+void show_inverted_gray(img::ViewGray const& src, img::View const& dst)
+{
+	img::map_gray(src, view_gray);
+
+	img::transform_f32(view_gray, view_gray, [](f32 p){ return 1.0f - p; });
+
+	img::map_rgb(view_gray, dst);
 }

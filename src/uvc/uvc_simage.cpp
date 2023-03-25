@@ -68,50 +68,120 @@ namespace convert
     }
 
 
+    class YUYV // UNTESTED
+    {
+    public:
+        u8 y1;
+        u8 u;
+        u8 y2;
+        u8 v;
+    };
+
+
     static uvc::uvc_error_t yuyv_to_rgba(uvc::frame* in, img::Image const& dst)
     {
-        auto const convert_pixel = [](u32 i)
+        auto src = (YUYV*)in->data;
+        auto const convert_2_pixels = [&](u32 i)
         {
+            auto s = src[i];
+            auto& d1 = dst.data_[2 * i].rgba;
+            auto& d2 = dst.data_[2 * i + 1].rgba;
 
+            auto rgb = yuv::u8_to_rgb_u8(s.y1, s.u, s.v);
+            d1.red = rgb.red;
+            d1.green = rgb.green;
+            d1.blue = rgb.blue;
+            d1.alpha = 255;
+
+            rgb = yuv::u8_to_rgb_u8(s.y2, s.u, s.v);
+            d2.red = rgb.red;
+            d2.green = rgb.green;
+            d2.blue = rgb.blue;
+            d2.alpha = 255;
         };
 
-        process_range(0, dst.width * dst.height, convert_pixel);
+        process_range(0, dst.width * dst.height / 2, convert_2_pixels);
 
         return uvc::UVC_SUCCESS;
     }
+
+
+    class YUV // UNTESTED
+    {
+    public:
+        u8 y;
+        u8 uv;
+    };
 
 
     static uvc::uvc_error_t yuyv_to_gray(uvc::frame* in, img::ImageGray const& dst)
     {
-        auto const convert_pixel = [](u32 i)
-        {
+        auto src = (YUV*)in->data;
 
+        auto const convert_pixel = [&](u32 i)
+        {
+            dst.data_[i] = src[i].y;
         };
 
         process_range(0, dst.width * dst.height, convert_pixel);
 
         return uvc::UVC_SUCCESS;
     }
+
+
+    class UYVY // UNTESTED
+    {
+    public:
+        u8 y1;
+        u8 u;
+        u8 v;
+        u8 y2;
+    };
 
 
     static uvc::uvc_error_t uyvy_to_rgba(uvc::frame* in, img::Image const& dst)
     {
-        auto const convert_pixel = [](u32 i)
+        auto src = (UYVY*)in->data;
+        auto const convert_2_pixels = [&](u32 i)
         {
+            auto s = src[i];
+            auto& d1 = dst.data_[2 * i].rgba;
+            auto& d2 = dst.data_[2 * i + 1].rgba;
 
+            auto rgb = yuv::u8_to_rgb_u8(s.y1, s.u, s.v);
+            d1.red = rgb.red;
+            d1.green = rgb.green;
+            d1.blue = rgb.blue;
+            d1.alpha = 255;
+
+            rgb = yuv::u8_to_rgb_u8(s.y2, s.u, s.v);
+            d2.red = rgb.red;
+            d2.green = rgb.green;
+            d2.blue = rgb.blue;
+            d2.alpha = 255;
         };
 
-        process_range(0, dst.width * dst.height, convert_pixel);
+        process_range(0, dst.width * dst.height / 2, convert_2_pixels);
 
         return uvc::UVC_SUCCESS;
     }
 
 
+    class UVY
+    {
+    public:
+        u8 uv;
+        u8 y;
+    };
+
+
     static uvc::uvc_error_t uyvy_to_gray(uvc::frame* in, img::ImageGray const& dst)
     {
-        auto const convert_pixel = [](u32 i)
-        {
+        auto src = (UVY*)in->data;
 
+        auto const convert_pixel = [&](u32 i)
+        {   
+            dst.data_[i] = src[i].y;
         };
 
         process_range(0, dst.width * dst.height, convert_pixel);
@@ -636,12 +706,12 @@ static bool set_frame_formats(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        //device.convert_rgb = convert::yuyv_to_rgba;
-        //device.convert_gray = convert::yuyv_to_gray;
+        device.convert_rgb = convert::yuyv_to_rgba;
+        device.convert_gray = convert::yuyv_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        //device.convert_rgb = convert::uyvy_to_rgba;
-        //device.convert_gray = convert::uyvy_to_gray;
+        device.convert_rgb = convert::uyvy_to_rgba;
+        device.convert_gray = convert::uyvy_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
         device.convert_rgb = convert::mjpeg_to_rgba;

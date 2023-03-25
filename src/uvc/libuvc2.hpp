@@ -839,25 +839,10 @@ namespace uvc
 {
 namespace opt
 {
-    uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out);
-
-    uvc_error_t yuyv2rgba(uvc_frame_t *in, u8* out);
-    uvc_error_t uyvy2rgba(uvc_frame_t *in, u8* out);
-
 #ifdef LIBUVC_HAS_JPEG
-    //uvc_error_t mjpeg2rgb(uvc_frame_t *in, u8* out);
     uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out);
     uvc_error_t mjpeg2gray(uvc_frame_t *in, u8* out);
-#endif    
-
-    uvc_error_t bgr2rgba(uvc_frame_t *in, u8* out);
-    uvc_error_t gray2rgba(uvc_frame_t *in, u8* out);
-
-    uvc_error_t uyvy2y(uvc_frame_t *in, u8* out);
-    uvc_error_t yuyv2y(uvc_frame_t *in, u8* out);
-
-    uvc_error_t rgb2gray(uvc_frame_t *in, u8* out);
-    uvc_error_t bgr2gray(uvc_frame_t *in, u8* out);
+#endif  
 
 }}
 
@@ -1598,9 +1583,6 @@ namespace uvc
 
 #endif /* UTLIST_H */
 }
-
-
-#include "../util/execute.hpp"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -9764,75 +9746,7 @@ namespace opt
         RGBA8,
         GRAY8
     };
-
-    uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto const copy = [&](u32 i)
-        {
-            out[i] = ((u8*)in->data)[i];
-        };
-
-        process_range(0, in->data_bytes, copy);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t yuyv2rgba(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2 * 8;
-            auto rgb = rgb_begin + i * 3 * 8;
-
-            IYUYV2RGB_8(yuv, rgb);
-        };        
-
-        auto n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels / (3 * 8), to_rgb);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t uyvy2rgb(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2 * 8;
-            auto rgb = rgb_begin + i * 3 * 8;
-
-            IUYVY2RGB_8(yuv, rgb);
-        };
-
-        auto n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels / (3 * 8), to_rgb);
-
-        return UVC_SUCCESS;
-    }
+    
 
 #ifdef LIBUVC_HAS_JPEG
 
@@ -9938,17 +9852,6 @@ namespace opt
     }
 
 
-    uvc_error_t mjpeg2rgb(uvc_frame_t* in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        return opt::mjpeg_convert(in, out, image_format::RGB8);
-    }
-
-
     uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out)
     {
         if (!out)
@@ -9972,169 +9875,6 @@ namespace opt
 
 #endif 
 
-
-    uvc_error_t bgr2rgb(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto bgr_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto bgr = bgr_begin + i * 3;
-            auto rgb = bgr_begin + i * 3;
-
-            rgb[0] = bgr[2];
-            rgb[1] = bgr[1];
-            rgb[2] = bgr[0];
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_rgb);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t gray2rgb(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto gray_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto gray = gray_begin + i;
-            auto rgb = rgb_begin + i * 3;
-
-            rgb[0] = gray[0];
-            rgb[1] = gray[0];
-            rgb[2] = gray[0];
-        };
-        
-        auto const n_pixels = in->width * in-> height;
-
-        process_range(0, n_pixels, to_rgb);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t uyvy2y(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2;
-            auto gray = gray_begin + i;
-
-            gray[0] = yuv[1];
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t yuyv2y(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2;
-            auto gray = gray_begin + i;
-
-            gray[0] = yuv[0];
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t rgb2gray(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto rgb_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto red = rgb_begin + i * 3;
-            auto green = red + 1;
-            auto blue = green + 1;
-            auto gray = gray_begin + i;
-
-            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t bgr2gray(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto bgr_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto blue = bgr_begin + i * 3;
-            auto green = blue + 1;
-            auto red = green + 1;
-            auto gray = gray_begin + i;
-
-            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
-        };
-
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
 }}
 
 #endif // LIBUVC_IMPLEMENTATION

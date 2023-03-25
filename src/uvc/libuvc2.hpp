@@ -837,26 +837,12 @@ namespace uvc
 
 namespace uvc
 {
-namespace par
+namespace opt
 {
-    uvc_error_t duplicate_frame(uvc_frame_t *in, uvc_frame_t *out);
-
-    uvc_error_t yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out);
-
 #ifdef LIBUVC_HAS_JPEG
-    uvc_error_t mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out);
-#endif    
-
-    uvc_error_t bgr2rgb(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t gray2rgb(uvc_frame_t *in, uvc_frame_t *out);
-
-    uvc_error_t uyvy2y(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t yuyv2y(uvc_frame_t *in, uvc_frame_t *out);
-
-    uvc_error_t rgb2gray(uvc_frame_t *in, uvc_frame_t *out);
-    uvc_error_t bgr2gray(uvc_frame_t *in, uvc_frame_t *out);
+    uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out);
+    uvc_error_t mjpeg2gray(uvc_frame_t *in, u8* out);
+#endif  
 
 }}
 
@@ -1597,9 +1583,6 @@ namespace uvc
 
 #endif /* UTLIST_H */
 }
-
-
-#include "../util/execute.hpp"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -9754,111 +9737,51 @@ namespace uvc
 
 namespace uvc
 {
-namespace par
-{
-    static uvc_error_t ensure_frame_size(uvc_frame_t *frame, size_t need_bytes)
+namespace opt
+{ 
+    enum class image_format : int
     {
-        if (!frame->data || frame->data_bytes < need_bytes)
-        {
-            return UVC_ERROR_NO_MEM;
-        }            
-            
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto const copy = [&](u32 i)
-        {
-            out[i] = ((u8*)in->data)[i];
-        };
-
-        process_range(0, in->data_bytes, copy);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t yuyv2rgb(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2 * 8;
-            auto rgb = rgb_begin + i * 3 * 8;
-
-            IYUYV2RGB_8(yuv, rgb);
-        };        
-
-        auto n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels / (3 * 8), to_rgb);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t uyvy2rgb(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2 * 8;
-            auto rgb = rgb_begin + i * 3 * 8;
-
-            IUYVY2RGB_8(yuv, rgb);
-        };
-
-        auto n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels / (3 * 8), to_rgb);
-
-        return UVC_SUCCESS;
-    }
+        UNKNOWN,
+        RGB8,
+        RGBA8,
+        GRAY8
+    };
+    
 
 #ifdef LIBUVC_HAS_JPEG
 
-    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
+    class jpeg_info_t
     {
+    public:
         struct jpeg_decompress_struct dinfo;
         struct error_mgr jerr;
-        size_t lines_read;
-        dinfo.err = jpeg_std_error(&jerr.super);
-        jerr.super.error_exit = _error_exit;
+
+        u32 out_step = 0;
+    };
+
+
+    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, auto out_format)
+    {
+        auto& jerr = jinfo.jerr;
+        auto& dinfo = jinfo.dinfo;
 
         auto const fail = [&]()
         {
             jpeg_destroy_decompress(&dinfo);
-            return UVC_ERROR_OTHER;
+            return false;
         };
 
+        jerr.super.error_exit = _error_exit;
         if (setjmp(jerr.jmp))
         {
             return fail();
-        }
+        }       
 
-        jpeg_create_decompress(&dinfo);
-        jpeg_mem_src(&dinfo, (unsigned char *)in->data, in->data_bytes);
+        dinfo.err = jpeg_std_error(&jerr.super);
+
+        jpeg_create_decompress(&dinfo);        
+
+        jpeg_mem_src(&dinfo, (unsigned char *)jframe->data, jframe->data_bytes);
         jpeg_read_header(&dinfo, TRUE);
 
         if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
@@ -9867,34 +9790,59 @@ namespace par
             insert_huff_tables(&dinfo);
         }
 
-        unsigned int step = 0;
-
-        switch (out_format)
+        switch ((image_format)out_format)
         {
-        case UVC_FRAME_FORMAT_RGB:
+        case image_format::RGB8:
             dinfo.out_color_space = JCS_RGB;
-            step = in->width * 3;
+            jinfo.out_step = jframe->width * 3;
             break;
-        case UVC_FRAME_FORMAT_GRAY8:
+        case image_format::RGBA8:
+            dinfo.out_color_space = JCS_EXT_RGBA;
+            jinfo.out_step = jframe->width * 4;
+            break;
+        case image_format::GRAY8:
             dinfo.out_color_space = JCS_GRAYSCALE;
-            step = in->width;
+            jinfo.out_step = jframe->width;
             break;
         default:
             return fail();
         }
 
         dinfo.dct_method = JDCT_IFAST;
+        
+        return true;
+    }
 
-        jpeg_start_decompress(&dinfo);        
 
-        lines_read = 0;
+    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, auto out_format)
+    {
+        // not actually parallel
+
+
+        jpeg_info_t jinfo;
+        if (!setup_jpeg(jinfo, in, out_format))
+        {
+            return UVC_ERROR_OTHER;
+        }
+
+        auto& dinfo = jinfo.dinfo;
+
+        constexpr u32 n_out_rows = 16;
+
+        u8* out_array[n_out_rows] = { 0 };
+
+        jpeg_start_decompress(&dinfo);
+
+        size_t lines_read = 0;
+        
         while (dinfo.output_scanline < dinfo.output_height)
         {
-            unsigned char *buffer[1] = {(unsigned char *)out + lines_read * step};
-            int num_scanlines;
-
-            num_scanlines = jpeg_read_scanlines(&dinfo, buffer, 1);
-            lines_read += num_scanlines;
+            for (u32 i = 0; i < n_out_rows; ++i)
+            {
+                out_array[i] = (u8*)out + (lines_read + i) * jinfo.out_step;
+            }           
+            
+            lines_read += jpeg_read_scanlines(&dinfo, out_array, 1);
         }
 
         jpeg_finish_decompress(&dinfo);
@@ -9904,14 +9852,14 @@ namespace par
     }
 
 
-    uvc_error_t mjpeg2rgb(uvc_frame_t* in, u8* out)
+    uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out)
     {
         if (!out)
         {
             return UVC_ERROR_NO_MEM;
         }
 
-        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_RGB);
+        return opt::mjpeg_convert(in, out, image_format::RGBA8);
     }
 
 
@@ -9922,176 +9870,14 @@ namespace par
             return UVC_ERROR_NO_MEM;
         }
 
-        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_GRAY8);
+        return opt::mjpeg_convert(in, out, image_format::GRAY8);
     }
 
 #endif 
 
-
-    uvc_error_t bgr2rgb(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto bgr_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto bgr = bgr_begin + i * 3;
-            auto rgb = bgr_begin + i * 3;
-
-            rgb[0] = bgr[2];
-            rgb[1] = bgr[1];
-            rgb[2] = bgr[0];
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_rgb);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t gray2rgb(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto gray_begin = (uint8_t *)in->data;
-        auto rgb_begin = out;
-
-        auto const to_rgb = [&](u32 i)
-        {
-            auto gray = gray_begin + i;
-            auto rgb = rgb_begin + i * 3;
-
-            rgb[0] = gray[0];
-            rgb[1] = gray[0];
-            rgb[2] = gray[0];
-        };
-        
-        auto const n_pixels = in->width * in-> height;
-
-        process_range(0, n_pixels, to_rgb);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t uyvy2y(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2;
-            auto gray = gray_begin + i;
-
-            gray[0] = yuv[1];
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t yuyv2y(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto yuv_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto yuv = yuv_begin + i * 2;
-            auto gray = gray_begin + i;
-
-            gray[0] = yuv[0];
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t rgb2gray(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto rgb_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto red = rgb_begin + i * 3;
-            auto green = red + 1;
-            auto blue = green + 1;
-            auto gray = gray_begin + i;
-
-            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
-        };
-        
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
-
-
-    uvc_error_t bgr2gray(uvc_frame_t *in, u8* out)
-    {
-        if (!out)
-        {
-            return UVC_ERROR_NO_MEM;
-        }
-
-        auto bgr_begin = (uint8_t *)in->data;
-        auto gray_begin = out;
-
-        auto const to_gray = [&](u32 i)
-        {
-            auto blue = bgr_begin + i * 3;
-            auto green = blue + 1;
-            auto red = green + 1;
-            auto gray = gray_begin + i;
-
-            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
-        };
-
-        auto const n_pixels = in->width * in->height;
-
-        process_range(0, n_pixels, to_gray);
-
-        return UVC_SUCCESS;
-    }
 }}
 
 #endif // LIBUVC_IMPLEMENTATION
 
 #endif // !def(LIBUVC_H)
+

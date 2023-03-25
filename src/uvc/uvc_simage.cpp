@@ -1,4 +1,6 @@
 #include "../simage/simage_platform.hpp"
+#include "../util/execute.hpp"
+#include "../util/color_space.hpp"
 
 #define LIBUVC_IMPLEMENTATION 1
 #include "../uvc/libuvc2.hpp"
@@ -10,38 +12,8 @@
 #include <cstdio>
 #endif
 
-//using namespace uvc;
-
 namespace img = simage;
 
-/*
-
-libuvc requires RW permissions for opening capturing devices, so you must
-create the following .rules file:
-
-/etc/udev/rules.d/99-uvc.rules
-
-Then, for each webcam add the following line:
-
-SUBSYSTEMS=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="XXXX", ATTRS{idProduct}=="YYYY", MODE="0666"
-
-Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the
-vendor and product ID of your webcams.
-
-*/
-
-constexpr auto DEVICE_PERMISSION_MSG = 
-"libuvc requires RW permissions for opening capturing devices, so you must create the following .rules file:"
-"\n\n"
-"/etc/udev/rules.d/99-uvc.rules"
-"\n\n"
-"Then, for each webcam add the following line:"
-"\n\n"
-"SUBSYSTEMS==\"usb\", ENV{DEVTYPE}==\"usb_device\", ATTRS{idVendor}==\"XXXX\", ATTRS{idProduct}==\"YYYY\", MODE=\"0666\"\n\n"
-"Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the vendor and product ID of your webcams."
-"\n\n"
-"Restart the computer for the changes to take effect."
-;
 
 constexpr u8 EXPOSURE_MODE_AUTO = 2;
 constexpr u8 EXPOSURE_MODE_APERTURE = 8;
@@ -78,12 +50,301 @@ namespace simage
 #endif
 
 
-typedef uvc::uvc_error_t(convert_frame_callback_t)(uvc::frame* in, u8* out);
+typedef uvc::uvc_error_t(convert_rgb_callback_t)(uvc::frame* in, img::Image const& dst);
+typedef uvc::uvc_error_t(convert_gray_callback_t)(uvc::frame* in, img::ImageGray const& dst);
 
-static uvc::uvc_error_t convert_frame_error(uvc::frame* in, u8* out)
+
+namespace convert
 {
-    return uvc::UVC_ERROR_NOT_SUPPORTED;
+    static uvc::uvc_error_t rgb_error(uvc::frame* in, img::Image const& dst)
+    {
+        return uvc::UVC_ERROR_NOT_SUPPORTED;
+    }
+
+
+    static uvc::uvc_error_t gray_error(uvc::frame* in, img::ImageGray const& dst)
+    {
+        return uvc::UVC_ERROR_NOT_SUPPORTED;
+    }
+
+
+    class YUYV // UNTESTED
+    {
+    public:
+        u8 y1;
+        u8 u;
+        u8 y2;
+        u8 v;
+    };
+
+
+    static uvc::uvc_error_t yuyv_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (YUYV*)in->data;
+        auto const convert_2_pixels = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d1 = dst.data_[2 * i].rgba;
+            auto& d2 = dst.data_[2 * i + 1].rgba;
+
+            auto rgb = yuv::u8_to_rgb_u8(s.y1, s.u, s.v);
+            d1.red = rgb.red;
+            d1.green = rgb.green;
+            d1.blue = rgb.blue;
+            d1.alpha = 255;
+
+            rgb = yuv::u8_to_rgb_u8(s.y2, s.u, s.v);
+            d2.red = rgb.red;
+            d2.green = rgb.green;
+            d2.blue = rgb.blue;
+            d2.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height / 2, convert_2_pixels);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    class YUV // UNTESTED
+    {
+    public:
+        u8 y;
+        u8 uv;
+    };
+
+
+    static uvc::uvc_error_t yuyv_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (YUV*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            dst.data_[i] = src[i].y;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    class UYVY // UNTESTED
+    {
+    public:
+        u8 y1;
+        u8 u;
+        u8 v;
+        u8 y2;
+    };
+
+
+    static uvc::uvc_error_t uyvy_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (UYVY*)in->data;
+        auto const convert_2_pixels = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d1 = dst.data_[2 * i].rgba;
+            auto& d2 = dst.data_[2 * i + 1].rgba;
+
+            auto rgb = yuv::u8_to_rgb_u8(s.y1, s.u, s.v);
+            d1.red = rgb.red;
+            d1.green = rgb.green;
+            d1.blue = rgb.blue;
+            d1.alpha = 255;
+
+            rgb = yuv::u8_to_rgb_u8(s.y2, s.u, s.v);
+            d2.red = rgb.red;
+            d2.green = rgb.green;
+            d2.blue = rgb.blue;
+            d2.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height / 2, convert_2_pixels);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    class UVY
+    {
+    public:
+        u8 uv;
+        u8 y;
+    };
+
+
+    static uvc::uvc_error_t uyvy_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (UVY*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {   
+            dst.data_[i] = src[i].y;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t mjpeg_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        return uvc::opt::mjpeg2rgba(in, (u8*)dst.data_);
+    }
+
+
+    static uvc::uvc_error_t mjpeg_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        return uvc::opt::mjpeg2gray(in, (u8*)dst.data_);
+    }
+
+
+    static uvc::uvc_error_t rgb_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (img::RGBu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i].rgba;
+
+            d.red = s.red;
+            d.green = s.green;
+            d.blue = s.blue;
+            d.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t rgb_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (img::RGBu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i];
+
+            d = (u8)(0.299f * s.red + 0.587f * s.green + 0.114f * s.blue + 0.5f);
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t bgr_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (img::BGRu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i].rgba;
+
+            d.red = s.red;
+            d.green = s.green;
+            d.blue = s.blue;
+            d.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t bgr_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (img::BGRu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i];
+
+            d = (u8)(0.299f * s.red + 0.587f * s.green + 0.114f * s.blue + 0.5f);
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t gray_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (u8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i].rgba;
+
+            d.red = s;
+            d.green = s;
+            d.blue = s;
+            d.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t gray_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (u8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            dst.data_[i] = src[i];
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
 }
+
+
+/*
+
+libuvc requires RW permissions for opening capturing devices, so you must
+create the following .rules file:
+
+/etc/udev/rules.d/99-uvc.rules
+
+Then, for each webcam add the following line:
+
+SUBSYSTEMS=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="XXXX", ATTRS{idProduct}=="YYYY", MODE="0666"
+
+Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the
+vendor and product ID of your webcams.
+
+*/
+
+constexpr auto DEVICE_PERMISSION_MSG = 
+"libuvc requires RW permissions for opening capturing devices, so you must create the following .rules file:"
+"\n\n"
+"/etc/udev/rules.d/99-uvc.rules"
+"\n\n"
+"Then, for each webcam add the following line:"
+"\n\n"
+"SUBSYSTEMS==\"usb\", ENV{DEVTYPE}==\"usb_device\", ATTRS{idVendor}==\"XXXX\", ATTRS{idProduct}==\"YYYY\", MODE=\"0666\"\n\n"
+"Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the vendor and product ID of your webcams."
+"\n\n"
+"Restart the computer for the changes to take effect."
+;
 
 
 class DeviceUVC
@@ -94,13 +355,11 @@ public:
     uvc::stream_ctrl* ctrl = nullptr;
     uvc::stream_handle* h_stream = nullptr;
 
-    convert_frame_callback_t* convert_rgb = convert_frame_error;
-    convert_frame_callback_t* convert_gray = convert_frame_error;
+    convert_rgb_callback_t* convert_rgb = convert::rgb_error;
+    convert_gray_callback_t* convert_gray = convert::gray_error;
 
-    u8* frame_data = nullptr;
-
-    img::ViewRGB rgb_view;
-    img::ViewGray gray_view;    
+    img::Image frame_rgb;
+    img::ImageGray frame_gray;
 
     int device_id = -1;
 
@@ -447,28 +706,28 @@ static bool set_frame_formats(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        device.convert_rgb = uvc::par::yuyv2rgb;
-        device.convert_gray = uvc::par::yuyv2y;
+        device.convert_rgb = convert::yuyv_to_rgba;
+        device.convert_gray = convert::yuyv_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        device.convert_rgb = uvc::par::uyvy2rgb;
-        device.convert_gray = uvc::par::uyvy2y;
+        device.convert_rgb = convert::uyvy_to_rgba;
+        device.convert_gray = convert::uyvy_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
-        device.convert_rgb = uvc::par::mjpeg2rgb;
-        device.convert_gray = uvc::par::mjpeg2gray;
+        device.convert_rgb = convert::mjpeg_to_rgba;
+        device.convert_gray = convert::mjpeg_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_RGB:
-        device.convert_rgb = uvc::par::duplicate_frame;
-        device.convert_gray = uvc::par::rgb2gray;
+        device.convert_rgb = convert::rgb_to_rgba;
+        device.convert_gray = convert::rgb_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        device.convert_rgb = uvc::par::bgr2rgb;
-        device.convert_gray = uvc::par::bgr2gray;
+        device.convert_rgb = convert::bgr_to_rgba;;
+        device.convert_gray = convert::bgr_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
-        device.convert_rgb = uvc::par::gray2rgb;
-        device.convert_gray = uvc::par::duplicate_frame;
+        device.convert_rgb = convert::gray_to_rgba;
+        device.convert_gray = convert::gray_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
 
@@ -525,10 +784,7 @@ static void close_all_devices()
     {
         stop_device(device);
         disconnect_device(device);
-        if (device.frame_data)
-        {
-            std::free(device.frame_data);
-        }        
+        img::destroy_image(device.frame_rgb);
     }
     
     g_device_list.is_connected = false;
@@ -554,7 +810,7 @@ static bool grab_and_convert_frame_rgb(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_rgb(in_frame, device.frame_data);
+    res = device.convert_rgb(in_frame, device.frame_rgb);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_rgb");
@@ -576,7 +832,7 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_gray(in_frame, device.frame_data);
+    res = device.convert_gray(in_frame, device.frame_gray);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_gray");
@@ -621,44 +877,33 @@ namespace simage
             uvc::uvc_free_device_list(g_device_list.device_list, 0);
             uvc::uvc_exit(g_device_list.context);
             destroy_image(camera.frame_image);
-            if (device.frame_data)
-            {
-                std::free(device.frame_data);
-            }  
+            destroy_image(device.frame_rgb);
             return false;
         };
 
-        camera.device_id = device.device_id;
-        camera.frame_width = device.frame_width;
-        camera.frame_height = device.frame_height;
-        camera.max_fps = device.fps;
+        auto width = device.frame_width;
+        auto height = device.frame_height;
 
-        if (!create_image(camera.frame_image, camera.frame_width, camera.frame_height))
+        camera.device_id = device.device_id;
+        camera.max_fps = device.fps;
+        camera.frame_width = width;
+        camera.frame_height = height;        
+
+        if (!create_image(camera.frame_image, width, height))
         {
             return fail();
         }
 
-        device.frame_data = (u8*)std::malloc(camera.frame_width * camera.frame_height * sizeof(RGBu8));
-        if(!device.frame_data)
+        if (!create_image(device.frame_rgb, width, height))
         {
             return fail();
-        }        
+        }
 
-        ImageRGB rgb;
-        rgb.width = device.frame_width;
-        rgb.height = device.frame_height;
-        rgb.data_ = (RGBu8*)device.frame_data;
+        device.frame_gray.width = width;
+        device.frame_gray.height = height;
+        device.frame_gray.data_ = (u8*)device.frame_rgb.data_;
 
-        device.rgb_view = img::make_view(rgb);
-
-        ImageGray gray;
-        gray.width = rgb.width;
-        gray.height = rgb.height;
-        gray.data_ = (u8*)rgb.data_;
-
-        device.gray_view = img::make_view(gray);
-
-        auto roi = make_range(camera.frame_width, camera.frame_height);       
+        auto roi = make_range(width, height);       
         set_roi(camera, roi);
 
         if (!start_device_single_frame(device))
@@ -708,9 +953,9 @@ namespace simage
             return false;
         }
 
-        auto device_view = sub_view(device.rgb_view, camera.roi);
+        auto device_view = sub_view(device.frame_rgb, camera.roi);
 
-        map_rgb(device_view, dst);
+        copy(device_view, dst);
 
         return true;
     }
@@ -730,10 +975,10 @@ namespace simage
             return false;
         }
 
-        auto device_view = sub_view(device.rgb_view, camera.roi);
+        auto device_view = sub_view(device.frame_rgb, camera.roi);
         auto camera_view = sub_view(camera.frame_image, camera.roi);
 
-        map_rgb(device_view, camera_view);
+        copy(device_view, camera_view);
         grab_cb(camera_view);
 
         return true;
@@ -751,14 +996,14 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
 
-        auto device_view = sub_view(device.rgb_view, camera.roi);
+        auto device_view = sub_view(device.frame_rgb, camera.roi);
         auto camera_view = sub_view(camera.frame_image, camera.roi);
         
         while (grab_condition())
         {
             if (grab_and_convert_frame_rgb(device))
             {               
-                map_rgb(device_view, camera_view);
+                copy(device_view, camera_view);
                 grab_cb(camera_view);
             }
         }
@@ -783,7 +1028,7 @@ namespace simage
             return false;
         }
 
-        auto device_view = sub_view(device.gray_view, camera.roi);
+        auto device_view = sub_view(device.frame_gray, camera.roi);
 
         copy(device_view, dst);
 
@@ -805,7 +1050,7 @@ namespace simage
             return false;
         }
 
-        auto device_view = sub_view(device.gray_view, camera.roi);
+        auto device_view = sub_view(device.frame_gray, camera.roi);
 
         grab_cb(device_view);
 
@@ -824,7 +1069,7 @@ namespace simage
 
         auto& device = g_device_list.devices[camera.device_id];
         
-        auto device_view = sub_view(device.gray_view, camera.roi);
+        auto device_view = sub_view(device.frame_gray, camera.roi);
         
         while (grab_condition())
         {

@@ -9885,7 +9885,7 @@ namespace par
 
         dinfo.dct_method = JDCT_IFAST;
 
-        jpeg_start_decompress(&dinfo);
+        jpeg_start_decompress(&dinfo);        
 
         lines_read = 0;
         while (dinfo.output_scanline < dinfo.output_height)
@@ -9904,7 +9904,7 @@ namespace par
     }
 
 
-    uvc_error_t mjpeg2rgb(uvc_frame_t *in, u8* out)
+    uvc_error_t mjpeg2rgb(uvc_frame_t* in, u8* out)
     {
         if (!out)
         {
@@ -9915,7 +9915,7 @@ namespace par
     }
 
 
-    uvc_error_t mjpeg2gray(uvc_frame_t *in, u8* out)
+    uvc_error_t mjpeg2gray(uvc_frame_t* in, u8* out)
     {
         if (!out)
         {

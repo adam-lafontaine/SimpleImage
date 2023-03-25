@@ -78,9 +78,9 @@ namespace simage
 #endif
 
 
-typedef uvc::uvc_error_t(convert_frame_callback_t)(uvc::frame *in, uvc::frame *out);
+typedef uvc::uvc_error_t(convert_frame_callback_t)(uvc::frame* in, u8* out);
 
-static uvc::uvc_error_t convert_frame_error(uvc::frame *in, uvc::frame *out)
+static uvc::uvc_error_t convert_frame_error(uvc::frame* in, u8* out)
 {
     return uvc::UVC_ERROR_NOT_SUPPORTED;
 }
@@ -457,28 +457,28 @@ static bool set_frame_formats(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        device.convert_rgb = uvc::xtra::yuyv2rgb;
-        device.convert_gray = uvc::xtra::yuyv2y;
+        device.convert_rgb = uvc::par::yuyv2rgb;
+        device.convert_gray = uvc::par::yuyv2y;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        device.convert_rgb = uvc::xtra::uyvy2rgb;
-        device.convert_gray = uvc::xtra::uyvy2y;
+        device.convert_rgb = uvc::par::uyvy2rgb;
+        device.convert_gray = uvc::par::uyvy2y;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
-        device.convert_rgb = uvc::xtra::mjpeg2rgb;
-        device.convert_gray = uvc::xtra::mjpeg2gray;
+        device.convert_rgb = uvc::par::mjpeg2rgb;
+        device.convert_gray = uvc::par::mjpeg2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_RGB:
-        device.convert_rgb = uvc::xtra::duplicate_frame;
-        device.convert_gray = uvc::xtra::rgb2gray;
+        device.convert_rgb = uvc::par::duplicate_frame;
+        device.convert_gray = uvc::par::rgb2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        device.convert_rgb = uvc::xtra::bgr2rgb;
-        device.convert_gray = uvc::xtra::bgr2gray;
+        device.convert_rgb = uvc::par::bgr2rgb;
+        device.convert_gray = uvc::par::bgr2gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
-        device.convert_rgb = uvc::xtra::gray2rgb;
-        device.convert_gray = uvc::xtra::duplicate_frame;
+        device.convert_rgb = uvc::par::gray2rgb;
+        device.convert_gray = uvc::par::duplicate_frame;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
 
@@ -561,9 +561,9 @@ static bool grab_and_convert_frame_rgb(DeviceUVC& device)
         return false;
     }
 
-    auto out_frame = device.uvc_frame;
+    auto out_data = (u8*)(device.uvc_frame->data);
     
-    res = device.convert_rgb(in_frame, out_frame);
+    res = device.convert_rgb(in_frame, out_data);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_rgb");
@@ -585,9 +585,9 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
         return false;
     }
 
-    auto out_frame = device.uvc_frame;
+    auto out_data = (u8*)(device.uvc_frame->data);
     
-    res = device.convert_gray(in_frame, out_frame);
+    res = device.convert_gray(in_frame, out_data);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_gray");

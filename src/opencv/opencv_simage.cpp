@@ -102,7 +102,7 @@ static bool grab_and_convert_frame_gray(DeviceCV& device)
 		auto src = device.bgr_image.data_[i];
 		auto& dst = device.gray_image.data_[i];
 		auto gray = 0.299f * src.red + 0.587f * src.green + 0.114f * src.blue;
-		dst = (uint8_t)(gray + 0.5f);
+		dst = (u8)(gray + 0.5f);
 	};
 
 	auto n_pixels = device.bgr_image.width * device.bgr_image.height;

@@ -837,7 +837,7 @@ namespace uvc
 
 namespace uvc
 {
-namespace xtra
+namespace par
 {
     uvc_error_t duplicate_frame(uvc_frame_t *in, uvc_frame_t *out);
 
@@ -1598,14 +1598,14 @@ namespace uvc
 #endif /* UTLIST_H */
 }
 
+
+#include "../util/execute.hpp"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <signal.h>
-
-
 #include <chrono>
 
 
@@ -9754,7 +9754,7 @@ namespace uvc
 
 namespace uvc
 {
-namespace xtra
+namespace par
 {
     static uvc_error_t ensure_frame_size(uvc_frame_t *frame, size_t need_bytes)
     {
@@ -9767,110 +9767,78 @@ namespace xtra
     }
 
 
-    uvc_error_t duplicate_frame(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t duplicate_frame(uvc_frame_t *in, u8* out)
     {
-        if (ensure_frame_size(out, in->data_bytes) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
         }
 
-        if (in->metadata && in->metadata_bytes > 0)
+        auto const copy = [&](u32 i)
         {
-            if (!out->metadata_bytes || out->metadata_bytes < in->metadata_bytes)
-            {
-                return UVC_ERROR_NO_MEM;
-            }
+            out[i] = ((u8*)in->data)[i];
+        };
 
-            memcpy(out->metadata, in->metadata, in->metadata_bytes);
-        }        
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = in->frame_format;
-        out->step = in->step;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        memcpy(out->data, in->data, in->data_bytes);
+        process_range(0, in->data_bytes, copy);
 
         return UVC_SUCCESS;
     }
 
 
-    uvc_error_t yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t yuyv2rgb(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_YUYV);
-
-        if (ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *prgb = (uint8_t *)out->data;
-        uint8_t *prgb_end = prgb + out->data_bytes;
-
-        while (prgb < prgb_end)
-        {
-            IYUYV2RGB_8(pyuv, prgb);
-
-            prgb += 3 * 8;
-            pyuv += 2 * 8;
         }
 
-        assert(false);
+        auto yuv_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2 * 8;
+            auto rgb = rgb_begin + i * 3 * 8;
+
+            IYUYV2RGB_8(yuv, rgb);
+        };        
+
+        auto n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels / (3 * 8), to_rgb);
 
         return UVC_SUCCESS;
     }
 
 
-    uvc_error_t uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t uyvy2rgb(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_UYVY);
-
-        if (ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *prgb = (uint8_t *)out->data;
-        uint8_t *prgb_end = prgb + out->data_bytes;
-
-        while (prgb < prgb_end)
-        {
-            IUYVY2RGB_8(pyuv, prgb);
-
-            prgb += 3 * 8;
-            pyuv += 2 * 8;
         }
+
+        auto yuv_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2 * 8;
+            auto rgb = rgb_begin + i * 3 * 8;
+
+            IUYVY2RGB_8(yuv, rgb);
+        };
+
+        auto n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels / (3 * 8), to_rgb);
 
         return UVC_SUCCESS;
     }
 
 #ifdef LIBUVC_HAS_JPEG
 
-    static uvc_error_t mjpeg_convert(uvc_frame_t *in, uvc_frame_t *out)
+    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
     {
         struct jpeg_decompress_struct dinfo;
         struct error_mgr jerr;
@@ -9899,12 +9867,21 @@ namespace xtra
             insert_huff_tables(&dinfo);
         }
 
-        if (out->frame_format == UVC_FRAME_FORMAT_RGB)
+        unsigned int step = 0;
+
+        switch (out_format)
+        {
+        case UVC_FRAME_FORMAT_RGB:
             dinfo.out_color_space = JCS_RGB;
-        else if (out->frame_format == UVC_FRAME_FORMAT_GRAY8)
+            step = in->width * 3;
+            break;
+        case UVC_FRAME_FORMAT_GRAY8:
             dinfo.out_color_space = JCS_GRAYSCALE;
-        else
+            step = in->width;
+            break;
+        default:
             return fail();
+        }
 
         dinfo.dct_method = JDCT_IFAST;
 
@@ -9913,7 +9890,7 @@ namespace xtra
         lines_read = 0;
         while (dinfo.output_scanline < dinfo.output_height)
         {
-            unsigned char *buffer[1] = {(unsigned char *)out->data + lines_read * out->step};
+            unsigned char *buffer[1] = {(unsigned char *)out + lines_read * step};
             int num_scanlines;
 
             num_scanlines = jpeg_read_scanlines(&dinfo, buffer, 1);
@@ -9927,268 +9904,189 @@ namespace xtra
     }
 
 
-    uvc_error_t mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t mjpeg2rgb(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_MJPEG);
-
-        if (ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
+        }
 
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        return mjpeg_convert(in, out);
+        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_RGB);
     }
 
 
-    uvc_error_t mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t mjpeg2gray(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_MJPEG);
-
-        if (ensure_frame_size(out, in->width * in->height) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
+        }
 
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        return mjpeg_convert(in, out);
+        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_GRAY8);
     }
 
 #endif 
 
 
-    uvc_error_t bgr2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t bgr2rgb(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_BGR);
-
-        if (ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pbgr = (uint8_t *)in->data;
-        uint8_t *prgb = (uint8_t *)out->data;
-        uint8_t *prgb_end = prgb + out->data_bytes;
-
-        while (prgb < prgb_end)
-        {
-            prgb[0] = pbgr[2];
-            prgb[1] = pbgr[1];
-            prgb[2] = pbgr[0];
-
-            prgb += 3;
-            pbgr += 3;
         }
+
+        auto bgr_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto bgr = bgr_begin + i * 3;
+            auto rgb = bgr_begin + i * 3;
+
+            rgb[0] = bgr[2];
+            rgb[1] = bgr[1];
+            rgb[2] = bgr[0];
+        };
+        
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_rgb);
 
         return UVC_SUCCESS;
     }
 
 
-    uvc_error_t gray2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t gray2rgb(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_GRAY8);
-
-        if (ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pgray = (uint8_t *)in->data;
-        uint8_t *prgb = (uint8_t *)out->data;
-        uint8_t *prgb_end = prgb + out->data_bytes;
-
-        while (prgb < prgb_end)
-        {
-            prgb[0] = pgray[0];
-            prgb[1] = pgray[0];
-            prgb[2] = pgray[0];
-
-            prgb += 3;
-            pgray += 1;
         }
+
+        auto gray_begin = (uint8_t *)in->data;
+        auto rgb_begin = out;
+
+        auto const to_rgb = [&](u32 i)
+        {
+            auto gray = gray_begin + i;
+            auto rgb = rgb_begin + i * 3;
+
+            rgb[0] = gray[0];
+            rgb[1] = gray[0];
+            rgb[2] = gray[0];
+        };
+        
+        auto const n_pixels = in->width * in-> height;
+
+        process_range(0, n_pixels, to_rgb);
 
         return UVC_SUCCESS;
     }
 
 
-    uvc_error_t uyvy2y(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t uyvy2y(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_UYVY);
-
-        if (ensure_frame_size(out, in->width * in->height) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *py = (uint8_t *)out->data;
-        uint8_t *py_end = py + out->data_bytes;
-
-        while (py < py_end)
-        {
-            py[0] = pyuv[1];
-
-            py += 1;
-            pyuv += 2;
         }
+
+        auto yuv_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
+
+        auto const to_gray = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2;
+            auto gray = gray_begin + i;
+
+            gray[0] = yuv[1];
+        };
+        
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_gray);
 
         return UVC_SUCCESS;
     }
 
 
-    uvc_error_t yuyv2y(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t yuyv2y(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_YUYV);
-
-        if (ensure_frame_size(out, in->width * in->height) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
-        }            
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *py = (uint8_t *)out->data;
-        uint8_t *py_end = py + out->data_bytes;
-
-        while (py < py_end)
-        {
-            py[0] = pyuv[0];
-
-            py += 1;
-            pyuv += 2;
         }
+
+        auto yuv_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
+
+        auto const to_gray = [&](u32 i)
+        {
+            auto yuv = yuv_begin + i * 2;
+            auto gray = gray_begin + i;
+
+            gray[0] = yuv[0];
+        };
+        
+        auto const n_pixels = in->width * in->height;
+
+        process_range(0, n_pixels, to_gray);
 
         return UVC_SUCCESS;
     }
 
 
-    uvc_error_t rgb2gray(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t rgb2gray(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_RGB);
-
-        if (ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
         }
 
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
+        auto rgb_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
 
-        uint8_t *pgray = (uint8_t *)out->data;
-        uint8_t *pgray_end = pgray + out->data_bytes;
-        uint8_t *prgb = (uint8_t *)in->data;
-
-
-        while (pgray < pgray_end)
+        auto const to_gray = [&](u32 i)
         {
-            auto red = prgb[0];
-            auto green = prgb[1];
-            auto blue = prgb[2];
+            auto red = rgb_begin + i * 3;
+            auto green = red + 1;
+            auto blue = green + 1;
+            auto gray = gray_begin + i;
 
-            auto gray = 0.299f * red + 0.587f * green + 0.114f * blue;
+            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
+        };
+        
+        auto const n_pixels = in->width * in->height;
 
-            pgray[0] = (uint8_t)(gray + 0.5f);
-
-            prgb += 3;
-            pgray += 1;
-        }
+        process_range(0, n_pixels, to_gray);
 
         return UVC_SUCCESS;
     }
 
 
-    uvc_error_t bgr2gray(uvc_frame_t *in, uvc_frame_t *out)
+    uvc_error_t bgr2gray(uvc_frame_t *in, u8* out)
     {
-        assert(in->frame_format == UVC_FRAME_FORMAT_BGR);
-
-        if (ensure_frame_size(out, in->width * in->height * 3) < 0)
+        if (!out)
         {
             return UVC_ERROR_NO_MEM;
         }
 
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
+        auto bgr_begin = (uint8_t *)in->data;
+        auto gray_begin = out;
 
-        uint8_t *pgray = (uint8_t *)out->data;
-        uint8_t *pgray_end = pgray + out->data_bytes;
-        uint8_t *pbgr = (uint8_t *)in->data;
-
-        while (pgray < pgray_end)
+        auto const to_gray = [&](u32 i)
         {
-            auto red = pbgr[2];
-            auto green = pbgr[1];
-            auto blue = pbgr[0];
+            auto blue = bgr_begin + i * 3;
+            auto green = blue + 1;
+            auto red = green + 1;
+            auto gray = gray_begin + i;
 
-            auto gray = 0.299f * red + 0.587f * green + 0.114f * blue;
+            gray[0] = (u8)(0.299f * red[0] + 0.587f * green[0] + 0.114f * blue[0] + 0.5f);
+        };
 
-            pgray[0] = (uint8_t)(gray + 0.5f);
+        auto const n_pixels = in->width * in->height;
 
-            pbgr += 3;
-            pgray += 1;
-        }
+        process_range(0, n_pixels, to_gray);
 
         return UVC_SUCCESS;
     }

@@ -9838,12 +9838,138 @@ namespace par
 
 #ifdef LIBUVC_HAS_JPEG
 
+
+    struct jpeg_data {
+        struct jpeg_decompress_struct *cinfo;
+        JSAMPARRAY buffer;
+        int start_scanline;
+        int num_scanlines;
+    };
+
+    void *read_scanlines(void *arg) {
+        struct jpeg_data *data = (struct jpeg_data *)arg;
+        int num_scanlines = jpeg_read_scanlines(data->cinfo, data->buffer, data->num_scanlines);
+        return NULL;
+    }
+
+
+    void do_jpeg()
+    {
+        // Open the input JPEG file and initialize the decompress structure
+        struct jpeg_decompress_struct cinfo;
+        jpeg_create_decompress(&cinfo);
+        FILE *infile = fopen("input.jpg", "rb");
+        jpeg_stdio_src(&cinfo, infile);
+        jpeg_read_header(&cinfo, TRUE);
+        jpeg_start_decompress(&cinfo);
+
+        // Divide the image into multiple blocks
+        int num_blocks = 4;
+        int block_size = cinfo.output_height / num_blocks;
+        pthread_t threads[num_blocks];
+        struct jpeg_data data[num_blocks];
+
+        // Allocate a buffer for the image data
+        JSAMPARRAY buffer;
+        buffer = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * cinfo.output_height);
+        for (int i = 0; i < cinfo.output_height; i++) {
+            buffer[i] = (JSAMPROW)malloc(sizeof(JSAMPLE) * cinfo.output_width * cinfo.output_components);
+        }
+
+        // Read the scanlines for each block in parallel
+        for (int i = 0; i < num_blocks; i++) {
+            data[i].cinfo = &cinfo;
+            data[i].buffer = buffer + i * block_size;
+            data[i].start_scanline = i * block_size;
+            data[i].num_scanlines = block_size;
+            pthread_create(&threads[i], NULL, read_scanlines, &data[i]);
+        }
+
+        // Wait for all threads to finish
+        for (int i = 0; i < num_blocks; i++) {
+            pthread_join(threads[i], NULL);
+        }
+
+        // Clean up and close the input JPEG file
+        jpeg_finish_decompress(&cinfo);
+        jpeg_destroy_decompress(&cinfo);
+        fclose(infile);
+    }
+
+
+    class jpeg_info_t
+    {
+    public:
+        struct jpeg_decompress_struct dinfo;
+        struct error_mgr jerr;        
+
+        u32 step = 0;
+    };
+
+
+    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, uvc_frame_format out_format)
+    {
+        auto& jerr = jinfo.jerr;
+        auto& dinfo = jinfo.dinfo;
+
+        auto const fail = [&]()
+        {
+            jpeg_destroy_decompress(&dinfo);
+            return false;
+        };
+
+        jerr.super.error_exit = _error_exit;
+        if (setjmp(jerr.jmp))
+        {
+            return fail();
+        }       
+
+        dinfo.err = jpeg_std_error(&jerr.super);
+
+        jpeg_create_decompress(&dinfo);        
+
+        jpeg_mem_src(&dinfo, (unsigned char *)jframe->data, jframe->data_bytes);
+        jpeg_read_header(&dinfo, TRUE);
+
+        if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
+        {
+            /* This frame is missing the Huffman tables: fill in the standard ones */
+            insert_huff_tables(&dinfo);
+        }
+
+        switch (out_format)
+        {
+        case UVC_FRAME_FORMAT_RGB:
+            dinfo.out_color_space = JCS_RGB;
+            jinfo.step = jframe->width * 3;
+            break;
+        case UVC_FRAME_FORMAT_GRAY8:
+            dinfo.out_color_space = JCS_GRAYSCALE;
+            jinfo.step = jframe->width;
+            break;
+        default:
+            return fail();
+        }
+
+        dinfo.dct_method = JDCT_IFAST;
+        
+        return true;
+    }
+
+
+
+    /*static uvc_error_t mjpeg_convert_block(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
+    {
+
+    }*/
+
+
     static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
     {
-        struct jpeg_decompress_struct dinfo;
+        /*struct jpeg_decompress_struct dinfo;
         struct error_mgr jerr;
         size_t lines_read;
-        dinfo.err = jpeg_std_error(&jerr.super);
+
         jerr.super.error_exit = _error_exit;
 
         auto const fail = [&]()
@@ -9857,13 +9983,16 @@ namespace par
             return fail();
         }
 
+        dinfo.err = jpeg_std_error(&jerr.super);        
+
         jpeg_create_decompress(&dinfo);
+
         jpeg_mem_src(&dinfo, (unsigned char *)in->data, in->data_bytes);
         jpeg_read_header(&dinfo, TRUE);
 
         if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
         {
-            /* This frame is missing the Huffman tables: fill in the standard ones */
+            // This frame is missing the Huffman tables: fill in the standard ones
             insert_huff_tables(&dinfo);
         }
 
@@ -9883,19 +10012,57 @@ namespace par
             return fail();
         }
 
-        dinfo.dct_method = JDCT_IFAST;
+        dinfo.dct_method = JDCT_IFAST;*/
 
-        jpeg_start_decompress(&dinfo);        
+        jpeg_info_t jinfo;
+        if (!setup_jpeg(jinfo, in, out_format))
+        {
+            return UVC_ERROR_OTHER;
+        }
 
-        lines_read = 0;
+        auto& dinfo = jinfo.dinfo;
+
+        u8* out_array[1] = { 0 };
+
+        jpeg_start_decompress(&dinfo);
+
+        size_t row_begin = 0;
+        size_t n_rows = dinfo.output_height;
+
+        auto lines_read = row_begin;
+
         while (dinfo.output_scanline < dinfo.output_height)
         {
-            unsigned char *buffer[1] = {(unsigned char *)out + lines_read * step};
-            int num_scanlines;
-
-            num_scanlines = jpeg_read_scanlines(&dinfo, buffer, 1);
-            lines_read += num_scanlines;
+            out_array[0] = (u8*)out + lines_read * jinfo.step;
+            
+            lines_read += jpeg_read_scanlines(&dinfo, out_array, 1);
+            dinfo.output_scanline = dinfo.output_height - n_rows + lines_read;
         }
+
+
+        /*int num_blocks = 4;
+        int block_size = dinfo.output_height / num_blocks;
+        struct jpeg_data data[num_blocks];
+
+        auto const convert_block = [&](u32 i)
+        {
+            auto scan_start = i * block_size;
+
+            for (u32 r = 0; r < block_size; ++r)
+            {
+                constexpr int n_scanlines = 1;
+                unsigned char *buffer[n_scanlines] = {(unsigned char *)out + r * scan_start * step};
+                jpeg_read_scanlines(&dinfo, buffer, n_scanlines);
+            }
+        };
+
+        execute({
+            [&](){ convert_block(0); },
+            [&](){ convert_block(1); },
+            [&](){ convert_block(2); },
+            [&](){ convert_block(3); },
+        });*/
+
 
         jpeg_finish_decompress(&dinfo);
         jpeg_destroy_decompress(&dinfo);

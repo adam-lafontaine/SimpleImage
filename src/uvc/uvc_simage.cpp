@@ -54,83 +54,197 @@ typedef uvc::uvc_error_t(convert_rgb_callback_t)(uvc::frame* in, img::Image cons
 typedef uvc::uvc_error_t(convert_gray_callback_t)(uvc::frame* in, img::ImageGray const& dst);
 
 
-static uvc::uvc_error_t convert_rgb_error(uvc::frame* in, img::Image const& dst)
+namespace convert
 {
-    return uvc::UVC_ERROR_NOT_SUPPORTED;
-}
-
-
-static uvc::uvc_error_t convert_gray_error(uvc::frame* in, img::ImageGray const& dst)
-{
-    return uvc::UVC_ERROR_NOT_SUPPORTED;
-}
-
-
-static uvc::uvc_error_t yuyv_to_rgba(uvc::frame* in, img::Image const& dst)
-{
-    auto const convert_pixel = [](u32 i)
+    static uvc::uvc_error_t rgb_error(uvc::frame* in, img::Image const& dst)
     {
-
-    };
-
-    process_range(0, dst.width * dst.height, convert_pixel);
-
-    return uvc::UVC_SUCCESS;
-}
+        return uvc::UVC_ERROR_NOT_SUPPORTED;
+    }
 
 
-static uvc::uvc_error_t yuyv_to_gray(uvc::frame* in, img::ImageGray const& dst)
-{
-    auto const convert_pixel = [](u32 i)
+    static uvc::uvc_error_t gray_error(uvc::frame* in, img::ImageGray const& dst)
     {
-
-    };
-
-    process_range(0, dst.width * dst.height, convert_pixel);
-
-    return uvc::UVC_SUCCESS;
-}
+        return uvc::UVC_ERROR_NOT_SUPPORTED;
+    }
 
 
-static uvc::uvc_error_t uyvy_to_rgba(uvc::frame* in, img::Image const& dst)
-{
-    auto const convert_pixel = [](u32 i)
+    static uvc::uvc_error_t yuyv_to_rgba(uvc::frame* in, img::Image const& dst)
     {
+        auto const convert_pixel = [](u32 i)
+        {
 
-    };
+        };
 
-    process_range(0, dst.width * dst.height, convert_pixel);
+        process_range(0, dst.width * dst.height, convert_pixel);
 
-    return uvc::UVC_SUCCESS;
-}
+        return uvc::UVC_SUCCESS;
+    }
 
 
-static uvc::uvc_error_t uyvy_to_gray(uvc::frame* in, img::ImageGray const& dst)
-{
-    auto const convert_pixel = [](u32 i)
+    static uvc::uvc_error_t yuyv_to_gray(uvc::frame* in, img::ImageGray const& dst)
     {
+        auto const convert_pixel = [](u32 i)
+        {
 
-    };
+        };
 
-    process_range(0, dst.width * dst.height, convert_pixel);
+        process_range(0, dst.width * dst.height, convert_pixel);
 
-    return uvc::UVC_SUCCESS;
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t uyvy_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto const convert_pixel = [](u32 i)
+        {
+
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t uyvy_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto const convert_pixel = [](u32 i)
+        {
+
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t mjpeg_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        return uvc::opt::mjpeg2rgba(in, (u8*)dst.data_);
+    }
+
+
+    static uvc::uvc_error_t mjpeg_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        return uvc::opt::mjpeg2gray(in, (u8*)dst.data_);
+    }
+
+
+    static uvc::uvc_error_t rgb_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (img::RGBu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i].rgba;
+
+            d.red = s.red;
+            d.green = s.green;
+            d.blue = s.blue;
+            d.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t rgb_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (img::RGBu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i];
+
+            d = (u8)(0.299f * s.red + 0.587f * s.green + 0.114f * s.blue + 0.5f);
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t bgr_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (img::BGRu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i].rgba;
+
+            d.red = s.red;
+            d.green = s.green;
+            d.blue = s.blue;
+            d.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t bgr_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (img::BGRu8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i];
+
+            d = (u8)(0.299f * s.red + 0.587f * s.green + 0.114f * s.blue + 0.5f);
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t gray_to_rgba(uvc::frame* in, img::Image const& dst)
+    {
+        auto src = (u8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            auto s = src[i];
+            auto& d = dst.data_[i].rgba;
+
+            d.red = s;
+            d.green = s;
+            d.blue = s;
+            d.alpha = 255;
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
+
+
+    static uvc::uvc_error_t gray_to_gray(uvc::frame* in, img::ImageGray const& dst)
+    {
+        auto src = (u8*)in->data;
+
+        auto const convert_pixel = [&](u32 i)
+        {
+            dst.data_[i] = src[i];
+        };
+
+        process_range(0, dst.width * dst.height, convert_pixel);
+
+        return uvc::UVC_SUCCESS;
+    }
 }
-
-
-static uvc::uvc_error_t mjpeg_to_rgba(uvc::frame* in, img::Image const& dst)
-{
-    return uvc::opt::mjpeg2rgba(in, (u8*)dst.data_);
-}
-
-
-static uvc::uvc_error_t mjpeg_to_gray(uvc::frame* in, img::ImageGray const& dst)
-{
-    return uvc::opt::mjpeg2gray(in, (u8*)dst.data_);
-}
-
-
-
 
 
 /*
@@ -163,11 +277,6 @@ constexpr auto DEVICE_PERMISSION_MSG =
 ;
 
 
-
-
-
-
-
 class DeviceUVC
 {
 public:
@@ -176,8 +285,8 @@ public:
     uvc::stream_ctrl* ctrl = nullptr;
     uvc::stream_handle* h_stream = nullptr;
 
-    convert_rgb_callback_t* convert_rgb = convert_rgb_error;
-    convert_gray_callback_t* convert_gray = convert_gray_error;
+    convert_rgb_callback_t* convert_rgb = convert::rgb_error;
+    convert_gray_callback_t* convert_gray = convert::gray_error;
 
     img::Image frame_rgb;
     img::ImageGray frame_gray;
@@ -527,28 +636,28 @@ static bool set_frame_formats(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
-        //device.convert_rgb = yuyv_to_rgba;
-        //device.convert_gray = yuyv_to_gray;
+        //device.convert_rgb = convert::yuyv_to_rgba;
+        //device.convert_gray = convert::yuyv_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
-        //device.convert_rgb = uyvy_to_rgba;
-        //device.convert_gray = uyvy_to_gray;
+        //device.convert_rgb = convert::uyvy_to_rgba;
+        //device.convert_gray = convert::uyvy_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
-        device.convert_rgb = mjpeg_to_rgba;
-        device.convert_gray = mjpeg_to_gray;
+        device.convert_rgb = convert::mjpeg_to_rgba;
+        device.convert_gray = convert::mjpeg_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_RGB:
-        //device.convert_rgb = uvc::opt::duplicate_frame;
-        //device.convert_gray = uvc::opt::rgb2gray;
+        device.convert_rgb = convert::rgb_to_rgba;
+        device.convert_gray = convert::rgb_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        //device.convert_rgb = uvc::opt::bgr2rgb;
-        //device.convert_gray = uvc::opt::bgr2gray;
+        device.convert_rgb = convert::bgr_to_rgba;;
+        device.convert_gray = convert::bgr_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
-        //device.convert_rgb = uvc::opt::gray2rgb;
-        //device.convert_gray = uvc::opt::duplicate_frame;
+        device.convert_rgb = convert::gray_to_rgba;
+        device.convert_gray = convert::gray_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
 

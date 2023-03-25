@@ -9958,62 +9958,39 @@ namespace par
 
 
 
-    /*static uvc_error_t mjpeg_convert_block(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
+    static uvc_error_t mjpeg_convert_block(uvc_frame_t *in, u8* out, uvc_frame_format out_format, size_t row_begin, size_t n_rows)
     {
+        jpeg_info_t jinfo;
+        if (!setup_jpeg(jinfo, in, out_format))
+        {
+            return UVC_ERROR_OTHER;
+        }
 
-    }*/
+        auto& dinfo = jinfo.dinfo;
+
+        u8* out_array[1] = { 0 };
+
+        jpeg_start_decompress(&dinfo);
+
+        auto lines_read = row_begin;
+
+        while (dinfo.output_scanline < dinfo.output_height)
+        {
+            out_array[0] = (u8*)out + lines_read * jinfo.step;
+            
+            lines_read += jpeg_read_scanlines(&dinfo, out_array, 1);
+            dinfo.output_scanline = dinfo.output_height - n_rows + lines_read;
+        }
+
+        jpeg_finish_decompress(&dinfo);
+        jpeg_destroy_decompress(&dinfo);
+
+        return UVC_SUCCESS;
+    }
 
 
     static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, uvc_frame_format out_format)
     {
-        /*struct jpeg_decompress_struct dinfo;
-        struct error_mgr jerr;
-        size_t lines_read;
-
-        jerr.super.error_exit = _error_exit;
-
-        auto const fail = [&]()
-        {
-            jpeg_destroy_decompress(&dinfo);
-            return UVC_ERROR_OTHER;
-        };
-
-        if (setjmp(jerr.jmp))
-        {
-            return fail();
-        }
-
-        dinfo.err = jpeg_std_error(&jerr.super);        
-
-        jpeg_create_decompress(&dinfo);
-
-        jpeg_mem_src(&dinfo, (unsigned char *)in->data, in->data_bytes);
-        jpeg_read_header(&dinfo, TRUE);
-
-        if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
-        {
-            // This frame is missing the Huffman tables: fill in the standard ones
-            insert_huff_tables(&dinfo);
-        }
-
-        unsigned int step = 0;
-
-        switch (out_format)
-        {
-        case UVC_FRAME_FORMAT_RGB:
-            dinfo.out_color_space = JCS_RGB;
-            step = in->width * 3;
-            break;
-        case UVC_FRAME_FORMAT_GRAY8:
-            dinfo.out_color_space = JCS_GRAYSCALE;
-            step = in->width;
-            break;
-        default:
-            return fail();
-        }
-
-        dinfo.dct_method = JDCT_IFAST;*/
-
         jpeg_info_t jinfo;
         if (!setup_jpeg(jinfo, in, out_format))
         {
@@ -10027,7 +10004,7 @@ namespace par
         jpeg_start_decompress(&dinfo);
 
         size_t row_begin = 0;
-        size_t n_rows = dinfo.output_height;
+        size_t n_rows = 200; // dinfo.output_height;
 
         auto lines_read = row_begin;
 
@@ -10078,7 +10055,7 @@ namespace par
             return UVC_ERROR_NO_MEM;
         }
 
-        return par::mjpeg_convert(in, out, UVC_FRAME_FORMAT_RGB);
+        return par::mjpeg_convert_block(in, out, UVC_FRAME_FORMAT_RGB, 0, in->height);
     }
 
 

@@ -395,6 +395,25 @@ namespace simage
 }
 
 
+/* row begin */
+
+namespace simage
+{
+	template <typename T>
+	inline T* row_begin(Matrix2D<T> const& image, u32 y)
+	{
+		return image.data_ + (u64)(y * image.width);
+	}
+
+
+	template <typename T>
+	inline T* row_begin(MatrixView<T> const& view, u32 y)
+	{
+		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
+	}
+}
+
+
 /* histogram */
 
 namespace simage
@@ -407,36 +426,68 @@ namespace hist
 	class HistRGBf32
 	{
 	public:
-		f32 R[MAX_HIST_BINS];
-		f32 G[MAX_HIST_BINS];
-		f32 B[MAX_HIST_BINS];
+		union
+		{
+			struct
+			{
+				f32 R[MAX_HIST_BINS];
+				f32 G[MAX_HIST_BINS];
+				f32 B[MAX_HIST_BINS];
+			};
+
+			f32 channels[3][MAX_HIST_BINS];	
+		};
 	};
 
 
 	class HistHSVf32
 	{
 	public:
-		f32 H[MAX_HIST_BINS];
-		f32 S[MAX_HIST_BINS];
-		f32 V[MAX_HIST_BINS];
+		union
+		{
+			struct
+			{
+				f32 H[MAX_HIST_BINS];
+				f32 S[MAX_HIST_BINS];
+				f32 V[MAX_HIST_BINS];
+			};
+
+			f32 channels[3][MAX_HIST_BINS];	
+		};
 	};
 
 
 	class HistLCHf32
 	{
 	public:
-		f32 L[MAX_HIST_BINS];
-		f32 C[MAX_HIST_BINS];
-		f32 H[MAX_HIST_BINS];
+		union
+		{
+			struct
+			{
+				f32 L[MAX_HIST_BINS];
+				f32 C[MAX_HIST_BINS];
+				f32 H[MAX_HIST_BINS];
+			};
+
+			f32 channels[3][MAX_HIST_BINS];	
+		};
 	};
 
 
 	class HistYUVf32
 	{
 	public:
-		f32 Y[MAX_HIST_BINS];
-		f32 U[MAX_HIST_BINS];
-		f32 V[MAX_HIST_BINS];
+		union
+		{
+			struct
+			{
+				f32 Y[MAX_HIST_BINS];
+				f32 U[MAX_HIST_BINS];
+				f32 V[MAX_HIST_BINS];
+			};
+
+			f32 channels[3][MAX_HIST_BINS];	
+		};
 	};
 
 
@@ -483,25 +534,6 @@ namespace hist
 	void make_histograms(ViewYUV const& src, HistLCHf32& dst, u32 n_bins);
 
 }
-}
-
-
-/* row begin */
-
-namespace simage
-{
-	template <typename T>
-	inline T* row_begin(Matrix2D<T> const& image, u32 y)
-	{
-		return image.data_ + (u64)(y * image.width);
-	}
-
-
-	template <typename T>
-	inline T* row_begin(MatrixView<T> const& view, u32 y)
-	{
-		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
-	}
 }
 
 

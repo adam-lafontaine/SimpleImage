@@ -871,7 +871,7 @@ namespace hist
 
 	static void for_each_rgb(View const& src, std::function<void(u8, u8, u8)> const& rgb_func)
 	{
-		constexpr u32 PIXEL_STEP = 4;
+		constexpr u32 PIXEL_STEP = 1;
 
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
@@ -888,7 +888,7 @@ namespace hist
 
 	static void for_each_yuv(ViewYUV const& src, std::function<void(u8, u8, u8)> const& yuv_func)
 	{
-		constexpr u32 PIXEL_STEP = 4;
+		constexpr u32 PIXEL_STEP = 1;
 
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{
@@ -907,7 +907,7 @@ namespace hist
 
 	static void for_each_bgr(ViewBGR const& src, std::function<void(u8, u8, u8)> const& rgb_func)
 	{
-		constexpr u32 PIXEL_STEP = 4;
+		constexpr u32 PIXEL_STEP = 1;
 
 		for (u32 y = 0; y < src.height; y += PIXEL_STEP)
 		{

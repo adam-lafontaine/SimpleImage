@@ -524,7 +524,7 @@ namespace simage
 
 namespace simage
 {
-	void map_gray(ViewGray const& src, View1u16 const& dst)
+	void map_gray(View1u8 const& src, View1u16 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -542,7 +542,7 @@ namespace simage
 	}
 	
 
-	void map_gray(View1u16 const& src, ViewGray const& dst)
+	void map_gray(View1u16 const& src, View1u8 const& dst)
 	{
 		assert(verify(src, dst));
 

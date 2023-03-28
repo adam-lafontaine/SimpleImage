@@ -65,7 +65,7 @@ static void draw_histogram(const f32* values, img::View1u8 const& dst, HistParam
 }
 
 
-static void draw(img::Histogram12f32& hists, img::View1u8 const& dst, HistParams const& props)
+static void draw(img::hist::Histogram12f32& hists, img::View1u8 const& dst, HistParams const& props)
 {
     img::fill(dst, 255);
 
@@ -105,13 +105,13 @@ void histogram_image_test(img::View const& out)
     img::create_image(hist_image, width, height);
     auto hist_view = img::make_view(hist_image);
 
-    img::Histogram12f32 hists;
+    img::hist::Histogram12f32 hists;
     hists.n_bins = N_BINS;
 
     img::Image vette;
     img::read_image_from_file(CORVETTE_PATH, vette);
 
-    img::make_histograms(img::make_view(vette), hists);
+    img::hist::make_histograms(img::make_view(vette), hists);
     draw(hists, hist_view, params);
 
     img::map_gray(hist_view, out);

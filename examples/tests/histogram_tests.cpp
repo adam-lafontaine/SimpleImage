@@ -60,7 +60,7 @@ static void draw_histogram(const f32* values, u32 n_bins, img::View1u16 const& d
 }
 
 
-static void draw(img::Histogram12f32& hists, img::View1u16 const& dst)
+static void draw(img::hist::Histogram12f32& hists, img::View1u16 const& dst)
 {
     img::fill(dst, 255);
 
@@ -105,7 +105,7 @@ static bool histogram_fill_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::Histogram12f32 hists;
+    img::hist::Histogram12f32 hists;
     hists.n_bins = N_BINS;
 
     Image image;
@@ -114,7 +114,7 @@ static bool histogram_fill_test()
 
     auto const do_hist = [&](const char* filename) 
     {
-        img::make_histograms(view, hists);
+        img::hist::make_histograms(view, hists);
         draw(hists, hist_view);
         img::map_gray(hist_view, dst);
         write_image(hist_image, filename);
@@ -171,12 +171,12 @@ static bool histogram_images_test()
 
     auto hist_view = img::make_view_1(width, height, buffer);
 
-    img::Histogram12f32 hists;
+    img::hist::Histogram12f32 hists;
     hists.n_bins = N_BINS;
 
     auto const do_hist = [&](Image const& image, const char* filename)
     {
-        img::make_histograms(img::make_view(image), hists);
+        img::hist::make_histograms(img::make_view(image), hists);
         draw(hists, hist_view);
         img::map_gray(hist_view, dst);
         write_image(hist_image, filename);

@@ -399,6 +399,8 @@ namespace simage
 
 namespace simage
 {
+namespace hist
+{
 	constexpr u32 MAX_HIST_BINS = 256;
 
 
@@ -480,7 +482,7 @@ namespace simage
 
 	void make_histograms(ViewYUV const& src, HistLCHf32& dst, u32 n_bins);
 
-
+}
 }
 
 

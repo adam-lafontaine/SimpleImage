@@ -840,6 +840,8 @@ namespace simage
 
 namespace simage
 {
+namespace hist
+{
 	/*template <size_t N>
 	static std::array<View, N> split_view(View const& view)
 	{
@@ -1342,5 +1344,5 @@ namespace simage
 		}
 	}
 }
-
+}
 

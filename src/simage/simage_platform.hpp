@@ -414,6 +414,16 @@ namespace simage
 }
 
 
+/* alpha blend */
+
+namespace simage
+{
+	void alpha_blend(View const& src, View const& cur, View const& dst);
+
+	void alpha_blend(View const& src, View const& cur_dst);
+}
+
+
 /* histogram */
 
 namespace simage

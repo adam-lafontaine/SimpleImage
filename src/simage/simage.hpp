@@ -279,6 +279,14 @@ namespace simage
 }
 
 
+/* alpha blend */
+
+namespace simage
+{
+	void alpha_blend(ViewRGBAu16 const& src, ViewRGBu16 const& cur, ViewRGB const& dst);
+}
+
+
 /* shrink */
 /*
 namespace simage

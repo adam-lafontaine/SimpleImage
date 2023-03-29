@@ -151,15 +151,10 @@ object_files += $(sdl_render_o)
 
 # tests
 
-fill_tests_c := $(tests)/fill_tests.cpp
-fill_tests_c += $(tests_include_h)
-fill_tests_o := $(build)/fill_tests.o
-object_files += $(fill_tests_o)
-
-image_tests_c := $(tests)/image_tests.cpp
-image_tests_c += $(tests_include_h)
-image_tests_o := $(build)/image_tests.o
-object_files += $(image_tests_o)
+platform_tests_c := $(tests)/platform_tests.cpp
+platform_tests_c += $(tests_include_h)
+platform_tests_o := $(build)/platform_tests.o
+object_files += $(platform_tests_o)
 
 histogram_tests_c := $(tests)/histogram_tests.cpp
 histogram_tests_c += $(tests_include_h)
@@ -227,8 +222,8 @@ $(sdl_render_o): $(sdl_render_c)
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 
-$(fill_tests_o): $(fill_tests_c)
-	@echo "\n fill_tests"
+$(platform_tests_o): $(platform_tests_c)
+	@echo "\n platform_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 $(image_tests_o): $(image_tests_c)

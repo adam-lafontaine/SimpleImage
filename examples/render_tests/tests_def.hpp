@@ -13,6 +13,8 @@ void resize_image_test(img::View const& out_view);
 
 void histogram_image_test(img::View const& out);
 
+void alpha_blend_test(img::View const& out);
+
 void camera_rgb_test(img::View const& out);
 
 void camera_rgb_callback_test(img::View const& out);

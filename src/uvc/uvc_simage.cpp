@@ -232,7 +232,7 @@ namespace convert
             auto s = src[i];
             auto& d = dst.data_[i];
 
-            d = (u8)(0.299f * s.red + 0.587f * s.green + 0.114f * s.blue + 0.5f);
+            d = gray::u8_from_rgb_u8(s.red, s.green, s.blue);
         };
 
         process_range(0, dst.width * dst.height, convert_pixel);
@@ -271,7 +271,7 @@ namespace convert
             auto s = src[i];
             auto& d = dst.data_[i];
 
-            d = (u8)(0.299f * s.red + 0.587f * s.green + 0.114f * s.blue + 0.5f);
+            d = gray::u8_from_rgb_u8(s.red, s.green, s.blue);
         };
 
         process_range(0, dst.width * dst.height, convert_pixel);

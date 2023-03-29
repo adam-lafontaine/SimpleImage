@@ -73,7 +73,7 @@ static void draw_histogram(const f32* values, img::View1u8 const& dst, HistParam
 }
 
 
-static void draw(img::Histogram12f32& hists, img::View1u8 const& dst, HistParams const& props)
+static void draw(img::hist::Histogram12f32& hists, img::View1u8 const& dst, HistParams const& props)
 {
 	img::fill(dst, 255);
 
@@ -182,12 +182,12 @@ void camera_histogram_test(img::View const& out)
 	img::create_image(hist_image, width, height);
 	auto hist_view = img::make_view(hist_image);
 
-	img::Histogram12f32 hists;
+	img::hist::Histogram12f32 hists;
 	hists.n_bins = N_BINS;
 
 	auto const grab_cb = [&](img::View const& src)
 	{
-		img::make_histograms(src, hists);
+		img::hist::make_histograms(src, hists);
 		draw(hists, hist_view, params);
 		img::map_gray(hist_view, out);
 	};

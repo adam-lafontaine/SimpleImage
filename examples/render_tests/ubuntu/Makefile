@@ -167,6 +167,12 @@ camera_tests_c += $(stopwatch_h)
 camera_tests_o := $(build)/camera_tests.o
 object_files += $(camera_tests_o)
 
+simage_tests_c := $(tests)/simage_tests.cpp
+platform_tests_c += $(tests_include_h)
+platform_tests_c += $(simage_h);
+simage_tests_o := $(build)/simage_tests.o
+object_files += $(simage_tests_o)
+
 
 # flags
 INCLUDES  := 
@@ -236,6 +242,10 @@ $(histogram_tests_o): $(histogram_tests_c)
 
 $(camera_tests_o): $(camera_tests_c)
 	@echo "\n camera_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(simage_tests_o): $(simage_tests_c)
+	@echo "\n simage_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

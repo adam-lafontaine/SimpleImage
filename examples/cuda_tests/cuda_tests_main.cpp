@@ -31,18 +31,22 @@ constexpr auto APP_VERSION = "1.0";
 
 static bool run_test(img::CameraUSB const& camera, app::AppState& state, std::function<bool(img::View const&, img::View const&)> const& test)
 {
-    if (!img::grab_image(camera))
+    auto const test_cb = [&](img::View const& src)
+    {
+        test(src, state.screen_pixels);
+    };
+
+    if (!img::grab_rgb(camera, test_cb))
     {
         printf("Image grab failed\n");
         return false;
     }
 
-    auto result = test(camera.frame_roi, state.screen_pixels);
     render_once();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-    return result;
+    return true;
 }
 
 
@@ -89,8 +93,8 @@ int main()
 	app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
-	window_settings.screen_width = camera.image_width;
-	window_settings.screen_height = camera.image_height;
+	window_settings.screen_width = camera.frame_width;
+	window_settings.screen_height = camera.frame_height;
 
 	app::AppState app_state;
 

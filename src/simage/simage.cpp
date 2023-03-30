@@ -641,7 +641,7 @@ namespace simage
 
 namespace simage
 {	
-	static void map_rgba_row(Pixel* src, RGBAu16p const& dst, u32 width)
+	static void map_rgba_row_u8_to_u16(Pixel* src, RGBAu16p const& dst, u32 width)
 	{
 		for (u32 x = 0; x < width; ++x)
 		{
@@ -653,7 +653,7 @@ namespace simage
 	}
 
 
-	static void map_rgba_row(RGBAu16p const& src, Pixel* dst, u32 width)
+	static void map_rgba_row_u16_to_u8(RGBAu16p const& src, Pixel* dst, u32 width)
 	{
 		for (u32 x = 0; x < width; ++x)
 		{
@@ -665,7 +665,7 @@ namespace simage
 	}
 
 
-	static void map_rgb_row(Pixel* src, RGBu16p const& dst, u32 width)
+	static void map_rgb_row_u8_to_u16(Pixel* src, RGBu16p const& dst, u32 width)
 	{
 		for (u32 x = 0; x < width; ++x)
 		{
@@ -676,7 +676,7 @@ namespace simage
 	}
 
 
-	static void map_rgb_row(RGBu16p const& src, Pixel* dst, u32 width)
+	static void map_rgb_row_u16_to_u8(RGBu16p const& src, Pixel* dst, u32 width)
 	{
 		for (u32 x = 0; x < width; ++x)
 		{
@@ -697,7 +697,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = rgba_row_begin(dst, y);
 
-			map_rgba_row(s, d, src.width);
+			map_rgba_row_u8_to_u16(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -713,7 +713,7 @@ namespace simage
 			auto s = rgba_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			map_rgba_row(s, d, src.width);
+			map_rgba_row_u16_to_u8(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -729,7 +729,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
 
-			map_rgb_row(s, d, src.width);
+			map_rgb_row_u8_to_u16(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -745,7 +745,7 @@ namespace simage
 			auto s = rgb_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			map_rgb_row(s, d, src.width);
+			map_rgb_row_u16_to_u8(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -755,11 +755,6 @@ namespace simage
 	void map_rgb(View1u16 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
-
-		constexpr auto r = id_cast(RGBA::R);
-		constexpr auto g = id_cast(RGBA::G);
-		constexpr auto b = id_cast(RGBA::B);
-		constexpr auto a = id_cast(RGBA::A);
 
 		auto const row_func = [&](u32 y)
 		{
@@ -986,12 +981,15 @@ namespace simage
 
 namespace simage
 {
-	static void map_yuv_rgb_no_simd(ViewYUV const& src, ViewRGBu16 const& dst)
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBu16 const& dst)
 	{
+		assert(verify(src, dst));
+		assert(src.width % 2 == 0);
+		static_assert(sizeof(YUV2u8) == 2);
+
 		auto const row_func = [&](u32 y)
 		{
-			auto s2 = row_begin(src, y);
-			auto s422 = (YUV422u8*)s2;
+			auto s422 = (YUV422u8*)row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
 
 			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
@@ -1013,22 +1011,6 @@ namespace simage
 		};
 
 		process_by_row(src.height, row_func);
-	}
-
-
-	static void do_map_yuv_rgb(ViewYUV const& src, ViewRGBu16 const& dst)
-	{
-		map_yuv_rgb_no_simd(src, dst);
-	}
-
-
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBu16 const& dst)
-	{
-		assert(verify(src, dst));
-		assert(src.width % 2 == 0);
-		static_assert(sizeof(YUV2u8) == 2);
-
-		do_map_yuv_rgb(src, dst);
 	}
 
 
@@ -1132,26 +1114,22 @@ namespace simage
 }
 
 
+/* map bgr */
+
 namespace simage
 {
 	void map_bgr_rgb(ViewBGR const& src, ViewRGBu16 const& dst)
-	{
-		constexpr auto r = id_cast(RGB::R);
-		constexpr auto g = id_cast(RGB::G);
-		constexpr auto b = id_cast(RGB::B);
-
+	{		
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
-			auto dr = channel_row_begin(dst, y, r);
-			auto dg = channel_row_begin(dst, y, g);
-			auto db = channel_row_begin(dst, y, b);
+			auto d = rgb_row_begin(dst, y);
 
-			for (u32 x = 0; x < src.width; ++x) // TODO: simd
+			for (u32 x = 0; x < src.width; ++x)
 			{
-				dr[x] = cs::to_channel_u16(s[x].red);
-				dg[x] = cs::to_channel_u16(s[x].green);
-				db[x] = cs::to_channel_u16(s[x].blue);
+				d.R[x] = cs::to_channel_u16(s[x].red);
+				d.G[x] = cs::to_channel_u16(s[x].green);
+				d.B[x] = cs::to_channel_u16(s[x].blue);
 			}
 		};
 
@@ -1375,26 +1353,19 @@ namespace simage
 	{
 		// TODO: simd here
 
-		auto const blend = [](f32 s, f32 c, f32 a)
+		auto const blend = [](u16 s, u16 c, f32 a)
 		{
-			return a * s + (1.0f - a) * c;
+			auto blended = a * s + (1.0f - a) * c;
+			return (u16)(blended + 0.5f);
 		};
 
 		for (u32 x = 0; x < width; ++x)
 		{
 			auto a = cs::to_channel_f32(src.A[x]);
 
-			auto sr = cs::to_channel_f32(src.R[x]);
-			auto sg = cs::to_channel_f32(src.G[x]);
-			auto sb = cs::to_channel_f32(src.B[x]);
-			
-			auto cr = cs::to_channel_f32(cur.R[x]);
-			auto cg = cs::to_channel_f32(cur.G[x]);
-			auto cb = cs::to_channel_f32(cur.B[x]);
-
-			dst.R[x] = cs::to_channel_u16(blend(sr, cr, a));
-			dst.G[x] = cs::to_channel_u16(blend(sg, cg, a));
-			dst.B[x] = cs::to_channel_u16(blend(sb, cb, a));
+			dst.R[x] = blend(src.R[x], cur.R[x], a);
+			dst.G[x] = blend(src.G[x], cur.G[x], a);
+			dst.B[x] = blend(src.B[x], cur.B[x], a);
 		}
 	}
 

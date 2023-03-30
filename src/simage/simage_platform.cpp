@@ -2,11 +2,7 @@
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
 
-
-#ifndef SIMAGE_NO_SIMD
-#include "../util/simd.hpp"
-#endif // !SIMAGE_NO_SIMD
-
+namespace cs = color_space;
 
 
 static void process_by_row(u32 n_rows, id_func_t const& row_func)
@@ -838,28 +834,25 @@ namespace simage
 
 namespace simage
 {
-	static RGBAu8 alpha_blend_linear(RGBAu8 const& src, RGBAu8 const& current)
+	static void alpha_blend_row(Pixel* src, Pixel* cur, Pixel* dst, u32 width)
 	{
-		auto const a = (f32)(src.alpha) / 255.0f;
-
-		auto const blend = [&](u8 s, u8 c)
+		auto const blend = [](u8 s, u8 c, f32 a)
 		{
-			auto sf = (f32)(s);
-			auto cf = (f32)(c);
-
-			auto blended = a * sf + (1.0f - a) * cf;
-
+			auto blended = a * s + (1.0f - a) * c;
 			return (u8)(blended + 0.5f);
 		};
 
-		RGBAu8 rgba{};
+		for (u32 x = 0; x < width; ++x)
+		{
+			auto s = src[x].rgba;
+			auto c = cur[x].rgba;
+			auto& d = dst[x].rgba;
 
-		rgba.red = blend(src.red, current.red);
-		rgba.green = blend(src.green, current.green);
-		rgba.blue = blend(src.blue, current.blue);
-		rgba.alpha = 255;
-
-		return rgba;
+			auto a = cs::to_channel_f32(s.alpha);
+			d.red = blend(s.red, c.red, a);
+			d.green = blend(s.green, c.green, a);
+			d.blue = blend(s.blue, c.blue, a);
+		}
 	}
 
 
@@ -874,10 +867,7 @@ namespace simage
 			auto c = row_begin(cur, y);
 			auto d = row_begin(dst, y);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x].rgba = alpha_blend_linear(s[x].rgba, c[x].rgba);
-			}
+			alpha_blend_row(s, c, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -893,10 +883,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = row_begin(cur_dst, y);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x].rgba = alpha_blend_linear(s[x].rgba, d[x].rgba);
-			}
+			alpha_blend_row(s, d, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);

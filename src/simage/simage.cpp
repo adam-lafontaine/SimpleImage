@@ -152,7 +152,7 @@ namespace simage
 	using RGBAu16p = RGBAp<u16>;
 
 	using HSVu16p = HSVp<u16>;
-
+	using YUVu16p = YUVp<u16>;
 	using LCHu16p = LCHp<u16>;
 }
 
@@ -576,7 +576,16 @@ namespace simage
 			dst[x] = cs::to_channel_u16(src[x]);
 		}
 	}
-	
+
+
+	static void map_channel_row_u16_to_u8(u16* src, u8* dst, u32 width)
+	{
+		for (u32 x = 0; x < width; ++x)
+		{
+			dst[x] = cs::to_channel_u8(src[x]);
+		}
+	}
+
 
 	void map_gray(View1u8 const& src, View1u16 const& dst)
 	{
@@ -586,10 +595,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = cs::to_channel_u16(s[x]);
-			}
+			map_channel_row_u8_to_u16(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -604,10 +610,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = cs::to_channel_u8(s[x]);
-			}
+			map_channel_row_u16_to_u8(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -638,255 +641,66 @@ namespace simage
 
 namespace simage
 {	
-	static void map_rgba_no_simd(View const& src, ViewRGBAu16 const& dst)
+	static void map_rgba_row(Pixel* src, RGBAu16p const& dst, u32 width)
 	{
-		constexpr auto r = id_cast(RGBA::R);
-		constexpr auto g = id_cast(RGBA::G);
-		constexpr auto b = id_cast(RGBA::B);
-		constexpr auto a = id_cast(RGBA::A);
-
-		auto const row_func = [&](u32 y)
+		for (u32 x = 0; x < width; ++x)
 		{
-			auto s = row_begin(src, y);
-			auto dr = channel_row_begin(dst, y, r);
-			auto dg = channel_row_begin(dst, y, g);
-			auto db = channel_row_begin(dst, y, b);
-			auto da = channel_row_begin(dst, y, a);
-
-			for (u32 x = 0; x < src.width; ++x) // TODO: simd
-			{
-				dr[x] = cs::to_channel_u16(s[x].channels[r]);
-				dg[x] = cs::to_channel_u16(s[x].channels[g]);
-				db[x] = cs::to_channel_u16(s[x].channels[b]);
-				da[x] = cs::to_channel_u16(s[x].channels[a]);
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
-	void map_rgb_no_simd(View const& src, ViewRGBu16 const& dst)
-	{
-		constexpr auto r = id_cast(RGB::R);
-		constexpr auto g = id_cast(RGB::G);
-		constexpr auto b = id_cast(RGB::B);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto dr = channel_row_begin(dst, y, r);
-			auto dg = channel_row_begin(dst, y, g);
-			auto db = channel_row_begin(dst, y, b);
-
-			for (u32 x = 0; x < src.width; ++x) // TODO: simd
-			{
-				dr[x] = cs::to_channel_u16(s[x].channels[r]);
-				dg[x] = cs::to_channel_u16(s[x].channels[g]);
-				db[x] = cs::to_channel_u16(s[x].channels[b]);
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
-	void map_rgb_row_no_simd(View const& src, ViewRGBu16 const& dst, u32 y)
-	{
-		constexpr auto r = id_cast(RGB::R);
-		constexpr auto g = id_cast(RGB::G);
-		constexpr auto b = id_cast(RGB::B);
-
-		auto s = row_begin(src, y);
-		auto dr = channel_row_begin(dst, y, r);
-		auto dg = channel_row_begin(dst, y, g);
-		auto db = channel_row_begin(dst, y, b);
-
-		for (u32 x = 0; x < src.width; ++x)
-		{
-			dr[x] = cs::to_channel_u16(s[x].channels[r]);
-			dg[x] = cs::to_channel_u16(s[x].channels[g]);
-			db[x] = cs::to_channel_u16(s[x].channels[b]);
+			dst.R[x] = cs::to_channel_u16(src[x].rgba.red);
+			dst.G[x] = cs::to_channel_u16(src[x].rgba.green);
+			dst.B[x] = cs::to_channel_u16(src[x].rgba.blue);
+			dst.A[x] = cs::to_channel_u16(src[x].rgba.alpha);
 		}
 	}
 
 
-#ifdef SIMAGE_NO_SIMD
-
-	static void do_map_rgba(View const& src, ViewRGBAu16 const& dst)
+	static void map_rgba_row(RGBAu16p const& src, Pixel* dst, u32 width)
 	{
-		map_rgba_no_simd(src, dst);
-	}
-
-
-	static void do_map_rgb(View const& src, ViewRGBu16 const& dst)
-	{
-		map_rgb_no_simd(src, dst);
-	}
-
-#else
-
-	class Pixelu16Planar
-	{
-	public:
-		u16 red[simd::VEC_LEN] = { 0 };
-		u16 green[simd::VEC_LEN] = { 0 };
-		u16 blue[simd::VEC_LEN] = { 0 };
-		u16 alpha[simd::VEC_LEN] = { 0 };
-	};
-
-
-	Pixelu16Planar to_planar(Pixel* p_begin)
-	{
-		Pixelu16Planar planar;
-
-		for (u32 i = 0; i < simd::VEC_LEN; ++i)
+		for (u32 x = 0; x < width; ++x)
 		{
-			auto rgba = p_begin[i].rgba;
-
-			planar.red[i] = cs::to_channel_u16(rgba.red);
-			planar.green[i] = cs::to_channel_u16(rgba.green);
-			planar.blue[i] = cs::to_channel_u16(rgba.blue);
-			planar.alpha[i] = cs::to_channel_u16(rgba.alpha);
-		}
-
-		return planar;
-	}
-
-
-	static void map_rgba_row_simd(Pixel* src, u16* dr, u16* dg, u16* db, u16* da, u32 length)
-	{
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		auto const do_simd = [&](u32 i)
-		{
-			auto p = to_planar(src + i);
-
-			auto vec = simd::load(p.red);
-			simd::store(dr + i, vec);
-
-			vec = simd::load(p.green);
-			simd::store(dg + i, vec);
-
-			vec = simd::load(p.blue);
-			simd::store(db + i, vec);
-
-			vec = simd::load(p.alpha);
-			simd::store(da + i, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void map_rgb_row_simd(Pixel* src, u16* dr, u16* dg, u16* db, u32 length)
-	{
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		auto const do_simd = [&](u32 i)
-		{
-			auto p = to_planar(src + i);
-
-			auto vec = simd::load(p.red);
-			simd::store(dr + i, vec);
-
-			vec = simd::load(p.green);
-			simd::store(dg + i, vec);
-
-			vec = simd::load(p.blue);
-			simd::store(db + i, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void map_rgba_simd(View const& src, ViewRGBAu16 const& dst)
-	{
-		constexpr auto r = id_cast(RGBA::R);
-		constexpr auto g = id_cast(RGBA::G);
-		constexpr auto b = id_cast(RGBA::B);
-		constexpr auto a = id_cast(RGBA::A);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto dr = channel_row_begin(dst, y, r);
-			auto dg = channel_row_begin(dst, y, g);
-			auto db = channel_row_begin(dst, y, b);
-			auto da = channel_row_begin(dst, y, a);
-
-			map_rgba_row_simd(s, dr, dg, db, da, src.width);
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
-	static void map_rgb_simd(View const& src, ViewRGBu16 const& dst)
-	{
-		constexpr auto r = id_cast(RGB::R);
-		constexpr auto g = id_cast(RGB::G);
-		constexpr auto b = id_cast(RGB::B);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto dr = channel_row_begin(dst, y, r);
-			auto dg = channel_row_begin(dst, y, g);
-			auto db = channel_row_begin(dst, y, b);
-
-			map_rgb_row_simd(s, dr, dg, db, src.width);
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
-	static void do_map_rgba(View const& src, ViewRGBAu16 const& dst)
-	{
-		if (src.width < simd::VEC_LEN)
-		{
-			map_rgba_no_simd(src, dst);
-		}
-		else
-		{
-			map_rgba_simd(src, dst);
+			dst[x].rgba.red = cs::to_channel_u8(src.R[x]);
+			dst[x].rgba.green = cs::to_channel_u8(src.G[x]);
+			dst[x].rgba.blue = cs::to_channel_u8(src.B[x]);
+			dst[x].rgba.alpha = cs::to_channel_u8(src.A[x]);
 		}
 	}
 
 
-	static void do_map_rgb(View const& src, ViewRGBu16 const& dst)
+	static void map_rgb_row(Pixel* src, RGBu16p const& dst, u32 width)
 	{
-		if (src.width < simd::VEC_LEN)
+		for (u32 x = 0; x < width; ++x)
 		{
-			map_rgb_no_simd(src, dst);
-		}
-		else
-		{
-			map_rgb_simd(src, dst);
+			dst.R[x] = cs::to_channel_u16(src[x].rgba.red);
+			dst.G[x] = cs::to_channel_u16(src[x].rgba.green);
+			dst.B[x] = cs::to_channel_u16(src[x].rgba.blue);
 		}
 	}
 
 
-#endif	
+	static void map_rgb_row(RGBu16p const& src, Pixel* dst, u32 width)
+	{
+		for (u32 x = 0; x < width; ++x)
+		{
+			dst[x].rgba.red = cs::to_channel_u8(src.R[x]);
+			dst[x].rgba.green = cs::to_channel_u8(src.G[x]);
+			dst[x].rgba.blue = cs::to_channel_u8(src.B[x]);
+			dst[x].rgba.alpha = 255;
+		}
+	}
 
 
 	void map_rgba(View const& src, ViewRGBAu16 const& dst)
 	{
 		assert(verify(src, dst));
 
-		do_map_rgba(src, dst);
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = rgba_row_begin(dst, y);
+
+			map_rgba_row(s, d, src.width);
+		};
+
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -894,26 +708,12 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		constexpr auto r = id_cast(RGBA::R);
-		constexpr auto g = id_cast(RGBA::G);
-		constexpr auto b = id_cast(RGBA::B);
-		constexpr auto a = id_cast(RGBA::A);
-
 		auto const row_func = [&](u32 y)
 		{
+			auto s = rgba_row_begin(src, y);
 			auto d = row_begin(dst, y);
-			auto sr = channel_row_begin(src, y, r);
-			auto sg = channel_row_begin(src, y, g);
-			auto sb = channel_row_begin(src, y, b);
-			auto sa = channel_row_begin(src, y, a);
 
-			for (u32 x = 0; x < src.width; ++x) // TODO: simd
-			{
-				d[x].channels[r] = cs::to_channel_u8(sr[x]);
-				d[x].channels[g] = cs::to_channel_u8(sg[x]);
-				d[x].channels[b] = cs::to_channel_u8(sb[x]);
-				d[x].channels[a] = cs::to_channel_u8(sa[x]);
-			}
+			map_rgba_row(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -924,7 +724,15 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_map_rgb(src, dst);
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = rgb_row_begin(dst, y);
+
+			map_rgb_row(s, d, src.width);
+		};
+
+		process_by_row(src.height, row_func);
 	}
 
 
@@ -932,27 +740,12 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		constexpr auto r = id_cast(RGBA::R);
-		constexpr auto g = id_cast(RGBA::G);
-		constexpr auto b = id_cast(RGBA::B);
-		constexpr auto a = id_cast(RGBA::A);
-
-		constexpr auto ch_max = cs::to_channel_u8(1.0f);
-
 		auto const row_func = [&](u32 y)
 		{
+			auto s = rgb_row_begin(src, y);
 			auto d = row_begin(dst, y);
-			auto sr = channel_row_begin(src, y, r);
-			auto sg = channel_row_begin(src, y, g);
-			auto sb = channel_row_begin(src, y, b);
 
-			for (u32 x = 0; x < src.width; ++x) // TODO: simd
-			{
-				d[x].channels[r] = cs::to_channel_u8(sr[x]);
-				d[x].channels[g] = cs::to_channel_u8(sg[x]);
-				d[x].channels[b] = cs::to_channel_u8(sb[x]);
-				d[x].channels[a] = ch_max;
-			}
+			map_rgb_row(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
@@ -968,21 +761,19 @@ namespace simage
 		constexpr auto b = id_cast(RGBA::B);
 		constexpr auto a = id_cast(RGBA::A);
 
-		constexpr auto ch_max = cs::to_channel_u8(1.0f);
-
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(dst, y);
 			auto s = row_begin(src, y);			
 
-			for (u32 x = 0; x < src.width; ++x) // TODO: simd
+			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto const gray = cs::to_channel_u8(s[x]);
 
-				d[x].channels[r] = gray;
-				d[x].channels[g] = gray;
-				d[x].channels[b] = gray;
-				d[x].channels[a] = ch_max;
+				d[x].rgba.red = gray;
+				d[x].rgba.green = gray;
+				d[x].rgba.blue = gray;
+				d[x].rgba.alpha = 255;
 			}
 		};
 

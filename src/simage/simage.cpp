@@ -569,6 +569,15 @@ namespace simage
 
 namespace simage
 {
+	static void map_channel_row_u8_to_u16(u8* src, u16* dst, u32 width)
+	{
+		for (u32 x = 0; x < width; ++x)
+		{
+			dst[x] = cs::to_channel_u16(src[x]);
+		}
+	}
+	
+
 	void map_gray(View1u8 const& src, View1u16 const& dst)
 	{
 		assert(verify(src, dst));
@@ -1365,17 +1374,24 @@ namespace simage
 namespace simage
 {
 	template <typename T>
-	static void fill_no_simd(View1<T> const& view, T grayT)
+	static void fill_channel_row(T* d, T grayT, u32 width)
+	{
+		for (u32 i = 0; i < width; ++i)
+		{
+			d[i] = grayT;
+		}
+	}
+
+
+	template <typename T>
+	static void fill_channel(View1<T> const& view, T grayT)
 	{		
 		assert(verify(view));
 
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(view, y);
-			for (u32 i = 0; i < view.width; ++i)
-			{
-				d[i] = grayT;
-			}
+			fill_channel_row(d, grayT, view.width);
 		};
 
 		process_by_row(view.height, row_func);
@@ -1383,7 +1399,7 @@ namespace simage
 
 
 	template <size_t N>
-	static void fill_n_channels_no_simd(ViewCHu16<N> const& view, Pixel color)
+	static void fill_n_channels(ViewCHu16<N> const& view, Pixel color)
 	{
 		u16 channels[N] = {};
 		for (u32 ch = 0; ch < N; ++ch)
@@ -1396,27 +1412,11 @@ namespace simage
 			for (u32 ch = 0; ch < N; ++ch)
 			{
 				auto d = channel_row_begin(view, y, ch);
-				for (u32 x = 0; x < view.width; ++x)
-				{
-					d[x] = channels[ch];
-				}
+				fill_channel_row(d, channels[ch], view.width);
 			}
 		};
 
 		process_by_row(view.height, row_func);
-	}
-
-	template <class VIEW, typename COLOR>
-	static void do_fill(VIEW const& view, COLOR color)
-	{
-		fill_no_simd(view, color);
-	}
-
-
-	template <size_t N>
-	static void do_fill_n_channels(ViewCHu16<N> const& view, Pixel color)
-	{
-		fill_n_channels_no_simd(view, color);
 	}
 
 
@@ -1424,7 +1424,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		do_fill_n_channels(view, color);
+		fill_n_channels(view, color);
 	}
 
 
@@ -1432,17 +1432,15 @@ namespace simage
 	{
 		assert(verify(view));
 
-		do_fill_n_channels(view, color);
+		fill_n_channels(view, color);
 	}
 
 
 	void fill(View1u16 const& view, u8 gray)
 	{
-		assert(verify(view));		
+		assert(verify(view));
 
-		auto const gray32 = cs::to_channel_u16(gray);
-
-		do_fill(view, gray32);
+		fill_channel(view, cs::to_channel_u16(gray));
 	}
 }
 

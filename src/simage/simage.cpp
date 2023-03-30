@@ -100,12 +100,41 @@ namespace simage
 
 
 	template <typename T>
+	class RGBAp
+	{
+	public:
+		T* R;
+		T* G;
+		T* B;
+		T* A;
+	};
+
+
+	template <typename T>
 	class HSVp
 	{
 	public:
 		T* H;
 		T* S;
 		T* V;
+	};
+
+
+	template <typename T>
+	class YUVp
+	{
+	public:
+		T* Y;
+		T* UV;
+	};	
+
+
+	template <typename T>
+	class UVYp
+	{
+	public:
+		T* UV;
+		T* Y;
 	};
 
 
@@ -120,12 +149,10 @@ namespace simage
 
 
 	using RGBu16p = RGBp<u16>;
-	using RGBu16p = RGBp<u16>;
+	using RGBAu16p = RGBAp<u16>;
 
 	using HSVu16p = HSVp<u16>;
-	using HSVu16p = HSVp<u16>;
 
-	using LCHu16p = LCHp<u16>;
 	using LCHu16p = LCHp<u16>;
 }
 
@@ -148,6 +175,24 @@ namespace simage
 		rgb.B = view.channel_data_[id_cast(RGB::B)] + offset;
 
 		return rgb;
+	}
+
+
+	static RGBAu16p rgba_row_begin(ViewRGBAu16 const& view, u32 y)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+
+		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
+
+		RGBAu16p rgba{};
+
+		rgba.R = view.channel_data_[id_cast(RGBA::R)] + offset;
+		rgba.G = view.channel_data_[id_cast(RGBA::G)] + offset;
+		rgba.B = view.channel_data_[id_cast(RGBA::B)] + offset;
+		rgba.A = view.channel_data_[id_cast(RGBA::A)] + offset;
+
+		return rgba;
 	}
 
 
@@ -1529,6 +1574,57 @@ namespace simage
 		};
 
 		transform(src, dst, func);
+	}
+}
+
+
+/* alpha blend */
+
+namespace simage
+{
+	static void alpha_blend_row(RGBAu16p const& src, RGBu16p const& cur, RGBu16p const& dst, u32 width)
+	{
+		// TODO: simd here
+
+		auto const blend = [](f32 s, f32 c, f32 a)
+		{
+			return a * s + (1.0f - a) * c;
+		};
+
+		for (u32 x = 0; x < width; ++x)
+		{
+			auto a = cs::to_channel_f32(src.A[x]);
+
+			auto sr = cs::to_channel_f32(src.R[x]);
+			auto sg = cs::to_channel_f32(src.G[x]);
+			auto sb = cs::to_channel_f32(src.B[x]);
+			
+			auto cr = cs::to_channel_f32(cur.R[x]);
+			auto cg = cs::to_channel_f32(cur.G[x]);
+			auto cb = cs::to_channel_f32(cur.B[x]);
+
+			dst.R[x] = cs::to_channel_u16(blend(sr, cr, a));
+			dst.G[x] = cs::to_channel_u16(blend(sg, cg, a));
+			dst.B[x] = cs::to_channel_u16(blend(sb, cb, a));
+		}
+	}
+
+
+	void alpha_blend(ViewRGBAu16 const& src, ViewRGBu16 const& cur, ViewRGBu16 const& dst)
+	{
+		assert(verify(src, dst));
+		assert(verify(src, cur));
+
+		auto const row_func = [&](u32 y)
+		{			
+			auto s = rgba_row_begin(src, y);
+			auto c = rgb_row_begin(cur, y);
+			auto d = rgb_row_begin(dst, y);
+
+			alpha_blend_row(s, c, d, src.width);
+		};
+
+		process_by_row(src.height, row_func);
 	}
 }
 

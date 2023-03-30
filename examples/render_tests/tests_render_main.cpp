@@ -17,6 +17,9 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	copy_image_test,
 	resize_image_test,
 	histogram_image_test,
+
+	alpha_blend_test,
+
 	camera_rgb_test,
 	camera_rgb_callback_test,
 	camera_histogram_test,

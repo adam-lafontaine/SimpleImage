@@ -151,15 +151,10 @@ object_files += $(sdl_render_o)
 
 # tests
 
-fill_tests_c := $(tests)/fill_tests.cpp
-fill_tests_c += $(tests_include_h)
-fill_tests_o := $(build)/fill_tests.o
-object_files += $(fill_tests_o)
-
-image_tests_c := $(tests)/image_tests.cpp
-image_tests_c += $(tests_include_h)
-image_tests_o := $(build)/image_tests.o
-object_files += $(image_tests_o)
+platform_tests_c := $(tests)/platform_tests.cpp
+platform_tests_c += $(tests_include_h)
+platform_tests_o := $(build)/platform_tests.o
+object_files += $(platform_tests_o)
 
 histogram_tests_c := $(tests)/histogram_tests.cpp
 histogram_tests_c += $(tests_include_h)
@@ -171,6 +166,12 @@ camera_tests_c += $(tests_include_h)
 camera_tests_c += $(stopwatch_h)
 camera_tests_o := $(build)/camera_tests.o
 object_files += $(camera_tests_o)
+
+simage_tests_c := $(tests)/simage_tests.cpp
+platform_tests_c += $(tests_include_h)
+platform_tests_c += $(simage_h);
+simage_tests_o := $(build)/simage_tests.o
+object_files += $(simage_tests_o)
 
 
 # flags
@@ -227,8 +228,8 @@ $(sdl_render_o): $(sdl_render_c)
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 
-$(fill_tests_o): $(fill_tests_c)
-	@echo "\n fill_tests"
+$(platform_tests_o): $(platform_tests_c)
+	@echo "\n platform_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 $(image_tests_o): $(image_tests_c)
@@ -241,6 +242,10 @@ $(histogram_tests_o): $(histogram_tests_c)
 
 $(camera_tests_o): $(camera_tests_c)
 	@echo "\n camera_tests"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+$(simage_tests_o): $(simage_tests_c)
+	@echo "\n simage_tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

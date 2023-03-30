@@ -194,6 +194,24 @@ namespace simage
 	void map_rgb(ViewRGBu16 const& src, View const& dst);
 
 	void map_rgb(View1u16 const& src, View const& dst);
+
+
+	inline void map_rgba(Image const& src, ViewRGBAu16 const& dst)
+	{
+		map_rgba(make_view(src), dst);
+	}
+
+
+	inline void map_rgb(Image const& src, ViewRGBu16 const& dst)
+	{
+		map_rgb(make_view(src), dst);
+	}
+
+
+	inline void map_rgb(ViewRGBu16 const& src, Image const& dst)
+	{
+		map_rgb(src, make_view(dst));
+	}
 }
 
 
@@ -276,6 +294,14 @@ namespace simage
 	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
 
 	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
+}
+
+
+/* alpha blend */
+
+namespace simage
+{
+	void alpha_blend(ViewRGBAu16 const& src, ViewRGBu16 const& cur, ViewRGBu16 const& dst);
 }
 
 

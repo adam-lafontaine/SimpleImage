@@ -395,6 +395,50 @@ namespace simage
 }
 
 
+/* alpha blend */
+
+namespace simage
+{
+	void alpha_blend(View const& src, View const& cur, View const& dst);
+
+	void alpha_blend(View const& src, View const& cur_dst);
+}
+
+
+/* transform */
+
+namespace simage
+{
+	using pixel_to_pixel_f = std::function<Pixel(Pixel)>;
+
+	using u8_to_u8_f = std::function<u8(u8 p)>;
+
+	using pixel_to_u8_f = std::function<u8(Pixel)>;
+
+	using pixel_to_bool_f = std::function<bool(Pixel)>;
+
+	using u8_to_bool_f = std::function<bool(u8)>;
+
+
+	void transform(View const& src, View const& dst, pixel_to_pixel_f const& func);
+
+	void transform(ViewGray const& src, ViewGray const& dst, u8_to_u8_f const& func);
+
+	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func);
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min);
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max);
+
+
+	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func);
+
+	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func);
+
+}
+
+
 /* row begin */
 
 namespace simage
@@ -411,16 +455,6 @@ namespace simage
 	{
 		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
-}
-
-
-/* alpha blend */
-
-namespace simage
-{
-	void alpha_blend(View const& src, View const& cur, View const& dst);
-
-	void alpha_blend(View const& src, View const& cur_dst);
 }
 
 

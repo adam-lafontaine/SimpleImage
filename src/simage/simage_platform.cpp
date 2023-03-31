@@ -891,6 +891,86 @@ namespace simage
 }
 
 
+/* transform */
+
+namespace simage
+{
+	template <class IMG_S, class IMG_D, class FUNC>	
+	static void do_transform(IMG_S const& src, IMG_D const& dst, FUNC const& func)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[x]);
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void transform(View const& src, View const& dst, pixel_to_pixel_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, func);
+	}
+
+
+	void transform(ViewGray const& src, ViewGray const& dst, u8_to_u8_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, func);
+	}
+
+
+	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, func);
+	}
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min)
+	{
+		assert(verify(src, dst));
+
+		return do_transform(src, dst, [&](u8 p){ return p >= min ? p : 0; });
+	}
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max)
+	{
+		assert(verify(src, dst));
+
+		auto mn = std::min(min, max);
+		auto mx = std::max(min, max);
+
+		return do_transform(src, dst, [&](u8 p){ return p >= mn && p <= mx ? p : 0; });
+	}
+
+
+	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, [&](Pixel p){ return func(p) ? 255 : 0; });
+	}
+
+
+	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, [&](u8 p){ return func(p) ? 255 : 0; });
+	}
+}
 
 
 /* make_histograms */

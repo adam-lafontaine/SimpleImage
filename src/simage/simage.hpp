@@ -294,6 +294,13 @@ namespace simage
 	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
 
 	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
+
+
+	void transform_u8(View1u16 const& src, View1u16 const& dst, std::function<u8(u8)> const& func8);
+
+	void transform_u8(View2u16 const& src, View1u16 const& dst, std::function<u8(u8, u8)> const& func8);
+
+	void transform_u8(View3u16 const& src, View1u16 const& dst, std::function<u8(u8, u8, u8)> const& func8);
 }
 
 

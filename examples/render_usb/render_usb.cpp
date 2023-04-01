@@ -90,7 +90,7 @@ void show_gradients(img::View const& src, img::View const& dst)
 	img::map_rgb(src, view_rgb);
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
-	img::transform_f32(view_grad, view_gray, to_hypot);
+	img::transform(view_grad, view_gray, to_hypot);
 	img::map_rgb(view_gray, dst);
 }
 
@@ -101,7 +101,7 @@ void show_gradients_red(img::View const& src, img::View const& dst)
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
 
-	img::transform_f32(view_grad, view_red, to_hypot);
+	img::transform(view_grad, view_red, to_hypot);
 	img::fill(view_green, 0);
 	img::fill(view_blue, 0);
 
@@ -115,7 +115,7 @@ void show_gradients_green(img::View const& src, img::View const& dst)
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
 
-	img::transform_f32(view_grad, view_green, to_hypot);
+	img::transform(view_grad, view_green, to_hypot);
 	img::fill(view_red, 0);
 	img::fill(view_blue, 0);
 
@@ -129,7 +129,7 @@ void show_gradients_blue(img::View const& src, img::View const& dst)
 	img::transform_gray(view_rgb, view_gray);
 	img::gradients_xy(view_gray, view_grad);
 
-	img::transform_f32(view_grad, view_blue, to_hypot);
+	img::transform(view_grad, view_blue, to_hypot);
 	img::fill(view_green, 0);
 	img::fill(view_red, 0);
 
@@ -147,7 +147,7 @@ void show_inverted_gray(img::ViewGray const& src, img::View const& dst)
 {
 	img::map_gray(src, view_gray);
 
-	img::transform_f32(view_gray, view_gray, [](f32 p){ return 1.0f - p; });
+	img::transform(view_gray, view_gray, [](f32 p){ return 1.0f - p; });
 
 	img::map_rgb(view_gray, dst);
 }

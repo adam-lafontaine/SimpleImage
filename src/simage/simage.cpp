@@ -1218,41 +1218,6 @@ namespace simage
 
 namespace simage
 {
-	template <typename T>
-	static void do_transform_view_1(View1<T> const& src, View1<T> const& dst, std::function<T(T)> const& func)
-	{
-		auto const row_func = [&](u32 y) 
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func(s[x]);
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
-	template <typename T>
-	static void do_transform_view_2_1(View2<T> const& src, View1<T> const& dst, std::function<T(T, T)> const& func)
-	{
-		auto const row_func = [&](u32 y)
-		{
-			auto s0 = channel_row_begin(src, y, 0);
-			auto s1 = channel_row_begin(src, y, 1);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func(s0[x], s1[x]);
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
 
 
 	template <typename T>
@@ -1275,117 +1240,71 @@ namespace simage
 	}
 
 
-	void transform(View1u16 const& src, View1u16 const& dst, std::function<u16(u16)> const& func)
+	void transform(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32)
 	{
 		assert(verify(src, dst));
 
-		do_transform_view_1(src, dst, func);
-	}
-
-
-	void transform(View2u16 const& src, View1u16 const& dst, std::function<u16(u16, u16)> const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform_view_2_1(src, dst, func);
-	}
-
-
-	void transform(View3u16 const& src, View1u16 const& dst, std::function<u16(u16, u16, u16)> const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform_view_3_1(src, dst, func);
-	}
-
-
-	void transform_f32(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32)
-	{
-		assert(verify(src, dst));
-
-		auto const func = [&](u16 p)
+		auto const row_func = [&](u32 y) 
 		{
-			auto p32 = cs::to_channel_f32(p);
-			return cs::to_channel_u16(func32(p32));
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto p32 = cs::to_channel_f32(s[x]);
+				d[x] = cs::to_channel_u16(func32(p32));
+			}
 		};
 
-		transform(src, dst, func);
+		process_by_row(src.height, row_func);
 	}
 
 
-	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32)
+	void transform(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32)
 	{
 		assert(verify(src, dst));
 
-		auto const func = [&](u16 x, u16 y)
+		auto const row_func = [&](u32 y)
 		{
-			auto x32 = cs::to_channel_f32(x);
-			auto y32 = cs::to_channel_f32(y);
-			return cs::to_channel_u16(func32(x32, y32));
+			auto s0 = channel_row_begin(src, y, 0);
+			auto s1 = channel_row_begin(src, y, 1);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto a = cs::to_channel_f32(s0[x]);
+				auto b = cs::to_channel_f32(s1[x]);
+
+				d[x] = cs::to_channel_u16(func32(a, b));
+			}
 		};
 
-		transform(src, dst, func);
+		process_by_row(src.height, row_func);
 	}
 
 
-	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32)
+	void transform(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32)
 	{
 		assert(verify(src, dst));
 
-		auto const func = [&](u16 x, u16 y, u16 z)
+		auto const row_func = [&](u32 y)
 		{
-			auto x32 = cs::to_channel_f32(x);
-			auto y32 = cs::to_channel_f32(y);
-			auto z32 = cs::to_channel_f32(z);
-			return cs::to_channel_u16(func32(x32, y32, z32));
+			auto s0 = channel_row_begin(src, y, 0);
+			auto s1 = channel_row_begin(src, y, 1);
+			auto s2 = channel_row_begin(src, y, 2);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto a = cs::to_channel_f32(s0[x]);
+				auto b = cs::to_channel_f32(s1[x]);
+				auto c = cs::to_channel_f32(s2[x]);
+
+				d[x] = cs::to_channel_u16(func32(a, b, c));
+			}
 		};
 
-		transform(src, dst, func);
-	}
-
-
-	void transform_u8(View1u16 const& src, View1u16 const& dst, std::function<u8(u8)> const& func8)
-	{
-		assert(verify(src, dst));
-
-		auto const func = [&](u16 p)
-		{
-			auto p8 = cs::to_channel_u8(p);
-			return cs::to_channel_u16(func8(p8));
-		};
-
-		transform(src, dst, func);
-	}
-
-
-	void transform_u8(View2u16 const& src, View1u16 const& dst, std::function<u8(u8, u8)> const& func8)
-	{
-		assert(verify(src, dst));
-
-		auto const func = [&](u16 x, u16 y)
-		{
-			auto x8 = cs::to_channel_u8(x);
-			auto y8 = cs::to_channel_u8(y);
-			return cs::to_channel_u16(func8(x8, y8));
-		};
-
-		transform(src, dst, func);
-	}
-
-
-	void transform_u8(View3u16 const& src, View1u16 const& dst, std::function<u8(u8, u8, u8)> const& func8)
-	{
-		assert(verify(src, dst));
-
-		auto const func = [&](u16 x, u16 y, u16 z)
-		{
-			auto x8 = cs::to_channel_u8(x);
-			auto y8 = cs::to_channel_u8(y);
-			auto z8 = cs::to_channel_u8(z);
-			return cs::to_channel_u16(func8(x8, y8, z8));
-		};
-
-		transform(src, dst, func);
+		process_by_row(src.height, row_func);
 	}
 }
 

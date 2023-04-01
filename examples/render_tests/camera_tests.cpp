@@ -144,7 +144,7 @@ void camera_rgb_callback_test(img::View const& out)
 	auto const grab_cb = [&](img::View const& src)
 	{
 		img::map_rgb(src, rgb);
-		img::transform_f32(red, red, invert);
+		img::transform(red, red, invert);
 		img::map_rgb(rgb, dst);
 	};
 
@@ -236,7 +236,7 @@ void camera_rgb_continuous_test(img::View const& out)
 	auto const grab_cb = [&](img::View const& src)
 	{
 		img::map_rgb(img::sub_view(src, range), view_rgb);
-		img::transform_f32(green, green, [&](f32 p){ return p * f; });
+		img::transform(green, green, [&](f32 p){ return p * f; });
 		img::map_rgb(view_rgb, img::sub_view(out, range));
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(2 * frame_count));
@@ -309,7 +309,7 @@ void camera_gray_callback_test(img::View const& out)
 	auto const grab_cb = [&](img::ViewGray const& src)
 	{
 		img::map_gray(src, view);
-		img::transform_f32(view, view, invert);
+		img::transform(view, view, invert);
 		img::map_rgb(view, dst);
 	};
 
@@ -356,7 +356,7 @@ void camera_gray_continuous_test(img::View const& out)
 	auto const grab_cb = [&](img::ViewGray const& src)
 	{
 		img::map_gray(img::sub_view(src, range), view);
-		img::transform_f32(view, view, [&](f32 p){ return p * f; });
+		img::transform(view, view, [&](f32 p){ return p * f; });
 		img::map_rgb(view, img::sub_view(out, range));
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(2 * frame_count));

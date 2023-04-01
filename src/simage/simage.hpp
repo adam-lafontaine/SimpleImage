@@ -276,31 +276,17 @@ namespace simage
 
 namespace simage
 {
-	void transform(View1u16 const& src, View1u16 const& dst, std::function<u16(u16)> const& func);
+	void transform(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32);
 
-	void transform(View2u16 const& src, View1u16 const& dst, std::function<u16(u16, u16)> const& func);
+	void transform(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
 
-	void transform(View3u16 const& src, View1u16 const& dst, std::function<u16(u16, u16, u16)> const& func);
+	void transform(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
 
 	
 	inline void transform_gray(ViewRGBu16 const& src, View1u16 const& dst)
 	{
-		return transform(src, dst, [](u16 red, u16 green, u16 blue) { return (u16)(0.299f * red + 0.587f * green + 0.114f * blue); });
+		return transform(src, dst, [](f32 red, f32 green, f32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
 	}
-
-
-	void transform_f32(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32);
-
-	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
-
-	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
-
-
-	void transform_u8(View1u16 const& src, View1u16 const& dst, std::function<u8(u8)> const& func8);
-
-	void transform_u8(View2u16 const& src, View1u16 const& dst, std::function<u8(u8, u8)> const& func8);
-
-	void transform_u8(View3u16 const& src, View1u16 const& dst, std::function<u8(u8, u8, u8)> const& func8);
 }
 
 

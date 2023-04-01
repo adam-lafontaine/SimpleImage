@@ -1218,28 +1218,6 @@ namespace simage
 
 namespace simage
 {
-
-
-	template <typename T>
-	static void do_transform_view_3_1(View3<T> const& src, View1<T> const& dst, std::function<T(T, T, T)> const& func)
-	{
-		auto const row_func = [&](u32 y)
-		{
-			auto s0 = channel_row_begin(src, y, 0);
-			auto s1 = channel_row_begin(src, y, 1);
-			auto s2 = channel_row_begin(src, y, 2);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func(s0[x], s1[x], s2[x]);
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
 	void transform(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32)
 	{
 		assert(verify(src, dst));
@@ -1301,6 +1279,47 @@ namespace simage
 				auto c = cs::to_channel_f32(s2[x]);
 
 				d[x] = cs::to_channel_u16(func32(a, b, c));
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void threshold(View1u16 const& src, View1u16 const& dst, u8 min)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = s[x] >= min ? s[x] : 0;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void threshold(View1u16 const& src, View1u16 const& dst, u8 min, u8 max)
+	{
+		assert(verify(src, dst));
+
+		auto mn = std::min(min, max);
+		auto mx = std::max(min, max);
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = s[x] >= mn && s[x] <= mx ? s[x] : 0;
 			}
 		};
 

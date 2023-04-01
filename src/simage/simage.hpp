@@ -287,6 +287,11 @@ namespace simage
 	{
 		return transform(src, dst, [](f32 red, f32 green, f32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
 	}
+
+
+	void threshold(View1u16 const& src, View1u16 const& dst, u8 min);
+
+	void threshold(View1u16 const& src, View1u16 const& dst, u8 min, u8 max);
 }
 
 

@@ -439,6 +439,14 @@ namespace simage
 }
 
 
+/* split channels */
+
+namespace simage
+{
+	void split_channels(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue);
+}
+
+
 /* row begin */
 
 namespace simage

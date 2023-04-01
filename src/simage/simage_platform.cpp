@@ -426,110 +426,27 @@ namespace simage
 
 namespace simage
 {
-	template <class VIEW, typename COLOR>
-	static void fill_no_simd(VIEW const& view, COLOR color)
+	template <typename PIXEL>
+	static void fill_row(PIXEL* d, PIXEL color, u32 width)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 i = 0; i < width; ++i)
 		{
-			auto d = row_begin(view, y);
-			for (u32 i = 0; i < view.width; ++i)
-			{
-				d[i] = color;
-			}
-		};
-
-		process_by_row(view.height, row_func);
-	}
-
-#ifdef SIMAGE_NO_SIMD
-
-	template <class VIEW, typename COLOR>
-	static void do_fill(VIEW const& view, COLOR color)
-	{
-		fill_no_simd(view, color);
-	}
-
-#else
-
-	static void fill_row_simd(f32* dst_begin, f32 value, u32 length)
-	{
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		f32* dst = 0;
-		f32* val = &value;
-		simd::vec_t vec{};
-
-		auto const do_simd = [&](u32 i)
-		{
-			dst = dst_begin + i;
-			vec = simd::load_broadcast(val);
-			simd::store(dst, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
+			d[i] = color;
 		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void fill_simd(View const& view, Pixel color)
-	{
-		static_assert(sizeof(Pixel) == sizeof(f32));
-
-		auto ptr = (f32*)(&color);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			fill_row_simd((f32*)d, *ptr, view.width);
-		};
-
-		process_by_row(view.height, row_func);
-	}
-
-
-	static void fill_simd(ViewGray const& view, u8 gray)
-	{
-		static_assert(4 * sizeof(u8) == sizeof(f32));
-
-		u8 bytes[4] = { gray, gray, gray, gray };
-		auto ptr = (f32*)bytes;
-		auto len32 = view.width / 4;
-
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			fill_row_simd((f32*)d, *ptr, len32);
-
-			for (u32 x = len32 * 4; x < view.width; ++x)
-			{
-				d[x] = gray;
-			}
-		};
-
-		process_by_row(view.height, row_func);
 	}
 
 
 	template <class VIEW, typename COLOR>
 	static void do_fill(VIEW const& view, COLOR color)
 	{
-		auto len32 = view.width * sizeof(COLOR) / sizeof(f32);
-		if (len32 < simd::VEC_LEN)
+		auto const row_func = [&](u32 y)
 		{
-			fill_no_simd(view, color);
-		}
-		else
-		{
-			fill_simd(view, color);
-		}
+			auto d = row_begin(view, y);
+			fill_row(d, color, view.width);
+		};
+
+		process_by_row(view.height, row_func);
 	}
-
-
-#endif // SIMAGE_NO_SIMD
 
 
 	void fill(View const& view, Pixel color)
@@ -552,119 +469,30 @@ namespace simage
 /* copy */
 
 namespace simage
-{
-	template <class IMG_SRC, class IMG_DST>
-	static void copy_no_simd(IMG_SRC const& src, IMG_DST const& dst)
+{	
+	template <typename PIXEL>
+	static void copy_row(PIXEL* s, PIXEL* d, u32 width)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 i = 0; i < width; ++i)
 		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x];
-			}
-		};
-
-		process_by_row(src.height, row_func);
+			d[i] = s[i];
+		}
 	}
 
-
-#ifdef SIMAGE_NO_SIMD
 
 	template <class IMG_SRC, class IMG_DST>
 	static void do_copy(IMG_SRC const& src, IMG_DST const& dst)
 	{
-		copy_no_simd(src, dst);
-	}
-
-#else
-
-	static void simd_copy_row(Pixel* src_begin, Pixel* dst_begin, u32 length)
-	{
-		static_assert(sizeof(Pixel) == sizeof(f32));
-
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		f32* src = 0;
-		f32* dst = 0;
-		simd::vec_t vec{};
-
-		auto const do_simd = [&](u32 i)
-		{
-			src = (f32*)(src_begin + i);
-			dst = (f32*)(dst_begin + i);
-
-			vec = simd::load(src);
-			simd::store(dst, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void simd_copy_row(u8* src_begin, u8* dst_begin, u32 length)
-	{
-		static_assert(sizeof(u8) * 4 == sizeof(f32));
-
-		constexpr u32 STEP = simd::VEC_LEN * sizeof(f32) / sizeof(u8);
-
-		f32* src = 0;
-		f32* dst = 0;
-		simd::vec_t vec{};
-
-		auto const do_simd = [&](u32 i)
-		{
-			src = (f32*)(src_begin + i);
-			dst = (f32*)(dst_begin + i);
-
-			vec = simd::load(src);
-			simd::store(dst, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	template <class IMG>
-	static void copy_simd(IMG const& src, IMG const& dst)
-	{
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			simd_copy_row(s, d, src.width);
+			copy_row(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
 	}
-
-
-	template <class IMG>
-	static void do_copy(IMG const& src, IMG const& dst)
-	{
-		if (src.width < simd::VEC_LEN)
-		{
-			copy_no_simd(src, dst);
-		}
-		else
-		{
-			copy_simd(src, dst);
-		}
-	}
-
-#endif // SIMAGE_NO_SIMD
-
+	
 
 	void copy(View const& src, View const& dst)
 	{

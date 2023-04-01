@@ -444,6 +444,10 @@ namespace simage
 namespace simage
 {
 	void split_channels(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue);
+
+	void split_channels(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha);
+
+	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val);
 }
 
 

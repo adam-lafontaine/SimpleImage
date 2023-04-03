@@ -451,6 +451,14 @@ namespace simage
 }
 
 
+/* rotate */
+
+namespace simage
+{
+	void rotate(View const& src, ViewGray const& dst, Point2Du32 origin, f32 rad);
+}
+
+
 /* row begin */
 
 namespace simage

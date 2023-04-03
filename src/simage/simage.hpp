@@ -289,12 +289,12 @@ namespace simage
 	}
 
 
-	void threshold(View1u16 const& src, View1u16 const& dst, f32 min);
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32);
 
-	void threshold(View1u16 const& src, View1u16 const& dst, f32 min, f32 max);
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32, f32 max32);
 
 
-	
+	void binarize(View1u16 const& src, View1u16 const& dst, std::function<bool(f32)> func32);
 }
 
 
@@ -303,6 +303,14 @@ namespace simage
 namespace simage
 {
 	void alpha_blend(ViewRGBAu16 const& src, ViewRGBu16 const& cur, ViewRGBu16 const& dst);
+}
+
+
+/* rotate */
+
+namespace simage
+{
+	
 }
 
 

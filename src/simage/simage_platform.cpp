@@ -801,6 +801,58 @@ namespace simage
 }
 
 
+/* rotate */
+
+namespace simage
+{
+	static Point2Df32 find_rotation_src(Point2Du32 const& pt, Point2Du32 const& origin, f32 theta_rotate)
+	{
+		auto const dx_dst = (f32)pt.x - (f32)origin.x;
+		auto const dy_dst = (f32)pt.y - (f32)origin.y;
+
+		auto const radius = std::hypotf(dx_dst, dy_dst);
+
+		auto const theta_dst = atan2f(dy_dst, dx_dst);
+		auto const theta_src = theta_dst - theta_rotate;
+
+		auto const dx_src = radius * cosf(theta_src);
+		auto const dy_src = radius * sinf(theta_src);
+
+		Point2Df32 pt_src{};
+		pt_src.x = (f32)origin.x + dx_src;
+		pt_src.y = (f32)origin.y + dy_src;
+
+		return pt_src;
+	}
+	
+
+	static pixel_t get_pixel_color(View const& src, Point2Df32 location)
+	{
+		auto const zero = 0.0f;
+		auto const width = (f32)src.width;
+		auto const height = (f32)src.height;
+
+		auto x = location.x;
+		auto y = location.y;
+
+		if (x < zero || x >= width || y < zero || y >= height)
+		{
+			return to_pixel(0, 0, 0);
+		}
+
+		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
+	}
+
+
+	void rotate(View const& src, ViewGray const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+
+	}
+}
+
+
 /* split channels */
 
 namespace simage

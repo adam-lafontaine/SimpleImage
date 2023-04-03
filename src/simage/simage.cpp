@@ -1277,11 +1277,11 @@ namespace simage
 	}
 
 
-	void threshold(View1u16 const& src, View1u16 const& dst, f32 min)
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32)
 	{
 		assert(verify(src, dst));
 
-		auto const min_16 = cs::to_channel_u16(min);
+		auto const min16 = cs::to_channel_u16(min32);
 
 		auto const row_func = [&](u32 y)
 		{
@@ -1290,7 +1290,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = s[x] >= min_16 ? s[x] : 0;
+				d[x] = s[x] >= min16 ? s[x] : 0;
 			}
 		};
 
@@ -1298,12 +1298,12 @@ namespace simage
 	}
 
 
-	void threshold(View1u16 const& src, View1u16 const& dst, f32 min, f32 max)
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32, f32 max32)
 	{
 		assert(verify(src, dst));
 
-		auto const min_16 = cs::to_channel_u16(std::min(min, max));
-		auto const max_16 = cs::to_channel_u16(std::max(min, max));
+		auto const min16 = cs::to_channel_u16(std::min(min32, max32));
+		auto const max16 = cs::to_channel_u16(std::max(min32, max32));
 
 		auto const row_func = [&](u32 y)
 		{
@@ -1312,7 +1312,24 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = s[x] >= min_16 && s[x] <= max_16 ? s[x] : 0;
+				d[x] = s[x] >= min16 && s[x] <= max16 ? s[x] : 0;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void binarize(View1u16 const& src, View1u16 const& dst, std::function<bool(f32)> func32)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func32(s[x]) ? cs::CH_U16_MAX : 0;
 			}
 		};
 

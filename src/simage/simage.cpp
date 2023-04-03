@@ -2,13 +2,9 @@
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
 
-
 #include <cmath>
-#include <algorithm>
 
 namespace cs = color_space;
-namespace rng = std::ranges;
-
 
 
 static void process_by_row(u32 n_rows, id_func_t const& row_func)
@@ -1812,7 +1808,6 @@ namespace simage
 {
 	static constexpr std::array<f32, 9> make_gauss_3()
 	{
-		auto D3 = 16.0f;
 		std::array<f32, 9> kernel = 
 		{
 			1.0f, 2.0f, 1.0f,
@@ -1820,7 +1815,10 @@ namespace simage
 			1.0f, 2.0f, 1.0f,
 		};
 
-		rng::for_each(kernel, [D3](f32& v) { v /= D3; });
+		for (u32 i = 0; i < 9; ++i)
+		{
+			kernel[i] /= 16.0f;
+		}
 
 		return kernel;
 	}
@@ -1828,7 +1826,6 @@ namespace simage
 
 	static constexpr std::array<f32, 25> make_gauss_5()
 	{
-		auto D5 = 256.0f;
 		std::array<f32, 25> kernel =
 		{
 			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
@@ -1838,7 +1835,10 @@ namespace simage
 			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
 		};
 
-		rng::for_each(kernel, [D5](f32& v) { v /= D5; });
+		for (u32 i = 0; i < 9; ++i)
+		{
+			kernel[i] /= 256.0f;
+		}
 
 		return kernel;
 	}

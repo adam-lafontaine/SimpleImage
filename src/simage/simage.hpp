@@ -289,9 +289,9 @@ namespace simage
 	}
 
 
-	void threshold(View1u16 const& src, View1u16 const& dst, u8 min);
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min);
 
-	void threshold(View1u16 const& src, View1u16 const& dst, u8 min, u8 max);
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min, f32 max);
 }
 
 

@@ -1,11 +1,6 @@
 #include "simage.hpp"
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
-#define SIMAGE_NO_SIMD
-
-#ifndef SIMAGE_NO_SIMD
-#include "../util/simd.hpp"
-#endif // !SIMAGE_NO_SIMD
 
 
 #include <cmath>
@@ -1286,9 +1281,11 @@ namespace simage
 	}
 
 
-	void threshold(View1u16 const& src, View1u16 const& dst, u8 min)
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min)
 	{
 		assert(verify(src, dst));
+
+		auto const min_16 = cs::to_channel_u16(min);
 
 		auto const row_func = [&](u32 y)
 		{
@@ -1297,7 +1294,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = s[x] >= min ? s[x] : 0;
+				d[x] = s[x] >= min_16 ? s[x] : 0;
 			}
 		};
 
@@ -1305,12 +1302,12 @@ namespace simage
 	}
 
 
-	void threshold(View1u16 const& src, View1u16 const& dst, u8 min, u8 max)
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min, f32 max)
 	{
 		assert(verify(src, dst));
 
-		auto mn = std::min(min, max);
-		auto mx = std::max(min, max);
+		auto const min_16 = cs::to_channel_u16(std::min(min, max));
+		auto const max_16 = cs::to_channel_u16(std::max(min, max));
 
 		auto const row_func = [&](u32 y)
 		{
@@ -1319,7 +1316,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = s[x] >= mn && s[x] <= mx ? s[x] : 0;
+				d[x] = s[x] >= min_16 && s[x] <= max_16 ? s[x] : 0;
 			}
 		};
 

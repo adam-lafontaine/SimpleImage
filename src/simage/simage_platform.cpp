@@ -492,7 +492,7 @@ namespace simage
 
 		process_by_row(src.height, row_func);
 	}
-	
+
 
 	void copy(View const& src, View const& dst)
 	{
@@ -805,7 +805,7 @@ namespace simage
 
 namespace simage
 {
-	void split_channels(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
+	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
 	{
 		assert(verify(src, red));
 		assert(verify(src, green));
@@ -831,7 +831,7 @@ namespace simage
 	}
 
 
-	void split_channels(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha)
+	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha)
 	{
 		assert(verify(src, red));
 		assert(verify(src, green));

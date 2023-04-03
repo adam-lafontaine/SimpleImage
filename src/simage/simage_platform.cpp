@@ -826,14 +826,14 @@ namespace simage
 	}
 	
 
-	static pixel_t get_pixel_color(View const& src, Point2Df32 location)
+	static Pixel get_pixel_color(View const& src, Point2Df32 location)
 	{
-		auto const zero = 0.0f;
+		constexpr auto zero = 0.0f;
 		auto const width = (f32)src.width;
 		auto const height = (f32)src.height;
 
-		auto x = location.x;
-		auto y = location.y;
+		auto const x = location.x;
+		auto const y = location.y;
 
 		if (x < zero || x >= width || y < zero || y >= height)
 		{
@@ -844,11 +844,61 @@ namespace simage
 	}
 
 
-	void rotate(View const& src, ViewGray const& dst, Point2Du32 origin, f32 rad)
+	static u8 get_pixel_gray(ViewGray const& src, Point2Df32 location)
+	{
+		constexpr auto zero = 0.0f;
+		auto const width = (f32)src.width;
+		auto const height = (f32)src.height;
+
+		auto const x = location.x;
+		auto const y = location.y;
+
+		if (x < zero || x >= width || y < zero || y >= height)
+		{
+			return 0;
+		}
+
+		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
+	}
+
+
+	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad)
 	{
 		assert(verify(src, dst));
 
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
 
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src({ x, y }, origin, rad);
+				d[x] = get_pixel_color(src, src_pt);
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void rotate(ViewGray const& src, ViewGray const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src({ x, y }, origin, rad);
+				d[x] = get_pixel_gray(src, src_pt);
+			}
+		};
+
+		process_by_row(src.height, row_func);
 	}
 }
 

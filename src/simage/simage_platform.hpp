@@ -455,7 +455,9 @@ namespace simage
 
 namespace simage
 {
-	void rotate(View const& src, ViewGray const& dst, Point2Du32 origin, f32 rad);
+	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(ViewGray const& src, ViewGray const& dst, Point2Du32 origin, f32 rad);
 }
 
 

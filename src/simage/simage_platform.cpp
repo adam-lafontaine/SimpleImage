@@ -173,22 +173,6 @@ namespace simage
 }
 
 
-/* xy_at */
-
-namespace simage
-{
-	template <typename T>
-	static T* xy_at(MatrixView<T> const& view, u32 x, u32 y)
-	{
-		assert(verify(view));
-		assert(y < view.height);
-		assert(x < view.width);
-
-		return row_begin(view, y) + x;
-	}
-}
-
-
 /* make_view */
 
 namespace simage
@@ -826,7 +810,7 @@ namespace simage
 	}
 	
 
-	static Pixel get_pixel_color(View const& src, Point2Df32 location)
+	static Pixel get_pixel_value(View const& src, Point2Df32 location)
 	{
 		constexpr auto zero = 0.0f;
 		auto const width = (f32)src.width;
@@ -844,7 +828,7 @@ namespace simage
 	}
 
 
-	static u8 get_pixel_gray(ViewGray const& src, Point2Df32 location)
+	static u8 get_pixel_value(ViewGray const& src, Point2Df32 location)
 	{
 		constexpr auto zero = 0.0f;
 		auto const width = (f32)src.width;
@@ -868,13 +852,12 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto src_pt = find_rotation_src({ x, y }, origin, rad);
-				d[x] = get_pixel_color(src, src_pt);
+				d[x] = get_pixel_value(src, src_pt);
 			}
 		};
 
@@ -888,13 +871,12 @@ namespace simage
 
 		auto const row_func = [&](u32 y)
 		{
-			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto src_pt = find_rotation_src({ x, y }, origin, rad);
-				d[x] = get_pixel_gray(src, src_pt);
+				d[x] = get_pixel_value(src, src_pt);
 			}
 		};
 

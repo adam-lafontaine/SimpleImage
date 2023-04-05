@@ -477,6 +477,13 @@ namespace simage
 	{
 		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
+
+
+	template <typename T>
+	inline T* xy_at(MatrixView<T> const& view, u32 x, u32 y)
+	{
+		return row_begin(view, y) + x;
+	}
 }
 
 

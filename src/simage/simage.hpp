@@ -310,7 +310,13 @@ namespace simage
 
 namespace simage
 {
-	
+	void rotate(View4u16 const& src, View4u16 const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(View3u16 const& src, View3u16 const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(View2u16 const& src, View2u16 const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(View1u16 const& src, View1u16 const& dst, Point2Du32 origin, f32 rad);
 }
 
 

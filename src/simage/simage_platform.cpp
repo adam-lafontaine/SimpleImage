@@ -785,6 +785,93 @@ namespace simage
 }
 
 
+/* split channels */
+
+namespace simage
+{
+	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
+	{
+		assert(verify(src, red));
+		assert(verify(src, green));
+		assert(verify(src, blue));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = s[x].rgba;
+				r[x] = rgba.red;
+				g[x] = rgba.green;
+				b[x] = rgba.blue;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha)
+	{
+		assert(verify(src, red));
+		assert(verify(src, green));
+		assert(verify(src, blue));
+		assert(verify(src, alpha));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+			auto a = row_begin(alpha, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = s[x].rgba;
+				r[x] = rgba.red;
+				g[x] = rgba.green;
+				b[x] = rgba.blue;
+				a[x] = rgba.alpha;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val)
+	{
+		assert(verify(src, hue));
+		assert(verify(src, sat));
+		assert(verify(src, val));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto p = row_begin(src, y);
+			auto h = row_begin(hue, y);
+			auto s = row_begin(sat, y);
+			auto v = row_begin(val, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = p[x].rgba;
+				auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				h[x] = hsv.hue;
+				s[x] = hsv.sat;
+				v[x] = hsv.val;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+}
+
+
 /* rotate */
 
 namespace simage
@@ -885,89 +972,62 @@ namespace simage
 }
 
 
-/* split channels */
-
 namespace simage
 {
-	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
+	Point2Du32 centroid(ViewGray const& src)
 	{
-		assert(verify(src, red));
-		assert(verify(src, green));
-		assert(verify(src, blue));
+		u64 totals[N_THREADS] = { 0 };
+		u64 x_totals[N_THREADS] = { 0 };
+		u64 y_totals[N_THREADS] = { 0 };
 
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
-			auto r = row_begin(red, y);
-			auto g = row_begin(green, y);
-			auto b = row_begin(blue, y);
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto const rgba = s[x].rgba;
-				r[x] = rgba.red;
-				g[x] = rgba.green;
-				b[x] = rgba.blue;
+				u64 val = s[x] ? 1 : 0;
+				auto thread_id = N_THREADS * y / src.height;
+
+				totals[thread_id] += val;
+				x_totals[thread_id] += x * val;
+				y_totals[thread_id] += y * val;
 			}
 		};
 
 		process_by_row(src.height, row_func);
+
+		u64 total = 0;
+		u64 x_total = 0;
+		u64 y_total = 0;
+
+		for (u32 i = 0; i < N_THREADS; ++i)
+		{
+			total += totals[i];
+			x_total += totals[i];
+			y_total += totals[i];
+		}
+
+		Point2Du32 pt{};
+
+		if (total == 0)
+		{
+			pt.x = src.width / 2;
+			pt.y = src.height / 2;
+		}
+		else
+		{
+			pt.x = x_total / total;
+			pt.y = y_total / total;
+		}
+
+		return pt;
 	}
 
 
-	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha)
+	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func)
 	{
-		assert(verify(src, red));
-		assert(verify(src, green));
-		assert(verify(src, blue));
-		assert(verify(src, alpha));
 
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto r = row_begin(red, y);
-			auto g = row_begin(green, y);
-			auto b = row_begin(blue, y);
-			auto a = row_begin(alpha, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto const rgba = s[x].rgba;
-				r[x] = rgba.red;
-				g[x] = rgba.green;
-				b[x] = rgba.blue;
-				a[x] = rgba.alpha;
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
-	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val)
-	{
-		assert(verify(src, hue));
-		assert(verify(src, sat));
-		assert(verify(src, val));
-
-		auto const row_func = [&](u32 y)
-		{
-			auto p = row_begin(src, y);
-			auto h = row_begin(hue, y);
-			auto s = row_begin(sat, y);
-			auto v = row_begin(val, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto const rgba = p[x].rgba;
-				auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-				h[x] = hsv.hue;
-				s[x] = hsv.sat;
-				v[x] = hsv.val;
-			}
-		};
-
-		process_by_row(src.height, row_func);
 	}
 }
 

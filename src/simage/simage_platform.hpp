@@ -461,6 +461,14 @@ namespace simage
 }
 
 
+namespace simage
+{
+	Point2Du32 centroid(ViewGray const& src);
+
+	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func);
+}
+
+
 /* row begin */
 
 namespace simage

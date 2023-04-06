@@ -466,6 +466,9 @@ namespace simage
 	Point2Du32 centroid(ViewGray const& src);
 
 	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func);
+
+
+	void skeleton(ViewGray const& src, ViewGray const& dst);
 }
 
 

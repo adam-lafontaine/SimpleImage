@@ -1,8 +1,10 @@
 #pragma once
 
-#include "../defines.hpp"
+#include "../util/memory_buffer.hpp"
 
 #include <functional>
+
+namespace mb = memory_buffer;
 
 
 // region of interest in an image
@@ -329,6 +331,13 @@ namespace simage
 	ViewBGR make_view(ImageBGR const& image);
 
 	ViewRGB make_view(ImageRGB const& image);
+
+
+	using Buffer8 = MemoryBuffer<u8>;
+
+	View make_view_rgba(u32 width, u32 height, Buffer8& buffer);
+
+	ViewGray make_view_gray(u32 width, u32 height, Buffer8& buffer);
 }
 
 
@@ -465,10 +474,10 @@ namespace simage
 {
 	Point2Du32 centroid(ViewGray const& src);
 
-	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func);
+	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func);	
 
 
-	void skeleton(ViewGray const& src, ViewGray const& dst);
+	void skeleton(ViewGray const& src_dst);
 }
 
 

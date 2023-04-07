@@ -30,6 +30,13 @@ namespace simage
 	static bool verify(MatrixView<T> const& view)
 	{
 		return view.matrix_width && view.width && view.height && view.matrix_data_;
+	}	
+
+
+	template <typename T>
+	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
+	{
+		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
 	}
 
 
@@ -48,11 +55,11 @@ namespace simage
 	{
 		return
 			verify(image) &&
-			range.x_begin < range.x_end&&
-			range.y_begin < range.y_end&&
-			range.x_begin < image.width&&
+			range.x_begin < range.x_end &&
+			range.y_begin < range.y_end &&
+			range.x_begin < image.width &&
 			range.x_end <= image.width &&
-			range.y_begin < image.height&&
+			range.y_begin < image.height &&
 			range.y_end <= image.height;
 	}
 
@@ -184,12 +191,11 @@ namespace simage
 
 		view.matrix_data_ = image.data_;
 		view.matrix_width = image.width;
-		view.x_begin = 0;
-		view.y_begin = 0;
-		view.x_end = image.width;
-		view.y_end = image.height;
+
 		view.width = image.width;
 		view.height = image.height;
+
+		view.range = make_range(image.width, image.height);
 
 		return view;
 	}
@@ -244,6 +250,46 @@ namespace simage
 		assert(verify(image));
 
 		auto view = do_make_view(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	View make_view_rgba(u32 width, u32 height, Buffer8& buffer)
+	{
+		auto n_bytes = (u32)(sizeof(Pixel) * width * height);
+
+		assert(verify(buffer, n_bytes));
+
+		View view;
+
+		view.matrix_data_ = (Pixel*)mb::push_elements(buffer, n_bytes);
+		view.matrix_width = width;		
+		view.width = width;
+		view.height = height;
+
+		view.range = make_range(width, height);
+
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewGray make_view_gray(u32 width, u32 height, Buffer8& buffer)
+	{
+		assert(verify(buffer, width * height));
+
+		ViewGray view;
+
+		view.matrix_data_ = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;		
+		view.width = width;
+		view.height = height;
+
+		view.range = make_range(width, height);
+
 		assert(verify(view));
 
 		return view;
@@ -1094,7 +1140,7 @@ namespace simage
 		assert(y >= 1);
 		assert(y < img.height);
 
-		constexpr std::array<int, 8> x_neighbors = { -1,  0,  1,  1,  1,  0, -1, -1 };		
+		constexpr std::array<int, 8> x_neighbors = { -1,  0,  1,  1,  1,  0, -1, -1 };
 		constexpr std::array<int, 8> y_neighbors = { -1, -1, -1,  0,  1,  1,  1,  0 };
 
 		constexpr auto n_neighbors = x_neighbors.size();
@@ -1229,28 +1275,19 @@ namespace simage
 	}
 
 
-	template<class GRAY_SRC_IMG_T, class GRAY_DST_IMG_T>
-	static void do_skeleton(GRAY_SRC_IMG_T const& src, GRAY_DST_IMG_T const& dst)
+	void skeleton(ViewGray const& src_dst)
 	{
-		copy(src, dst);
+		assert(verify(src_dst));
 
 		u32 current_count = 0;
-		u32 pixel_count = skeleton_once(dst);
+		u32 pixel_count = skeleton_once(src_dst);
 		u32 max_iter = 100; // src.width / 2;
 
 		for (u32 i = 1; pixel_count != current_count && i < max_iter; ++i)
 		{
 			current_count = pixel_count;
-			pixel_count = skeleton_once(dst);
+			pixel_count = skeleton_once(src_dst);
 		}
-	}
-
-
-	void skeleton(ViewGray const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-		do_skeleton(src, dst);
 	}
 }
 

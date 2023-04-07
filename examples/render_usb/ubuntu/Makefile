@@ -51,11 +51,10 @@ uvc_h := $(uvc)/libuvc2.hpp
 
 # simage
 simage_platform_h := $(simage)/simage_platform.hpp
-simage_platform_h += $(defines_h)
+simage_platform_h += $(memory_buffer_h)
 
 simage_h := $(simage)/simage.hpp
 simage_h += $(simage_platform_h)
-simage_h += $(memory_buffer_h)
 
 # input
 input_h := $(input)/input.hpp

@@ -1,12 +1,9 @@
 #pragma once
 
 #include "simage_platform.hpp"
-#include "../util/memory_buffer.hpp"
 
 #include <array>
 #include <functional>
-
-namespace mb = memory_buffer;
 
 
 /* view */
@@ -73,52 +70,6 @@ namespace simage
 	using ViewHSVu16 = View3u16;
 	using ViewLCHu16 = View3u16;	
 }
-
-
-/* reinterpret_view */
-#if 0
-
-namespace simage
-{
-	template <typename ST, typename DT, size_t N>
-	ChannelView2D<DT, N> reinterpret_view(ChannelView2D<ST, N> const& src, DT n)
-	{
-		static_assert(sizeof(ST) == sizeof(DT));
-
-		ChannelView2D<DT, N> dst;
-
-		dst.channel_width_ = src.channel_width_;
-		dst.width = src.width;
-		dst.height = src.height;
-		dst.range = src.range;
-
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			dst.channel_data_[ch] = (DT*)src.channel_data_[ch];
-		}
-
-		return dst;
-	}
-
-
-	template <typename ST, typename DT>
-	View1<DT> reinterpret_view(View1<ST> const& src)
-	{
-		static_assert(sizeof(ST) == sizeof(DT));
-
-		View1<DT> dst;
-
-		dst.width = src.width;
-		dst.height = src.height;
-		dst.range = src.range;
-
-		dst.matrix_data_ = (DT*)src.matrix_data_;
-
-		return dst;
-	}
-
-}
-#endif
 
 
 /* make_view */

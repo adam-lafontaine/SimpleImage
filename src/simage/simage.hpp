@@ -1,12 +1,9 @@
 #pragma once
 
 #include "simage_platform.hpp"
-#include "../util/memory_buffer.hpp"
 
 #include <array>
 #include <functional>
-
-namespace mb = memory_buffer;
 
 
 /* view */
@@ -73,52 +70,6 @@ namespace simage
 	using ViewHSVu16 = View3u16;
 	using ViewLCHu16 = View3u16;	
 }
-
-
-/* reinterpret_view */
-#if 0
-
-namespace simage
-{
-	template <typename ST, typename DT, size_t N>
-	ChannelView2D<DT, N> reinterpret_view(ChannelView2D<ST, N> const& src, DT n)
-	{
-		static_assert(sizeof(ST) == sizeof(DT));
-
-		ChannelView2D<DT, N> dst;
-
-		dst.channel_width_ = src.channel_width_;
-		dst.width = src.width;
-		dst.height = src.height;
-		dst.range = src.range;
-
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			dst.channel_data_[ch] = (DT*)src.channel_data_[ch];
-		}
-
-		return dst;
-	}
-
-
-	template <typename ST, typename DT>
-	View1<DT> reinterpret_view(View1<ST> const& src)
-	{
-		static_assert(sizeof(ST) == sizeof(DT));
-
-		View1<DT> dst;
-
-		dst.width = src.width;
-		dst.height = src.height;
-		dst.range = src.range;
-
-		dst.matrix_data_ = (DT*)src.matrix_data_;
-
-		return dst;
-	}
-
-}
-#endif
 
 
 /* make_view */
@@ -276,24 +227,25 @@ namespace simage
 
 namespace simage
 {
-	void transform(View1u16 const& src, View1u16 const& dst, std::function<u16(u16)> const& func);
+	void transform(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32);
 
-	void transform(View2u16 const& src, View1u16 const& dst, std::function<u16(u16, u16)> const& func);
+	void transform(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
 
-	void transform(View3u16 const& src, View1u16 const& dst, std::function<u16(u16, u16, u16)> const& func);
+	void transform(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
 
 	
 	inline void transform_gray(ViewRGBu16 const& src, View1u16 const& dst)
 	{
-		return transform(src, dst, [](u16 red, u16 green, u16 blue) { return (u16)(0.299f * red + 0.587f * green + 0.114f * blue); });
+		return transform(src, dst, [](f32 red, f32 green, f32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
 	}
 
 
-	void transform_f32(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32);
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32);
 
-	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32, f32 max32);
 
-	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
+
+	void binarize(View1u16 const& src, View1u16 const& dst, std::function<bool(f32)> func32);
 }
 
 
@@ -302,6 +254,20 @@ namespace simage
 namespace simage
 {
 	void alpha_blend(ViewRGBAu16 const& src, ViewRGBu16 const& cur, ViewRGBu16 const& dst);
+}
+
+
+/* rotate */
+
+namespace simage
+{
+	void rotate(View4u16 const& src, View4u16 const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(View3u16 const& src, View3u16 const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(View2u16 const& src, View2u16 const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(View1u16 const& src, View1u16 const& dst, Point2Du32 origin, f32 rad);
 }
 
 

@@ -30,6 +30,13 @@ namespace simage
 	static bool verify(MatrixView<T> const& view)
 	{
 		return view.matrix_width && view.width && view.height && view.matrix_data_;
+	}	
+
+
+	template <typename T>
+	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
+	{
+		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
 	}
 
 
@@ -48,11 +55,11 @@ namespace simage
 	{
 		return
 			verify(image) &&
-			range.x_begin < range.x_end&&
-			range.y_begin < range.y_end&&
-			range.x_begin < image.width&&
+			range.x_begin < range.x_end &&
+			range.y_begin < range.y_end &&
+			range.x_begin < image.width &&
 			range.x_end <= image.width &&
-			range.y_begin < image.height&&
+			range.y_begin < image.height &&
 			range.y_end <= image.height;
 	}
 
@@ -173,22 +180,6 @@ namespace simage
 }
 
 
-/* xy_at */
-
-namespace simage
-{
-	template <typename T>
-	static T* xy_at(MatrixView<T> const& view, u32 x, u32 y)
-	{
-		assert(verify(view));
-		assert(y < view.height);
-		assert(x < view.width);
-
-		return row_begin(view, y) + x;
-	}
-}
-
-
 /* make_view */
 
 namespace simage
@@ -200,12 +191,11 @@ namespace simage
 
 		view.matrix_data_ = image.data_;
 		view.matrix_width = image.width;
-		view.x_begin = 0;
-		view.y_begin = 0;
-		view.x_end = image.width;
-		view.y_end = image.height;
+
 		view.width = image.width;
 		view.height = image.height;
+
+		view.range = make_range(image.width, image.height);
 
 		return view;
 	}
@@ -260,6 +250,46 @@ namespace simage
 		assert(verify(image));
 
 		auto view = do_make_view(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	View make_view_rgba(u32 width, u32 height, Buffer8& buffer)
+	{
+		auto n_bytes = (u32)(sizeof(Pixel) * width * height);
+
+		assert(verify(buffer, n_bytes));
+
+		View view;
+
+		view.matrix_data_ = (Pixel*)mb::push_elements(buffer, n_bytes);
+		view.matrix_width = width;		
+		view.width = width;
+		view.height = height;
+
+		view.range = make_range(width, height);
+
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewGray make_view_gray(u32 width, u32 height, Buffer8& buffer)
+	{
+		assert(verify(buffer, width * height));
+
+		ViewGray view;
+
+		view.matrix_data_ = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;		
+		view.width = width;
+		view.height = height;
+
+		view.range = make_range(width, height);
+
 		assert(verify(view));
 
 		return view;
@@ -426,110 +456,27 @@ namespace simage
 
 namespace simage
 {
-	template <class VIEW, typename COLOR>
-	static void fill_no_simd(VIEW const& view, COLOR color)
+	template <typename PIXEL>
+	static void fill_row(PIXEL* d, PIXEL color, u32 width)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 i = 0; i < width; ++i)
 		{
-			auto d = row_begin(view, y);
-			for (u32 i = 0; i < view.width; ++i)
-			{
-				d[i] = color;
-			}
-		};
-
-		process_by_row(view.height, row_func);
-	}
-
-#ifdef SIMAGE_NO_SIMD
-
-	template <class VIEW, typename COLOR>
-	static void do_fill(VIEW const& view, COLOR color)
-	{
-		fill_no_simd(view, color);
-	}
-
-#else
-
-	static void fill_row_simd(f32* dst_begin, f32 value, u32 length)
-	{
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		f32* dst = 0;
-		f32* val = &value;
-		simd::vec_t vec{};
-
-		auto const do_simd = [&](u32 i)
-		{
-			dst = dst_begin + i;
-			vec = simd::load_broadcast(val);
-			simd::store(dst, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
+			d[i] = color;
 		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void fill_simd(View const& view, Pixel color)
-	{
-		static_assert(sizeof(Pixel) == sizeof(f32));
-
-		auto ptr = (f32*)(&color);
-
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			fill_row_simd((f32*)d, *ptr, view.width);
-		};
-
-		process_by_row(view.height, row_func);
-	}
-
-
-	static void fill_simd(ViewGray const& view, u8 gray)
-	{
-		static_assert(4 * sizeof(u8) == sizeof(f32));
-
-		u8 bytes[4] = { gray, gray, gray, gray };
-		auto ptr = (f32*)bytes;
-		auto len32 = view.width / 4;
-
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(view, y);
-			fill_row_simd((f32*)d, *ptr, len32);
-
-			for (u32 x = len32 * 4; x < view.width; ++x)
-			{
-				d[x] = gray;
-			}
-		};
-
-		process_by_row(view.height, row_func);
 	}
 
 
 	template <class VIEW, typename COLOR>
 	static void do_fill(VIEW const& view, COLOR color)
 	{
-		auto len32 = view.width * sizeof(COLOR) / sizeof(f32);
-		if (len32 < simd::VEC_LEN)
+		auto const row_func = [&](u32 y)
 		{
-			fill_no_simd(view, color);
-		}
-		else
-		{
-			fill_simd(view, color);
-		}
+			auto d = row_begin(view, y);
+			fill_row(d, color, view.width);
+		};
+
+		process_by_row(view.height, row_func);
 	}
-
-
-#endif // SIMAGE_NO_SIMD
 
 
 	void fill(View const& view, Pixel color)
@@ -552,118 +499,29 @@ namespace simage
 /* copy */
 
 namespace simage
-{
-	template <class IMG_SRC, class IMG_DST>
-	static void copy_no_simd(IMG_SRC const& src, IMG_DST const& dst)
+{	
+	template <typename PIXEL>
+	static void copy_row(PIXEL* s, PIXEL* d, u32 width)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 i = 0; i < width; ++i)
 		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x];
-			}
-		};
-
-		process_by_row(src.height, row_func);
+			d[i] = s[i];
+		}
 	}
 
-
-#ifdef SIMAGE_NO_SIMD
 
 	template <class IMG_SRC, class IMG_DST>
 	static void do_copy(IMG_SRC const& src, IMG_DST const& dst)
 	{
-		copy_no_simd(src, dst);
-	}
-
-#else
-
-	static void simd_copy_row(Pixel* src_begin, Pixel* dst_begin, u32 length)
-	{
-		static_assert(sizeof(Pixel) == sizeof(f32));
-
-		constexpr u32 STEP = simd::VEC_LEN;
-
-		f32* src = 0;
-		f32* dst = 0;
-		simd::vec_t vec{};
-
-		auto const do_simd = [&](u32 i)
-		{
-			src = (f32*)(src_begin + i);
-			dst = (f32*)(dst_begin + i);
-
-			vec = simd::load(src);
-			simd::store(dst, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	static void simd_copy_row(u8* src_begin, u8* dst_begin, u32 length)
-	{
-		static_assert(sizeof(u8) * 4 == sizeof(f32));
-
-		constexpr u32 STEP = simd::VEC_LEN * sizeof(f32) / sizeof(u8);
-
-		f32* src = 0;
-		f32* dst = 0;
-		simd::vec_t vec{};
-
-		auto const do_simd = [&](u32 i)
-		{
-			src = (f32*)(src_begin + i);
-			dst = (f32*)(dst_begin + i);
-
-			vec = simd::load(src);
-			simd::store(dst, vec);
-		};
-
-		for (u32 i = 0; i < length - STEP; i += STEP)
-		{
-			do_simd(i);
-		}
-
-		do_simd(length - STEP);
-	}
-
-
-	template <class IMG>
-	static void copy_simd(IMG const& src, IMG const& dst)
-	{
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			simd_copy_row(s, d, src.width);
+			copy_row(s, d, src.width);
 		};
 
 		process_by_row(src.height, row_func);
 	}
-
-
-	template <class IMG>
-	static void do_copy(IMG const& src, IMG const& dst)
-	{
-		if (src.width < simd::VEC_LEN)
-		{
-			copy_no_simd(src, dst);
-		}
-		else
-		{
-			copy_simd(src, dst);
-		}
-	}
-
-#endif // SIMAGE_NO_SIMD
 
 
 	void copy(View const& src, View const& dst)
@@ -891,6 +749,547 @@ namespace simage
 }
 
 
+/* transform */
+
+namespace simage
+{
+	template <class IMG_S, class IMG_D, class FUNC>	
+	static void do_transform(IMG_S const& src, IMG_D const& dst, FUNC const& func)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[x]);
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void transform(View const& src, View const& dst, pixel_to_pixel_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, func);
+	}
+
+
+	void transform(ViewGray const& src, ViewGray const& dst, u8_to_u8_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, func);
+	}
+
+
+	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, func);
+	}
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min)
+	{
+		assert(verify(src, dst));
+
+		return do_transform(src, dst, [&](u8 p){ return p >= min ? p : 0; });
+	}
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max)
+	{
+		assert(verify(src, dst));
+
+		auto mn = std::min(min, max);
+		auto mx = std::max(min, max);
+
+		return do_transform(src, dst, [&](u8 p){ return p >= mn && p <= mx ? p : 0; });
+	}
+
+
+	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, [&](Pixel p){ return func(p) ? 255 : 0; });
+	}
+
+
+	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func)
+	{
+		assert(verify(src, dst));
+
+		do_transform(src, dst, [&](u8 p){ return func(p) ? 255 : 0; });
+	}
+}
+
+
+/* split channels */
+
+namespace simage
+{
+	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
+	{
+		assert(verify(src, red));
+		assert(verify(src, green));
+		assert(verify(src, blue));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = s[x].rgba;
+				r[x] = rgba.red;
+				g[x] = rgba.green;
+				b[x] = rgba.blue;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha)
+	{
+		assert(verify(src, red));
+		assert(verify(src, green));
+		assert(verify(src, blue));
+		assert(verify(src, alpha));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+			auto a = row_begin(alpha, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = s[x].rgba;
+				r[x] = rgba.red;
+				g[x] = rgba.green;
+				b[x] = rgba.blue;
+				a[x] = rgba.alpha;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val)
+	{
+		assert(verify(src, hue));
+		assert(verify(src, sat));
+		assert(verify(src, val));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto p = row_begin(src, y);
+			auto h = row_begin(hue, y);
+			auto s = row_begin(sat, y);
+			auto v = row_begin(val, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = p[x].rgba;
+				auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				h[x] = hsv.hue;
+				s[x] = hsv.sat;
+				v[x] = hsv.val;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+}
+
+
+/* rotate */
+
+namespace simage
+{
+	static Point2Df32 find_rotation_src(Point2Du32 const& pt, Point2Du32 const& origin, f32 theta_rotate)
+	{
+		auto const dx_dst = (f32)pt.x - (f32)origin.x;
+		auto const dy_dst = (f32)pt.y - (f32)origin.y;
+
+		auto const radius = std::hypotf(dx_dst, dy_dst);
+
+		auto const theta_dst = atan2f(dy_dst, dx_dst);
+		auto const theta_src = theta_dst - theta_rotate;
+
+		auto const dx_src = radius * cosf(theta_src);
+		auto const dy_src = radius * sinf(theta_src);
+
+		Point2Df32 pt_src{};
+		pt_src.x = (f32)origin.x + dx_src;
+		pt_src.y = (f32)origin.y + dy_src;
+
+		return pt_src;
+	}
+	
+
+	static Pixel get_pixel_value(View const& src, Point2Df32 location)
+	{
+		constexpr auto zero = 0.0f;
+		auto const width = (f32)src.width;
+		auto const height = (f32)src.height;
+
+		auto const x = location.x;
+		auto const y = location.y;
+
+		if (x < zero || x >= width || y < zero || y >= height)
+		{
+			return to_pixel(0, 0, 0);
+		}
+
+		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
+	}
+
+
+	static u8 get_pixel_value(ViewGray const& src, Point2Df32 location)
+	{
+		constexpr auto zero = 0.0f;
+		auto const width = (f32)src.width;
+		auto const height = (f32)src.height;
+
+		auto const x = location.x;
+		auto const y = location.y;
+
+		if (x < zero || x >= width || y < zero || y >= height)
+		{
+			return 0;
+		}
+
+		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
+	}
+
+
+	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src({ x, y }, origin, rad);
+				d[x] = get_pixel_value(src, src_pt);
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void rotate(ViewGray const& src, ViewGray const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src({ x, y }, origin, rad);
+				d[x] = get_pixel_value(src, src_pt);
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+}
+
+
+/* centroid */
+
+namespace simage
+{
+	Point2Du32 centroid(ViewGray const& src)
+	{
+		u64 totals[N_THREADS] = { 0 };
+		u64 x_totals[N_THREADS] = { 0 };
+		u64 y_totals[N_THREADS] = { 0 };
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u64 val = s[x] ? 1 : 0;
+				auto thread_id = N_THREADS * y / src.height;
+
+				totals[thread_id] += val;
+				x_totals[thread_id] += x * val;
+				y_totals[thread_id] += y * val;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+
+		u64 total = 0;
+		u64 x_total = 0;
+		u64 y_total = 0;
+
+		for (u32 i = 0; i < N_THREADS; ++i)
+		{
+			total += totals[i];
+			x_total += totals[i];
+			y_total += totals[i];
+		}
+
+		Point2Du32 pt{};
+
+		if (total == 0)
+		{
+			pt.x = src.width / 2;
+			pt.y = src.height / 2;
+		}
+		else
+		{
+			pt.x = x_total / total;
+			pt.y = y_total / total;
+		}
+
+		return pt;
+	}
+
+
+	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func)
+	{
+		u64 totals[N_THREADS] = { 0 };
+		u64 x_totals[N_THREADS] = { 0 };
+		u64 y_totals[N_THREADS] = { 0 };
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u64 val = func(s[x]) ? 1 : 0;
+				auto thread_id = N_THREADS * y / src.height;
+
+				totals[thread_id] += val;
+				x_totals[thread_id] += x * val;
+				y_totals[thread_id] += y * val;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+
+		u64 total = 0;
+		u64 x_total = 0;
+		u64 y_total = 0;
+
+		for (u32 i = 0; i < N_THREADS; ++i)
+		{
+			total += totals[i];
+			x_total += totals[i];
+			y_total += totals[i];
+		}
+
+		Point2Du32 pt{};
+
+		if (total == 0)
+		{
+			pt.x = src.width / 2;
+			pt.y = src.height / 2;
+		}
+		else
+		{
+			pt.x = x_total / total;
+			pt.y = y_total / total;
+		}
+
+		return pt;
+	}
+
+
+	
+}
+
+
+/* skeleton */
+
+namespace simage
+{
+	template <class GRAY_IMG_T>
+	static bool is_outside_edge(GRAY_IMG_T const& img, u32 x, u32 y)
+	{
+		assert(x >= 1);
+		assert(x < img.width);
+		assert(y >= 1);
+		assert(y < img.height);
+
+		constexpr std::array<int, 8> x_neighbors = { -1,  0,  1,  1,  1,  0, -1, -1 };
+		constexpr std::array<int, 8> y_neighbors = { -1, -1, -1,  0,  1,  1,  1,  0 };
+
+		constexpr auto n_neighbors = x_neighbors.size();
+		u32 value_count = 0;
+		u32 flip = 0;
+
+		auto xi = (u32)(x + x_neighbors[n_neighbors - 1]);
+		auto yi = (u32)(y + y_neighbors[n_neighbors - 1]);
+		auto val = *xy_at(img, xi, yi);
+		bool is_on = val != 0;
+
+		for (u32 i = 0; i < n_neighbors; ++i)
+		{
+			xi = (u32)(x + x_neighbors[i]);
+			yi = (u32)(y + y_neighbors[i]);
+
+			val = *xy_at(img, xi, yi);
+			flip += (val != 0) != is_on;
+
+			is_on = val != 0;
+			value_count += is_on;
+		}
+
+		return value_count > 1 && value_count < 7 && flip == 2;
+	}
+
+
+	template <class GRAY_IMG_T>
+	static u32 skeleton_once(GRAY_IMG_T const& img)
+	{
+		u32 pixel_count = 0;
+
+		auto width = img.width;
+		auto height = img.height;
+
+		auto const xy_func = [&](u32 x, u32 y)
+		{
+			auto& p = *xy_at(img, x, y);
+			if (p == 0)
+			{
+				return;
+			}
+
+			if (is_outside_edge(img, x, y))
+			{
+				p = 0;
+			}
+
+			pixel_count += p > 0;
+		};
+
+		u32 x_begin = 1;
+		u32 x_end = width - 1;
+		u32 y_begin = 1;
+		u32 y_end = height - 2;
+		u32 x = 0;
+		u32 y = 0;
+
+		auto const done = [&]() { return !(x_begin < x_end && y_begin < y_end); };
+
+		while (!done())
+		{
+			// iterate clockwise
+			y = y_begin;
+			x = x_begin;
+			for (; x < x_end; ++x)
+			{
+				xy_func(x, y);
+			}
+			--x;
+
+			for (++y; y < y_end; ++y)
+			{
+				xy_func(x, y);
+			}
+			--y;
+
+			for (--x; x >= x_begin; --x)
+			{
+				xy_func(x, y);
+			}
+			++x;
+
+			for (--y; y > y_begin; --y)
+			{
+				xy_func(x, y);
+			}
+			++y;
+
+			++x_begin;
+			++y_begin;
+			--x_end;
+			--y_end;
+
+			if (done())
+			{
+				break;
+			}
+
+			// iterate counter clockwise
+			for (++x; y < y_end; ++y)
+			{
+				xy_func(x, y);
+			}
+			--y;
+
+			for (++x; x < x_end; ++x)
+			{
+				xy_func(x, y);
+			}
+			--x;
+
+			for (--y; y >= y_begin; --y)
+			{
+				xy_func(x, y);
+			}
+			++y;
+
+			for (--x; x >= x_begin; --x)
+			{
+				xy_func(x, y);
+			}
+			++x;
+
+			++x_begin;
+			++y_begin;
+			--x_end;
+			--y_end;
+		}
+
+		return pixel_count;
+	}
+
+
+	void skeleton(ViewGray const& src_dst)
+	{
+		assert(verify(src_dst));
+
+		u32 current_count = 0;
+		u32 pixel_count = skeleton_once(src_dst);
+		u32 max_iter = 100; // src.width / 2;
+
+		for (u32 i = 1; pixel_count != current_count && i < max_iter; ++i)
+		{
+			current_count = pixel_count;
+			pixel_count = skeleton_once(src_dst);
+		}
+	}
+}
 
 
 /* make_histograms */

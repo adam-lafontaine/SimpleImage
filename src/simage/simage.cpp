@@ -1,19 +1,10 @@
 #include "simage.hpp"
 #include "../util/execute.hpp"
 #include "../util/color_space.hpp"
-#define SIMAGE_NO_SIMD
-
-#ifndef SIMAGE_NO_SIMD
-#include "../util/simd.hpp"
-#endif // !SIMAGE_NO_SIMD
-
 
 #include <cmath>
-#include <algorithm>
 
 namespace cs = color_space;
-namespace rng = std::ranges;
-
 
 
 static void process_by_row(u32 n_rows, id_func_t const& row_func)
@@ -161,12 +152,19 @@ namespace simage
 
 namespace simage
 {
+	template <typename T, size_t N>
+	static inline u64 row_offset(ChannelView2D<T, N> const& view, u32 y)
+	{
+		return (view.y_begin + y) * view.channel_width_ + view.x_begin;
+	}
+
+
 	static RGBu16p rgb_row_begin(ViewRGBu16 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
+		auto offset = row_offset(view, y);
 
 		RGBu16p rgb{};
 
@@ -183,7 +181,7 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
+		auto offset = row_offset(view, y);
 
 		RGBAu16p rgba{};
 
@@ -201,7 +199,7 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
+		auto offset = row_offset(view, y);
 
 		HSVu16p hsv{};
 
@@ -218,7 +216,7 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = (view.y_begin + y) * view.channel_width_ + view.x_begin;
+		auto offset = row_offset(view, y);
 
 		LCHu16p lch{};
 
@@ -227,6 +225,25 @@ namespace simage
 		lch.H = view.channel_data_[id_cast(LCH::H)] + offset;
 
 		return lch;
+	}
+
+
+	template <typename T, size_t N>
+	static std::array<T*, N> view_row_begin(ChannelView2D<T, N> const& view, u32 y)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+
+		auto offset = row_offset(view, y);
+
+		std::array<T*, N> rows = { 0 };
+
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			rows[ch] = view.channel_data_[ch] + offset;
+		}
+
+		return rows;
 	}
 
 
@@ -250,7 +267,7 @@ namespace simage
 
 		assert(y < view.height);
 
-		auto offset = (size_t)((view.y_begin + y) * view.channel_width_ + view.x_begin);
+		auto offset = row_offset(view, y);
 
 		return view.channel_data_[ch] + offset;
 	}
@@ -263,11 +280,10 @@ namespace simage
 
 		int y_eff = y + y_offset;
 
-		auto offset = (size_t)((view.y_begin + y_eff) * view.channel_width_ + view.x_begin);
+		auto offset = row_offset(view, y_eff);
 
 		return view.channel_data_[ch] + offset;
 	}
-
 }
 
 
@@ -1218,16 +1234,19 @@ namespace simage
 
 namespace simage
 {
-	template <typename T>
-	static void do_transform_view_1(View1<T> const& src, View1<T> const& dst, std::function<T(T)> const& func)
+	void transform(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32)
 	{
+		assert(verify(src, dst));
+
 		auto const row_func = [&](u32 y) 
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
+
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = func(s[x]);
+				auto p32 = cs::to_channel_f32(s[x]);
+				d[x] = cs::to_channel_u16(func32(p32));
 			}
 		};
 
@@ -1235,17 +1254,22 @@ namespace simage
 	}
 
 
-	template <typename T>
-	static void do_transform_view_2_1(View2<T> const& src, View1<T> const& dst, std::function<T(T, T)> const& func)
+	void transform(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32)
 	{
+		assert(verify(src, dst));
+
 		auto const row_func = [&](u32 y)
 		{
 			auto s0 = channel_row_begin(src, y, 0);
 			auto s1 = channel_row_begin(src, y, 1);
 			auto d = row_begin(dst, y);
+
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = func(s0[x], s1[x]);
+				auto a = cs::to_channel_f32(s0[x]);
+				auto b = cs::to_channel_f32(s1[x]);
+
+				d[x] = cs::to_channel_u16(func32(a, b));
 			}
 		};
 
@@ -1253,18 +1277,24 @@ namespace simage
 	}
 
 
-	template <typename T>
-	static void do_transform_view_3_1(View3<T> const& src, View1<T> const& dst, std::function<T(T, T, T)> const& func)
+	void transform(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32)
 	{
+		assert(verify(src, dst));
+
 		auto const row_func = [&](u32 y)
 		{
 			auto s0 = channel_row_begin(src, y, 0);
 			auto s1 = channel_row_begin(src, y, 1);
 			auto s2 = channel_row_begin(src, y, 2);
 			auto d = row_begin(dst, y);
+
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = func(s0[x], s1[x], s2[x]);
+				auto a = cs::to_channel_f32(s0[x]);
+				auto b = cs::to_channel_f32(s1[x]);
+				auto c = cs::to_channel_f32(s2[x]);
+
+				d[x] = cs::to_channel_u16(func32(a, b, c));
 			}
 		};
 
@@ -1272,75 +1302,190 @@ namespace simage
 	}
 
 
-	void transform(View1u16 const& src, View1u16 const& dst, std::function<u16(u16)> const& func)
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32)
 	{
 		assert(verify(src, dst));
 
-		do_transform_view_1(src, dst, func);
-	}
+		auto const min16 = cs::to_channel_u16(min32);
 
-
-	void transform(View2u16 const& src, View1u16 const& dst, std::function<u16(u16, u16)> const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform_view_2_1(src, dst, func);
-	}
-
-
-	void transform(View3u16 const& src, View1u16 const& dst, std::function<u16(u16, u16, u16)> const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform_view_3_1(src, dst, func);
-	}
-
-
-	void transform_f32(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32)
-	{
-		assert(verify(src, dst));
-
-		auto const func = [&](u16 p)
+		auto const row_func = [&](u32 y)
 		{
-			auto p32 = cs::to_channel_f32(p);
-			auto res32 = func32(p32);
-			return cs::to_channel_u16(res32);
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = s[x] >= min16 ? s[x] : 0;
+			}
 		};
 
-		transform(src, dst, func);
+		process_by_row(src.height, row_func);
 	}
 
 
-	void transform_f32(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32)
+	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32, f32 max32)
 	{
 		assert(verify(src, dst));
 
-		auto const func = [&](u16 x, u16 y)
+		auto const min16 = cs::to_channel_u16(std::min(min32, max32));
+		auto const max16 = cs::to_channel_u16(std::max(min32, max32));
+
+		auto const row_func = [&](u32 y)
 		{
-			auto x32 = cs::to_channel_f32(x);
-			auto y32 = cs::to_channel_f32(y);
-			auto res32 = func32(x32, y32);
-			return cs::to_channel_u16(res32);
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = s[x] >= min16 && s[x] <= max16 ? s[x] : 0;
+			}
 		};
 
-		transform(src, dst, func);
+		process_by_row(src.height, row_func);
 	}
 
 
-	void transform_f32(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32)
+	void binarize(View1u16 const& src, View1u16 const& dst, std::function<bool(f32)> func32)
+	{
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func32(s[x]) ? cs::CH_U16_MAX : 0;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+}
+
+
+/* rotate */
+
+namespace simage
+{
+	static Point2Df32 find_rotation_src(Point2Du32 const& pt, Point2Du32 const& origin, f32 theta_rotate)
+	{
+		auto const dx_dst = (f32)pt.x - (f32)origin.x;
+		auto const dy_dst = (f32)pt.y - (f32)origin.y;
+
+		auto const radius = std::hypotf(dx_dst, dy_dst);
+
+		auto const theta_dst = atan2f(dy_dst, dx_dst);
+		auto const theta_src = theta_dst - theta_rotate;
+
+		auto const dx_src = radius * cosf(theta_src);
+		auto const dy_src = radius * sinf(theta_src);
+
+		Point2Df32 pt_src{};
+		pt_src.x = (f32)origin.x + dx_src;
+		pt_src.y = (f32)origin.y + dy_src;
+
+		return pt_src;
+	}
+
+
+	static u16 get_pixel_value(View1u16 const& src, Point2Df32 location)
+	{
+		constexpr auto zero = 0.0f;
+		auto const width = (f32)src.width;
+		auto const height = (f32)src.height;
+
+		auto const x = location.x;
+		auto const y = location.y;
+
+		if (x < zero || x >= width || y < zero || y >= height)
+		{
+			return 0;
+		}
+
+		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
+	}
+
+
+	template <typename T, size_t N>
+	void rotate_channels(ChannelView2D<T, N> const& src, ChannelView2D<T, N> const& dst, Point2Du32 origin, f32 rad)
+	{
+		constexpr auto zero = 0.0f;
+		auto const width = (f32)src.width;
+		auto const height = (f32)src.height;
+
+		auto const row_func = [&](u32 y)
+		{
+			auto d = view_row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src({ x, y }, origin, rad);
+				auto is_out = src_pt.x < zero || src_pt.x >= width || src_pt.y < zero || src_pt.y >= height;
+
+				if (src_pt.x < zero || src_pt.x >= width || src_pt.y < zero || src_pt.y >= height)
+				{
+					for (u32 ch = 0; ch < 4; ++ch)
+					{
+						d[ch][x] = 0;
+					}
+				}
+				else
+				{
+					auto src_x = (u32)floorf(src_pt.x);
+					auto src_y = (u32)floorf(src_pt.y);
+					auto s = view_row_begin(src, src_y);
+					for (u32 ch = 0; ch < 4; ++ch)
+					{
+						d[ch][x] = s[ch][src_x];
+					}
+				}
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void rotate(View4u16 const& src, View4u16 const& dst, Point2Du32 origin, f32 rad)
 	{
 		assert(verify(src, dst));
 
-		auto const func = [&](u16 x, u16 y, u16 z)
+		rotate_channels(src, dst, origin, rad);
+	}
+
+
+	void rotate(View3u16 const& src, View3u16 const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		rotate_channels(src, dst, origin, rad);
+	}
+
+
+	void rotate(View2u16 const& src, View2u16 const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		rotate_channels(src, dst, origin, rad);
+	}
+
+
+	void rotate(View1u16 const& src, View1u16 const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y)
 		{
-			auto x32 = cs::to_channel_f32(x);
-			auto y32 = cs::to_channel_f32(y);
-			auto z32 = cs::to_channel_f32(z);
-			auto res32 = func32(x32, y32, z32);
-			return cs::to_channel_u16(res32);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src({ x, y }, origin, rad);
+				d[x] = get_pixel_value(src, src_pt);
+			}
 		};
 
-		transform(src, dst, func);
+		process_by_row(src.height, row_func);
 	}
 }
 
@@ -1832,7 +1977,6 @@ namespace simage
 {
 	static constexpr std::array<f32, 9> make_gauss_3()
 	{
-		auto D3 = 16.0f;
 		std::array<f32, 9> kernel = 
 		{
 			1.0f, 2.0f, 1.0f,
@@ -1840,7 +1984,10 @@ namespace simage
 			1.0f, 2.0f, 1.0f,
 		};
 
-		rng::for_each(kernel, [D3](f32& v) { v /= D3; });
+		for (u32 i = 0; i < 9; ++i)
+		{
+			kernel[i] /= 16.0f;
+		}
 
 		return kernel;
 	}
@@ -1848,7 +1995,6 @@ namespace simage
 
 	static constexpr std::array<f32, 25> make_gauss_5()
 	{
-		auto D5 = 256.0f;
 		std::array<f32, 25> kernel =
 		{
 			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
@@ -1858,7 +2004,10 @@ namespace simage
 			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
 		};
 
-		rng::for_each(kernel, [D5](f32& v) { v /= D5; });
+		for (u32 i = 0; i < 9; ++i)
+		{
+			kernel[i] /= 256.0f;
+		}
 
 		return kernel;
 	}

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "../defines.hpp"
+#include "../util/memory_buffer.hpp"
 
 #include <functional>
+
+namespace mb = memory_buffer;
 
 
 // region of interest in an image
@@ -329,6 +331,13 @@ namespace simage
 	ViewBGR make_view(ImageBGR const& image);
 
 	ViewRGB make_view(ImageRGB const& image);
+
+
+	using Buffer8 = MemoryBuffer<u8>;
+
+	View make_view_rgba(u32 width, u32 height, Buffer8& buffer);
+
+	ViewGray make_view_gray(u32 width, u32 height, Buffer8& buffer);
 }
 
 
@@ -395,6 +404,83 @@ namespace simage
 }
 
 
+/* alpha blend */
+
+namespace simage
+{
+	void alpha_blend(View const& src, View const& cur, View const& dst);
+
+	void alpha_blend(View const& src, View const& cur_dst);
+}
+
+
+/* transform */
+
+namespace simage
+{
+	using pixel_to_pixel_f = std::function<Pixel(Pixel)>;
+
+	using u8_to_u8_f = std::function<u8(u8 p)>;
+
+	using pixel_to_u8_f = std::function<u8(Pixel)>;
+
+	using pixel_to_bool_f = std::function<bool(Pixel)>;
+
+	using u8_to_bool_f = std::function<bool(u8)>;
+
+
+	void transform(View const& src, View const& dst, pixel_to_pixel_f const& func);
+
+	void transform(ViewGray const& src, ViewGray const& dst, u8_to_u8_f const& func);
+
+	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func);
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min);
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max);
+
+
+	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func);
+
+	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func);
+
+}
+
+
+/* split channels */
+
+namespace simage
+{
+	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue);
+
+	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha);
+
+	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val);
+}
+
+
+/* rotate */
+
+namespace simage
+{
+	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(ViewGray const& src, ViewGray const& dst, Point2Du32 origin, f32 rad);
+}
+
+
+namespace simage
+{
+	Point2Du32 centroid(ViewGray const& src);
+
+	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func);	
+
+
+	void skeleton(ViewGray const& src_dst);
+}
+
+
 /* row begin */
 
 namespace simage
@@ -411,16 +497,13 @@ namespace simage
 	{
 		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
-}
 
 
-/* alpha blend */
-
-namespace simage
-{
-	void alpha_blend(View const& src, View const& cur, View const& dst);
-
-	void alpha_blend(View const& src, View const& cur_dst);
+	template <typename T>
+	inline T* xy_at(MatrixView<T> const& view, u32 x, u32 y)
+	{
+		return row_begin(view, y) + x;
+	}
 }
 
 

@@ -314,6 +314,10 @@ stopwatch_h := $(util)/stopwatch.hpp
 execute_h := $(util)/execute.hpp
 execute_h += $(defines_h)
 
+# memory buffer
+memory_buffer_h := $(util)/memory_buffer.hpp
+memory_buffer_h += $(defines_h)
+
 # uvc
 uvc_h := $(uvc)/libuvc.h
 
@@ -342,7 +346,7 @@ device_h += $(defines_h)
 
 # simage
 simage_platform_h := $(simage)/simage_platform.hpp
-simage_platform_h += $(defines_h)
+simage_platform_h += $(memory_buffer_h)
 
 simage_cuda_h := $(simage)/simage_cuda.hpp
 simage_cuda_h += $(simage_platform_h)

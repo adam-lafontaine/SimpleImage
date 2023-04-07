@@ -22,28 +22,16 @@
 //#define RPI_3B_PLUS
 //#define JETSON_NANO
 
-// simd works on Windows only
-#ifndef _WIN32
-#define SIMAGE_NO_SIMD
-#endif
-
-
-#define SIMD_INTEL_256
-//#define SIMD_INTEL_128
-//#define SIMD_ARM_NEON
-
 
 #ifdef RPI_3B_PLUS
 
 #define SIMAGE_NO_CPP17
-#define SIMD_ARM_NEON
 
 #endif // RPI_3B_PLUS
 
 #ifdef JETSON_NANO
 
 #define SIMAGE_NO_CPP17
-#define SIMD_ARM_NEON
 
 #endif // JETSON_NANO
 
@@ -91,5 +79,3 @@ public:
 
 using Point2Du32 = Point2D<u32>;
 using Point2Df32 = Point2D<f32>;
-
-

@@ -568,6 +568,412 @@ namespace simage
 }
 
 
+/* convolution kernels */
+
+namespace simage
+{
+    constexpr std::array<f32, 33> make_grad_x_11()
+	{
+		/*constexpr std::array<f32, 33> GRAD_X
+		{
+			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
+			-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
+			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.01f,
+		};*/
+
+		std::array<f32, 33> grad = { 0 };
+
+		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+
+		size_t w = 11;
+
+		for (size_t i = 0; i < 5; ++i)
+		{
+			grad[6 + i] = values[i];
+			grad[2 * w + 6 + i] = values[i];
+			grad[w + 6 + i] = 3 * values[i];
+			grad[4 - i] = -values[i];
+			grad[2 * w + 4 - i] = -values[i];
+			grad[w + 4 - i] = -3 * values[i];
+		}
+
+		return grad;
+	}
+
+
+	constexpr std::array<f32, 33> make_grad_y_11()
+	{
+		/*constexpr std::array<f32, 33> GRAD_Y
+		{
+			-0.02f, -0.06f, -0.02f,
+			-0.03f, -0.09f, -0.03f,
+			-0.04f, -0.12f, -0.04f,
+			-0.05f, -0.15f, -0.05f,
+			-0.06f, -0.18f, -0.06f,
+			 0.00f,  0.00f,  0.00f,
+			 0.06f,  0.18f,  0.06f,
+			 0.05f,  0.15f,  0.05f,
+			 0.04f,  0.12f,  0.04f,
+			 0.03f,  0.09f,  0.03f,
+			 0.02f,  0.06f,  0.02f,
+		};*/
+
+		std::array<f32, 33> grad = { 0 };
+
+		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
+
+		size_t w = 3;
+
+		for (size_t i = 0; i < 5; ++i)
+		{
+			grad[w * (6 + i)] = values[i];
+			grad[w * (6 + i) + 2] = values[i];
+			grad[w * (6 + i) + 1] = 3 * values[i];
+			grad[w * (4 - i)] = -values[i];
+			grad[w * (4 - i) + 2] = -values[i];
+			grad[w * (4 - i) + 1] = -3 * values[i];
+		}
+
+		return grad;
+	}
+
+
+	constexpr std::array<f32, 15> make_grad_x_5()
+	{
+		std::array<f32, 15> grad
+		{
+			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+			-0.16f, -0.24f, 0.0f, 0.24f, 0.16f
+			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+		};
+
+		return grad;
+	}
+
+
+	constexpr std::array<f32, 15> make_grad_y_5()
+	{
+		std::array<f32, 15> grad
+		{
+			-0.08f, -0.16f, -0.08f,
+			-0.12f, -0.24f, -0.12f,
+			 0.00f,  0.00f,  0.00f,
+			 0.12f,  0.24f,  0.12f,
+			 0.08f,  0.16f,  0.08f,
+		};
+
+		return grad;
+	}
+
+
+    static constexpr std::array<f32, 9> make_gauss_3()
+	{
+		std::array<f32, 9> kernel = 
+		{
+			1.0f, 2.0f, 1.0f,
+			2.0f, 4.0f, 2.0f,
+			1.0f, 2.0f, 1.0f,
+		};
+
+		for (u32 i = 0; i < 9; ++i)
+		{
+			kernel[i] /= 16.0f;
+		}
+
+		return kernel;
+	}
+
+
+	static constexpr std::array<f32, 25> make_gauss_5()
+	{
+		std::array<f32, 25> kernel =
+		{
+			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
+			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
+			6.0f, 24.0f, 36.0f, 24.0f, 6.0f,
+			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
+			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
+		};
+
+		for (u32 i = 0; i < 9; ++i)
+		{
+			kernel[i] /= 256.0f;
+		}
+
+		return kernel;
+	}
+}
+
+
+/* convolution static */
+
+namespace simage
+{
+    template <typename T>
+    static void convolve(View1<T> const& src, View1<T> const& dst, Mat2Df32 const& kernel)
+	{
+		assert(kernel.width % 2 > 0);
+		assert(kernel.height % 2 > 0);
+
+		int const ry_begin = -(int)kernel.height / 2;
+		int const ry_end = kernel.height / 2 + 1;
+		int const rx_begin = -(int)kernel.width / 2;
+		int const rx_end = kernel.width / 2 + 1;
+
+		auto const row_func = [&](u32 y) 
+		{			
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u32 w = 0;
+				f32 total = 0.0f;
+				for (int ry = ry_begin; ry < ry_end; ++ry)
+				{
+					auto s = row_offset_begin(src, y, ry);
+					for (int rx = rx_begin; rx < rx_end; ++rx)
+					{
+						total += (s + rx)[x] * kernel.data_[w];						
+						++w;
+					}
+
+					d[x] = (T)std::abs(total);
+				}
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	template <typename T>
+	static void zero_outer(View1<T> const& view, u32 n_rows, u32 n_columns)
+	{
+		auto const top_bottom = [&]()
+		{
+			for (u32 r = 0; r < n_rows; ++r)
+			{
+				auto top = row_begin(view, r);
+				auto bottom = row_begin(view, view.height - 1 - r);
+				for (u32 x = 0; x < view.width; ++x)
+				{
+					top[x] = bottom[x] = (T)0;
+				}
+			}
+		};
+
+		auto const left_right = [&]()
+		{
+			for (u32 y = n_rows; y < view.height - n_rows; ++y)
+			{
+				auto row = row_begin(view, y);
+				for (u32 c = 0; c < n_columns; ++c)
+				{
+					row[c] = row[view.width - 1 - c] = (T)0;
+				}
+			}
+		};
+
+		std::array<std::function<void()>, 2> f_list
+		{
+			top_bottom, left_right
+		};
+
+		execute(f_list);
+	}
+
+
+    template <typename T>
+	static void copy_outer(View1<T> const& src, View1<T> const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const width = src.width;
+		auto const height = src.height;
+
+		auto const top_bottom = [&]()
+		{
+			auto s_top = row_begin(src, 0);
+			auto s_bottom = row_begin(src, height - 1);
+			auto d_top = row_begin(dst, 0);
+			auto d_bottom = row_begin(dst, height - 1);
+			for (u32 x = 0; x < width; ++x)
+			{
+				d_top[x] = s_top[x];
+				d_bottom[x] = s_bottom[x];
+			}
+		};
+
+		auto const left_right = [&]()
+		{
+			for (u32 y = 1; y < height - 1; ++y)
+			{
+				auto s_row = row_begin(src, y);
+				auto d_row = row_begin(dst, y);
+
+				d_row[0] = s_row[0];
+				d_row[width - 1] = s_row[width - 1];
+			}
+		};
+
+		std::array<std::function<void()>, 2> f_list
+		{
+			top_bottom, left_right
+		};
+
+		execute(f_list);
+	}
+
+
+	template <typename T>
+	static void convolve_gauss_3x3_outer(View1<T> const& src, View1<T> const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const width = src.width;
+		auto const height = src.height;
+
+		auto constexpr gauss = make_gauss_3();
+
+		Mat2Df32 kernel{};
+		kernel.width = 3;
+		kernel.height = 3;
+		kernel.data_ = (f32*)gauss.data();
+
+		Range2Du32 top{};
+		top.x_begin = 0;
+		top.x_end = width;
+		top.y_begin = 0;
+		top.y_end = 1;
+
+		auto bottom = top;
+		bottom.y_begin = height - 1;
+		bottom.y_end = height;
+
+		auto left = top;
+		left.x_end = 1;
+		left.y_begin = 1;
+		left.y_end = height - 1;
+
+		auto right = left;
+		right.x_begin = width - 1;
+		right.x_end = width;
+
+		convolve(sub_view(src, top), sub_view(dst, top), kernel);
+		convolve(sub_view(src, bottom), sub_view(dst, bottom), kernel);
+		convolve(sub_view(src, left), sub_view(dst, left), kernel);
+		convolve(sub_view(src, right), sub_view(dst, right), kernel);			
+	}
+
+
+	template <typename T>
+	static void convolve_gauss_5x5(View1<T> const& src, View1<T> const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const width = src.width;
+		auto const height = src.height;
+
+		auto constexpr gauss = make_gauss_5();
+
+		Mat2Df32 kernel{};
+		kernel.width = 5;
+		kernel.height = 5;
+		kernel.data_ = (f32*)gauss.data();
+
+		convolve(src, dst, kernel);
+	}
+
+	
+    template <typename T>
+	static void gradients_x(View1<T> const& src, View1<T> const& dst)
+	{
+		constexpr auto grad_y = make_grad_x_11();
+		constexpr u32 dim_max = 11;
+		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
+
+		Mat2Df32 kernel{};
+		kernel.data_ = (f32*)grad_y.data();
+		kernel.width = dim_max;
+		kernel.height = dim_min;
+
+		auto w = kernel.width / 2;
+		auto h = kernel.height / 2;
+
+		zero_outer(dst, w, h);
+
+		Range2Du32 inner{};
+		inner.x_begin = w;
+		inner.x_end = src.width - w;
+		inner.y_begin = h;
+		inner.y_end = src.height - h;
+
+		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
+	}
+
+
+	template <typename T>
+	static void gradients_y(View1<T> const& src, View1<T> const& dst)
+	{
+		constexpr auto grad_y = make_grad_y_11();
+		constexpr u32 dim_max = 11;
+		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
+
+		Mat2Df32 kernel{};
+		kernel.data_ = (f32*)grad_y.data();
+		kernel.width = dim_min;
+		kernel.height = dim_max;
+
+		auto w = kernel.width / 2;
+		auto h = kernel.height / 2;
+
+		zero_outer(dst, w, h);
+
+		Range2Du32 inner{};
+		inner.x_begin = w;
+		inner.x_end = src.width - w;
+		inner.y_begin = h;
+		inner.y_end = src.height - h;
+
+		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
+	}
+
+
+    template <typename T>
+	static void blur_1(View1<T> const& src, View1<T> const& dst)
+	{
+		auto const width = src.width;
+		auto const height = src.height;
+
+		copy_outer(src, dst);
+
+		Range2Du32 r{};
+		r.x_begin = 1;
+		r.x_end = width - 1;
+		r.y_begin = 1;
+		r.y_end = height - 1;
+
+		convolve_gauss_3x3_outer(sub_view(src, r), sub_view(dst, r));
+
+		r.x_begin = 2;
+		r.x_end = width - 2;
+		r.y_begin = 2;
+		r.y_end = height - 2;
+
+		convolve_gauss_5x5(sub_view(src, r), sub_view(dst, r));
+	}
+
+
+	template <typename T, size_t N>
+	static void blur_n(ChannelView2D<T, N> const& src, ChannelView2D<T, N> const& dst)
+	{
+		for (u32 ch = 0; ch < N; ++ch)
+		{
+			blur_1(select_channel(src, ch), select_channel(dst, ch));
+		}
+	}
+}
+
+
 /* make_view */
 
 namespace simage
@@ -1216,11 +1622,11 @@ namespace simage
 }
 
 
-/* rotate */
+/* rotate static */
 
 namespace simage
 {
-	static Point2Df32 find_rotation_src(Point2Du32 const& pt, Point2Du32 const& origin, f32 theta_rotate)
+    static Point2Df32 find_rotation_src(Point2Du32 const& pt, Point2Du32 const& origin, f32 theta_rotate)
 	{
 		auto const dx_dst = (f32)pt.x - (f32)origin.x;
 		auto const dy_dst = (f32)pt.y - (f32)origin.y;
@@ -1239,6 +1645,25 @@ namespace simage
 
 		return pt_src;
 	}
+
+
+    template <typename T>
+    static T get_pixel_value(MatrixView<T> const& src, Point2Df32 location)
+    {
+        constexpr auto zero = 0.0f;
+		auto const width = (f32)src.width;
+		auto const height = (f32)src.height;
+
+		auto const x = location.x;
+		auto const y = location.y;
+
+		if (x < zero || x >= width || y < zero || y >= height)
+		{
+			return 0;
+		}
+
+		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
+    }
 	
 
 	static Pixel get_pixel_value(View const& src, Point2Df32 location)
@@ -1259,28 +1684,9 @@ namespace simage
 	}
 
 
-	static u8 get_pixel_value(ViewGray const& src, Point2Df32 location)
+    template <typename T>
+    static void rotate_1(View1<T> const& src, View1<T> const& dst, Point2Du32 origin, f32 rad)
 	{
-		constexpr auto zero = 0.0f;
-		auto const width = (f32)src.width;
-		auto const height = (f32)src.height;
-
-		auto const x = location.x;
-		auto const y = location.y;
-
-		if (x < zero || x >= width || y < zero || y >= height)
-		{
-			return 0;
-		}
-
-		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
-	}
-
-
-	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad)
-	{
-		assert(verify(src, dst));
-
 		auto const row_func = [&](u32 y)
 		{
 			auto d = row_begin(dst, y);
@@ -1293,6 +1699,19 @@ namespace simage
 		};
 
 		process_by_row(src.height, row_func);
+	}
+}
+
+
+/* rotate */
+
+namespace simage
+{
+	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		rotate_1(src, dst, origin, rad);
 	}
 
 
@@ -1300,18 +1719,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto src_pt = find_rotation_src({ x, y }, origin, rad);
-				d[x] = get_pixel_value(src, src_pt);
-			}
-		};
-
-		process_by_row(src.height, row_func);
+		rotate_1(src, dst, origin, rad);
 	}
 }
 
@@ -3045,43 +3453,7 @@ namespace simage
 
 namespace simage
 {
-	static Point2Df32 find_rotation_src(Point2Du32 const& pt, Point2Du32 const& origin, f32 theta_rotate)
-	{
-		auto const dx_dst = (f32)pt.x - (f32)origin.x;
-		auto const dy_dst = (f32)pt.y - (f32)origin.y;
-
-		auto const radius = std::hypotf(dx_dst, dy_dst);
-
-		auto const theta_dst = atan2f(dy_dst, dx_dst);
-		auto const theta_src = theta_dst - theta_rotate;
-
-		auto const dx_src = radius * cosf(theta_src);
-		auto const dy_src = radius * sinf(theta_src);
-
-		Point2Df32 pt_src{};
-		pt_src.x = (f32)origin.x + dx_src;
-		pt_src.y = (f32)origin.y + dy_src;
-
-		return pt_src;
-	}
-
-
-	static u16 get_pixel_value(View1u16 const& src, Point2Df32 location)
-	{
-		constexpr auto zero = 0.0f;
-		auto const width = (f32)src.width;
-		auto const height = (f32)src.height;
-
-		auto const x = location.x;
-		auto const y = location.y;
-
-		if (x < zero || x >= width || y < zero || y >= height)
-		{
-			return 0;
-		}
-
-		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
-	}
+	
 
 
 	template <typename T, size_t N>
@@ -3152,18 +3524,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
-		{
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto src_pt = find_rotation_src({ x, y }, origin, rad);
-				d[x] = get_pixel_value(src, src_pt);
-			}
-		};
-
-		process_by_row(src.height, row_func);
+		rotate_1(src, dst, origin, rad);
 	}
 }
 
@@ -3413,228 +3774,11 @@ namespace simage
 }
 #endif
 
+
 /* gradients */
 
 namespace simage
 {
-	static void convolve(View1u16 const& src, View1u16 const& dst, Mat2Df32 const& kernel)
-	{
-		assert(kernel.width % 2 > 0);
-		assert(kernel.height % 2 > 0);
-
-		int const ry_begin = -(int)kernel.height / 2;
-		int const ry_end = kernel.height / 2 + 1;
-		int const rx_begin = -(int)kernel.width / 2;
-		int const rx_end = kernel.width / 2 + 1;
-
-		auto const row_func = [&](u32 y) 
-		{			
-			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				u32 w = 0;
-				f32 total = 0.0f;
-				for (int ry = ry_begin; ry < ry_end; ++ry)
-				{
-					auto s = row_offset_begin(src, y, ry);
-					for (int rx = rx_begin; rx < rx_end; ++rx)
-					{
-						total += (s + rx)[x] * kernel.data_[w];						
-						++w;
-					}
-
-					d[x] = (u16)std::abs(total); // (i16)(total / 2);
-				}
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
-
-
-	constexpr std::array<f32, 33> make_grad_x_11()
-	{
-		/*constexpr std::array<f32, 33> GRAD_X
-		{
-			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
-			-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
-			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.01f,
-		};*/
-
-		std::array<f32, 33> grad = { 0 };
-
-		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
-
-		size_t w = 11;
-
-		for (size_t i = 0; i < 5; ++i)
-		{
-			grad[6 + i] = values[i];
-			grad[2 * w + 6 + i] = values[i];
-			grad[w + 6 + i] = 3 * values[i];
-			grad[4 - i] = -values[i];
-			grad[2 * w + 4 - i] = -values[i];
-			grad[w + 4 - i] = -3 * values[i];
-		}
-
-		return grad;
-	}
-
-
-	constexpr std::array<f32, 33> make_grad_y_11()
-	{
-		/*constexpr std::array<f32, 33> GRAD_Y
-		{
-			-0.02f, -0.06f, -0.02f,
-			-0.03f, -0.09f, -0.03f,
-			-0.04f, -0.12f, -0.04f,
-			-0.05f, -0.15f, -0.05f,
-			-0.06f, -0.18f, -0.06f,
-			 0.00f,  0.00f,  0.00f,
-			 0.06f,  0.18f,  0.06f,
-			 0.05f,  0.15f,  0.05f,
-			 0.04f,  0.12f,  0.04f,
-			 0.03f,  0.09f,  0.03f,
-			 0.02f,  0.06f,  0.02f,
-		};*/
-
-		std::array<f32, 33> grad = { 0 };
-
-		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
-
-		size_t w = 3;
-
-		for (size_t i = 0; i < 5; ++i)
-		{
-			grad[w * (6 + i)] = values[i];
-			grad[w * (6 + i) + 2] = values[i];
-			grad[w * (6 + i) + 1] = 3 * values[i];
-			grad[w * (4 - i)] = -values[i];
-			grad[w * (4 - i) + 2] = -values[i];
-			grad[w * (4 - i) + 1] = -3 * values[i];
-		}
-
-		return grad;
-	}
-
-
-	constexpr std::array<f32, 15> make_grad_x_5()
-	{
-		std::array<f32, 15> grad
-		{
-			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
-			-0.16f, -0.24f, 0.0f, 0.24f, 0.16f
-			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
-		};
-
-		return grad;
-	}
-
-
-	constexpr std::array<f32, 15> make_grad_y_5()
-	{
-		std::array<f32, 15> grad
-		{
-			-0.08f, -0.16f, -0.08f,
-			-0.12f, -0.24f, -0.12f,
-			 0.00f,  0.00f,  0.00f,
-			 0.12f,  0.24f,  0.12f,
-			 0.08f,  0.16f,  0.08f,
-		};
-
-		return grad;
-	}
-
-
-	template <typename T>
-	static void zero_outer(View1<T> const& view, u32 n_rows, u32 n_columns)
-	{
-		auto const top_bottom = [&]()
-		{
-			for (u32 r = 0; r < n_rows; ++r)
-			{
-				auto top = row_begin(view, r);
-				auto bottom = row_begin(view, view.height - 1 - r);
-				for (u32 x = 0; x < view.width; ++x)
-				{
-					top[x] = bottom[x] = (T)0;
-				}
-			}
-		};
-
-		auto const left_right = [&]()
-		{
-			for (u32 y = n_rows; y < view.height - n_rows; ++y)
-			{
-				auto row = row_begin(view, y);
-				for (u32 c = 0; c < n_columns; ++c)
-				{
-					row[c] = row[view.width - 1 - c] = (T)0;
-				}
-			}
-		};
-
-		std::array<std::function<void()>, 2> f_list
-		{
-			top_bottom, left_right
-		};
-
-		execute(f_list);
-	}
-
-	
-	static void gradients_x(View1u16 const& src, View1u16 const& dst)
-	{
-		constexpr auto grad_y = make_grad_x_11();
-		constexpr u32 dim_max = 11;
-		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
-
-		Mat2Df32 kernel{};
-		kernel.data_ = (f32*)grad_y.data();
-		kernel.width = dim_max;
-		kernel.height = dim_min;
-
-		auto w = kernel.width / 2;
-		auto h = kernel.height / 2;
-
-		zero_outer(dst, w, h);
-
-		Range2Du32 inner{};
-		inner.x_begin = w;
-		inner.x_end = src.width - w;
-		inner.y_begin = h;
-		inner.y_end = src.height - h;
-
-		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
-	}
-
-
-	static void gradients_y(View1u16 const& src, View1u16 const& dst)
-	{
-		constexpr auto grad_y = make_grad_y_11();
-		constexpr u32 dim_max = 11;
-		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
-
-		Mat2Df32 kernel{};
-		kernel.data_ = (f32*)grad_y.data();
-		kernel.width = dim_min;
-		kernel.height = dim_max;
-
-		auto w = kernel.width / 2;
-		auto h = kernel.height / 2;
-
-		zero_outer(dst, w, h);
-
-		Range2Du32 inner{};
-		inner.x_begin = w;
-		inner.x_end = src.width - w;
-		inner.y_begin = h;
-		inner.y_end = src.height - h;
-
-		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
-	}
-
-
 	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst)
 	{
 		auto x_dst = select_channel(xy_dst, XY::X);
@@ -3653,181 +3797,6 @@ namespace simage
 
 namespace simage
 {
-	static constexpr std::array<f32, 9> make_gauss_3()
-	{
-		std::array<f32, 9> kernel = 
-		{
-			1.0f, 2.0f, 1.0f,
-			2.0f, 4.0f, 2.0f,
-			1.0f, 2.0f, 1.0f,
-		};
-
-		for (u32 i = 0; i < 9; ++i)
-		{
-			kernel[i] /= 16.0f;
-		}
-
-		return kernel;
-	}
-
-
-	static constexpr std::array<f32, 25> make_gauss_5()
-	{
-		std::array<f32, 25> kernel =
-		{
-			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
-			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
-			6.0f, 24.0f, 36.0f, 24.0f, 6.0f,
-			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
-			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
-		};
-
-		for (u32 i = 0; i < 9; ++i)
-		{
-			kernel[i] /= 256.0f;
-		}
-
-		return kernel;
-	}
-
-
-	template <typename T>
-	static void copy_outer(View1<T> const& src, View1<T> const& dst)
-	{
-		assert(verify(src, dst));
-
-		auto const width = src.width;
-		auto const height = src.height;
-
-		auto const top_bottom = [&]()
-		{
-			auto s_top = row_begin(src, 0);
-			auto s_bottom = row_begin(src, height - 1);
-			auto d_top = row_begin(dst, 0);
-			auto d_bottom = row_begin(dst, height - 1);
-			for (u32 x = 0; x < width; ++x)
-			{
-				d_top[x] = s_top[x];
-				d_bottom[x] = s_bottom[x];
-			}
-		};
-
-		auto const left_right = [&]()
-		{
-			for (u32 y = 1; y < height - 1; ++y)
-			{
-				auto s_row = row_begin(src, y);
-				auto d_row = row_begin(dst, y);
-
-				d_row[0] = s_row[0];
-				d_row[width - 1] = s_row[width - 1];
-			}
-		};
-
-		std::array<std::function<void()>, 2> f_list
-		{
-			top_bottom, left_right
-		};
-
-		execute(f_list);
-	}
-
-
-	template <typename T>
-	static void convolve_gauss_3x3_outer(View1<T> const& src, View1<T> const& dst)
-	{
-		assert(verify(src, dst));
-
-		auto const width = src.width;
-		auto const height = src.height;
-
-		auto constexpr gauss = make_gauss_3();
-
-		Mat2Df32 kernel{};
-		kernel.width = 3;
-		kernel.height = 3;
-		kernel.data_ = (f32*)gauss.data();
-
-		Range2Du32 top{};
-		top.x_begin = 0;
-		top.x_end = width;
-		top.y_begin = 0;
-		top.y_end = 1;
-
-		auto bottom = top;
-		bottom.y_begin = height - 1;
-		bottom.y_end = height;
-
-		auto left = top;
-		left.x_end = 1;
-		left.y_begin = 1;
-		left.y_end = height - 1;
-
-		auto right = left;
-		right.x_begin = width - 1;
-		right.x_end = width;
-
-		convolve(sub_view(src, top), sub_view(dst, top), kernel);
-		convolve(sub_view(src, bottom), sub_view(dst, bottom), kernel);
-		convolve(sub_view(src, left), sub_view(dst, left), kernel);
-		convolve(sub_view(src, right), sub_view(dst, right), kernel);			
-	}
-
-
-	template <typename T>
-	static void convolve_gauss_5x5(View1<T> const& src, View1<T> const& dst)
-	{
-		assert(verify(src, dst));
-
-		auto const width = src.width;
-		auto const height = src.height;
-
-		auto constexpr gauss = make_gauss_5();
-
-		Mat2Df32 kernel{};
-		kernel.width = 5;
-		kernel.height = 5;
-		kernel.data_ = (f32*)gauss.data();
-
-		convolve(src, dst, kernel);
-	}
-
-
-	template <typename T>
-	static void blur_1(View1<T> const& src, View1<T> const& dst)
-	{
-		auto const width = src.width;
-		auto const height = src.height;
-
-		copy_outer(src, dst);
-
-		Range2Du32 r{};
-		r.x_begin = 1;
-		r.x_end = width - 1;
-		r.y_begin = 1;
-		r.y_end = height - 1;
-
-		convolve_gauss_3x3_outer(sub_view(src, r), sub_view(dst, r));
-
-		r.x_begin = 2;
-		r.x_end = width - 2;
-		r.y_begin = 2;
-		r.y_end = height - 2;
-
-		convolve_gauss_5x5(sub_view(src, r), sub_view(dst, r));
-	}
-
-
-	template <typename T, size_t N>
-	static void blur_n(ChannelView2D<T, N> const& src, ChannelView2D<T, N> const& dst)
-	{
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			blur_1(select_channel(src, ch), select_channel(dst, ch));
-		}
-	}
-
-
 	void blur(View1u16 const& src, View1u16 const& dst)
 	{
 		assert(verify(src, dst));

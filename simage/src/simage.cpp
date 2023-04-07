@@ -572,7 +572,7 @@ namespace simage
 
 namespace simage
 {
-    constexpr std::array<f32, 33> make_grad_x_11()
+    constexpr std::array<f32, 33> make_grad_x_3x11()
 	{
 		/*constexpr std::array<f32, 33> GRAD_X
 		{
@@ -601,7 +601,7 @@ namespace simage
 	}
 
 
-	constexpr std::array<f32, 33> make_grad_y_11()
+	constexpr std::array<f32, 33> make_grad_y_11x3()
 	{
 		/*constexpr std::array<f32, 33> GRAD_Y
 		{
@@ -609,9 +609,11 @@ namespace simage
 			-0.03f, -0.09f, -0.03f,
 			-0.04f, -0.12f, -0.04f,
 			-0.05f, -0.15f, -0.05f,
+
 			-0.06f, -0.18f, -0.06f,
 			 0.00f,  0.00f,  0.00f,
 			 0.06f,  0.18f,  0.06f,
+
 			 0.05f,  0.15f,  0.05f,
 			 0.04f,  0.12f,  0.04f,
 			 0.03f,  0.09f,  0.03f,
@@ -633,34 +635,6 @@ namespace simage
 			grad[w * (4 - i) + 2] = -values[i];
 			grad[w * (4 - i) + 1] = -3 * values[i];
 		}
-
-		return grad;
-	}
-
-
-	constexpr std::array<f32, 15> make_grad_x_5()
-	{
-		std::array<f32, 15> grad
-		{
-			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
-			-0.16f, -0.24f, 0.0f, 0.24f, 0.16f
-			-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
-		};
-
-		return grad;
-	}
-
-
-	constexpr std::array<f32, 15> make_grad_y_5()
-	{
-		std::array<f32, 15> grad
-		{
-			-0.08f, -0.16f, -0.08f,
-			-0.12f, -0.24f, -0.12f,
-			 0.00f,  0.00f,  0.00f,
-			 0.12f,  0.24f,  0.12f,
-			 0.08f,  0.16f,  0.08f,
-		};
 
 		return grad;
 	}
@@ -702,6 +676,40 @@ namespace simage
 
 		return kernel;
 	}
+
+
+    static constexpr auto GRAD_X_3x11 = make_grad_x_3x11();
+    static constexpr auto GRAD_Y_3x11 = make_grad_y_11x3();
+
+    static constexpr std::array<f32, 15> GRAD_X_3x5
+    {
+        -0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+        -0.16f, -0.24f, 0.0f, 0.24f, 0.16f
+        -0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+    };
+
+    static constexpr std::array<f32, 15> GRAD_Y_3x5
+    {
+        -0.08f, -0.16f, -0.08f,
+        -0.12f, -0.24f, -0.12f,
+         0.00f,  0.00f,  0.00f,
+         0.12f,  0.24f,  0.12f,
+         0.08f,  0.16f,  0.08f,
+    };
+
+    static constexpr std::array<f32, 9> GRAD_X_3x3
+	{
+		-0.25f,  0.0f,  0.25f,
+		-0.50f,  0.0f,  0.50f,
+		-0.25f,  0.0f,  0.25f,
+	};
+
+	static constexpr std::array<f32, 9> GRAD_Y_3x3
+	{
+		-0.25f, -0.50f, -0.25f,
+		 0.0f,   0.0f,   0.0f,
+		 0.25f,  0.50f,  0.25f,
+	};
 }
 
 
@@ -720,29 +728,180 @@ namespace simage
 		int const rx_begin = -(int)kernel.width / 2;
 		int const rx_end = kernel.width / 2 + 1;
 
+        auto const xy_func = [&](u32 x, u32 y, T* d)
+        {
+            u32 w = 0;
+			f32 total = 0.0f;
+            for (int ry = ry_begin; ry < ry_end; ++ry)
+            {
+                auto s = row_offset_begin(src, y, ry);
+                for (int rx = rx_begin; rx < rx_end; ++rx)
+                {
+                    total += (s + rx)[x] * kernel.data_[w];						
+                    ++w;
+                }
+
+                d[x] = (T)std::abs(total);
+            }
+        };
+
 		auto const row_func = [&](u32 y) 
 		{			
 			auto d = row_begin(dst, y);
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				u32 w = 0;
-				f32 total = 0.0f;
-				for (int ry = ry_begin; ry < ry_end; ++ry)
-				{
-					auto s = row_offset_begin(src, y, ry);
-					for (int rx = rx_begin; rx < rx_end; ++rx)
-					{
-						total += (s + rx)[x] * kernel.data_[w];						
-						++w;
-					}
-
-					d[x] = (T)std::abs(total);
-				}
+				xy_func(x, y, d);
 			}
 		};
 
 		process_by_row(src.height, row_func);
 	}
+
+
+    template <typename T>
+    static void convolve_xy_at_11(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+    {
+        f32 x_total = 0.0f;
+        f32 y_total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 11; ++u)
+            {
+                x_total += s[x - 5 + u] * GRAD_X_3x11[w++];
+            }
+        }
+
+        w = 0;
+        for (u32 v = 0; v < 11; ++v)
+        {
+            auto s = row_begin(src, y - 5 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                y_total += s[x - 1 + u] * GRAD_Y_3x11[w++];
+            }
+        }
+
+        auto& d = *xy_at(dst, x, y);
+
+        d = (T)std::hypotf(x_total, y_total);
+    }
+
+
+    template <typename T>
+    static void convolve_xy_at_5(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+    {
+        f32 x_total = 0.0f;
+        f32 y_total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 5; ++u)
+            {
+                x_total += s[x - 2 + u] * GRAD_X_3x5[w++];
+            }
+        }
+
+        w = 0;
+        for (u32 v = 0; v < 5; ++v)
+        {
+            auto s = row_begin(src, y - 2 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                y_total += s[x - 1 + u] * GRAD_Y_3x5[w++];
+            }
+        }
+
+        auto& d = *xy_at(dst, x, y);
+
+        d = (T)std::hypotf(x_total, y_total);
+    }
+
+
+    template <typename T>
+    static void convolve_xy_at_3(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+    {
+        f32 x_total = 0.0f;
+        f32 y_total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                x_total += s[x - 1 + u] * GRAD_X_3x3[w++];
+            }
+        }
+
+        w = 0;
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                y_total += s[x - 1 + u] * GRAD_Y_3x3[w++];
+            }
+        }
+
+        auto& d = *xy_at(dst, x, y);
+
+        d = (T)std::hypotf(x_total, y_total);
+    }
+
+
+
+    template <typename T>
+    static void convolve_xy_11(View1<T> const& src, View1<T> const& dst)
+    {
+        constexpr auto kernel_x = make_grad_x_3x11();
+        constexpr auto kernel_y = make_grad_y_11x3();
+
+        auto const xy_func = [&](u32 x, u32 y)
+        {
+            f32 x_total = 0.0f;
+            f32 x_total = 0.0f;
+            u32 w = 0;
+
+            for (u32 v = 0; v < 3; ++v)
+            {
+                auto s = row_begin(src, y - 1 + v);
+                for (u32 u = 0; u < 11; ++u)
+                {
+                    x_total += s[x - 5 + u] * kernel_x[w++];
+                }
+            }
+
+            w = 0;
+            for (u32 v = 0; v < 11; ++v)
+            {
+                auto s = row_begin(src, y - 5 + v);
+                for (u32 u = 0; u < 3; ++u)
+                {
+                    y_total += s[x - 1 + u] * kernel_y[w++];
+                }
+            }
+
+            auto d = row_begin(dst, y);
+
+            d[x] = (T)std::hypotf(x_total, y_total);
+        };
+
+        auto const row_func = [&](u32 y) 
+		{			
+			
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				xy_func(x, y);
+			}
+		};
+
+		process_by_row(src.height, row_func);
+    }
 
 
 	template <typename T>
@@ -887,7 +1046,7 @@ namespace simage
     template <typename T>
 	static void gradients_x(View1<T> const& src, View1<T> const& dst)
 	{
-		constexpr auto grad_y = make_grad_x_11();
+		constexpr auto grad_y = make_grad_x_3x11();
 		constexpr u32 dim_max = 11;
 		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
 
@@ -914,7 +1073,7 @@ namespace simage
 	template <typename T>
 	static void gradients_y(View1<T> const& src, View1<T> const& dst)
 	{
-		constexpr auto grad_y = make_grad_y_11();
+		constexpr auto grad_y = make_grad_y_11x3();
 		constexpr u32 dim_max = 11;
 		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
 
@@ -936,6 +1095,51 @@ namespace simage
 
 		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
 	}
+
+
+    template <typename T>
+    static void gradients_1(View1<T> const& src, View1<T> const& dst)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        auto const row_func = [&](u32 y)
+        {            
+            auto d = row_begin(dst, y);
+
+            d[0] = d[width - 1] = 0;
+
+            if (y == 0 || y = height - 1)
+            {                
+                for (u32 x = 1; x < width - 1; ++x)
+                {
+                    d[x] = 0;
+                }
+                return;
+            }
+
+            convolve_xy_at_3(src, dst, 1, y);
+            convolve_xy_at_3(src, dst, width - 2, y);
+
+            if (y == 1 || y = height - 2)
+            {
+                for (u32 x = 2; x < width - 2; ++x)
+                {
+                    convolve_xy_at_3(src, dst, x, y);
+                }
+                return;
+            }
+
+            
+
+            for (u32 x = 5; x < width - 5; ++x)
+            {
+                convolve_xy_at_11(src, dst, x, y);
+            }            
+        };
+
+        process_by_row(height, row_func);
+    }
 
 
     template <typename T>
@@ -1300,6 +1504,93 @@ namespace simage
 }
 
 
+/* split channels */
+
+namespace simage
+{
+	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
+	{
+		assert(verify(src, red));
+		assert(verify(src, green));
+		assert(verify(src, blue));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = s[x].rgba;
+				r[x] = rgba.red;
+				g[x] = rgba.green;
+				b[x] = rgba.blue;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha)
+	{
+		assert(verify(src, red));
+		assert(verify(src, green));
+		assert(verify(src, blue));
+		assert(verify(src, alpha));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+			auto a = row_begin(alpha, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = s[x].rgba;
+				r[x] = rgba.red;
+				g[x] = rgba.green;
+				b[x] = rgba.blue;
+				a[x] = rgba.alpha;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+
+
+	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val)
+	{
+		assert(verify(src, hue));
+		assert(verify(src, sat));
+		assert(verify(src, val));
+
+		auto const row_func = [&](u32 y)
+		{
+			auto p = row_begin(src, y);
+			auto h = row_begin(hue, y);
+			auto s = row_begin(sat, y);
+			auto v = row_begin(val, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto const rgba = p[x].rgba;
+				auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+				h[x] = hsv.hue;
+				s[x] = hsv.sat;
+				v[x] = hsv.val;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+	}
+}
+
+
 /* fill */
 
 namespace simage
@@ -1656,90 +1947,32 @@ namespace simage
 }
 
 
-/* split channels */
+/* blur */
 
 namespace simage
 {
-	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
-	{
-		assert(verify(src, red));
-		assert(verify(src, green));
-		assert(verify(src, blue));
+    void blur(View const& src, View const& dst)
+    {
+        assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto r = row_begin(red, y);
-			auto g = row_begin(green, y);
-			auto b = row_begin(blue, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto const rgba = s[x].rgba;
-				r[x] = rgba.red;
-				g[x] = rgba.green;
-				b[x] = rgba.blue;
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
+		blur_1(src, dst);
+    }
 
 
-	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha)
-	{
-		assert(verify(src, red));
-		assert(verify(src, green));
-		assert(verify(src, blue));
-		assert(verify(src, alpha));
+    void blur(ViewGray const& src, ViewGray const& dst)
+    {
+        assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-			auto r = row_begin(red, y);
-			auto g = row_begin(green, y);
-			auto b = row_begin(blue, y);
-			auto a = row_begin(alpha, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto const rgba = s[x].rgba;
-				r[x] = rgba.red;
-				g[x] = rgba.green;
-				b[x] = rgba.blue;
-				a[x] = rgba.alpha;
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
+		blur_1(src, dst);
+    }
+}
 
 
-	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val)
-	{
-		assert(verify(src, hue));
-		assert(verify(src, sat));
-		assert(verify(src, val));
+/* edges */
 
-		auto const row_func = [&](u32 y)
-		{
-			auto p = row_begin(src, y);
-			auto h = row_begin(hue, y);
-			auto s = row_begin(sat, y);
-			auto v = row_begin(val, y);
+namespace simage
+{
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto const rgba = p[x].rgba;
-				auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-				h[x] = hsv.hue;
-				s[x] = hsv.sat;
-				v[x] = hsv.val;
-			}
-		};
-
-		process_by_row(src.height, row_func);
-	}
 }
 
 

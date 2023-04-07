@@ -375,6 +375,18 @@ namespace simage
 }
 
 
+/* split channels */
+
+namespace simage
+{
+	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue);
+
+	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha);
+
+	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val);
+}
+
+
 /* fill */
 
 namespace simage
@@ -457,15 +469,21 @@ namespace simage
 }
 
 
-/* split channels */
+/* blur */
 
 namespace simage
 {
-	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue);
+    void blur(View const& src, View const& dst);
 
-	void split_rgba(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue, ViewGray const& alpha);
+    void blur(ViewGray const& src, ViewGray const& dst);
+}
 
-	void split_hsv(View const& src, ViewGray const& hue, ViewGray const& sat, ViewGray const& val);
+
+/* edges */
+
+namespace simage
+{
+    
 }
 
 

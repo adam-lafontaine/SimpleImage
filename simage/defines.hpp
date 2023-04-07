@@ -108,3 +108,22 @@ inline Range2Du32 make_range(T const& c)
 {
 	return make_range(c.width, c.height);
 }
+
+
+template <typename T>
+class Matrix1D
+{
+public:
+	T* data_ = nullptr;
+	u32 length = 0;
+};
+
+
+template <typename T>
+class Matrix2D
+{
+public:
+	T* data_ = nullptr;
+	u32 width = 0;
+	u32 height = 0;
+};

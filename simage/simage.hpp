@@ -1,29 +1,10 @@
 #pragma once
 
-#include "./src/util/memory_buffer.hpp"
+#include "src/util/memory_buffer.hpp"
 
 #include <functional>
 
 namespace mb = memory_buffer;
-
-
-template <typename T>
-class Matrix1D
-{
-public:
-	T* data_ = nullptr;
-	u32 length = 0;
-};
-
-
-template <typename T>
-class Matrix2D
-{
-public:
-	T* data_ = nullptr;
-	u32 width = 0;
-	u32 height = 0;
-};
 
 
 namespace simage
@@ -94,7 +75,7 @@ namespace simage
 }
 
 
-/* view */
+/* channel view */
 
 namespace simage
 {
@@ -363,7 +344,7 @@ namespace simage
 	ViewRGB make_view(ImageRGB const& image);
 	
 
-	View make_view_rgba(u32 width, u32 height, Buffer8& buffer);
+	View make_view_rgba(u32 width, u32 height, Buffer32& buffer);
 
 	ViewGray make_view_gray(u32 width, u32 height, Buffer8& buffer);
 }
@@ -506,32 +487,6 @@ namespace simage
 
 
 	void skeleton(ViewGray const& src_dst);
-}
-
-
-/* row begin */
-
-namespace simage
-{
-	template <typename T>
-	inline T* row_begin(Matrix2D<T> const& image, u32 y)
-	{
-		return image.data_ + (u64)(y * image.width);
-	}
-
-
-	template <typename T>
-	inline T* row_begin(MatrixView<T> const& view, u32 y)
-	{
-		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
-	}
-
-
-	template <typename T>
-	inline T* xy_at(MatrixView<T> const& view, u32 x, u32 y)
-	{
-		return row_begin(view, y) + x;
-	}
 }
 
 
@@ -745,6 +700,7 @@ namespace simage
 
 
 /* usb camera */
+/* uvc_simage.cpp or opencv_simage.cpp */
 
 namespace simage
 {

@@ -479,7 +479,7 @@ namespace simage
 }
 
 
-/* edges */
+/* gradients */
 
 namespace simage
 {

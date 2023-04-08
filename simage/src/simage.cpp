@@ -759,7 +759,7 @@ namespace simage
 
 
     template <typename T>
-    static void convolve_xy_at_11(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+    static T convolve_xy_11(View1<T> const& src, u32 x, u32 y)
     {
         f32 x_total = 0.0f;
         f32 y_total = 0.0f;
@@ -784,14 +784,12 @@ namespace simage
             }
         }
 
-        auto& d = *xy_at(dst, x, y);
-
-        d = (T)std::hypotf(x_total, y_total);
+        return (T)std::hypotf(x_total, y_total);
     }
 
 
     template <typename T>
-    static void convolve_xy_at_5(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+    static T convolve_xy_5(View1<T> const& src, u32 x, u32 y)
     {
         f32 x_total = 0.0f;
         f32 y_total = 0.0f;
@@ -816,14 +814,12 @@ namespace simage
             }
         }
 
-        auto& d = *xy_at(dst, x, y);
-
-        d = (T)std::hypotf(x_total, y_total);
+        return (T)std::hypotf(x_total, y_total);
     }
 
 
     template <typename T>
-    static void convolve_xy_at_3(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+    static T convolve_xy_3(View1<T> const& src, u32 x, u32 y)
     {
         f32 x_total = 0.0f;
         f32 y_total = 0.0f;
@@ -848,59 +844,7 @@ namespace simage
             }
         }
 
-        auto& d = *xy_at(dst, x, y);
-
-        d = (T)std::hypotf(x_total, y_total);
-    }
-
-
-
-    template <typename T>
-    static void convolve_xy_11(View1<T> const& src, View1<T> const& dst)
-    {
-        constexpr auto kernel_x = make_grad_x_3x11();
-        constexpr auto kernel_y = make_grad_y_11x3();
-
-        auto const xy_func = [&](u32 x, u32 y)
-        {
-            f32 x_total = 0.0f;
-            f32 x_total = 0.0f;
-            u32 w = 0;
-
-            for (u32 v = 0; v < 3; ++v)
-            {
-                auto s = row_begin(src, y - 1 + v);
-                for (u32 u = 0; u < 11; ++u)
-                {
-                    x_total += s[x - 5 + u] * kernel_x[w++];
-                }
-            }
-
-            w = 0;
-            for (u32 v = 0; v < 11; ++v)
-            {
-                auto s = row_begin(src, y - 5 + v);
-                for (u32 u = 0; u < 3; ++u)
-                {
-                    y_total += s[x - 1 + u] * kernel_y[w++];
-                }
-            }
-
-            auto d = row_begin(dst, y);
-
-            d[x] = (T)std::hypotf(x_total, y_total);
-        };
-
-        auto const row_func = [&](u32 y) 
-		{			
-			
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				xy_func(x, y);
-			}
-		};
-
-		process_by_row(src.height, row_func);
+        return (T)std::hypotf(x_total, y_total);
     }
 
 
@@ -1098,6 +1042,70 @@ namespace simage
 
 
     template <typename T>
+    static void gradients_row(View1<T> const& src, View1<T> const& dst, u32 y)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        auto d = row_begin(dst, y);
+
+        switch (y)
+        {
+        case 0:
+        case height - 1:
+            for (u32 x = 0; x < width ; ++x)
+            {
+                d[x] = 0;
+            }
+            return;
+
+        case 1:
+        case height - 2:
+            d[0] = d[width - 1] = 0;
+
+            for (u32 x = 1; x < width - 1; ++x)
+            {
+                d[x] = convolve_xy_3(src, x, y);
+            }
+            return;
+
+        case 2:
+        case 3:
+        case 4:
+        case height - 3:
+        case height - 4:
+        case height - 5:
+            d[0] = d[width - 1] = 0;
+
+            d[1] = convolve_xy_3(src, 1, y);
+            d[width - 2] = convolve_xy_3(src, width - 2, y);
+
+            for (u32 x = 2; x < width - 3; ++x)
+            {
+                d[x] = convolve_xy_5(src, x, y);
+            }
+            return;
+
+        default:
+            d[0] = d[width - 1] = 0;
+
+            d[1] = convolve_xy_3(src, 1, y);
+            d[width - 2] = convolve_xy_3(src, width - 2, y);
+
+            for (u32 x = 2; x < 5; ++x)
+            {
+                d[x] = convolve_xy_5(src, x, y);
+                d[width - x - 1] = convolve_xy_5(src, width - x - 1, y);
+            }
+
+            for (u32 x = 5; x < width - 5; ++x)
+            {
+                d[x] = convolve_xy_11(src, x, y);
+            }
+        }
+    }
+
+    template <typename T>
     static void gradients_1(View1<T> const& src, View1<T> const& dst)
     {
         auto const width = src.width;
@@ -1105,37 +1113,7 @@ namespace simage
 
         auto const row_func = [&](u32 y)
         {            
-            auto d = row_begin(dst, y);
-
-            d[0] = d[width - 1] = 0;
-
-            if (y == 0 || y = height - 1)
-            {                
-                for (u32 x = 1; x < width - 1; ++x)
-                {
-                    d[x] = 0;
-                }
-                return;
-            }
-
-            convolve_xy_at_3(src, dst, 1, y);
-            convolve_xy_at_3(src, dst, width - 2, y);
-
-            if (y == 1 || y = height - 2)
-            {
-                for (u32 x = 2; x < width - 2; ++x)
-                {
-                    convolve_xy_at_3(src, dst, x, y);
-                }
-                return;
-            }
-
-            
-
-            for (u32 x = 5; x < width - 5; ++x)
-            {
-                convolve_xy_at_11(src, dst, x, y);
-            }            
+            gradients_row(src, dst, y);
         };
 
         process_by_row(height, row_func);
@@ -1972,7 +1950,7 @@ namespace simage
 
 namespace simage
 {
-
+    
 }
 
 

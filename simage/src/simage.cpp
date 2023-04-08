@@ -945,20 +945,20 @@ namespace simage
             return;
 
         default:
-            d[0] = d[width - 1] = 0;
+            d[0] = d[width - 1] = (T)0;
 
-            d[1] = gradient_x_3(src, 1, y);
-            d[width - 2] = gradient_x_3(src, width - 2, y);
+            d[1] = (T)std::abs(gradient_x_3(src, 1, y));
+            d[width - 2] = (T)std::abs(gradient_x_3(src, width - 2, y));
 
             for (u32 x = 2; x < 5; ++x)
             {
-                d[x] = gradient_x_5(src, x, y);
-                d[width - x - 1] = gradient_x_5(src, width - x - 1, y);
+                d[x] = (T)std::abs(gradient_x_5(src, x, y));
+                d[width - x - 1] = (T)std::abs(gradient_x_5(src, width - x - 1, y));
             }
 
             for (u32 x = 5; x < width - 5; ++x)
             {
-                d[x] = gradient_x_11(src, x, y);
+                d[x] = (T)std::abs(gradient_x_11(src, x, y));
             }
         }
     }
@@ -984,11 +984,11 @@ namespace simage
 
         case 1:
         case height - 2:
-            d[0] = d[width - 1] = 0;
+            d[0] = d[width - 1] = (T)0;
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = gradient_y_3(src, x, y);
+                d[x] = (T)std::abs(gradient_y_3(src, x, y));
             }
             return;
 
@@ -998,20 +998,20 @@ namespace simage
         case height - 3:
         case height - 4:
         case height - 5:
-            d[0] = d[width - 1] = 0;
+            d[0] = d[width - 1] = (T)0;
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = gradient_y_5(src, x, y);
+                d[x] = (T)std::abs(gradient_y_5(src, x, y));
             }
             return;
 
         default:
-            d[0] = d[width - 1] = 0;
+            d[0] = d[width - 1] = (T)0;
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = gradient_y_11(src, x, y);
+                d[x] = (T)std::abs(gradient_y_11(src, x, y));
             }
         }
     }
@@ -1085,43 +1085,6 @@ namespace simage
 		};
 
 		process_by_row(src.height, row_func);
-	}
-
-
-	template <typename T>
-	static void zero_outer(View1<T> const& view, u32 n_rows, u32 n_columns)
-	{
-		auto const top_bottom = [&]()
-		{
-			for (u32 r = 0; r < n_rows; ++r)
-			{
-				auto top = row_begin(view, r);
-				auto bottom = row_begin(view, view.height - 1 - r);
-				for (u32 x = 0; x < view.width; ++x)
-				{
-					top[x] = bottom[x] = (T)0;
-				}
-			}
-		};
-
-		auto const left_right = [&]()
-		{
-			for (u32 y = n_rows; y < view.height - n_rows; ++y)
-			{
-				auto row = row_begin(view, y);
-				for (u32 c = 0; c < n_columns; ++c)
-				{
-					row[c] = row[view.width - 1 - c] = (T)0;
-				}
-			}
-		};
-
-		std::array<std::function<void()>, 2> f_list
-		{
-			top_bottom, left_right
-		};
-
-		execute(f_list);
 	}
 
 
@@ -1226,64 +1189,7 @@ namespace simage
 		convolve(src, dst, kernel);
 	}
 
-	/*
-    template <typename T>
-	static void gradients_x(View1<T> const& src, View1<T> const& dst)
-	{
-		constexpr auto grad_y = make_grad_x_3x11();
-		constexpr u32 dim_max = 11;
-		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
-
-		Mat2Df32 kernel{};
-		kernel.data_ = (f32*)grad_y.data();
-		kernel.width = dim_max;
-		kernel.height = dim_min;
-
-		auto w = kernel.width / 2;
-		auto h = kernel.height / 2;
-
-		zero_outer(dst, w, h);
-
-		Range2Du32 inner{};
-		inner.x_begin = w;
-		inner.x_end = src.width - w;
-		inner.y_begin = h;
-		inner.y_end = src.height - h;
-
-		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
-	}
-
-
-	template <typename T>
-	static void gradients_y(View1<T> const& src, View1<T> const& dst)
-	{
-		constexpr auto grad_y = make_grad_y_11x3();
-		constexpr u32 dim_max = 11;
-		constexpr u32 dim_min = (u32)grad_y.size() / dim_max;
-
-		Mat2Df32 kernel{};
-		kernel.data_ = (f32*)grad_y.data();
-		kernel.width = dim_min;
-		kernel.height = dim_max;
-
-		auto w = kernel.width / 2;
-		auto h = kernel.height / 2;
-
-		zero_outer(dst, w, h);
-
-		Range2Du32 inner{};
-		inner.x_begin = w;
-		inner.x_end = src.width - w;
-		inner.y_begin = h;
-		inner.y_end = src.height - h;
-
-		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
-	}
-
-*/
-    
-
-
+	 
     template <typename T>
 	static void blur_1(View1<T> const& src, View1<T> const& dst)
 	{

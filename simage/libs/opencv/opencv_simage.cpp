@@ -1,5 +1,5 @@
-#include "../simage/simage_platform.hpp"
-#include "../util/execute.hpp"
+#include "../../simage.hpp"
+#include "../../src/util/execute.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio.hpp>

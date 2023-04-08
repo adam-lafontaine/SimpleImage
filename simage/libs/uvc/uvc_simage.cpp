@@ -1,9 +1,9 @@
-#include "../simage/simage_platform.hpp"
-#include "../util/execute.hpp"
-#include "../util/color_space.hpp"
+#include "../../simage.hpp"
+#include "../../src/util/execute.hpp"
+#include "../../src/util/color_space.hpp"
 
 #define LIBUVC_IMPLEMENTATION 1
-#include "../uvc/libuvc2.hpp"
+#include "libuvc2.hpp"
 
 #include <vector>
 #include <algorithm>

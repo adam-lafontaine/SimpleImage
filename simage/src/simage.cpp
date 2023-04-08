@@ -713,10 +713,340 @@ namespace simage
 }
 
 
-/* convolution static */
+/* gradients static */
 
 namespace simage
 {
+    template <typename T>
+    static f32 gradient_x_11(View1<T> const& view, u32 x, u32 y)
+    {
+        f32 total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 11; ++u)
+            {
+                total += s[x - 5 + u] * GRAD_X_3x11[w++];
+            }
+        }
+
+        return total;
+    }
+
+
+    template <typename T>
+    static f32 gradient_y_11(View1<T> const& view, u32 x, u32 y)
+    {
+        f32 total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 11; ++v)
+        {
+            auto s = row_begin(src, y - 5 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                total += s[x - 1 + u] * GRAD_Y_3x11[w++];
+            }
+        }
+
+        return total;
+    }
+
+
+    template <typename T>
+    static f32 gradient_x_5(View1<T> const& view, u32 x, u32 y)
+    {
+        f32 total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 5; ++u)
+            {
+                total += s[x - 2 + u] * GRAD_X_3x5[w++];
+            }
+        }
+
+        return total;
+    }
+
+
+    template <typename T>
+    static f32 gradient_y_5(View1<T> const& view, u32 x, u32 y)
+    {
+        f32 total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 5; ++v)
+        {
+            auto s = row_begin(src, y - 2 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                total += s[x - 1 + u] * GRAD_Y_3x5[w++];
+            }
+        }
+
+        return total;
+    }
+
+
+    template <typename T>
+    static f32 gradient_x_3(View1<T> const& view, u32 x, u32 y)
+    {
+        f32 total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                total += s[x - 1 + u] * GRAD_X_3x3[w++];
+            }
+        }
+
+        return total;
+    }
+
+
+    template <typename T>
+    static f32 gradient_y_3(View1<T> const& view, u32 x, u32 y)
+    {
+        f32 total = 0.0f;
+        u32 w = 0;
+
+        for (u32 v = 0; v < 3; ++v)
+        {
+            auto s = row_begin(src, y - 1 + v);
+            for (u32 u = 0; u < 3; ++u)
+            {
+                total += s[x - 1 + u] * GRAD_Y_3x3[w++];
+            }
+        }
+
+        return total;
+    }
+
+
+    template <typename T>
+    static T gradient_xy_11(View1<T> const& view, u32 x, u32 y)
+    {
+        auto grad_x = gradient_x_11(view, x, y);
+        auto grad_y = gradient_y_11(view, x, y);
+
+        return (T)std::hypotf(grad_x, grad_y);
+    }
+
+
+    template <typename T>
+    static T gradient_xy_5(View1<T> const& view, u32 x, u32 y)
+    {
+        auto grad_x = gradient_x_5(view, x, y);
+        auto grad_y = gradient_y_5(view, x, y);
+
+        return (T)std::hypotf(grad_x, grad_y);
+    }
+
+
+    template <typename T>
+    static T gradient_xy_3(View1<T> const& view, u32 x, u32 y)
+    {
+        auto grad_x = gradient_x_3(view, x, y);
+        auto grad_y = gradient_y_3(view, x, y);
+
+        return (T)std::hypotf(grad_x, grad_y);
+    }
+
+
+    template <typename T>
+    static void gradients_row(View1<T> const& src, View1<T> const& dst, u32 y)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        auto d = row_begin(dst, y);
+
+        switch (y)
+        {
+        case 0:
+        case height - 1:
+            for (u32 x = 0; x < width ; ++x)
+            {
+                d[x] = (T)0;
+            }
+            return;
+
+        case 1:
+        case height - 2:
+            d[0] = d[width - 1] = 0;
+
+            for (u32 x = 1; x < width - 1; ++x)
+            {
+                d[x] = gradient_xy_3(src, x, y);
+            }
+            return;
+
+        case 2:
+        case 3:
+        case 4:
+        case height - 3:
+        case height - 4:
+        case height - 5:
+            d[0] = d[width - 1] = 0;
+
+            d[1] = gradient_xy_3(src, 1, y);
+            d[width - 2] = gradient_xy_3(src, width - 2, y);
+
+            for (u32 x = 2; x < width - 3; ++x)
+            {
+                d[x] = gradient_xy_5(src, x, y);
+            }
+            return;
+
+        default:
+            d[0] = d[width - 1] = 0;
+
+            d[1] = gradient_xy_3(src, 1, y);
+            d[width - 2] = gradient_xy_3(src, width - 2, y);
+
+            for (u32 x = 2; x < 5; ++x)
+            {
+                d[x] = gradient_xy_5(src, x, y);
+                d[width - x - 1] = gradient_xy_5(src, width - x - 1, y);
+            }
+
+            for (u32 x = 5; x < width - 5; ++x)
+            {
+                d[x] = gradient_xy_11(src, x, y);
+            }
+        }
+    }
+
+
+    template <typename T>
+    static void gradients_x_row(View1<T> const& src, View1<T> const& dst, u32 y)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        auto d = row_begin(dst, y);
+
+        switch (y)
+        {
+        case 0:
+        case height - 1:
+            for (u32 x = 0; x < width ; ++x)
+            {
+                d[x] = (T)0;
+            }
+            return;
+
+        default:
+            d[0] = d[width - 1] = 0;
+
+            d[1] = gradient_x_3(src, 1, y);
+            d[width - 2] = gradient_x_3(src, width - 2, y);
+
+            for (u32 x = 2; x < 5; ++x)
+            {
+                d[x] = gradient_x_5(src, x, y);
+                d[width - x - 1] = gradient_x_5(src, width - x - 1, y);
+            }
+
+            for (u32 x = 5; x < width - 5; ++x)
+            {
+                d[x] = gradient_x_11(src, x, y);
+            }
+        }
+    }
+
+
+    template <typename T>
+    static void gradients_y_row(View1<T> const& src, View1<T> const& dst, u32 y)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        auto d = row_begin(dst, y);
+
+        switch (y)
+        {
+        case 0:
+        case height - 1:
+            for (u32 x = 0; x < width ; ++x)
+            {
+                d[x] = (T)0;
+            }
+            return;
+
+        case 1:
+        case height - 2:
+            d[0] = d[width - 1] = 0;
+
+            for (u32 x = 1; x < width - 1; ++x)
+            {
+                d[x] = gradient_y_3(src, x, y);
+            }
+            return;
+
+        case 2:
+        case 3:
+        case 4:
+        case height - 3:
+        case height - 4:
+        case height - 5:
+            d[0] = d[width - 1] = 0;
+
+            for (u32 x = 1; x < width - 1; ++x)
+            {
+                d[x] = gradient_y_5(src, x, y);
+            }
+            return;
+
+        default:
+            d[0] = d[width - 1] = 0;
+
+            for (u32 x = 1; x < width - 1; ++x)
+            {
+                d[x] = gradient_y_11(src, x, y);
+            }
+        }
+    }
+
+
+    template <typename T>
+    static void gradients_1(View1<T> const& src, View1<T> const& dst)
+    {
+        auto const row_func = [&](u32 y)
+        {            
+            gradients_row(src, dst, y);
+        };
+
+        process_by_row(src.height, row_func);
+    }
+
+
+    template <typename T>
+    static void gradients_xy_1(View1<T> const& src, View1<T> const& x_dst, View1<T> const& y_dst)
+    {
+        auto const row_func = [&](u32 y)
+        {            
+            gradients_x_row(src, x_dst, y);
+            gradients_y_row(src, y_dst, y);
+        };
+
+        process_by_row(src.height, row_func);
+    }
+}
+
+
+/* convolution static */
+
+namespace simage
+{    
     template <typename T>
     static void convolve(View1<T> const& src, View1<T> const& dst, Mat2Df32 const& kernel)
 	{
@@ -756,96 +1086,6 @@ namespace simage
 
 		process_by_row(src.height, row_func);
 	}
-
-
-    template <typename T>
-    static T convolve_xy_11(View1<T> const& src, u32 x, u32 y)
-    {
-        f32 x_total = 0.0f;
-        f32 y_total = 0.0f;
-        u32 w = 0;
-
-        for (u32 v = 0; v < 3; ++v)
-        {
-            auto s = row_begin(src, y - 1 + v);
-            for (u32 u = 0; u < 11; ++u)
-            {
-                x_total += s[x - 5 + u] * GRAD_X_3x11[w++];
-            }
-        }
-
-        w = 0;
-        for (u32 v = 0; v < 11; ++v)
-        {
-            auto s = row_begin(src, y - 5 + v);
-            for (u32 u = 0; u < 3; ++u)
-            {
-                y_total += s[x - 1 + u] * GRAD_Y_3x11[w++];
-            }
-        }
-
-        return (T)std::hypotf(x_total, y_total);
-    }
-
-
-    template <typename T>
-    static T convolve_xy_5(View1<T> const& src, u32 x, u32 y)
-    {
-        f32 x_total = 0.0f;
-        f32 y_total = 0.0f;
-        u32 w = 0;
-
-        for (u32 v = 0; v < 3; ++v)
-        {
-            auto s = row_begin(src, y - 1 + v);
-            for (u32 u = 0; u < 5; ++u)
-            {
-                x_total += s[x - 2 + u] * GRAD_X_3x5[w++];
-            }
-        }
-
-        w = 0;
-        for (u32 v = 0; v < 5; ++v)
-        {
-            auto s = row_begin(src, y - 2 + v);
-            for (u32 u = 0; u < 3; ++u)
-            {
-                y_total += s[x - 1 + u] * GRAD_Y_3x5[w++];
-            }
-        }
-
-        return (T)std::hypotf(x_total, y_total);
-    }
-
-
-    template <typename T>
-    static T convolve_xy_3(View1<T> const& src, u32 x, u32 y)
-    {
-        f32 x_total = 0.0f;
-        f32 y_total = 0.0f;
-        u32 w = 0;
-
-        for (u32 v = 0; v < 3; ++v)
-        {
-            auto s = row_begin(src, y - 1 + v);
-            for (u32 u = 0; u < 3; ++u)
-            {
-                x_total += s[x - 1 + u] * GRAD_X_3x3[w++];
-            }
-        }
-
-        w = 0;
-        for (u32 v = 0; v < 3; ++v)
-        {
-            auto s = row_begin(src, y - 1 + v);
-            for (u32 u = 0; u < 3; ++u)
-            {
-                y_total += s[x - 1 + u] * GRAD_Y_3x3[w++];
-            }
-        }
-
-        return (T)std::hypotf(x_total, y_total);
-    }
 
 
 	template <typename T>
@@ -986,7 +1226,7 @@ namespace simage
 		convolve(src, dst, kernel);
 	}
 
-	
+	/*
     template <typename T>
 	static void gradients_x(View1<T> const& src, View1<T> const& dst)
 	{
@@ -1040,84 +1280,8 @@ namespace simage
 		convolve(sub_view(src, inner), sub_view(dst, inner), kernel);
 	}
 
-
-    template <typename T>
-    static void gradients_row(View1<T> const& src, View1<T> const& dst, u32 y)
-    {
-        auto const width = src.width;
-        auto const height = src.height;
-
-        auto d = row_begin(dst, y);
-
-        switch (y)
-        {
-        case 0:
-        case height - 1:
-            for (u32 x = 0; x < width ; ++x)
-            {
-                d[x] = 0;
-            }
-            return;
-
-        case 1:
-        case height - 2:
-            d[0] = d[width - 1] = 0;
-
-            for (u32 x = 1; x < width - 1; ++x)
-            {
-                d[x] = convolve_xy_3(src, x, y);
-            }
-            return;
-
-        case 2:
-        case 3:
-        case 4:
-        case height - 3:
-        case height - 4:
-        case height - 5:
-            d[0] = d[width - 1] = 0;
-
-            d[1] = convolve_xy_3(src, 1, y);
-            d[width - 2] = convolve_xy_3(src, width - 2, y);
-
-            for (u32 x = 2; x < width - 3; ++x)
-            {
-                d[x] = convolve_xy_5(src, x, y);
-            }
-            return;
-
-        default:
-            d[0] = d[width - 1] = 0;
-
-            d[1] = convolve_xy_3(src, 1, y);
-            d[width - 2] = convolve_xy_3(src, width - 2, y);
-
-            for (u32 x = 2; x < 5; ++x)
-            {
-                d[x] = convolve_xy_5(src, x, y);
-                d[width - x - 1] = convolve_xy_5(src, width - x - 1, y);
-            }
-
-            for (u32 x = 5; x < width - 5; ++x)
-            {
-                d[x] = convolve_xy_11(src, x, y);
-            }
-        }
-    }
-
-    template <typename T>
-    static void gradients_1(View1<T> const& src, View1<T> const& dst)
-    {
-        auto const width = src.width;
-        auto const height = src.height;
-
-        auto const row_func = [&](u32 y)
-        {            
-            gradients_row(src, dst, y);
-        };
-
-        process_by_row(height, row_func);
-    }
+*/
+    
 
 
     template <typename T>
@@ -1946,11 +2110,25 @@ namespace simage
 }
 
 
-/* edges */
+/* gradients */
 
 namespace simage
 {
-    
+    void gradients(ViewGray const& src, ViewGray const& dst)
+    {
+        assert(verify(src, dst));
+
+        gradients_1(src, dst);
+    }
+
+
+    void gradients_xy(ViewGray const& src, ViewGray const& dst_x, ViewGray const& dst_y)
+    {
+        assert(verify(src, dst_x));
+        assert(verify(src, dst_y));
+
+        gradients_xy_1(src, dst_x, dst_y);
+    }
 }
 
 
@@ -3781,6 +3959,52 @@ namespace simage
 }
 
 
+/* blur */
+
+namespace simage
+{
+	void blur(View1u16 const& src, View1u16 const& dst)
+	{
+		assert(verify(src, dst));
+
+		blur_1(src, dst);
+	}
+
+
+	void blur(View3u16 const& src, View3u16 const& dst)
+	{
+		assert(verify(src, dst));
+
+		blur_n(src, dst);
+	}
+}
+
+
+/* gradients */
+
+namespace simage
+{
+    void gradients(View1u16 const& src, View1u16 const& dst)
+    {
+        assert(verify(src, dst));
+
+        gradients_1(src, dst);
+    }
+
+
+	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst)
+	{
+		auto dst_x = select_channel(xy_dst, XY::X);
+		auto dst_y = select_channel(xy_dst, XY::Y);
+
+		assert(verify(src, dst_x));
+		assert(verify(src, dst_y));
+
+		gradients_xy_1(src, dst_x, dst_y);
+	}
+}
+
+
 /* shrink_view */
 #if 0
 namespace simage
@@ -3981,42 +4205,3 @@ namespace simage
 	}
 }
 #endif
-
-
-/* gradients */
-
-namespace simage
-{
-	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst)
-	{
-		auto x_dst = select_channel(xy_dst, XY::X);
-		auto y_dst = select_channel(xy_dst, XY::Y);
-
-		assert(verify(src, x_dst));
-		assert(verify(src, y_dst));
-
-		gradients_x(src, x_dst);
-		gradients_y(src, y_dst);
-	}
-}
-
-
-/* blur */
-
-namespace simage
-{
-	void blur(View1u16 const& src, View1u16 const& dst)
-	{
-		assert(verify(src, dst));
-
-		blur_1(src, dst);
-	}
-
-
-	void blur(View3u16 const& src, View3u16 const& dst)
-	{
-		assert(verify(src, dst));
-
-		blur_n(src, dst);
-	}
-}

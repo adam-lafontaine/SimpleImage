@@ -483,7 +483,9 @@ namespace simage
 
 namespace simage
 {
-    
+    void gradients(ViewGray const& src, ViewGray const& dst);
+
+    void gradients_xy(ViewGray const& src, ViewGray const& dst_x, ViewGray const& dst_y);    
 }
 
 
@@ -631,7 +633,14 @@ namespace hist
 }
 
 
+/* read write */
 /* stb_simage.cpp */
+
+#ifndef SIMAGE_NO_FILESYSTEM
+#include <filesystem>
+#else
+#include <string>
+#endif // !SIMAGE_NO_FILESYSTEM
 
 namespace simage
 {
@@ -646,19 +655,10 @@ namespace simage
 	bool resize_image(Image const& image_src, Image& image_dst);
 
 	bool resize_image(ImageGray const& image_src, ImageGray& image_dst);
-}
-
-
-/* read write */
 
 #ifndef SIMAGE_NO_FILESYSTEM
 
-#include <filesystem>
-
-
-namespace simage
-{
-	using path_t = std::filesystem::path;
+    using path_t = std::filesystem::path;
 
 
 	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
@@ -680,16 +680,10 @@ namespace simage
 	{
 		return write_image(image_src, file_path_dst.string().c_str());
 	}
-
-}
 
 #else
 
-#include <string>
-
-namespace simage
-{
-	using path_t = std::string;
+    using path_t = std::string;
 
 	inline bool read_image_from_file(path_t const& img_path_src, Image& image_dst)
 	{
@@ -711,10 +705,8 @@ namespace simage
 		return write_image(image_src, file_path_dst.c_str());
 	}
 
-}
-
 #endif // !SIMAGE_NO_FILESYSTEM
-
+}
 
 
 /* usb camera */
@@ -806,7 +798,6 @@ namespace simage
 
 
 	ViewRGBu16 select_rgb(ViewRGBAu16 const& view);
-
 }
 
 
@@ -961,6 +952,26 @@ namespace simage
 }
 
 
+/* blur */
+
+namespace simage
+{
+	void blur(View1u16 const& src, View1u16 const& dst);
+
+	void blur(View3u16 const& src, View3u16 const& dst);
+}
+
+
+/* gradients */
+
+namespace simage
+{
+    void gradients(View1u16 const& src, View1u16 const& dst);
+
+	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst);
+}
+
+
 /* shrink */
 /*
 namespace simage
@@ -974,20 +985,3 @@ namespace simage
 	void shrink(View const& src, ViewRGBu16 const& dst);
 }
 */
-
-/* gradients */
-
-namespace simage
-{
-	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst);
-}
-
-
-/* blur */
-
-namespace simage
-{
-	void blur(View1u16 const& src, View1u16 const& dst);
-
-	void blur(View3u16 const& src, View3u16 const& dst);
-}

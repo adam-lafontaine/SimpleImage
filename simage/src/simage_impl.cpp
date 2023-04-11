@@ -1856,7 +1856,7 @@ namespace simage
 namespace simage
 {
 	template <typename T>
-	static void do_for_each_pixel(View1<T>, std::function<void(T&)> const& func)
+	static void do_for_each_pixel(View1<T> const& view, std::function<void(T&)> const& func)
 	{
 		auto const row_func = [&](u32 y)
 		{
@@ -1866,6 +1866,8 @@ namespace simage
 				func(s[x]);
 			}
 		};
+
+		process_by_row(view.height, row_func);
 	}
 
 

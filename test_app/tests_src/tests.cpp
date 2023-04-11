@@ -1,4 +1,5 @@
-#include "fill_test.cpp"
-#include "copy_test.cpp"
-#include "resize_image_test.cpp"
+#include "fill_tests.cpp"
+#include "copy_tests.cpp"
+#include "resize_image_tests.cpp"
 #include "split_channels_tests.cpp"
+#include "alpha_blend_tests.cpp"

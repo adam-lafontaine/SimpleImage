@@ -17,5 +17,17 @@ void alpha_blend_test(img::View const& out)
     src.height = height;
     img::resize_image(vette, src);
 
-    img::for_each_pixel(src, [](img::Pixel& p) { p.rgba.alpha = 128; });
+    img::Image cur;
+    cur.width = width;
+    cur.height = height;
+    img::resize_image(caddy, cur);
+
+    img::for_each_pixel(img::make_view(src), [](img::Pixel& p) { p.rgba.alpha = 128; });
+
+    img::alpha_blend(img::make_view(src), img::make_view(cur), out);
+
+    img::destroy_image(vette);
+    img::destroy_image(caddy);
+    img::destroy_image(src);
+    img::destroy_image(cur);
 }

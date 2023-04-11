@@ -1,4 +1,5 @@
 #include "../app/app.hpp"
+#include "tests_include.hpp"
 
 constexpr auto APP_TITLE = "SimpleImage Test App";
 constexpr auto APP_VERSION = "1.0";
@@ -9,7 +10,7 @@ constexpr int FRAMES_PER_TEST = 30;
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-
+	fill_test
 };
 
 
@@ -18,10 +19,10 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 	static int test_id = -1;
 	static int frame_count = 0;
 
-	if (!input.keyboard.space_key.pressed)
+	/*if (!input.keyboard.space_key.pressed)
 	{
 		return;
-	}
+	}*/
 
 	frame_count++;
 	if (frame_count < FRAMES_PER_TEST)
@@ -44,6 +45,11 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 
 int main()
 {
+	if (!directory_files_test())
+	{
+		return EXIT_FAILURE;
+	}
+
     app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;

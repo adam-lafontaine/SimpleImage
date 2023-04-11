@@ -18,11 +18,13 @@ exe := $(build)/test_app
 
 simage_h := $(simage)/simage.hpp
 app_h := $(app)/app.hpp
+tests_h := $(tests_src)/tests_include.hpp
 
 
 
 # main
 main_dep := $(app_h)
+main_dep += $(tests_h)
 
 main_c := $(tests_src)/test_app_main.cpp
 main_o := $(build)/main.o
@@ -61,9 +63,17 @@ simage_dep += $(util)/execute.cpp
 simage_dep += $(util)/memory_buffer.hpp
 
 simage_c := $(simage)/simage.cpp
-simage_o := $(build).simage.o
+simage_o := $(build)/simage.o
 object_files += $(simage_o)
 
+
+# tests
+tests_dep := $(tests_h)
+tests_dep += $(tests_src)/fill_test.cpp
+
+tests_c := $(tests_src)/tests.cpp
+tests_o := $(build)/tests.o
+object_files += $(tests_o)
 
 
 # flags
@@ -91,6 +101,11 @@ $(app_o): $(app_c) $(app_dep)
 
 $(simage_o): $(simage_c) $(simage_dep)
 	@echo "\n simage"
+	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
+
+
+$(tests_o): $(tests_c) $(tests_dep)
+	@echo "\n tests"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

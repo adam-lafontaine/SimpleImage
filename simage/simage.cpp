@@ -1,0 +1,5 @@
+#include "src/simage_impl.cpp"
+#include "libs/stb/stb_simage.cpp"
+//#include "libs/opencv/opencv_simage.cpp"
+#include "libs/uvc/uvc_simage.cpp"
+#include "src/util/execute.cpp"

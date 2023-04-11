@@ -25,13 +25,6 @@ constexpr u8 EXPOSURE_MODE_APERTURE = 8;
 
 namespace simage
 {
-	template <typename T>
-	static bool verify(MatrixView<T> const& view)
-	{
-		return view.matrix_width && view.width && view.height && view.matrix_data;
-	}
-
-
 	static bool verify(CameraUSB const& camera)
 	{
 		return camera.frame_width && camera.frame_height && camera.max_fps && camera.device_id >= 0;

@@ -88,66 +88,6 @@ namespace simage
 }
 
 
-/* verify */
-
-namespace simage
-{
-#ifndef NDEBUG
-	template <typename T>
-	static bool verify(Matrix2D<T> const& image)
-	{
-		return image.width && image.height && image.data_;
-	}
-
-
-	template <typename T>
-	static bool verify(MatrixView<T> const& view)
-	{
-		return view.matrix_width && view.width && view.height && view.matrix_data_;
-	}	
-
-
-	template <typename T>
-	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
-	{
-		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
-	}
-
-
-	template <typename T, size_t N>
-	static bool verify(ChannelView2D<T,N> const& view)
-	{
-		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
-	}
-
-
-	template <class IMG_A, class IMG_B>
-	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
-	{
-		return
-			verify(lhs) && verify(rhs) &&
-			lhs.width == rhs.width &&
-			lhs.height == rhs.height;
-	}
-
-
-	template <class IMG>
-	static bool verify(IMG const& image, Range2Du32 const& range)
-	{
-		return
-			verify(image) &&
-			range.x_begin < range.x_end &&
-			range.y_begin < range.y_end &&
-			range.x_begin < image.width &&
-			range.x_end <= image.width &&
-			range.y_begin < image.height &&
-			range.y_end <= image.height;
-	}
-
-#endif // !NDEBUG
-}
-
-
 /* platform */
 
 namespace simage
@@ -272,9 +212,9 @@ namespace simage
 
 		int y_eff = y + y_offset;
 
-		auto offset = (view.y_begin + y_eff) * view.image_width + view.x_begin;
+		auto offset = (view.y_begin + y_eff) * view.matrix_width + view.x_begin;
 
-		auto ptr = view.image_data + (u64)(offset);
+		auto ptr = view.matrix_data_ + (u64)(offset);
 		assert(ptr);
 
 		return ptr;
@@ -725,7 +665,7 @@ namespace simage
 
         for (u32 v = 0; v < 3; ++v)
         {
-            auto s = row_begin(src, y - 1 + v);
+            auto s = row_begin(view, y - 1 + v);
             for (u32 u = 0; u < 11; ++u)
             {
                 total += s[x - 5 + u] * GRAD_X_3x11[w++];
@@ -744,7 +684,7 @@ namespace simage
 
         for (u32 v = 0; v < 11; ++v)
         {
-            auto s = row_begin(src, y - 5 + v);
+            auto s = row_begin(view, y - 5 + v);
             for (u32 u = 0; u < 3; ++u)
             {
                 total += s[x - 1 + u] * GRAD_Y_3x11[w++];
@@ -763,7 +703,7 @@ namespace simage
 
         for (u32 v = 0; v < 3; ++v)
         {
-            auto s = row_begin(src, y - 1 + v);
+            auto s = row_begin(view, y - 1 + v);
             for (u32 u = 0; u < 5; ++u)
             {
                 total += s[x - 2 + u] * GRAD_X_3x5[w++];
@@ -782,7 +722,7 @@ namespace simage
 
         for (u32 v = 0; v < 5; ++v)
         {
-            auto s = row_begin(src, y - 2 + v);
+            auto s = row_begin(view, y - 2 + v);
             for (u32 u = 0; u < 3; ++u)
             {
                 total += s[x - 1 + u] * GRAD_Y_3x5[w++];
@@ -801,7 +741,7 @@ namespace simage
 
         for (u32 v = 0; v < 3; ++v)
         {
-            auto s = row_begin(src, y - 1 + v);
+            auto s = row_begin(view, y - 1 + v);
             for (u32 u = 0; u < 3; ++u)
             {
                 total += s[x - 1 + u] * GRAD_X_3x3[w++];
@@ -820,7 +760,7 @@ namespace simage
 
         for (u32 v = 0; v < 3; ++v)
         {
-            auto s = row_begin(src, y - 1 + v);
+            auto s = row_begin(view, y - 1 + v);
             for (u32 u = 0; u < 3; ++u)
             {
                 total += s[x - 1 + u] * GRAD_Y_3x3[w++];
@@ -869,45 +809,9 @@ namespace simage
 
         auto d = row_begin(dst, y);
 
-        switch (y)
-        {
-        case 0:
-        case height - 1:
-            for (u32 x = 0; x < width ; ++x)
-            {
-                d[x] = (T)0;
-            }
-            return;
-
-        case 1:
-        case height - 2:
-            d[0] = d[width - 1] = 0;
-
-            for (u32 x = 1; x < width - 1; ++x)
-            {
-                d[x] = gradient_xy_3(src, x, y);
-            }
-            return;
-
-        case 2:
-        case 3:
-        case 4:
-        case height - 3:
-        case height - 4:
-        case height - 5:
-            d[0] = d[width - 1] = 0;
-
-            d[1] = gradient_xy_3(src, 1, y);
-            d[width - 2] = gradient_xy_3(src, width - 2, y);
-
-            for (u32 x = 2; x < width - 3; ++x)
-            {
-                d[x] = gradient_xy_5(src, x, y);
-            }
-            return;
-
-        default:
-            d[0] = d[width - 1] = 0;
+		if (y >= 5 && y < height - 5)
+		{
+			d[0] = d[width - 1] = 0;
 
             d[1] = gradient_xy_3(src, 1, y);
             d[width - 2] = gradient_xy_3(src, width - 2, y);
@@ -922,7 +826,43 @@ namespace simage
             {
                 d[x] = gradient_xy_11(src, x, y);
             }
-        }
+
+			return;
+		}
+		
+		if (y >= 2 && y < 5 || y >= height - 5 && y < y <= height - 3)
+		{
+			d[0] = d[width - 1] = 0;
+
+            d[1] = gradient_xy_3(src, 1, y);
+            d[width - 2] = gradient_xy_3(src, width - 2, y);
+
+            for (u32 x = 2; x < width - 3; ++x)
+            {
+                d[x] = gradient_xy_5(src, x, y);
+            }
+            return;
+		}
+
+		if (y == 1 || y == height - 2)
+		{
+			 d[0] = d[width - 1] = 0;
+
+            for (u32 x = 1; x < width - 1; ++x)
+            {
+                d[x] = gradient_xy_3(src, x, y);
+            }
+            return;
+		}
+
+		if (y == 0 || y == height - 1)
+		{
+			for (u32 x = 0; x < width ; ++x)
+            {
+                d[x] = (T)0;
+            }
+            return;
+		}
     }
 
 
@@ -934,18 +874,9 @@ namespace simage
 
         auto d = row_begin(dst, y);
 
-        switch (y)
-        {
-        case 0:
-        case height - 1:
-            for (u32 x = 0; x < width ; ++x)
-            {
-                d[x] = (T)0;
-            }
-            return;
-
-        default:
-            d[0] = d[width - 1] = (T)0;
+		if (y > 0 && y < height - 1)
+		{
+			d[0] = d[width - 1] = (T)0;
 
             d[1] = (T)std::abs(gradient_x_3(src, 1, y));
             d[width - 2] = (T)std::abs(gradient_x_3(src, width - 2, y));
@@ -960,7 +891,14 @@ namespace simage
             {
                 d[x] = (T)std::abs(gradient_x_11(src, x, y));
             }
-        }
+
+			return;
+		}
+
+		for (u32 x = 0; x < width ; ++x)
+		{
+			d[x] = (T)0;
+		}
     }
 
 
@@ -972,48 +910,48 @@ namespace simage
 
         auto d = row_begin(dst, y);
 
-        switch (y)
-        {
-        case 0:
-        case height - 1:
-            for (u32 x = 0; x < width ; ++x)
-            {
-                d[x] = (T)0;
-            }
-            return;
-
-        case 1:
-        case height - 2:
-            d[0] = d[width - 1] = (T)0;
+		if (y >= 5 && y < height - 5)
+		{
+			d[0] = d[width - 1] = (T)0;
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = (T)std::abs(gradient_y_3(src, x, y));
+                d[x] = (T)std::abs(gradient_y_11(src, x, y));
             }
-            return;
 
-        case 2:
-        case 3:
-        case 4:
-        case height - 3:
-        case height - 4:
-        case height - 5:
-            d[0] = d[width - 1] = (T)0;
+			return;
+		}
+		
+		if (y >= 2 && y < 5 || y >= height - 5 && y < y <= height - 3)
+		{
+			d[0] = d[width - 1] = (T)0;
 
             for (u32 x = 1; x < width - 1; ++x)
             {
                 d[x] = (T)std::abs(gradient_y_5(src, x, y));
             }
             return;
+		}
 
-        default:
-            d[0] = d[width - 1] = (T)0;
+		if (y == 1 || y == height - 2)
+		{
+			d[0] = d[width - 1] = (T)0;
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = (T)std::abs(gradient_y_11(src, x, y));
+                d[x] = (T)std::abs(gradient_y_3(src, x, y));
             }
-        }
+            return;
+		}
+
+		if (y == 0 || y == height - 1)
+		{
+			for (u32 x = 0; x < width ; ++x)
+            {
+                d[x] = (T)0;
+            }
+            return;
+		}
     }
 
 
@@ -1067,7 +1005,7 @@ namespace simage
                 auto s = row_offset_begin(src, y, ry);
                 for (int rx = rx_begin; rx < rx_end; ++rx)
                 {
-                    total += (s + rx)[x] * kernel.data_[w];						
+                    total += ((s + rx)[x]) * (kernel.data_[w]);						
                     ++w;
                 }
 
@@ -2003,7 +1941,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-		blur_1(src, dst);
+		//blur_1(src, dst); TODO
     }
 
 

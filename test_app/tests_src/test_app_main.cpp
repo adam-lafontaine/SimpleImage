@@ -10,7 +10,12 @@ constexpr int FRAMES_PER_TEST = 30;
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	fill_test
+	fill_test,
+	copy_test,
+	resize_image_test,
+	split_channels_red_test,
+	split_channels_green_test,
+	split_channels_blue_test,
 };
 
 

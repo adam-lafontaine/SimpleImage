@@ -435,6 +435,16 @@ namespace simage
 }
 
 
+/* for_each_pixel */
+
+namespace simage
+{
+	void for_each_pixel(View const& view, std::function<void(Pixel&)> const& func);
+
+	void for_each_pixel(ViewGray const& view, std::function<void(u8&)> const& func);
+}
+
+
 /* transform */
 
 namespace simage

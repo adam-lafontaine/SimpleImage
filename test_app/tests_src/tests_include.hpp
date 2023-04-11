@@ -74,3 +74,12 @@ inline bool directory_files_test()
 
 void fill_test(img::View const& out);
 
+void copy_test(img::View const& out);
+
+void resize_image_test(img::View const& out);
+
+void split_channels_red_test(img::View const& out);
+
+void split_channels_green_test(img::View const& out);
+
+void split_channels_blue_test(img::View const& out);

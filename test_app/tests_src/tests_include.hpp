@@ -91,3 +91,15 @@ void split_channels_green_test(img::View const& out);
 void split_channels_blue_test(img::View const& out);
 
 void alpha_blend_test(img::View const& out);
+
+void transform_test(img::View const& out);
+
+void transform_gray_test(img::View const& out);
+
+void threshold_min_test(img::View const& out);
+
+void threshold_min_max_test(img::View const& out);
+
+void binarize_test(img::View const& out);
+
+void binarize_rgb_test(img::View const& out);

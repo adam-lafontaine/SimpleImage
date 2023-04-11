@@ -74,6 +74,7 @@ tests_dep += $(tests_src)/copy_tests.cpp
 tests_dep += $(tests_src)/resize_image_tests.cpp
 tests_dep += $(tests_src)/split_channels_tests.cpp
 tests_dep += $(tests_src)/alpha_blend_tests.cpp
+tests_dep += $(tests_src)/transform_tests.cpp
 
 tests_c := $(tests_src)/tests.cpp
 tests_o := $(build)/tests.o

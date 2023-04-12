@@ -344,9 +344,9 @@ namespace simage
 	ViewRGB make_view(ImageRGB const& image);
 	
 
-	View make_view_rgba(u32 width, u32 height, Buffer32& buffer);
+	View make_view(u32 width, u32 height, Buffer32& buffer);
 
-	ViewGray make_view_gray(u32 width, u32 height, Buffer8& buffer);
+	ViewGray make_view(u32 width, u32 height, Buffer8& buffer);
 }
 
 
@@ -716,6 +716,58 @@ namespace simage
 	}
 
 #endif // !SIMAGE_NO_FILESYSTEM
+
+
+	template <typename T>
+	inline bool resize_image(Matrix2D<T> const& image_src, Matrix2D<T>& image_dst, u32 width, u32 height)
+	{
+		image_dst.width = width;
+		image_dst.height = height;
+		return resize_image(image_src, image_dst);
+	}
+	
+	
+	template <typename T, typename PATH>
+	inline MatrixView<T> make_view_from_file(PATH img_path_src, Matrix2D<T>& image_dst)
+	{		
+		if (!read_image_from_file(img_path_src, image_dst))
+		{
+			assert(false);
+			MatrixView<T> view;
+			return view;
+		}
+
+		return make_view(image_dst);
+	}
+
+
+	template <typename T>
+	inline MatrixView<T> make_view_resized(Matrix2D<T> const& image_src, Matrix2D<T>& image_dst, u32 width, u32 height)
+	{
+		// TODO: MemoryBuffer<T> - hack stb
+		if (!resize_image(image_src, image_dst, width, height))
+		{
+			assert(false);
+			MatrixView<T> view;
+			return view;
+		}
+
+		return make_view(image_dst);
+	}
+
+
+	template <typename T, typename PATH>
+	inline MatrixView<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, Matrix2D<T>& image_dst, u32 width, u32 height)
+	{
+		if (!read_image_from_file(img_path_src, file_image))
+		{
+			assert(false);
+			MatrixView<T> view;
+			return view;//
+		}
+
+		return make_view_resized(file_image, image_dst, width, height);
+	}
 }
 
 

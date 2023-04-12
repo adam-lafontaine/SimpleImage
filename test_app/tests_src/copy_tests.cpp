@@ -46,7 +46,7 @@ void copy_gray_test(img::View const& out)
 	img::Buffer8 buffer;
 	mb::create_buffer(buffer, width * height);
 
-	auto dst = img::make_view_gray(width, height, buffer);
+	auto dst = img::make_view(width, height, buffer);
 
 	img::copy(src, dst);
 

@@ -1344,7 +1344,7 @@ namespace simage
 	}
 
 
-	View make_view_rgba(u32 width, u32 height, Buffer32& buffer)
+	View make_view(u32 width, u32 height, Buffer32& buffer)
 	{
 		assert(verify(buffer, width * height));
 
@@ -1357,7 +1357,7 @@ namespace simage
 	}
 
 
-	ViewGray make_view_gray(u32 width, u32 height, Buffer8& buffer)
+	ViewGray make_view(u32 width, u32 height, Buffer8& buffer)
 	{
 		assert(verify(buffer, width * height));
 

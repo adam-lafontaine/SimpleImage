@@ -742,9 +742,11 @@ namespace simage
 
 
 	template <typename T>
-	inline MatrixView<T> make_view_resized(Matrix2D<T> const& image_src, Matrix2D<T>& image_dst, u32 width, u32 height)
+	inline MatrixView<T> make_view_resized(Matrix2D<T> const& image_src, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
-		// TODO: MemoryBuffer<T> - hack stb
+		Matrix2D<T> image_dst;
+		image_dst.data_ = mb::push_elements(buffer, width * height);
+		
 		if (!resize_image(image_src, image_dst, width, height))
 		{
 			assert(false);
@@ -757,7 +759,7 @@ namespace simage
 
 
 	template <typename T, typename PATH>
-	inline MatrixView<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, Matrix2D<T>& image_dst, u32 width, u32 height)
+	inline MatrixView<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		if (!read_image_from_file(img_path_src, file_image))
 		{
@@ -766,7 +768,7 @@ namespace simage
 			return view;//
 		}
 
-		return make_view_resized(file_image, image_dst, width, height);
+		return make_view_resized(file_image, width, height, buffer);
 	}
 }
 

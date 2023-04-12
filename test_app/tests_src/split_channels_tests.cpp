@@ -7,9 +7,11 @@ void split_channels_red_test(img::View const& out)
     auto height = out.height;
 
     img::Image vette;
-    img::Image rgb;
 
-    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, rgb, width, height);
+    img::Buffer32 pixels;
+    mb::create_buffer(pixels, width * height);
+
+    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, width, height, pixels);
     
     img::Buffer8 buffer;
     mb::create_buffer(buffer, width * height * 3);
@@ -23,7 +25,7 @@ void split_channels_red_test(img::View const& out)
     img::map_gray(red, out);
 
     img::destroy_image(vette);
-    img::destroy_image(rgb);
+    mb::destroy_buffer(pixels);
     mb::destroy_buffer(buffer);
 }
 
@@ -34,9 +36,11 @@ void split_channels_green_test(img::View const& out)
     auto height = out.height;
 
     img::Image vette;
-    img::Image rgb;
 
-    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, rgb, width, height);
+    img::Buffer32 pixels;
+    mb::create_buffer(pixels, width * height);
+
+    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, width, height, pixels);
     
     img::Buffer8 buffer;
     mb::create_buffer(buffer, width * height * 3);
@@ -50,7 +54,7 @@ void split_channels_green_test(img::View const& out)
     img::map_gray(green, out);
 
     img::destroy_image(vette);
-    img::destroy_image(rgb);
+    mb::destroy_buffer(pixels);
     mb::destroy_buffer(buffer);
 }
 
@@ -61,9 +65,11 @@ void split_channels_blue_test(img::View const& out)
     auto height = out.height;
 
     img::Image vette;
-    img::Image rgb;
 
-    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, rgb, width, height);
+    img::Buffer32 pixels;
+    mb::create_buffer(pixels, width * height);
+
+    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, width, height, pixels);
     
     img::Buffer8 buffer;
     mb::create_buffer(buffer, width * height * 3);
@@ -77,6 +83,6 @@ void split_channels_blue_test(img::View const& out)
     img::map_gray(blue, out);
 
     img::destroy_image(vette);
-    img::destroy_image(rgb);
+    mb::destroy_buffer(pixels);
     mb::destroy_buffer(buffer);
 }

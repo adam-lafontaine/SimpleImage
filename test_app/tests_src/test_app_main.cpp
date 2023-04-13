@@ -26,7 +26,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	threshold_min_max_test,
 	binarize_test,
 	binarize_rgb_test,
-	//blur_test,
+	blur_test,
 	gradients_test,
 	gradients_xy_test,
 	rotate_test,

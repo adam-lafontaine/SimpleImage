@@ -26,7 +26,7 @@ tests_include_h := ../tests_include.hpp
 main_dep := $(app_h)
 main_dep += $(tests_include_h)
 
-main_c := $(tests_src)/test_app_main.cpp
+main_c := $(tests_src)/interleaved_tests_main.cpp
 main_o := $(build)/main.o
 object_files := $(main_o)
 

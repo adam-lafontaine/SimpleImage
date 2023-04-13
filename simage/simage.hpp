@@ -24,7 +24,7 @@ namespace simage
 }
 
 
-/* platform image */
+/* platform (interleaved) image */
 
 namespace simage
 {
@@ -483,7 +483,7 @@ namespace simage
 
 namespace simage
 {
-    void blur(View const& src, View const& dst);
+    //void blur(View const& src, View const& dst);
 
     void blur(ViewGray const& src, ViewGray const& dst);
 }

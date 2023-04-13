@@ -8,9 +8,16 @@ constexpr auto APP_VERSION = "1.0";
 constexpr int FRAMES_PER_TEST = 30;
 
 
+void fill_rgba_test(img::View const& out);
+void fill_rgb_test(img::View const& out);
+void fill_gray_test(img::View const& out);
+
+
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	
+	fill_rgba_test,
+	fill_rgb_test,
+	fill_gray_test,
 };
 
 

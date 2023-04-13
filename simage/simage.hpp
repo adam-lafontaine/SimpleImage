@@ -880,6 +880,8 @@ namespace simage
 	void map_gray(View1u16 const& src, View1u8 const& dst);
 
 	void map_gray(ViewYUV const& src, View1u16 const& dst);
+
+	void map_gray(View1u16 const& src, View const& dst);
 }
 
 
@@ -893,9 +895,7 @@ namespace simage
 	
 	void map_rgb(View const& src, ViewRGBu16 const& dst);
 
-	void map_rgb(ViewRGBu16 const& src, View const& dst);
-
-	void map_rgb(View1u16 const& src, View const& dst);
+	void map_rgb(ViewRGBu16 const& src, View const& dst);	
 
 
 	inline void map_rgba(Image const& src, ViewRGBAu16 const& dst)

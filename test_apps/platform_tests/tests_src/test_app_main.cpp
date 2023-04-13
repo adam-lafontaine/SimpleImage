@@ -1,5 +1,5 @@
-#include "../app/app.hpp"
-#include "tests_include.hpp"
+#include "../../app/app.hpp"
+#include "../../tests_include.hpp"
 
 constexpr auto APP_TITLE = "SimpleImage Test App";
 constexpr auto APP_VERSION = "1.0";
@@ -8,9 +8,34 @@ constexpr auto APP_VERSION = "1.0";
 constexpr int FRAMES_PER_TEST = 30;
 
 
+void fill_test(img::View const& out);
+void fill_gray_test(img::View const& out);
+void copy_test(img::View const& out);
+void copy_gray_test(img::View const& out);
+void resize_image_test(img::View const& out);
+void resize_gray_image_test(img::View const& out);
+void split_channels_red_test(img::View const& out);
+void split_channels_green_test(img::View const& out);
+void split_channels_blue_test(img::View const& out);
+void alpha_blend_test(img::View const& out);
+void transform_test(img::View const& out);
+void transform_gray_test(img::View const& out);
+void threshold_min_test(img::View const& out);
+void threshold_min_max_test(img::View const& out);
+void binarize_test(img::View const& out);
+void binarize_rgb_test(img::View const& out);
+void blur_test(img::View const& out);
+void gradients_test(img::View const& out);
+void gradients_xy_test(img::View const& out);
+void rotate_test(img::View const& out);
+void rotate_gray_test(img::View const& out);
+void centroid_test(img::View const& out);
+void skeleton_test(img::View const& out);
+
+
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	/*fill_test,
+	fill_test,
 	fill_gray_test,
 	copy_test,
 	copy_gray_test,
@@ -21,7 +46,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	split_channels_blue_test,
 	alpha_blend_test,
 	transform_test,
-	transform_gray_test,*/
+	transform_gray_test,
 	threshold_min_test,
 	threshold_min_max_test,
 	binarize_test,

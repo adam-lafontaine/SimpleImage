@@ -5,10 +5,10 @@ LIBUSB := `pkg-config --libs --cflags libusb-1.0` -ljpeg
 
 build := ./build_files
 
-app := ./app
+app := ../app
 tests_src := ./tests_src
 
-simage := ../simage
+simage := ../../simage
 stb := $(simage)/libs/stb
 uvc := $(simage)/libs/uvc
 src := $(simage)/src
@@ -18,13 +18,13 @@ exe := $(build)/test_app
 
 simage_h := $(simage)/simage.hpp
 app_h := $(app)/app.hpp
-tests_h := $(tests_src)/tests_include.hpp
+tests_include_h := ../tests_include.hpp
 
 
 
 # main
 main_dep := $(app_h)
-main_dep += $(tests_h)
+main_dep += $(tests_include_h)
 
 main_c := $(tests_src)/test_app_main.cpp
 main_o := $(build)/main.o
@@ -68,7 +68,7 @@ object_files += $(simage_o)
 
 
 # tests
-tests_dep := $(tests_h)
+tests_dep := $(tests_include_h)
 tests_dep += $(tests_src)/fill_tests.cpp
 tests_dep += $(tests_src)/copy_tests.cpp
 tests_dep += $(tests_src)/resize_image_tests.cpp

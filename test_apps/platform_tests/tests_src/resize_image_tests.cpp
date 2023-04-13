@@ -1,4 +1,4 @@
-#include "tests_include.hpp"
+#include "../../tests_include.hpp"
 
 
 void resize_image_test(img::View const& out)

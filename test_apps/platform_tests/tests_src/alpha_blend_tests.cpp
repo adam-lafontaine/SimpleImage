@@ -1,4 +1,4 @@
-#include "tests_include.hpp"
+#include "../../tests_include.hpp"
 
 
 void alpha_blend_test(img::View const& out)

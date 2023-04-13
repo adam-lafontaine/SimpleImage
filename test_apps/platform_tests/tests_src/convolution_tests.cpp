@@ -1,7 +1,7 @@
-#include "tests_include.hpp"
+#include "../../tests_include.hpp"
 
 
-void blur_test(img::View const& out) // broken
+void blur_test(img::View const& out)
 {
     auto width = out.width;
     auto height = out.height;
@@ -13,6 +13,14 @@ void blur_test(img::View const& out) // broken
     auto src = img::make_view_resized_from_file(CADILLAC_PATH, image, width, height, buffer);
     auto dst = img::make_view(width, height, buffer);
 
+    img::blur(src, dst);
+    img::blur(dst, src);
+    img::blur(src, dst);
+    img::blur(dst, src);
+    img::blur(src, dst);
+    img::blur(dst, src);
+    img::blur(src, dst);
+    img::blur(dst, src);
     img::blur(src, dst);
 
     img::map_gray(dst, out);

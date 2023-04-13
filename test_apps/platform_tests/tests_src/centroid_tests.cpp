@@ -1,7 +1,7 @@
-#include "tests_include.hpp"
+#include "../../tests_include.hpp"
 
 
-void skeleton_test(img::View const& out)
+void centroid_test(img::View const& out)
 {
     auto width = out.width;
     auto height = out.height;
@@ -16,7 +16,16 @@ void skeleton_test(img::View const& out)
 
     img::binarize(src, dst, [](u8 p){ return p < 150; });
 
-    img::skeleton(dst);
+    auto pt = img::centroid(dst);
+
+    // region around centroid
+	Range2Du32 c{};
+	c.x_begin = pt.x - 10;
+	c.x_end = pt.x + 10;
+	c.y_begin = pt.y - 10;
+	c.y_end = pt.y + 10;
+
+    img::fill(img::sub_view(dst, c), 0);
 
     img::map_gray(dst, out);
 

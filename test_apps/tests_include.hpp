@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../simage/simage.hpp"
+#include "../simage/simage.hpp"
 
 #include <filesystem>
 
@@ -13,12 +13,12 @@ using path_t = fs::path;
 #ifdef _WIN32
 
 // set this directory for your system
-constexpr auto ROOT_DIR = "C:\\D_Data\\Repos\\SimpleImage\\test_app";
+constexpr auto ROOT_DIR = "C:\\D_Data\\Repos\\SimpleImage\\test_apps";
 
 #else
 
 // set this directory for your system
-constexpr auto ROOT_DIR = "/home/adam/Repos/SimpleImage/test_app";
+constexpr auto ROOT_DIR = "/home/adam/Repos/SimpleImage/test_apps";
 
 #endif // _WIN32
 
@@ -70,50 +70,3 @@ inline bool directory_files_test()
 
 	return result;
 }
-
-
-void fill_test(img::View const& out);
-
-void fill_gray_test(img::View const& out);
-
-void copy_test(img::View const& out);
-
-void copy_gray_test(img::View const& out);
-
-void resize_image_test(img::View const& out);
-
-void resize_gray_image_test(img::View const& out);
-
-void split_channels_red_test(img::View const& out);
-
-void split_channels_green_test(img::View const& out);
-
-void split_channels_blue_test(img::View const& out);
-
-void alpha_blend_test(img::View const& out);
-
-void transform_test(img::View const& out);
-
-void transform_gray_test(img::View const& out);
-
-void threshold_min_test(img::View const& out);
-
-void threshold_min_max_test(img::View const& out);
-
-void binarize_test(img::View const& out);
-
-void binarize_rgb_test(img::View const& out);
-
-void blur_test(img::View const& out);
-
-void gradients_test(img::View const& out);
-
-void gradients_xy_test(img::View const& out);
-
-void rotate_test(img::View const& out);
-
-void rotate_gray_test(img::View const& out);
-
-void centroid_test(img::View const& out);
-
-void skeleton_test(img::View const& out);

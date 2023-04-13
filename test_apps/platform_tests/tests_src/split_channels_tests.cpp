@@ -1,4 +1,4 @@
-#include "tests_include.hpp"
+#include "../../tests_include.hpp"
 
 
 void split_channels_red_test(img::View const& out)

@@ -10,7 +10,7 @@ constexpr int FRAMES_PER_TEST = 30;
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	fill_test,
+	/*fill_test,
 	fill_gray_test,
 	copy_test,
 	copy_gray_test,
@@ -21,11 +21,18 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	split_channels_blue_test,
 	alpha_blend_test,
 	transform_test,
-	transform_gray_test,
+	transform_gray_test,*/
 	threshold_min_test,
 	threshold_min_max_test,
 	binarize_test,
 	binarize_rgb_test,
+	//blur_test,
+	gradients_test,
+	gradients_xy_test,
+	rotate_test,
+	rotate_gray_test,
+	centroid_test,
+	skeleton_test
 };
 
 

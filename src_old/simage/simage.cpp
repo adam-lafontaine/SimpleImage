@@ -1763,10 +1763,10 @@ namespace simage
 					{
 						total += (s + rx)[x] * kernel.data_[w];						
 						++w;
-					}
-
-					d[x] = (u16)std::abs(total); // (i16)(total / 2);
+					}					
 				}
+
+				d[x] = (u16)std::abs(total); // (i16)(total / 2);
 			}
 		};
 

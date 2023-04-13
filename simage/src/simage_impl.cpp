@@ -1005,12 +1005,12 @@ namespace simage
                 auto s = row_offset_begin(src, y, ry);
                 for (int rx = rx_begin; rx < rx_end; ++rx)
                 {
-                    total += ((s + rx)[x]) * (kernel.data_[w]);						
-                    ++w;
-                }
-
-                d[x] = (T)std::abs(total);
+					auto value = s[x + rx];
+                    total += value * kernel.data_[w++];
+                }                
             }
+
+			d[x] = (T)std::abs(total);
         };
 
 		auto const row_func = [&](u32 y) 
@@ -2040,7 +2040,91 @@ namespace simage
 {
 	Point2Du32 centroid(ViewGray const& src)
 	{
-		u64 totals[N_THREADS] = { 0 };
+		/*u64 totals[N_THREADS] = { 0 };
+		u64 x_totals[N_THREADS] = { 0 };
+		u64 y_totals[N_THREADS] = { 0 };
+
+		auto h = src.height / N_THREADS;
+
+		auto const row_func = [&](u32 y)
+		{
+			auto s = row_begin(src, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u64 val = s[x] ? 1 : 0;
+				auto thread_id = y / h;
+
+				totals[thread_id] += val;
+				x_totals[thread_id] += x * val;
+				y_totals[thread_id] += y * val;
+			}
+		};
+
+		process_by_row(src.height, row_func);
+
+		u64 total = 0;
+		u64 x_total = 0;
+		u64 y_total = 0;
+
+		for (u32 i = 0; i < N_THREADS; ++i)
+		{
+			total += totals[i];
+			x_total += totals[i];
+			y_total += totals[i];
+		}
+
+		Point2Du32 pt{};
+
+		if (total == 0)
+		{
+			pt.x = src.width / 2;
+			pt.y = src.height / 2;
+		}
+		else
+		{
+			pt.x = x_total / total;
+			pt.y = y_total / total;
+		}
+
+		return pt;*/
+
+		u64 total = 0;
+		u64 x_total = 0;
+		u64 y_total = 0;
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u64 val = s[x] ? 1 : 0;
+				total += val;
+				x_total += x * val;
+				y_total += y * val;
+			}
+		}
+
+		Point2Du32 pt{};
+
+		if (total == 0)
+		{
+			pt.x = src.width / 2;
+			pt.y = src.height / 2;
+		}
+		else
+		{
+			pt.x = x_total / total;
+			pt.y = y_total / total;
+		}
+
+		return pt;
+	}
+
+
+	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func)
+	{
+		/*u64 totals[N_THREADS] = { 0 };
 		u64 x_totals[N_THREADS] = { 0 };
 		u64 y_totals[N_THREADS] = { 0 };
 
@@ -2050,7 +2134,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				u64 val = s[x] ? 1 : 0;
+				u64 val = func(s[x]) ? 1 : 0;
 				auto thread_id = N_THREADS * y / src.height;
 
 				totals[thread_id] += val;
@@ -2085,42 +2169,22 @@ namespace simage
 			pt.y = y_total / total;
 		}
 
-		return pt;
-	}
-
-
-	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func)
-	{
-		u64 totals[N_THREADS] = { 0 };
-		u64 x_totals[N_THREADS] = { 0 };
-		u64 y_totals[N_THREADS] = { 0 };
-
-		auto const row_func = [&](u32 y)
-		{
-			auto s = row_begin(src, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				u64 val = func(s[x]) ? 1 : 0;
-				auto thread_id = N_THREADS * y / src.height;
-
-				totals[thread_id] += val;
-				x_totals[thread_id] += x * val;
-				y_totals[thread_id] += y * val;
-			}
-		};
-
-		process_by_row(src.height, row_func);
+		return pt;*/
 
 		u64 total = 0;
 		u64 x_total = 0;
 		u64 y_total = 0;
 
-		for (u32 i = 0; i < N_THREADS; ++i)
+		for (u32 y = 0; y < src.height; ++y)
 		{
-			total += totals[i];
-			x_total += totals[i];
-			y_total += totals[i];
+			auto s = row_begin(src, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				u64 val = func(s[x]) ? 1 : 0;
+				total += val;
+				x_total += x * val;
+				y_total += y * val;
+			}
 		}
 
 		Point2Du32 pt{};

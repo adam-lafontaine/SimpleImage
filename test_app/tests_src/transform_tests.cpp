@@ -129,11 +129,10 @@ void binarize_rgb_test(img::View const& out)
     img::Buffer32 pixels;
     mb::create_buffer(pixels, width * height);
 
-    auto src = img::make_view_resized_from_file(WEED_PATH, weed, width, height, pixels);
-
     img::Buffer8 buffer;
     mb::create_buffer(buffer, width * height);
 
+    auto src = img::make_view_resized_from_file(WEED_PATH, weed, width, height, pixels);
     auto dst = img::make_view(width, height, buffer);
 
     img::binarize(src, dst, [](img::Pixel p){ return p.rgba.red > 200; });

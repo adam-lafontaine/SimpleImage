@@ -103,3 +103,17 @@ void threshold_min_max_test(img::View const& out);
 void binarize_test(img::View const& out);
 
 void binarize_rgb_test(img::View const& out);
+
+void blur_test(img::View const& out);
+
+void gradients_test(img::View const& out);
+
+void gradients_xy_test(img::View const& out);
+
+void rotate_test(img::View const& out);
+
+void rotate_gray_test(img::View const& out);
+
+void centroid_test(img::View const& out);
+
+void skeleton_test(img::View const& out);

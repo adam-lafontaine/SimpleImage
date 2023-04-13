@@ -5,3 +5,6 @@
 #include "alpha_blend_tests.cpp"
 #include "transform_tests.cpp"
 #include "convolution_tests.cpp"
+#include "rotate_tests.cpp"
+#include "centroid_tests.cpp"
+#include "skeleton_tests.cpp"

@@ -517,6 +517,12 @@ namespace simage
 
 
 	void skeleton(ViewGray const& src_dst);
+
+	inline void skeleton(ViewGray const& src, ViewGray const& dst)
+	{
+		copy(src, dst);
+		skeleton(dst);
+	}
 }
 
 

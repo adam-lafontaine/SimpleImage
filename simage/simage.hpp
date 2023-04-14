@@ -118,20 +118,19 @@ namespace simage
 	template <typename T>
 	using View1 = MatrixView<T>;
 
-	using View4u16 = View4<u16>;
-	using View3u16 = View3<u16>;
-	using View2u16 = View2<u16>;
-	using View1u16 = View1<u16>;
+	using View4f32 = View4<f32>;
+	using View3f32 = View3<f32>;
+	using View2f32 = View2<f32>;
+	using View1f32 = View1<f32>;
 
 	using View1u8 = ViewGray;
 
-	using ViewRGBAu16 = View4u16;
-	using ViewRGBu16 = View3u16;
-	using ViewHSVu16 = View3u16;
-	using ViewLCHu16 = View3u16;
+	using ViewRGBAf32 = View4f32;
+	using ViewRGBf32 = View3f32;
+	using ViewHSVf32 = View3f32;
+	using ViewLCHf32 = View3f32;
 
     using Buffer32 = MemoryBuffer<Pixel>;
-    using Buffer16 = MemoryBuffer<u16>;
     using Buffer8 = MemoryBuffer<u8>;
 }
 
@@ -828,13 +827,13 @@ namespace simage
 
 namespace simage
 {
-	View1u16 make_view_1(u32 width, u32 height, Buffer16& buffer);
+	View1f32 make_view_1(u32 width, u32 height, Buffer32& buffer);
 
-	View2u16 make_view_2(u32 width, u32 height, Buffer16& buffer);
+	View2f32 make_view_2(u32 width, u32 height, Buffer32& buffer);
 
-	View3u16 make_view_3(u32 width, u32 height, Buffer16& buffer);
+	View3f32 make_view_3(u32 width, u32 height, Buffer32& buffer);
 
-	View4u16 make_view_4(u32 width, u32 height, Buffer16& buffer);
+	View4f32 make_view_4(u32 width, u32 height, Buffer32& buffer);
 }
 
 
@@ -842,13 +841,13 @@ namespace simage
 
 namespace simage
 {
-	View4u16 sub_view(View4u16 const& view, Range2Du32 const& range);
+	View4f32 sub_view(View4f32 const& view, Range2Du32 const& range);
 
-	View3u16 sub_view(View3u16 const& view, Range2Du32 const& range);
+	View3f32 sub_view(View3f32 const& view, Range2Du32 const& range);
 
-	View2u16 sub_view(View2u16 const& view, Range2Du32 const& range);
+	View2f32 sub_view(View2f32 const& view, Range2Du32 const& range);
 
-	View1u16 sub_view(View1u16 const& view, Range2Du32 const& range);
+	View1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
 }
 
 
@@ -856,18 +855,18 @@ namespace simage
 
 namespace simage
 {
-	View1u16 select_channel(ViewRGBAu16 const& view, RGBA channel);
+	View1f32 select_channel(ViewRGBAf32 const& view, RGBA channel);
 
-	View1u16 select_channel(ViewRGBu16 const& view, RGB channel);
+	View1f32 select_channel(ViewRGBf32 const& view, RGB channel);
 
-	View1u16 select_channel(ViewHSVu16 const& view, HSV channel);
+	View1f32 select_channel(ViewHSVf32 const& view, HSV channel);
 
-	View1u16 select_channel(View2u16 const& view, GA channel);
+	View1f32 select_channel(View2f32 const& view, GA channel);
 
-	View1u16 select_channel(View2u16 const& view, XY channel);
+	View1f32 select_channel(View2f32 const& view, XY channel);
 
 
-	ViewRGBu16 select_rgb(ViewRGBAu16 const& view);
+	ViewRGBf32 select_rgb(ViewRGBAf32 const& view);
 }
 
 
@@ -875,13 +874,13 @@ namespace simage
 
 namespace simage
 {
-	void map_gray(View1u8 const& src, View1u16 const& dst);
+	void map_gray(View1u8 const& src, View1f32 const& dst);
 
-	void map_gray(View1u16 const& src, View1u8 const& dst);
+	void map_gray(View1f32 const& src, View1u8 const& dst);
 
-	void map_gray(ViewYUV const& src, View1u16 const& dst);
+	void map_gray(ViewYUV const& src, View1f32 const& dst);
 
-	void map_gray(View1u16 const& src, View const& dst);
+	void map_gray(View1f32 const& src, View const& dst);
 }
 
 
@@ -889,28 +888,28 @@ namespace simage
 
 namespace simage
 {	
-	void map_rgba(View const& src, ViewRGBAu16 const& dst);
+	void map_rgba(View const& src, ViewRGBAf32 const& dst);
 
-	void map_rgba(ViewRGBAu16 const& src, View const& dst);
+	void map_rgba(ViewRGBAf32 const& src, View const& dst);
 	
-	void map_rgb(View const& src, ViewRGBu16 const& dst);
+	void map_rgb(View const& src, ViewRGBf32 const& dst);
 
-	void map_rgb(ViewRGBu16 const& src, View const& dst);	
+	void map_rgb(ViewRGBf32 const& src, View const& dst);	
 
 
-	inline void map_rgba(Image const& src, ViewRGBAu16 const& dst)
+	inline void map_rgba(Image const& src, ViewRGBAf32 const& dst)
 	{
 		map_rgba(make_view(src), dst);
 	}
 
 
-	inline void map_rgb(Image const& src, ViewRGBu16 const& dst)
+	inline void map_rgb(Image const& src, ViewRGBf32 const& dst)
 	{
 		map_rgb(make_view(src), dst);
 	}
 
 
-	inline void map_rgb(ViewRGBu16 const& src, Image const& dst)
+	inline void map_rgb(ViewRGBf32 const& src, Image const& dst)
 	{
 		map_rgb(src, make_view(dst));
 	}
@@ -921,14 +920,14 @@ namespace simage
 
 namespace simage
 {
-	void map_rgb_hsv(View const& src, ViewHSVu16 const& dst);
+	void map_rgb_hsv(View const& src, ViewHSVf32 const& dst);
 
-	void map_hsv_rgb(ViewHSVu16 const& src, View const& dst);
+	void map_hsv_rgb(ViewHSVf32 const& src, View const& dst);
 
 
-	void map_rgb_hsv(ViewRGBu16 const& src, ViewHSVu16 const& dst);	
+	void map_rgb_hsv(ViewRGBf32 const& src, ViewHSVf32 const& dst);	
 
-	void map_hsv_rgb(ViewHSVu16 const& src, ViewRGBu16 const& dst);
+	void map_hsv_rgb(ViewHSVf32 const& src, ViewRGBf32 const& dst);
 }
 
 
@@ -936,13 +935,13 @@ namespace simage
 
 namespace simage
 {
-	void map_rgb_lch(View const& src, ViewLCHu16 const& dst);
+	void map_rgb_lch(View const& src, ViewLCHf32 const& dst);
 
-	void map_lch_rgb(ViewLCHu16 const& src, View const& dst);
+	void map_lch_rgb(ViewLCHf32 const& src, View const& dst);
 
-	void map_rgb_lch(ViewRGBu16 const& src, ViewLCHu16 const& dst);
+	void map_rgb_lch(ViewRGBf32 const& src, ViewLCHf32 const& dst);
 
-	void map_lch_rgb(ViewLCHu16 const& src, ViewRGBu16 const& dst);
+	void map_lch_rgb(ViewLCHf32 const& src, ViewRGBf32 const& dst);
 }
 
 
@@ -950,7 +949,7 @@ namespace simage
 
 namespace simage
 {
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBu16 const& dst);	
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);	
 }
 
 
@@ -958,7 +957,7 @@ namespace simage
 
 namespace simage
 {
-	void map_bgr_rgb(ViewBGR const& src, ViewRGBu16 const& dst);
+	void map_bgr_rgb(ViewBGR const& src, ViewRGBf32 const& dst);
 }
 
 
@@ -966,11 +965,11 @@ namespace simage
 
 namespace simage
 {
-	void fill(View4u16 const& view, Pixel color);
+	void fill(View4f32 const& view, Pixel color);
 
-	void fill(View3u16 const& view, Pixel color);
+	void fill(View3f32 const& view, Pixel color);
 
-	void fill(View1u16 const& view, u8 gray);
+	void fill(View1f32 const& view, u8 gray);
 }
 
 
@@ -978,25 +977,25 @@ namespace simage
 
 namespace simage
 {
-	void transform(View1u16 const& src, View1u16 const& dst, std::function<f32(f32)> const& func32);
+	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func32);
 
-	void transform(View2u16 const& src, View1u16 const& dst, std::function<f32(f32, f32)> const& func32);
+	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func32);
 
-	void transform(View3u16 const& src, View1u16 const& dst, std::function<f32(f32, f32, f32)> const& func32);
+	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func32);
 
 	
-	inline void transform_gray(ViewRGBu16 const& src, View1u16 const& dst)
+	inline void transform_gray(ViewRGBf32 const& src, View1f32 const& dst)
 	{
 		return transform(src, dst, [](f32 red, f32 green, f32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
 	}
 
 
-	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32);
+	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32);
 
-	void threshold(View1u16 const& src, View1u16 const& dst, f32 min32, f32 max32);
+	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32, f32 max32);
 
 
-	void binarize(View1u16 const& src, View1u16 const& dst, std::function<bool(f32)> func32);
+	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> func32);
 }
 
 
@@ -1004,7 +1003,7 @@ namespace simage
 
 namespace simage
 {
-	void alpha_blend(ViewRGBAu16 const& src, ViewRGBu16 const& cur, ViewRGBu16 const& dst);
+	void alpha_blend(ViewRGBAf32 const& src, ViewRGBf32 const& cur, ViewRGBf32 const& dst);
 }
 
 
@@ -1012,13 +1011,13 @@ namespace simage
 
 namespace simage
 {
-	void rotate(View4u16 const& src, View4u16 const& dst, Point2Du32 origin, f32 rad);
+	void rotate(View4f32 const& src, View4f32 const& dst, Point2Du32 origin, f32 rad);
 
-	void rotate(View3u16 const& src, View3u16 const& dst, Point2Du32 origin, f32 rad);
+	void rotate(View3f32 const& src, View3f32 const& dst, Point2Du32 origin, f32 rad);
 
-	void rotate(View2u16 const& src, View2u16 const& dst, Point2Du32 origin, f32 rad);
+	void rotate(View2f32 const& src, View2f32 const& dst, Point2Du32 origin, f32 rad);
 
-	void rotate(View1u16 const& src, View1u16 const& dst, Point2Du32 origin, f32 rad);
+	void rotate(View1f32 const& src, View1f32 const& dst, Point2Du32 origin, f32 rad);
 }
 
 
@@ -1026,9 +1025,9 @@ namespace simage
 
 namespace simage
 {
-	void blur(View1u16 const& src, View1u16 const& dst);
+	void blur(View1f32 const& src, View1f32 const& dst);
 
-	void blur(View3u16 const& src, View3u16 const& dst);
+	void blur(View3f32 const& src, View3f32 const& dst);
 }
 
 
@@ -1036,9 +1035,9 @@ namespace simage
 
 namespace simage
 {
-    void gradients(View1u16 const& src, View1u16 const& dst);
+    void gradients(View1f32 const& src, View1f32 const& dst);
 
-	void gradients_xy(View1u16 const& src, View2u16 const& xy_dst);
+	void gradients_xy(View1f32 const& src, View2f32 const& xy_dst);
 }
 
 
@@ -1046,13 +1045,13 @@ namespace simage
 /*
 namespace simage
 {
-	void shrink(View1u16 const& src, View1u16 const& dst);
+	void shrink(View1f32 const& src, View1f32 const& dst);
 
-	void shrink(View3u16 const& src, View3u16 const& dst);
+	void shrink(View3f32 const& src, View3f32 const& dst);
 
-	void shrink(View1u8 const& src, View1u16 const& dst);
+	void shrink(View1u8 const& src, View1f32 const& dst);
 
-	void shrink(View const& src, ViewRGBu16 const& dst);
+	void shrink(View const& src, ViewRGBf32 const& dst);
 }
 */
 

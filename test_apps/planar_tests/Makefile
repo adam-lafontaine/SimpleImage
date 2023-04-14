@@ -33,6 +33,7 @@ object_files := $(main_o)
 
 # app
 app_dep := $(app_h)
+app_dep += $(simage)/defines.hpp
 app_dep += $(simage_h)
 app_dep += $(app)/icon_64.h
 app_dep += $(app)/input_state.hpp
@@ -49,6 +50,7 @@ object_files += $(app_o)
 
 # simage
 simage_dep := $(simage_h)
+simage_dep += $(simage)/defines.hpp
 simage_dep += $(src)/simage_impl.cpp
 simage_dep += $(stb)/stb_image_resize.h
 simage_dep += $(stb)/stb_image_write.h
@@ -70,6 +72,7 @@ object_files += $(simage_o)
 # tests
 tests_dep := $(tests_include_h)
 tests_dep += $(tests_src)/fill_tests.cpp
+tests_dep += $(tests_src)/hsv_tests.cpp
 
 
 tests_c := $(tests_src)/tests.cpp

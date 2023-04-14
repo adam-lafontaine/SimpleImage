@@ -3152,11 +3152,11 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				auto rgba = hsv::u16_to_rgb_u8(s.H[x], s.S[x], s.V[x]);
+				auto rgb = hsv::u16_to_rgb_u8(s.H[x], s.S[x], s.V[x]);
 
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
+				d[x].rgba.red = rgb.red;
+				d[x].rgba.green = rgb.green;
+				d[x].rgba.blue = rgb.blue;
 				d[x].rgba.alpha = 255;
 			}
 		};

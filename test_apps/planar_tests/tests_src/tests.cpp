@@ -3,3 +3,4 @@
 #include "yuv_tests.cpp"
 #include "lch_tests.cpp"
 #include "map_rgb_gray_tests.cpp"
+#include "transform_tests.cpp"

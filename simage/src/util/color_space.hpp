@@ -939,7 +939,7 @@ namespace yuv
     }
 
 
-    inline constexpr cs::RGBu16 f32_to_rgb_u8(f32 y, f32 u, f32 v)
+    inline constexpr cs::RGBu8 f32_to_rgb_u8(f32 y, f32 u, f32 v)
     {
         auto rgb = f32_to_rgb_f32(y, u, v);
 

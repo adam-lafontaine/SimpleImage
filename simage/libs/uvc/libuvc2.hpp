@@ -1594,6 +1594,8 @@ namespace uvc
 
 #ifdef _WIN32
 
+#if 0
+
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -1612,6 +1614,8 @@ namespace uvc
 
 #define CPP_THREAD
 #define CPP_MUTEX
+
+#endif
 
 #else
 

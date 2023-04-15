@@ -32,13 +32,6 @@ static DeviceCV g_devices[N_CAMERAS];
 
 namespace simage
 {
-	template <typename T>
-	static bool verify(MatrixView<T> const& view)
-	{
-		return view.matrix_width && view.width && view.height && view.matrix_data_;
-	}
-
-
 	static bool verify(CameraUSB const& camera)
 	{
 		return camera.frame_width && camera.frame_height && camera.max_fps && camera.device_id >= 0;

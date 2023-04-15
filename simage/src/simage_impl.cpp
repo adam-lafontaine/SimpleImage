@@ -216,7 +216,7 @@ namespace simage
     template <typename T, size_t N>
 	static inline u64 row_offset(ChannelView2D<T, N> const& view, u32 y)
 	{
-		return (view.y_begin + y) * view.channel_width_ + view.x_begin;
+		return ((u64)view.y_begin + y) * view.channel_width_ + view.x_begin;
 	}
 
 
@@ -849,7 +849,7 @@ namespace simage
 			return;
 		}
 		
-		if (y >= 2 && y < 5 || y >= height - 5 && y < y <= height - 3)
+		if (y >= 2 && y < 5 || y >= height - 5 && y <= height - 3)
 		{
 			d[0] = d[width - 1] = 0;
 
@@ -939,7 +939,7 @@ namespace simage
 			return;
 		}
 		
-		if (y >= 2 && y < 5 || y >= height - 5 && y < y <= height - 3)
+		if (y >= 2 && y < 5 || y >= height - 5 && y <= height - 3)
 		{
 			d[0] = d[width - 1] = (T)0;
 

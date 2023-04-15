@@ -6,3 +6,5 @@
 #include "transform_tests.cpp"
 #include "alpha_blend_tests.cpp"
 #include "rotate_tests.cpp"
+#include "blur_tests.cpp"
+#include "gradients_tests.cpp"

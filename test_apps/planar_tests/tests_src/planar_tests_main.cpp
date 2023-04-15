@@ -28,6 +28,10 @@ void binarize_test(img::View const& out);
 void alpha_blend_test(img::View const& out);
 void rotate_rgb_test(img::View const& out);
 void rotate_gray_test(img::View const& out);
+void blur_gray_test(img::View const& out);
+void blur_rgb_test(img::View const& out);
+void gradients_tests(img::View const& out);
+void gradients_xy_tests(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -48,6 +52,10 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	alpha_blend_test,
 	rotate_rgb_test,
 	rotate_gray_test,
+	blur_gray_test,
+	blur_rgb_test,
+	gradients_tests,
+	gradients_xy_tests,
 };
 
 

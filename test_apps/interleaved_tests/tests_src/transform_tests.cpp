@@ -6,12 +6,11 @@ void transform_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Image caddy;
+    img::Image image;
 
-    img::Buffer32 pixels;
-    mb::create_buffer(pixels, width * height);
+    auto pixels = img::create_buffer32(width * height);
 
-    auto src = img::make_view_resized_from_file(CADILLAC_PATH, caddy, width, height, pixels);
+    auto src = img::make_view_resized_from_file(CADILLAC_PATH, image, width, height, pixels);
 
     auto const invert = [](img::Pixel p)
     {
@@ -24,8 +23,8 @@ void transform_test(img::View const& out)
 
     img::transform(src, out, invert);
 
-    img::destroy_image(caddy);
-    mb::destroy_buffer(pixels);
+    img::destroy_image(image);
+    img::destroy_buffer(pixels);
 }
 
 
@@ -34,12 +33,11 @@ void transform_gray_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::ImageGray caddy;
+    img::ImageGray image;
     
-    img::Buffer8 buffer;
-    mb::create_buffer(buffer, width * height * 2);
+    auto buffer = img::create_buffer8(width * height * 2);
 
-    auto src = img::make_view_resized_from_file(CADILLAC_PATH, caddy, width, height, buffer);
+    auto src = img::make_view_resized_from_file(CADILLAC_PATH, image, width, height, buffer);
     auto dst = img::make_view(width, height, buffer);
 
     auto const invert = [](u8 p) { return 255 - p; };    
@@ -48,8 +46,8 @@ void transform_gray_test(img::View const& out)
 
     img::map_gray(dst, out);
 
-    img::destroy_image(caddy);
-    mb::destroy_buffer(buffer);
+    img::destroy_image(image);
+    img::destroy_buffer(buffer);
 }
 
 
@@ -58,20 +56,19 @@ void threshold_min_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::ImageGray vette;
+    img::ImageGray image;
     
-    img::Buffer8 buffer;
-    mb::create_buffer(buffer, width * height * 2);
+    auto buffer = img::create_buffer8(width * height * 2);
 	
-    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, width, height, buffer);
+    auto src = img::make_view_resized_from_file(CORVETTE_PATH, image, width, height, buffer);
     auto dst = img::make_view(width, height, buffer);
 
     img::threshold(src, dst, 75);
 
     img::map_gray(dst, out);
 
-    img::destroy_image(vette);
-    mb::destroy_buffer(buffer);
+    img::destroy_image(image);
+    img::destroy_buffer(buffer);
 }
 
 
@@ -80,20 +77,19 @@ void threshold_min_max_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::ImageGray vette;
+    img::ImageGray image;
     
-    img::Buffer8 buffer;
-    mb::create_buffer(buffer, width * height * 2);
+    auto buffer = img::create_buffer8(width * height * 2);
 	
-    auto src = img::make_view_resized_from_file(CORVETTE_PATH, vette, width, height, buffer);
+    auto src = img::make_view_resized_from_file(CORVETTE_PATH, image, width, height, buffer);
     auto dst = img::make_view(width, height, buffer);
 
     img::threshold(src, dst, 30, 200);
 
     img::map_gray(dst, out);
 
-    img::destroy_image(vette);
-    mb::destroy_buffer(buffer);
+    img::destroy_image(image);
+    img::destroy_buffer(buffer);
 }
 
 
@@ -115,7 +111,7 @@ void binarize_test(img::View const& out)
     img::map_gray(dst, out);
 
     img::destroy_image(weed);
-    mb::destroy_buffer(buffer);
+    img::destroy_buffer(buffer);
 }
 
 
@@ -140,6 +136,6 @@ void binarize_rgb_test(img::View const& out)
     img::map_gray(dst, out);
 
     img::destroy_image(weed);
-    mb::destroy_buffer(pixels);
-    mb::destroy_buffer(buffer);
+    img::destroy_buffer(pixels);
+    img::destroy_buffer(buffer);
 }

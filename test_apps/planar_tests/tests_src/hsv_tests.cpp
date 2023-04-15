@@ -46,8 +46,7 @@ void hsv_draw_test(img::View const& out)
     auto const width = out.width;
     auto const height = out.height;
 
-    img::Buffer32 buffer;
-    mb::create_buffer(buffer, width * height * 3);
+    auto buffer = img::create_buffer32(width * height * 3);
 
     auto hsv = img::make_view_3(width, height, buffer);
 

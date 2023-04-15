@@ -6,8 +6,7 @@ void blur_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Buffer8 buffer;
-    mb::create_buffer(buffer, width * height * 2);
+    auto buffer = img::create_buffer8(width * height * 2);
 
     img::ImageGray image;
     auto src = img::make_view_resized_from_file(CADILLAC_PATH, image, width, height, buffer);
@@ -26,7 +25,7 @@ void blur_test(img::View const& out)
     img::map_gray(dst, out);
 
     img::destroy_image(image);
-    mb::destroy_buffer(buffer);
+    img::destroy_buffer(buffer);
 }
 
 
@@ -35,8 +34,7 @@ void gradients_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Buffer8 buffer;
-    mb::create_buffer(buffer, width * height * 2);
+    auto buffer = img::create_buffer8(width * height * 2);
 
     img::ImageGray image;
     auto src = img::make_view_resized_from_file(CHESS_PATH, image, width, height, buffer);
@@ -47,7 +45,7 @@ void gradients_test(img::View const& out)
     img::map_gray(dst, out);
 
     img::destroy_image(image);
-    mb::destroy_buffer(buffer);
+    img::destroy_buffer(buffer);
 }
 
 
@@ -56,8 +54,7 @@ void gradients_xy_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Buffer8 buffer;
-    mb::create_buffer(buffer, width * height * 3);
+    auto buffer = img::create_buffer8(width * height * 3);
 
     img::ImageGray image;
     auto src = img::make_view_resized_from_file(CHESS_PATH, image, width, height, buffer);
@@ -79,5 +76,5 @@ void gradients_xy_test(img::View const& out)
     img::map_gray(img::sub_view(dst_y, right), img::sub_view(out, right));
 
     img::destroy_image(image);
-    mb::destroy_buffer(buffer);
+    img::destroy_buffer(buffer);
 }

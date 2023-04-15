@@ -6,8 +6,7 @@ void alpha_blend_test(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Buffer32 pixels;
-    mb::create_buffer(pixels, width * height * 2);
+    auto pixels = img::create_buffer32(width * height * 2);
 
     img::Image vette;
     img::Image caddy;
@@ -21,5 +20,5 @@ void alpha_blend_test(img::View const& out)
 
     img::destroy_image(vette);
     img::destroy_image(caddy);
-    mb::destroy_buffer(pixels);
+    img::destroy_buffer(pixels);
 }

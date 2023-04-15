@@ -6,8 +6,7 @@ void map_rgba_tests(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Buffer32 buffer;
-    mb::create_buffer(buffer, width * height * 5);
+    auto buffer = img::create_buffer32(width * height * 5);
 
     img::Image image;
 
@@ -28,8 +27,7 @@ void map_rgb_tests(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Buffer32 buffer;
-    mb::create_buffer(buffer, width * height * 4);
+    auto buffer = img::create_buffer32(width * height * 4);
 
     img::Image image;
 
@@ -50,11 +48,9 @@ void map_gray_tests(img::View const& out)
     auto width = out.width;
     auto height = out.height;
 
-    img::Buffer8 buffer8;
-    mb::create_buffer(buffer8, width * height);
+    auto buffer8 = img::create_buffer8(width * height);
 
-    img::Buffer32 buffer32;
-    mb::create_buffer(buffer32, width * height);
+    auto buffer32 = img::create_buffer32(width * height);
 
     img::ImageGray image;
 

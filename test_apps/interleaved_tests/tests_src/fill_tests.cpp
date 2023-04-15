@@ -47,8 +47,7 @@ void fill_gray_test(img::View const& out)
     u8 const gray = 128;
     u8 const white = 255;
 
-    img::Buffer8 buffer;
-	mb::create_buffer(buffer, width * height);
+    auto buffer = img::create_buffer8(width * height);
 
 	auto dst = img::make_view(width, height, buffer);
 
@@ -58,5 +57,5 @@ void fill_gray_test(img::View const& out)
 
     img::map_gray(dst, out);
 
-    mb::destroy_buffer(buffer);
+    img::destroy_buffer(buffer);
 }

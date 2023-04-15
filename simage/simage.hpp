@@ -326,6 +326,29 @@ namespace simage
 	void destroy_image(ImageGray& image);
 
 	void destroy_image(ImageYUV& image);
+
+
+	inline Buffer32 create_buffer32(u32 n_pixels)
+	{
+		Buffer32 buffer;
+		mb::create_buffer(buffer, n_pixels);
+		return buffer;
+	}
+
+
+	inline Buffer8 create_buffer8(u32 n_pixels)
+	{
+		Buffer8 buffer;
+		mb::create_buffer(buffer, n_pixels);
+		return buffer;
+	}
+
+
+	template <typename T>
+	inline void destroy_buffer(MemoryBuffer<T>& buffer)
+	{
+		mb::destroy_buffer(buffer);
+	}
 }
 
 

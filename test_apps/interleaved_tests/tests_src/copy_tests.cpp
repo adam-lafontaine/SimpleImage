@@ -43,8 +43,7 @@ void copy_gray_test(img::View const& out)
 	auto width = src.width;
 	auto height = src.height;
 
-	img::Buffer8 buffer;
-	mb::create_buffer(buffer, width * height);
+	auto buffer = img::create_buffer8(width * height);
 
 	auto dst = img::make_view(width, height, buffer);
 
@@ -53,5 +52,5 @@ void copy_gray_test(img::View const& out)
 	img::map_gray(dst, img::sub_view(out, r));
 
 	img::destroy_image(vette);
-	mb::destroy_buffer(buffer);
+	img::destroy_buffer(buffer);
 }

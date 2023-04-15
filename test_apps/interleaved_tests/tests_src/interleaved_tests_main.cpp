@@ -64,15 +64,10 @@ static std::vector<std::function<void(img::View const&)>> tests =
 };
 
 
-static void run_selected_test(Input const& input, app::AppState& app_state)
+static void run_next_test(Input const& input, app::AppState& app_state)
 {
 	static int test_id = -1;
 	static int frame_count = 0;
-
-	/*if (!input.keyboard.space_key.pressed)
-	{
-		return;
-	}*/
 
 	frame_count++;
 	if (frame_count < FRAMES_PER_TEST)
@@ -121,7 +116,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    render_run(app_state, [&](auto const& input) { run_selected_test(input, app_state); });
+    render_run(app_state, [&](auto const& input) { run_next_test(input, app_state); });
 
     return EXIT_SUCCESS;
 }

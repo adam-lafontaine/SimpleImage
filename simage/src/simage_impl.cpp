@@ -336,19 +336,6 @@ namespace simage
 
 		return view.channel_data_[ch] + offset;
 	}
-
-
-	template <typename T, size_t N>
-	static T* channel_row_offset_begin(ChannelView2D<T, N> const& view, u32 y, int y_offset, u32 ch)
-	{
-		assert(verify(view));
-
-		int y_eff = y + y_offset;
-
-		auto offset = row_offset(view, y_eff);
-
-		return view.channel_data_[ch] + offset;
-	}
 }
 
 

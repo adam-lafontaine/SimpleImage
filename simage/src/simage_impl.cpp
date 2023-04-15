@@ -3719,43 +3719,6 @@ namespace simage
 }
 
 
-/* rotate */
-
-namespace simage
-{
-	void rotate(View4f32 const& src, View4f32 const& dst, Point2Du32 origin, f32 rad)
-	{
-		assert(verify(src, dst));
-
-		rotate_channels(src, dst, origin, rad);
-	}
-
-
-	void rotate(View3f32 const& src, View3f32 const& dst, Point2Du32 origin, f32 rad)
-	{
-		assert(verify(src, dst));
-
-		rotate_channels(src, dst, origin, rad);
-	}
-
-
-	void rotate(View2f32 const& src, View2f32 const& dst, Point2Du32 origin, f32 rad)
-	{
-		assert(verify(src, dst));
-
-		rotate_channels(src, dst, origin, rad);
-	}
-
-
-	void rotate(View1f32 const& src, View1f32 const& dst, Point2Du32 origin, f32 rad)
-	{
-		assert(verify(src, dst));
-
-		rotate_1(src, dst, origin, rad);
-	}
-}
-
-
 /* alpha blend */
 
 namespace simage
@@ -3793,6 +3756,43 @@ namespace simage
 		};
 
 		process_by_row(src.height, row_func);
+	}
+}
+
+
+/* rotate */
+
+namespace simage
+{
+	void rotate(View4f32 const& src, View4f32 const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		rotate_channels(src, dst, origin, rad);
+	}
+
+
+	void rotate(View3f32 const& src, View3f32 const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		rotate_channels(src, dst, origin, rad);
+	}
+
+
+	void rotate(View2f32 const& src, View2f32 const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		rotate_channels(src, dst, origin, rad);
+	}
+
+
+	void rotate(View1f32 const& src, View1f32 const& dst, Point2Du32 origin, f32 rad)
+	{
+		assert(verify(src, dst));
+
+		rotate_1(src, dst, origin, rad);
 	}
 }
 

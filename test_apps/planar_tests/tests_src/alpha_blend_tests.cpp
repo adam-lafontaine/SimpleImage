@@ -6,7 +6,7 @@ void alpha_blend_test(img::View const& out)
     auto const width = out.width;
     auto const height = out.height;
 
-    u32 n_channels = 2 + 4 + 2 * 3;
+    u32 n_channels = 1 + 1 + 4 + 3 + 3;
 
     auto buffer = img::create_buffer32(width * height * n_channels);
 

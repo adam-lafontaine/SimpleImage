@@ -26,6 +26,8 @@ void transform_gray_test(img::View const& out);
 void threshold_test(img::View const& out);
 void binarize_test(img::View const& out);
 void alpha_blend_test(img::View const& out);
+void rotate_rgb_test(img::View const& out);
+void rotate_gray_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -44,6 +46,8 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	threshold_test,
 	binarize_test,
 	alpha_blend_test,
+	rotate_rgb_test,
+	rotate_gray_test,
 };
 
 

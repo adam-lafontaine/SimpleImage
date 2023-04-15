@@ -5,3 +5,4 @@
 #include "map_rgb_gray_tests.cpp"
 #include "transform_tests.cpp"
 #include "alpha_blend_tests.cpp"
+#include "rotate_tests.cpp"

@@ -21,7 +21,7 @@ void fill_rgba_test(img::View const& out)
     auto const green = img::to_pixel(0, 255, 0);
     auto const blue = img::to_pixel(0, 0, 255);
 
-    img::Buffer16 buffer;
+    img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height * 4);
 
     auto rgba = img::make_view_4(width, height, buffer);
@@ -56,7 +56,7 @@ void fill_rgb_test(img::View const& out)
     auto const green = img::to_pixel(0, 255, 0);
     auto const blue = img::to_pixel(0, 0, 255);
 
-    img::Buffer16 buffer;
+    img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height * 3);
 
     auto rgb = img::make_view_3(width, height, buffer);
@@ -91,7 +91,7 @@ void fill_gray_test(img::View const& out)
     u8 const gray = 128;
     u8 const white = 255;
 
-    img::Buffer16 buffer;
+    img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height);
 
     auto view = img::make_view_1(width, height, buffer);

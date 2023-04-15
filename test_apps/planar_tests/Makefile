@@ -89,7 +89,7 @@ LIBRARIES += $(LIBUSB)
 
 CCFLAGS := -std=c++20 
 
-#CCFLAGS += -O3 -DNDEBUG
+CCFLAGS += -O3 -DNDEBUG
 
 # build rules
 

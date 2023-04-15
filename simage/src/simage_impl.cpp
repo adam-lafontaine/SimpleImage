@@ -886,8 +886,8 @@ namespace simage
     }
 
 
-    template <typename T>
-    static void gradients_x_row(View1<T> const& src, View1<T> const& dst, u32 y)
+    template <typename T, class CONV>
+    static void gradients_x_row(View1<T> const& src, View1<T> const& dst, u32 y, CONV const& convert)
     {
         auto const width = src.width;
         auto const height = src.height;
@@ -898,18 +898,18 @@ namespace simage
 		{
 			d[0] = d[width - 1] = (T)0;
 
-            d[1] = (T)std::abs(gradient_x_3(src, 1, y));
-            d[width - 2] = (T)std::abs(gradient_x_3(src, width - 2, y));
+            d[1] = convert(gradient_x_3(src, 1, y));
+            d[width - 2] = convert(gradient_x_3(src, width - 2, y));
 
             for (u32 x = 2; x < 5; ++x)
             {
-                d[x] = (T)std::abs(gradient_x_5(src, x, y));
-                d[width - x - 1] = (T)std::abs(gradient_x_5(src, width - x - 1, y));
+                d[x] = convert(gradient_x_5(src, x, y));
+                d[width - x - 1] = convert(gradient_x_5(src, width - x - 1, y));
             }
 
             for (u32 x = 5; x < width - 5; ++x)
             {
-                d[x] = (T)std::abs(gradient_x_11(src, x, y));
+                d[x] = convert(gradient_x_11(src, x, y));
             }
 
 			return;
@@ -923,8 +923,8 @@ namespace simage
     }
 
 
-    template <typename T>
-    static void gradients_y_row(View1<T> const& src, View1<T> const& dst, u32 y)
+    template <typename T, class CONV>
+    static void gradients_y_row(View1<T> const& src, View1<T> const& dst, u32 y, CONV const& convert)
     {
         auto const width = src.width;
         auto const height = src.height;
@@ -937,7 +937,7 @@ namespace simage
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = (T)std::abs(gradient_y_11(src, x, y));
+                d[x] = convert(gradient_y_11(src, x, y));
             }
 
 			return;
@@ -949,7 +949,7 @@ namespace simage
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = (T)std::abs(gradient_y_5(src, x, y));
+                d[x] = convert(gradient_y_5(src, x, y));
             }
             return;
 		}
@@ -960,7 +960,7 @@ namespace simage
 
             for (u32 x = 1; x < width - 1; ++x)
             {
-                d[x] = (T)std::abs(gradient_y_3(src, x, y));
+                d[x] = convert(gradient_y_3(src, x, y));
             }
             return;
 		}
@@ -986,15 +986,32 @@ namespace simage
 
         process_by_row(src.height, row_func);
     }
+	
+	
+	template <typename T>
+    static void gradients_xy_1(View1<T> const& src, View1<T> const& x_dst, View1<T> const& y_dst)
+    {
+		auto const convert = [](f32 grad){ return (T)grad; };
+
+        auto const row_func = [&](u32 y)
+        {            
+            gradients_x_row(src, x_dst, y, convert);
+            gradients_y_row(src, y_dst, y, convert);
+        };
+
+        process_by_row(src.height, row_func);
+    }
 
 
     template <typename T>
-    static void gradients_xy_1(View1<T> const& src, View1<T> const& x_dst, View1<T> const& y_dst)
+    static void gradients_unsigned_xy_1(View1<T> const& src, View1<T> const& x_dst, View1<T> const& y_dst)
     {
+		auto const convert = [](f32 grad){ return (T)std::abs(grad); };
+
         auto const row_func = [&](u32 y)
         {            
-            gradients_x_row(src, x_dst, y);
-            gradients_y_row(src, y_dst, y);
+            gradients_x_row(src, x_dst, y, convert);
+            gradients_y_row(src, y_dst, y, convert);
         };
 
         process_by_row(src.height, row_func);
@@ -1173,7 +1190,7 @@ namespace simage
 
 				if (src_pt.x < zero || src_pt.x >= width || src_pt.y < zero || src_pt.y >= height)
 				{
-					for (u32 ch = 0; ch < 4; ++ch)
+					for (u32 ch = 0; ch < N; ++ch)
 					{
 						d[ch][x] = 0;
 					}
@@ -1183,7 +1200,7 @@ namespace simage
 					auto src_x = (u32)floorf(src_pt.x);
 					auto src_y = (u32)floorf(src_pt.y);
 					auto s = view_row_begin(src, src_y);
-					for (u32 ch = 0; ch < 4; ++ch)
+					for (u32 ch = 0; ch < N; ++ch)
 					{
 						d[ch][x] = s[ch][src_x];
 					}
@@ -1919,7 +1936,7 @@ namespace simage
         assert(verify(src, dst_x));
         assert(verify(src, dst_y));
 
-        gradients_xy_1(src, dst_x, dst_y);
+        gradients_unsigned_xy_1(src, dst_x, dst_y);
     }
 }
 
@@ -3501,6 +3518,14 @@ namespace simage
 		assert(verify(view));
 
 		fill_n_channels(view, color);
+	}
+
+
+	void fill(View1f32 const& view, f32 gray)
+	{
+		assert(verify(view));
+
+		fill_channel(view, gray);
 	}
 
 

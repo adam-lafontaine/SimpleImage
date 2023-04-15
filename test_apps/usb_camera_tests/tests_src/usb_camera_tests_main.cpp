@@ -4,12 +4,23 @@
 constexpr auto APP_TITLE = "USB Camera Test App";
 constexpr auto APP_VERSION = "1.0";
 
-// display each test result for ~0.75 seconds
-constexpr int FRAMES_PER_TEST = 45;
+// display each test result for ~0.5 seconds
+constexpr int FRAMES_PER_TEST = 30;
+
+
+bool init_camera_test_memory(u32 width, u32 height);
+void destroy_camera_test_memory();
 
 
 void grab_rgb_test(img::CameraUSB const& camera, img::View const& out);
 void grab_gray_test(img::CameraUSB const& camera, img::View const& out);
+void transform_test(img::CameraUSB const& camera, img::View const& out);
+void threshold_min_max_test(img::CameraUSB const& camera, img::View const& out);
+void binarize_test(img::CameraUSB const& camera, img::View const& out);
+void alpha_blend_test(img::CameraUSB const& camera, img::View const& out);
+void blur_rgb_test(img::CameraUSB const& camera, img::View const& out);
+void gradients_tests(img::CameraUSB const& camera, img::View const& out);
+void rotate_test(img::CameraUSB const& camera, img::View const& out);
 
 
 
@@ -17,6 +28,13 @@ static std::vector<std::function<void(img::CameraUSB const&, img::View const&)>>
 {
     grab_rgb_test,
     grab_gray_test,
+    transform_test,
+    threshold_min_max_test,
+    binarize_test,
+    alpha_blend_test,
+    blur_rgb_test,
+    gradients_tests,
+    rotate_test
 };
 
 
@@ -135,8 +153,15 @@ int main()
     auto out_view = app_state.screen_pixels;
     adjust_screen_views(camera, out_view);
 
+    if (!init_camera_test_memory(out_view.width, out_view.height))
+    {
+        img::close_camera(camera);
+		return EXIT_FAILURE;
+    }
+
     render_run(app_state, [&](auto const& input) { run_next_test(input, app_state, camera); });
 
     img::close_camera(camera);
+    destroy_camera_test_memory();
     return EXIT_SUCCESS;
 }

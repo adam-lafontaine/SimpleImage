@@ -71,6 +71,7 @@ object_files += $(simage_o)
 
 # tests
 tests_dep := $(tests_include_h)
+tests_dep += $(tests_src)/grab_tests.cpp
 
 
 tests_c := $(tests_src)/tests.cpp

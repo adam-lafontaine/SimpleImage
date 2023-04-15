@@ -938,4 +938,16 @@ namespace yuv
         return rgb_f32_from_yuv(y, u, v);
     }
 
+
+    inline constexpr cs::RGBu16 f32_to_rgb_u8(f32 y, f32 u, f32 v)
+    {
+        auto rgb = f32_to_rgb_f32(y, u, v);
+
+        return {
+            cs::to_channel_u8(rgb.red),
+            cs::to_channel_u8(rgb.green),
+            cs::to_channel_u8(rgb.blue),
+        };
+    }
+
 }

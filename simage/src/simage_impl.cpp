@@ -52,30 +52,22 @@ namespace simage
 
 
 	template <typename T>
-	class YUVp
-	{
-	public:
-		T* Y;
-		T* UV;
-	};	
-
-
-	template <typename T>
-	class UVYp
-	{
-	public:
-		T* UV;
-		T* Y;
-	};
-
-
-	template <typename T>
 	class LCHp
 	{
 	public:
 		T* L;
 		T* C;
 		T* H;
+	};
+
+
+	template <typename T>
+	class YUVp
+	{
+	public:
+		T* Y;
+		T* U;
+		T* V;
 	};
 
 
@@ -277,6 +269,23 @@ namespace simage
 		hsv.V = view.channel_data_[id_cast(HSV::V)] + offset;
 
 		return hsv;
+	}
+
+
+	static YUVf32p yuv_row_begin(ViewYUVf32 const& view, u32 y)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+
+		auto offset = row_offset(view, y);
+
+		YUVf32p yuv{};
+
+		yuv.Y = view.channel_data_[id_cast(YUV::Y)] + offset;
+		yuv.U = view.channel_data_[id_cast(YUV::U)] + offset;
+		yuv.V = view.channel_data_[id_cast(YUV::V)] + offset;
+
+		return yuv;
 	}
 
 
@@ -2879,6 +2888,20 @@ namespace simage
 	}
 
 
+	View1f32 select_channel(ViewYUVf32 const& view, YUV channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
 	View1f32 select_channel(View2f32 const& view, GA channel)
 	{
 		assert(verify(view));
@@ -3472,6 +3495,30 @@ namespace simage
 		};
 
 		process_by_row(dst.height, row_func);
+	}
+
+
+	void map_yuv_rgb(ViewYUVf32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto const row_func = [&](u32 y) 
+		{
+			auto s = yuv_row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgb = yuv::f32_to_rgb_u8(s.Y[x], s.U[x], s.V[x]);
+
+				d[x].rgba.red = rgb.red;
+				d[x].rgba.green = rgb.green;
+				d[x].rgba.blue = rgb.blue;
+				d[x].rgba.alpha = 255;
+			}
+		};
+
+		process_by_row(src.height, row_func);
 	}
 }
 

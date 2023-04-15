@@ -128,6 +128,7 @@ namespace simage
 	using ViewRGBAf32 = View4f32;
 	using ViewRGBf32 = View3f32;
 	using ViewHSVf32 = View3f32;
+	using ViewYUVf32 = View3f32;
 	using ViewLCHf32 = View3f32;
 
     using Buffer32 = MemoryBuffer<Pixel>;
@@ -861,6 +862,8 @@ namespace simage
 
 	View1f32 select_channel(ViewHSVf32 const& view, HSV channel);
 
+	View1f32 select_channel(ViewYUVf32 const& view, YUV channel);
+
 	View1f32 select_channel(View2f32 const& view, GA channel);
 
 	View1f32 select_channel(View2f32 const& view, XY channel);
@@ -949,7 +952,9 @@ namespace simage
 
 namespace simage
 {
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);	
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
+
+	void map_yuv_rgb(ViewYUVf32 const& src, View const& dst);
 }
 
 

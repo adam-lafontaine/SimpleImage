@@ -2,15 +2,12 @@
 #include "../../../simage/src/util/color_space.hpp"
 
 
-static bool equals(f32 lhs, f32 rhs)
-{
-    return std::abs(lhs - rhs) < (1.0f / 255.0f);
-}
+static bool equals(f32 lhs, f32 rhs);
 
 
-bool hsv_conversion_test()
+bool yuv_conversion_test()
 {
-    printf("hsv_conversion_test: ");
+    printf("yuv_conversion_test: ");
 
     for (u32 r = 0; r < 256; ++r)
     {
@@ -24,8 +21,8 @@ bool hsv_conversion_test()
             {
                 auto blue = b / 255.0f;
 
-                auto hsv = hsv::f32_from_rgb_f32(red, green, blue);
-                auto rgb = hsv::f32_to_rgb_f32(hsv.hue, hsv.sat, hsv.val);
+                auto yuv = yuv::f32_from_rgb_f32(red, green, blue);
+                auto rgb = yuv::f32_to_rgb_f32(yuv.y, yuv.u, yuv.v);
 
                 if (!equals(red, rgb.red) || !equals(green, rgb.green) || !equals(blue, rgb.blue))
                 {
@@ -41,7 +38,7 @@ bool hsv_conversion_test()
 }
 
 
-void hsv_draw_test(img::View const& out)
+void yuv_draw_test(img::View const& out)
 {
     auto const width = out.width;
     auto const height = out.height;
@@ -49,18 +46,18 @@ void hsv_draw_test(img::View const& out)
     img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height * 3);
 
-    auto hsv = img::make_view_3(width, height, buffer);
+    auto yuv = img::make_view_3(width, height, buffer);
 
-    auto hue = img::select_channel(hsv, img::HSV::H);
-    auto sat = img::select_channel(hsv, img::HSV::S);
-    auto val = img::select_channel(hsv, img::HSV::V);
+    auto view_Y = img::select_channel(yuv, img::YUV::Y);
+    auto view_U = img::select_channel(yuv, img::YUV::U);
+    auto view_V = img::select_channel(yuv, img::YUV::V);
 
     auto r = make_range(width, height);
     for (u32 x = 0; x < width; ++x)
     {
         r.x_begin = x;
         r.x_end = x + 1;
-        img::fill(img::sub_view(hue, r), (f32)x / width);
+        img::fill(img::sub_view(view_U, r), (f32)x / width);
     }
 
     r = make_range(width, height);
@@ -69,12 +66,12 @@ void hsv_draw_test(img::View const& out)
         r.y_begin = y;
         r.y_end = y + 1;
 
-        img::fill(img::sub_view(sat, r), (f32)y / height);
+        img::fill(img::sub_view(view_V, r), (f32)y / height);
     }
 
-    img::fill(val, 1.0f);
+    img::fill(view_Y, 0.5f);
 
-    img::map_hsv_rgb(hsv, out);
+    img::map_yuv_rgb(yuv, out);
     
     mb::destroy_buffer(buffer);
 }

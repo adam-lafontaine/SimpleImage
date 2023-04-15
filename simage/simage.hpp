@@ -886,6 +886,11 @@ namespace simage
 	void map_gray(ViewYUV const& src, View1f32 const& dst);
 
 	void map_gray(View1f32 const& src, View const& dst);
+
+	inline void map_gray(ImageGray const& src, View1f32 const& dst)
+	{
+		map_gray(make_view(src), dst);
+	}
 }
 
 

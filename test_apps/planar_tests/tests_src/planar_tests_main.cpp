@@ -1,7 +1,7 @@
 #include "../../app/app.hpp"
 #include "../../tests_include.hpp"
 
-constexpr auto APP_TITLE = "SimpleImage Test App";
+constexpr auto APP_TITLE = "SimpleImage Planar Test App";
 constexpr auto APP_VERSION = "1.0";
 
 // display each test result for ~0.5 seconds
@@ -12,6 +12,9 @@ bool hsv_conversion_test();
 bool yuv_conversion_test();
 bool lch_conversion_test();
 
+void map_rgba_tests(img::View const& out);
+void map_rgb_tests(img::View const& out);
+void map_gray_tests(img::View const& out);
 void fill_rgba_test(img::View const& out);
 void fill_rgb_test(img::View const& out);
 void fill_gray_test(img::View const& out);
@@ -22,6 +25,9 @@ void lch_draw_test(img::View const& out);
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
+	map_rgba_tests,
+	map_rgb_tests,
+	map_gray_tests,
 	fill_rgba_test,
 	fill_rgb_test,
 	fill_gray_test,

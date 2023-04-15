@@ -75,6 +75,7 @@ tests_dep += $(tests_src)/fill_tests.cpp
 tests_dep += $(tests_src)/hsv_tests.cpp
 tests_dep += $(tests_src)/yuv_tests.cpp
 tests_dep += $(tests_src)/lch_tests.cpp
+tests_dep += $(tests_src)/map_rgb_gray_tests.cpp
 
 
 tests_c := $(tests_src)/tests.cpp

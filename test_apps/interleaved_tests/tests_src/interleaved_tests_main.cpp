@@ -1,7 +1,7 @@
 #include "../../app/app.hpp"
 #include "../../tests_include.hpp"
 
-constexpr auto APP_TITLE = "SimpleImage Test App";
+constexpr auto APP_TITLE = "SimpleImage Interleaved Test App";
 constexpr auto APP_VERSION = "1.0";
 
 // display each test result for ~0.5 seconds

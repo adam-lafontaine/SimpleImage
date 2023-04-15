@@ -8,6 +8,9 @@ constexpr auto APP_VERSION = "1.0";
 constexpr int FRAMES_PER_TEST = 30;
 
 
+bool memory_buffer_tests();
+
+
 void fill_test(img::View const& out);
 void fill_gray_test(img::View const& out);
 void copy_test(img::View const& out);
@@ -90,9 +93,17 @@ static void run_selected_test(Input const& input, app::AppState& app_state)
 }
 
 
+static bool run_preliminary_tests()
+{
+	return directory_files_test() &&
+		memory_buffer_tests() &&
+		true;
+}
+
+
 int main()
 {
-	if (!directory_files_test())
+	if (!run_preliminary_tests())
 	{
 		return EXIT_FAILURE;
 	}

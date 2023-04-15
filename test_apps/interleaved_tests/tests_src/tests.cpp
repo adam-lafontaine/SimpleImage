@@ -8,3 +8,4 @@
 #include "rotate_tests.cpp"
 #include "centroid_tests.cpp"
 #include "skeleton_tests.cpp"
+#include "memory_buffer_tests.cpp"

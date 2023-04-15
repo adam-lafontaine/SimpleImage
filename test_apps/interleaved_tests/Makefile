@@ -78,6 +78,7 @@ tests_dep += $(tests_src)/transform_tests.cpp
 tests_dep += $(tests_src)/convolution_tests.cpp
 tests_dep += $(tests_src)/rotate_tests.cpp
 tests_dep += $(tests_src)/skeleton_tests.cpp
+tests_dep += $(tests_src)/memory_buffer_tests.cpp
 
 tests_c := $(tests_src)/tests.cpp
 tests_o := $(build)/tests.o

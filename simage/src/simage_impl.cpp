@@ -3762,17 +3762,13 @@ namespace simage
 {
 	static void alpha_blend_row(RGBAf32p const& src, RGBf32p const& cur, RGBf32p const& dst, u32 width)
 	{
-		// TODO: simd here
-
 		auto const blend = [](f32 s, f32 c, f32 a)
 		{
-			auto blended = a * s + (1.0f - a) * c;
-			return (f32)(blended + 0.5f);
+			return a * s + (1.0f - a) * c;
 		};
 
 		for (u32 x = 0; x < width; ++x)
 		{
-			//auto a = cs::to_channel_f32(src.A[x]);
 			auto a = src.A[x];
 
 			dst.R[x] = blend(src.R[x], cur.R[x], a);

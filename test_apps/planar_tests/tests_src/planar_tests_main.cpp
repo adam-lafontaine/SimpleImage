@@ -28,7 +28,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 static bool run_preliminary_tests()
 {
 	return directory_files_test() &&
-		//hsv_conversion_test() &&
+		hsv_conversion_test() &&
 		true;
 }
 

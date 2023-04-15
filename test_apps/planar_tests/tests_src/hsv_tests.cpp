@@ -46,7 +46,7 @@ void hsv_draw_test(img::View const& out)
     auto const width = out.width;
     auto const height = out.height;
 
-    img::Buffer16 buffer;
+    img::Buffer32 buffer;
     mb::create_buffer(buffer, width * height * 3);
 
     auto hsv = img::make_view_3(width, height, buffer);
@@ -56,26 +56,25 @@ void hsv_draw_test(img::View const& out)
     auto val = img::select_channel(hsv, img::HSV::V);
 
     auto r = make_range(width, height);
-    auto w = width / 256;
-    for (u32 x = 0; x < 256; ++x)
+    for (u32 x = 0; x < width; ++x)
     {
-        r.x_begin = x * w;
-        r.x_end = std::min(width, r.x_begin + w);
-
-        img::fill(img::sub_view(hue, r), (u8)(255 - x));
+        r.x_begin = x;
+        r.x_end = x + 1;
+        img::fill(img::sub_view(hue, r), (f32)x / width);
     }
 
     r = make_range(width, height);
-    auto h = height / 256;
-    for (u32 y = 0; y < 256; ++y)
+    for (u32 y = 0; y < height; ++y)
     {
-        r.y_begin = y * h;
-        r.y_end = std::min(height, r.y_begin + h);
+        r.y_begin = y;
+        r.y_end = y + 1;
 
-        img::fill(img::sub_view(sat, r), (u8)(255 - y));
+        img::fill(img::sub_view(sat, r), (f32)y / height);
     }
 
-    img::fill(val, 255);
+    img::fill(val, 1.0f);
+
+    img::fill(out, img::to_pixel(0, 0, 0));
 
     img::map_hsv_rgb(hsv, out);
     

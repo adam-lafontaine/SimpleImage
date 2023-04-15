@@ -70,8 +70,6 @@ namespace simage
 
 	using ImageGray = Matrix2D<u8>;
 	using ViewGray = MatrixView<u8>;
-
-	using Mat2Df32 = Matrix2D<f32>;
 }
 
 
@@ -80,7 +78,7 @@ namespace simage
 namespace simage
 {
 	template <typename T, size_t N>
-	class ChannelView2D
+	class ChannelView
 	{
 	public:
 
@@ -107,13 +105,13 @@ namespace simage
 	
 
 	template <typename T>
-	using View4 = ChannelView2D<T, 4>;
+	using View4 = ChannelView<T, 4>;
 
 	template <typename T>
-	using View3 = ChannelView2D<T, 3>;
+	using View3 = ChannelView<T, 3>;
 
 	template <typename T>
-	using View2 = ChannelView2D<T, 2>;
+	using View2 = ChannelView<T, 2>;
 
 	template <typename T>
 	using View1 = MatrixView<T>;
@@ -1120,7 +1118,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static bool verify(ChannelView2D<T,N> const& view)
+	static bool verify(ChannelView<T,N> const& view)
 	{
 		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
 	}

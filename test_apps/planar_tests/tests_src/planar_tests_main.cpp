@@ -10,12 +10,14 @@ constexpr int FRAMES_PER_TEST = 30;
 
 bool hsv_conversion_test();
 bool yuv_conversion_test();
+bool lch_conversion_test();
 
 void fill_rgba_test(img::View const& out);
 void fill_rgb_test(img::View const& out);
 void fill_gray_test(img::View const& out);
 void hsv_draw_test(img::View const& out);
 void yuv_draw_test(img::View const& out);
+void lch_draw_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -25,6 +27,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	fill_gray_test,
 	hsv_draw_test,
 	yuv_draw_test,
+	lch_draw_test,
 };
 
 
@@ -33,6 +36,7 @@ static bool run_preliminary_tests()
 	return directory_files_test() &&
 		hsv_conversion_test() &&
 		yuv_conversion_test() &&
+		lch_conversion_test() &&
 		true;
 }
 

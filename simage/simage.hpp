@@ -862,6 +862,8 @@ namespace simage
 
 	View1f32 select_channel(ViewHSVf32 const& view, HSV channel);
 
+	View1f32 select_channel(ViewLCHf32 const& view, LCH channel);
+
 	View1f32 select_channel(ViewYUVf32 const& view, YUV channel);
 
 	View1f32 select_channel(View2f32 const& view, GA channel);

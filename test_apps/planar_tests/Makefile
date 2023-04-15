@@ -74,6 +74,7 @@ tests_dep := $(tests_include_h)
 tests_dep += $(tests_src)/fill_tests.cpp
 tests_dep += $(tests_src)/hsv_tests.cpp
 tests_dep += $(tests_src)/yuv_tests.cpp
+tests_dep += $(tests_src)/lch_tests.cpp
 
 
 tests_c := $(tests_src)/tests.cpp

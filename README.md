@@ -6,17 +6,18 @@ A simple image processing library written in C++17.
 
 ### Image
 
-* A contiguous block of memory containing the pixel data
+* A contiguous block of memory containing pixel data
 * Owns the image memory and must be destroyed
 * Read from file, grabbed by camera etc.
 * Not processed directly
-* Processing is done via a "view" to the image data
+* Processing is done via a "View" to the image data
 
 ### View
 
 * Provides access to all or part of an image
 * Represents an entire image or a rectangular sub-section
-* Does not own memory
+* Does not own the memory
+* Its memory can be that of an "Image" or part of a "MemoryBuffer"
 
 ### MemoryBuffer
 
@@ -56,15 +57,15 @@ An interleaved image or view.  It is in the format suitable for interacting with
 ## Compile Instructions
 
 * Copy the /simage directory to your project
-* #include "{path}/simage/simage.hpp" for the api
-* Compile/link with {path}/simage/simage.cpp
-* Note: For USB camera functionality, install libuvc for Linux or OpenCV for windows
+* #include "{your_path}/simage/simage.hpp" for the api
+* Compile/link with {your_path}/simage/simage.cpp
+* Note: For USB camera functionality, install libusb for Linux or OpenCV for windows
 
 ## API Overview
 
 **See the /test_apps directory for complete examples**
 
-### Interleaved / Plaform
+### Interleaved / Platform
 
 Read, resize, write
 
@@ -275,7 +276,7 @@ skeleton()
 make_histograms()
 ```
 
-**See /test_apps/interleaved_tests/**
+**See /test_apps/interleaved_tests**
 
 ### Planar / Channel
 
@@ -289,15 +290,15 @@ u32 width = 1080;
 u32 height = 720;
 u32 n_channels = 10;
 
-auto buffer = img::create_buffer32(width * height * n_channels);
+auto buffer     = img::create_buffer32(width * height * n_channels);
 
-auto gray = img::make_view_1(width, height, buffer);
+auto gray       = img::make_view_1(width, height, buffer);
 
 auto gray_alpha = img::make_view_2(width, height, buffer);
 
-auto rgb = img::make_view_3(width, height, buffer);
+auto rgb        = img::make_view_3(width, height, buffer);
 
-auto rgba = img::make_view_4(width, height, buffer);
+auto rgba       = img::make_view_4(width, height, buffer);
 
 // ...
 
@@ -393,7 +394,7 @@ blur()
 gradients()
 ```
 
-**See /test_apps/planar_tests/**
+**See /test_apps/planar_tests**
 
 ### USB Camera
 
@@ -490,9 +491,6 @@ if (!img::open_camera(camera))
     // error
 }
 
-auto width = camera.frame_width;
-auto height = camera.frame_height;
-
 int id = 0;
 
 // will keep grabbing while this function returns true
@@ -518,7 +516,7 @@ grab_gray_continuous()
 set_roi()
 ```
 
-**See /test_apps/usb_camera_tests/**
+**See /test_apps/usb_camera_tests**
 
 ### Histograms
 

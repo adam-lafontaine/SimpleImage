@@ -272,7 +272,10 @@ split_rgb()
 rotate()
 centroid()
 skeleton()
+make_histograms()
 ```
+
+**See /test_apps/interleaved_tests/**
 
 ### Planar / Channel
 
@@ -390,7 +393,132 @@ blur()
 gradients()
 ```
 
+**See /test_apps/planar_tests/**
 
+### USB Camera
+
+Grab an image
+
+```
+namespace img = simage;
+
+
+CameraUSB camera;
+
+auto success = img::open_camera(camera);
+
+if (!success)
+{
+    // error
+}
+
+auto width = camera.frame_width;
+auto height = camera.frame_height;
+
+auto buffer = img::make_buffer32(width * height);
+
+auto view = img::make_view(width, height, buffer);
+
+success = grab_rgb(camera, view);
+if (!success)
+{
+    // error
+}
+
+// ...
+
+img::destroy_buffer(buffer);
+img::close_camera(camera);
+```
+
+Grab with a callback
+
+```
+namespace img = simage;
+
+
+CameraUSB camera;
+if (!img::open_camera(camera))
+{
+    // error
+}
+
+auto width = camera.frame_width;
+auto height = camera.frame_height;
+
+img::Image image;
+if (!img::create_image(image, width, height))
+{
+    // error
+}
+
+auto view = img::make_view(image);
+
+
+int id = 0;
+f32 angle = 0.0f;
+Point2Du32 center = { width / 2, height / 2 };
+
+auto const rotate_and_save = [&](img::View const& frame) 
+{
+    img::rotate(frame, view, center, angle);
+    angle += 0.25f;
+    img::write_image(image, make_file_path_by_id(id++));
+};
+
+img::grab _rgb(camera, rotate_and_save);
+img::grab _rgb(camera, rotate_and_save);
+img::grab _rgb(camera, rotate_and_save);
+
+// ...
+
+img::close_camera(camera);
+img::destroy_image(image);
+```
+
+Grab continuous
+
+```
+#include <thread>
+
+namespace img = simage;
+
+
+CameraUSB camera;
+if (!img::open_camera(camera))
+{
+    // error
+}
+
+auto width = camera.frame_width;
+auto height = camera.frame_height;
+
+int id = 0;
+
+// will keep grabbing while this function returns true
+auto const grab_cond = [&id]() { return id < 100; };
+
+auto const process_frame = [](img::View const& frame) { ... };
+
+// grab_continuous() is blocking.  Start in a separate thread
+std::thread th([&]() { img::grab_continuous(camera, process_frame, grab_cond); });
+
+// ...
+
+th.join();
+
+img::close_camera(camera);
+```
+
+Other functions
+
+```
+grab_gray()
+grab_gray_continuous()
+set_roi()
+```
+
+**See /test_apps/usb_camera_tests/**
 
 ### Credits (dependencies)
 

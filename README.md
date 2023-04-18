@@ -31,11 +31,15 @@ A simple image processing library written in C++17.
 
 * | R0 | R1 | R2 |..., | G0 | G1 | G2 |..., | B0 | B1 | B2 |..., | A0 | A1 | A2 |...,
 
-### ChannelView
+### Channel View
 
 * A view to multiple channels of planar image data
 
-### Types
+### Platform Image/View
+
+An interleaved image or view.  It is in the format suitable for interacting with the "platform", such as writing to file or rendering in a window.
+
+## Types
 
 * Image: 4 byte RGBA interleaved image data
 * View: A view to 4 byte image data
@@ -43,21 +47,24 @@ A simple image processing library written in C++17.
 * ViewGray: A view to 1 byte image data
 * View1f32: Single channel float view
 * View2f32, View3f32, View4f32: Multi-channel float view
-* Buffer32: Allocates data for 4 byte pixel and float channel data
+* Buffer32: Allocates data for 4 byte pixel or float channel data
 * Buffer8: Allocates data for 1 byte pixel data
 * DeviceImage (CUDA): todo
 * DeviceView (CUDA): todo
 * DeviceBuffer (CUDA): todo
 
-### Compile Instructions
+## Compile Instructions
 
 * Copy the /simage directory to your project
 * #include "{path}/simage/simage.hpp" for the api
 * Compile/link with {path}/simage/simage.cpp
+* Note: For USB camera functionality, install libuvc for Linux or OpenCV for windows
 
-### API Overview
+## API Overview
 
 **See the /test_apps directory for complete examples**
+
+### Interleaved / Plaform
 
 Read, resize, write
 
@@ -135,6 +142,8 @@ auto dst = img::make_view(width, height, buffer);
 
 img::blur(src, dst);
 
+// ...
+
 img::destroy_image(image);
 img::destroy_buffer(buffer);
 ```
@@ -183,13 +192,16 @@ auto view = img::sub_view(image, region);
 
 // ...
 
-// center of the image
-region.x_begin = w / 4;
-region.x_end = w * 3 / 4;
-region.y_begin = h / 4;
-region.y_end = h * 3 / 4;
+auto w2 = view.width;
+auto h2 = view.height;
 
-view = img::sub_view(image, region);
+// center of the upper left region
+region.x_begin = w2 / 4;
+region.x_end = w2 * 3 / 4;
+region.y_begin = h2 / 4;
+region.y_end = h2 * 3 / 4;
+
+auto view2 = img::sub_view(view, region);
 
 // ...
 
@@ -207,7 +219,175 @@ ViewYUV yuv;
 
 img::map_gray(view, gray); // RGBA to grayscale
 img::map_yuv(yuv, view);   // YUYV to RGBA
+```
 
+Create custom image tranforms
+
+```
+namespace img = simage;
+
+
+Image image;
+auto src = img::make_view_from_file("file_path", image);
+
+auto width = src.width;
+auto height = src.height;
+
+auto buffer = img::create_buffer32(width * height);
+
+auto dst = img::make_view(width, height, buffer);
+
+auto const invert = [](img::Pixel p)
+{
+    p.rgba.red = 255 - p.rgba.red;
+    p.rgba.green = 255 - p.rgba.green;
+    p.rgba.blue = 255 - p.rgba.blue;
+
+    return p;
+};
+
+img::transform(src, dst, invert);
+
+// copy the transformed data back to the original image memory
+img::copy(dst, src);
+
+img::write_image(image, "new_file_path");
+
+img::destroy_image(image);
+img::destroy_buffer(buffer);
+```
+
+Other functions
+
+```
+fill()
+copy()
+alpha_blend()
+for_each_pixel()
+threshold()
+binarize()
+blur()
+gradients()
+split_rgb()
+rotate()
+centroid()
+skeleton()
+```
+
+### Planar / Channel
+
+Make a view with up to 4 channels using a MemoryBuffer
+
+```
+namespace img = simage;
+
+
+u32 width = 1080;
+u32 height = 720;
+u32 n_channels = 10;
+
+auto buffer = img::create_buffer32(width * height * n_channels);
+
+auto gray = img::make_view_1(width, height, buffer);
+
+auto gray_alpha = img::make_view_2(width, height, buffer);
+
+auto rgb = img::make_view_3(width, height, buffer);
+
+auto rgba = img::make_view_4(width, height, buffer);
+
+// ...
+
+img::destroy_buffer(buffer);
+```
+
+Convert between platform view and channel view 
+
+```
+namespace img = simage;
+
+
+Image image;
+auto view = img::make_view_from_file("file_path", image);
+
+auto width = view.width;
+auto height = view.height;
+
+auto buffer = img::create_buffer32(width * height * 3);
+
+auto rgb = img::make_view_3(width, height, buffer);
+
+img::map_rgb(view, rgb);
+
+// ...
+
+img::map_rgb(rgb, view);
+
+// ...
+
+img::destroy_image(image);
+img::destroy_buffer(buffer);
+```
+
+Convert between color spaces
+
+```
+namespace img = simage;
+
+
+Image image;
+auto view = img::make_view_from_file("file_path", image);
+
+auto width = view.width;
+auto height = view.height;
+
+auto buffer = img::create_buffer32(width * height * 3);
+
+auto hsv = img::make_view_3(width, height, buffer);
+
+img::map_rgb_hsv(view, hsv); // supports HSV, YUV, LCH
+
+// ...
+
+img::destroy_image(image);
+img::destroy_buffer(buffer);
+```
+
+Select a single channel as a separate view
+
+```
+namespace img = simage;
+
+
+u32 width = 1080;
+u32 height = 720;
+
+auto buffer = img::create_buffer(width * height * 3);
+
+auto rgb = img::make_view_3(width, height, buffer);
+
+auto green = img::select_channel(rgb, img::RGB::G);
+
+// ...
+
+img::destroy_buffer(buffer);
+```
+
+Other functions
+
+```
+sub_view()
+select_rgb()
+map_gray()
+fill()
+copy()
+transform()
+threshold()
+binarize()
+alpha_blend()
+rotate()
+blur()
+gradients()
 ```
 
 ### Credits (dependencies)

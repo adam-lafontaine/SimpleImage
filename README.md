@@ -520,9 +520,17 @@ set_roi()
 
 **See /test_apps/usb_camera_tests/**
 
+### Histograms
+
+The namespace simage::hist contains functionality for creating histomgrams of various color spaces.  Still not sure if it belongs here or not.
+
+### CUDA
+
+Basic implementation for processing images on Nvidia GPUs is on the way.
+
 ### Credits (dependencies)
 
-* stb_image: Read, write, resize images
-* libuvc: Webcam support - Linux (requires libusb-1.0)
-* opencv: Wecam support - Windows
-* SDL2: Rendering test application examples
+* [stb_image](https://github.com/nothings/stb): Read, write, resize images (included)
+* [libuvc](https://github.com/libuvc/libuvc): Webcam support - Linux (included, requires libusb-1.0)
+* [opencv](https://opencv.org/): Wecam support - Windows (requires install)
+* [SDL2](https://www.libsdl.org/): Rendering test application examples (requires install)

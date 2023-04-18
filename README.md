@@ -57,9 +57,9 @@ A simple image processing library written in C++17.
 
 ### API Overview
 
-**Examples available in the /test_apps directory**
+**See the /test_apps directory for complete examples**
 
-Read, resize, write.
+Read, resize, write
 
 ```
 namespace img = simage;
@@ -94,11 +94,126 @@ img::destroy_image(image);
 img::destroy_image(image2);
 ```
 
-### Credits
+Make a view from an image
 
-* Boost GIL: The inspiration to start this project
+```
+namespace img = simage;
+
+
+img::Image image;
+auto success = img::read_image_from_file("file_path", image);
+if (!success)
+{
+    // error
+}
+
+auto view = img::make_view(image);
+
+// ...
+
+img::destroy_image(image);
+```
+
+Using a MemoryBuffer
+
+```
+namespace img = simage;
+
+
+u32 width = 1080;
+u32 height = 720;
+
+u32 n_views = 2;
+
+auto n_pixels = width * height * n_views;
+
+auto buffer = img::create_buffer32(n_pixels);
+
+img::Image image;
+auto src = img::make_view_resized_from_file("file_path", image, width, height, buffer);
+auto dst = img::make_view(width, height, buffer);
+
+img::blur(src, dst);
+
+img::destroy_image(image);
+img::destroy_buffer(buffer);
+```
+
+Grayscale images
+
+```
+namespace img = simage;
+
+
+u32 width = 1080;
+u32 height = 720;
+
+auto buffer = img::create_buffer8(width * height * 2);
+
+img::ImageGray image;
+auto src = img::make_view_resized_from_file("file_path", image, width, height, buffer);
+auto dst = img::make_view(width, height, buffer);
+
+img::gradients(src, dst);
+
+img::destroy_image(image);
+img::destroy_buffer(buffer);
+```
+
+Isolate a rectagular region of an image for processing, without making a copy.
+
+```
+namespace img = simage;
+
+
+img::Image image;
+auto success = img::read_image_from_file("file_path", image);
+if (!success)
+{
+    // error
+}
+
+auto w = image.width;
+auto h = image.height;
+
+// upper left region of image
+auto region = make_range(w / 2, h / 2);
+
+auto view = img::sub_view(image, region);
+
+// ...
+
+// center of the image
+region.x_begin = w / 4;
+region.x_end = w * 3 / 4;
+region.y_begin = h / 4;
+region.y_end = h * 3 / 4;
+
+view = img::sub_view(image, region);
+
+// ...
+
+img::destroy_image(image);
+```
+
+Convert between different image formats
+
+```
+View view;
+ViewGray gray;
+ViewYUV yuv;
+
+// ...
+
+img::map_gray(view, gray); // RGBA to grayscale
+img::map_yuv(yuv, view);   // YUYV to RGBA
+
+```
+
+### Credits (dependencies)
+
 * stb_image: Read, write, resize images
-* libuvc: Webcam support - Linux
+* libuvc: Webcam support - Linux (requires libusb-1.0)
 * opencv: Wecam support - Windows
 * SDL2: Rendering test application examples
 

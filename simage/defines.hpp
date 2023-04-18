@@ -42,8 +42,6 @@
 #endif // SIMAGE_NO_CPP17
 
 
-/*  types.hpp  */
-
 using u8 = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;
@@ -53,7 +51,6 @@ using f64 = double;
 using i8 = int8_t;
 using i16 = short;
 using i32 = int32_t;
-using cstr = const char*;
 
 
 #ifdef SIMAGE_NO_PARALLEL
@@ -108,15 +105,6 @@ inline Range2Du32 make_range(T const& c)
 {
 	return make_range(c.width, c.height);
 }
-
-
-template <typename T>
-class Matrix1D
-{
-public:
-	T* data_ = nullptr;
-	u32 length = 0;
-};
 
 
 template <typename T>

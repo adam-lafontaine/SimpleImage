@@ -1,5 +1,7 @@
 #include "../../app/app.hpp"
 #include "../../tests_include.hpp"
+#include "../../../simage/src/util/execute.hpp"
+
 
 constexpr auto APP_TITLE = "USB Camera Histogram Test App";
 constexpr auto APP_VERSION = "1.0";
@@ -7,6 +9,7 @@ constexpr auto APP_VERSION = "1.0";
 
 bool init_histogram_memory(u32 width, u32 height);
 void destroy_histogram_memory();
+void generate_histograms(img::View const& out);
 
 
 static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
@@ -89,7 +92,15 @@ int main()
 		return EXIT_FAILURE;
     }
 
-    render_run(app_state, [&](auto const& input) {  });
+    auto const on_input = [&](auto const& input) {  };
+
+    std::array<std::function<void()>, 2> app_procs = 
+    {
+        [](){},
+        [&](){ render_run(app_state, on_input); },
+    };
+
+    execute(app_procs);
 
     img::close_camera(camera);
     destroy_histogram_memory();

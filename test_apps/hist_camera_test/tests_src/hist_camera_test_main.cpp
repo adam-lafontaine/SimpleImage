@@ -1,6 +1,7 @@
 #include "../../app/app.hpp"
 #include "../../tests_include.hpp"
-#include "../../../simage/src/util/execute.hpp"
+
+#include <thread>
 
 
 constexpr auto APP_TITLE = "USB Camera Histogram Test App";
@@ -63,6 +64,11 @@ static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 
 static void process_view(img::View const& src, app::AppState& state)
 {
+	if (state.signal_stop)
+	{
+		return;
+	}
+
     auto id = !state.buffer_index;
 
     generate_histograms(src, state.screen_buffer[id]);
@@ -93,9 +99,6 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    //auto out_view = app_state.screen_pixels;
-    //adjust_screen_views(camera, out_view);
-
     adjust_screen_views(camera, app_state.screen_buffer[0]);
     adjust_screen_views(camera, app_state.screen_buffer[1]);
 
@@ -109,15 +112,11 @@ int main()
 
     auto const on_input = [&](auto const& input) {  };
 
-    std::array<std::function<void()>, 2> app_procs = 
-    {
-        [&](){ img::grab_rgb_continuous(camera, on_frame_grab, [&](){ return !app_state.signal_stop; }); },
-        [&](){ render_run(app_state, on_input); },
-    };
+	std::thread th([&]() { img::grab_rgb_continuous(camera, on_frame_grab, [&]() { return !app_state.signal_stop; }); });
 
-    execute(app_procs);
+	render_run(app_state, on_input);
 
-    //render_run(app_state, on_input);
+	th.join();
 
     img::close_camera(camera);
     destroy_histogram_memory();

@@ -228,7 +228,7 @@ public:
     SDL_Renderer* renderer = nullptr;
     SDL_Texture* texture = nullptr;
 
-    void* image_data = nullptr;
+    void* image_buffer[2] = { 0 };
     int image_width = 0;
     int image_height = 0;
 };
@@ -236,9 +236,9 @@ public:
 
 static void destroy_screen_memory(ScreenMemory& screen)
 {
-    if (screen.image_data)
+    if (screen.image_buffer[0])
     {
-        free(screen.image_data);
+        free(screen.image_buffer[0]);
     }
 
     if (screen.texture)
@@ -301,14 +301,18 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
         return false;
     }
 
-    screen.image_data = malloc((size_t)SCREEN_BYTES_PER_PIXEL * width * height);
+    auto screen_size = (size_t)SCREEN_BYTES_PER_PIXEL * width * height * 2;
 
-    if(!screen.image_data)
+    screen.image_buffer[0] = malloc(screen_size);
+
+    if(!screen.image_buffer[0])
     {
         display_error("Allocating image memory failed");
         destroy_screen_memory(screen);
         return false;
     }
+
+    screen.image_buffer[1] = (void*)((uint8_t*)screen.image_buffer[0] + screen_size);
 
     screen.image_width = width;
     screen.image_height = height;
@@ -319,8 +323,11 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
 
 static void render_screen(ScreenMemory const& screen)
 {
+    auto buffer_index = 0;
+    auto screen_data = screen.image_buffer[buffer_index];
+
     auto const pitch = screen.image_width * SCREEN_BYTES_PER_PIXEL;
-    auto error = SDL_UpdateTexture(screen.texture, 0, screen.image_data, pitch);
+    auto error = SDL_UpdateTexture(screen.texture, 0, screen_data, pitch);
     if(error)
     {
         print_sdl_error("SDL_UpdateTexture failed");

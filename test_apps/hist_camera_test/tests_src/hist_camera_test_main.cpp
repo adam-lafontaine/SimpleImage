@@ -92,7 +92,7 @@ int main()
 		return EXIT_FAILURE;
     }
 
-    auto const on_input = [&](auto const& input) {  };
+    auto const on_input = [&](auto const& input) { generate_histograms(app_state.screen_pixels); };
 
     std::array<std::function<void()>, 2> app_procs = 
     {
@@ -101,6 +101,8 @@ int main()
     };
 
     execute(app_procs);
+
+    //render_run(app_state, on_input);
 
     img::close_camera(camera);
     destroy_histogram_memory();

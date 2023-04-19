@@ -89,7 +89,7 @@ static void run_next_test(Input const& input, app::AppState& app_state)
 		return;
 	}
 
-	tests[test_id](app_state.screen_pixels);
+	tests[test_id](app_state.screen_buffer[0]);
 }
 
 

@@ -59,7 +59,7 @@ static void run_next_test(Input const& input, app::AppState& app_state, img::Cam
 
     if (frame_count < FRAMES_PER_TEST)
     {
-        tests[test_id](camera, app_state.screen_pixels);
+        tests[test_id](camera, app_state.screen_buffer[0]);
         return;
     }
 
@@ -150,7 +150,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    auto out_view = app_state.screen_pixels;
+    auto out_view = app_state.screen_buffer[0];
     adjust_screen_views(camera, out_view);
 
     if (!init_camera_test_memory(out_view.width, out_view.height))

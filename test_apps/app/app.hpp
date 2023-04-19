@@ -33,14 +33,13 @@ namespace app
     class AppState
     {
     public:
-        img::View screen_pixels;        
 
         bool signal_stop = false;
 
         DebugInfo dgb;
 
         img::View screen_buffer[2];
-        int buffer_index = 0;
+        int read_index = 0;
     };
 }
 

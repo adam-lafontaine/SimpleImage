@@ -22,16 +22,6 @@ SDLControllerInput g_controller_input = {};
 char WINDOW_TITLE[50] = { 0 };
 
 
-static void set_app_screen_buffer(ScreenMemory const& screen, img::View& app_screen)
-{
-    app_screen.width = screen.image_width;
-    app_screen.height = screen.image_height;
-    app_screen.matrix_width = screen.image_width;
-    app_screen.matrix_data_ = (img::Pixel*)screen.image_buffer[0];
-    app_screen.range = make_range(app_screen);
-}
-
-
 static void assign_screen_buffer(ScreenMemory const& screen, app::AppState& state)
 {
     for (int i = 0; i < 2; ++i)
@@ -101,8 +91,6 @@ bool render_init(app::WindowSettings const& window_settings, app::AppState& app_
     g_input[1].num_controllers = g_input[0].num_controllers;
 
     app_state.dgb.n_controllers = g_input[0].num_controllers;
-
-    //set_app_screen_buffer(g_screen, app_state.screen_pixels);
 
     assign_screen_buffer(g_screen, app_state);
 
@@ -204,7 +192,7 @@ void render_run(app::AppState& app_state, std::function<void(Input const&)> cons
         on_input(g_input[in_current]);
 
         wait_for_framerate();
-        render_screen(g_screen, app_state.buffer_index);
+        render_screen(g_screen, app_state.read_index);
 
         // swap inputs
         in_current = in_current ? 0 : 1;

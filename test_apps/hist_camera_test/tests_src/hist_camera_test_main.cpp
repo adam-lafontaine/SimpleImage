@@ -69,11 +69,11 @@ static void process_view(img::View const& src, app::AppState& state)
 		return;
 	}
 
-    auto id = !state.buffer_index;
+    auto id = !state.read_index;
 
     generate_histograms(src, state.screen_buffer[id]);
 
-    state.buffer_index = id;
+    state.read_index = id;
 }
 
 

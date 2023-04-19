@@ -214,7 +214,7 @@ namespace simage
 
 
     template <typename T, size_t N>
-	static inline u64 row_offset(ChannelView2D<T, N> const& view, u32 y)
+	static inline u64 row_offset(ChannelView<T, N> const& view, u32 y)
 	{
 		return ((u64)view.y_begin + y) * view.channel_width_ + view.x_begin;
 	}
@@ -307,7 +307,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static std::array<T*, N> view_row_begin(ChannelView2D<T, N> const& view, u32 y)
+	static std::array<T*, N> view_row_begin(ChannelView<T, N> const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
@@ -326,7 +326,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static T* channel_row_begin(ChannelView2D<T, N> const& view, u32 y, u32 ch)
+	static T* channel_row_begin(ChannelView<T, N> const& view, u32 y, u32 ch)
 	{
 		assert(verify(view));
 
@@ -373,7 +373,7 @@ namespace simage
 
 
     template <typename T, size_t N>
-	static void do_make_view_n(ChannelView2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	static void do_make_view_n(ChannelView<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		view.channel_width_ = width;
 		view.width = width;
@@ -430,9 +430,9 @@ namespace simage
 
 
     template <typename T, size_t N>
-	static ChannelView2D<T, N> do_sub_view(ChannelView2D<T, N> const& view, Range2Du32 const& range)
+	static ChannelView<T, N> do_sub_view(ChannelView<T, N> const& view, Range2Du32 const& range)
 	{
-		ChannelView2D<T, N> sub_view;
+		ChannelView<T, N> sub_view;
 
 		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;
@@ -482,7 +482,7 @@ namespace simage
 
 
 	template <size_t N>
-	static void fill_n_channels(ChannelView2D<f32, N> const& view, Pixel color)
+	static void fill_n_channels(ChannelView<f32, N> const& view, Pixel color)
 	{
 		f32 channels[N] = {};
 		for (u32 ch = 0; ch < N; ++ch)
@@ -1078,7 +1078,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static void blur_n(ChannelView2D<T, N> const& src, ChannelView2D<T, N> const& dst)
+	static void blur_n(ChannelView<T, N> const& src, ChannelView<T, N> const& dst)
 	{
 		for (u32 ch = 0; ch < N; ++ch)
 		{
@@ -1169,7 +1169,7 @@ namespace simage
 
 
     template <typename T, size_t N>
-	void rotate_channels(ChannelView2D<T, N> const& src, ChannelView2D<T, N> const& dst, Point2Du32 origin, f32 rad)
+	void rotate_channels(ChannelView<T, N> const& src, ChannelView<T, N> const& dst, Point2Du32 origin, f32 rad)
 	{
 		constexpr auto zero = 0.0f;
 		auto const width = (f32)src.width;
@@ -2818,7 +2818,7 @@ namespace simage
 namespace simage
 {
 	template <typename T, size_t N, typename CH>
-	static View1<T> select_channel(ChannelView2D<T, N> const& view, CH ch)
+	static View1<T> select_channel(ChannelView<T, N> const& view, CH ch)
 	{
 		View1<T> view1{};
 

@@ -42,17 +42,17 @@ An interleaved image or view.  It is in the format suitable for interacting with
 
 ## Types
 
-* Image: 4 byte RGBA interleaved image data
-* View: A view to 4 byte image data
-* ImageGray: 1 byte image data
-* ViewGray: A view to 1 byte image data
-* View1f32: Single channel float view
-* View2f32, View3f32, View4f32: Multi-channel float view
-* Buffer32: Allocates data for 4 byte pixel or float channel data
-* Buffer8: Allocates data for 1 byte pixel data
-* DeviceImage (CUDA): todo
-* DeviceView (CUDA): todo
-* DeviceBuffer (CUDA): todo
+* `Image`: 4 byte RGBA interleaved image data
+* `View`: A view to 4 byte image data
+* `ImageGray`: 1 byte image data
+* `ViewGray`: A view to 1 byte image data
+* `View1f32`: Single channel float view
+* `View2f32`, `View3f32`, `View4f32`: Multi-channel float view
+* `Buffer32`: Allocates data for 4 byte pixel or float channel data
+* `Buffer8`: Allocates data for 1 byte pixel data
+* `DeviceImage` (CUDA): todo
+* `DeviceView` (CUDA): todo
+* `DeviceBuffer` (CUDA): todo
 
 ## Compile Instructions
 
@@ -63,7 +63,7 @@ An interleaved image or view.  It is in the format suitable for interacting with
 
 ## API Overview
 
-**See the /test_apps directory for complete examples**
+**See the `/test_apps` directory for complete examples**
 
 ### Interleaved / Platform
 
@@ -276,7 +276,7 @@ skeleton()
 make_histograms()
 ```
 
-**See /test_apps/interleaved_tests**
+**See `/test_apps/interleaved_tests`**
 
 ### Planar / Channel
 
@@ -394,7 +394,7 @@ blur()
 gradients()
 ```
 
-**See /test_apps/planar_tests**
+**See `/test_apps/planar_tests`**
 
 ### USB Camera
 
@@ -516,19 +516,38 @@ grab_gray_continuous()
 set_roi()
 ```
 
-**See /test_apps/usb_camera_tests**
+**See `/test_apps/usb_camera_tests`**
 
 ### Histograms
 
-The namespace simage::hist contains functionality for creating histomgrams of various color spaces.  Still not sure if it belongs here or not.
+The namespace simage::hist contains functionality for creating histograms of various color spaces.  Still not sure if it belongs here or not.
 
 ### CUDA
 
 Basic implementation for processing images on Nvidia GPUs is on the way.
 
-### Credits (dependencies)
+## Credits (dependencies)
 
 * [stb_image](https://github.com/nothings/stb): Read, write, resize images (included)
 * [libuvc](https://github.com/libuvc/libuvc): Webcam support - Linux (included, requires libusb-1.0)
-* [opencv](https://opencv.org/): Wecam support - Windows (requires install)
+* [OpenCV](https://opencv.org/): Wecam support - Windows (requires install)
 * [SDL2](https://www.libsdl.org/): Rendering test application examples (requires install)
+
+## Run the examples
+
+Install the required libraries
+
+* libusb
+* OpenCV
+
+Edit the `ROOT_DIR` variable in `/test_apps/tests_include.hpp` to where your project is.
+
+Windows
+
+* Use the Visual Studio solution provided
+
+Linux
+
+* Navigate to one of the test app directories
+* Run make setup to create a build directory
+* Run make build / make run

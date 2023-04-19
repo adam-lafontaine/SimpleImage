@@ -38,6 +38,9 @@ namespace app
         bool signal_stop = false;
 
         DebugInfo dgb;
+
+        img::View screen_buffer[2];
+        int buffer_index = 0;
     };
 }
 

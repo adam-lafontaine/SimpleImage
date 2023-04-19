@@ -14,8 +14,7 @@ void destroy_histogram_memory()
 }
 
 
-
-void generate_histograms(img::View const& out)
+void generate_histograms(img::View const& src, img::View const& dst)
 {
-    img::fill(out, img::to_pixel(0, 255, 0));
+    img::copy(src, dst);
 }

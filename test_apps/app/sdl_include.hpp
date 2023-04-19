@@ -301,9 +301,9 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
         return false;
     }
 
-    auto screen_size = (size_t)SCREEN_BYTES_PER_PIXEL * width * height * 2;
+    auto screen_size = (size_t)SCREEN_BYTES_PER_PIXEL * width * height;
 
-    screen.image_buffer[0] = malloc(screen_size);
+    screen.image_buffer[0] = malloc(screen_size * 2);
 
     if(!screen.image_buffer[0])
     {
@@ -324,6 +324,27 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
 static void render_screen(ScreenMemory const& screen)
 {
     auto buffer_index = 0;
+    auto screen_data = screen.image_buffer[buffer_index];
+
+    auto const pitch = screen.image_width * SCREEN_BYTES_PER_PIXEL;
+    auto error = SDL_UpdateTexture(screen.texture, 0, screen_data, pitch);
+    if(error)
+    {
+        print_sdl_error("SDL_UpdateTexture failed");
+    }
+
+    error = SDL_RenderCopy(screen.renderer, screen.texture, 0, 0);
+    if(error)
+    {
+        print_sdl_error("SDL_RenderCopy failed");
+    }
+    
+    SDL_RenderPresent(screen.renderer);
+}
+
+
+static void render_screen(ScreenMemory const& screen, int buffer_index)
+{
     auto screen_data = screen.image_buffer[buffer_index];
 
     auto const pitch = screen.image_width * SCREEN_BYTES_PER_PIXEL;

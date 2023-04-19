@@ -32,6 +32,20 @@ static void set_app_screen_buffer(ScreenMemory const& screen, img::View& app_scr
 }
 
 
+static void assign_screen_buffer(ScreenMemory const& screen, app::AppState& state)
+{
+    for (int i = 0; i < 2; ++i)
+    {
+        auto& app_screen = state.screen_buffer[i];
+        app_screen.width = screen.image_width;
+        app_screen.height = screen.image_height;
+        app_screen.matrix_width = screen.image_width;
+        app_screen.matrix_data_ = (img::Pixel*)screen.image_buffer[i];
+        app_screen.range = make_range(app_screen);
+    }
+}
+
+
 static void handle_sdl_event(SDL_Event const& event)
 {
     switch(event.type)
@@ -88,7 +102,9 @@ bool render_init(app::WindowSettings const& window_settings, app::AppState& app_
 
     app_state.dgb.n_controllers = g_input[0].num_controllers;
 
-    set_app_screen_buffer(g_screen, app_state.screen_pixels);
+    //set_app_screen_buffer(g_screen, app_state.screen_pixels);
+
+    assign_screen_buffer(g_screen, app_state);
 
     return true;
 }
@@ -188,7 +204,7 @@ void render_run(app::AppState& app_state, std::function<void(Input const&)> cons
         on_input(g_input[in_current]);
 
         wait_for_framerate();
-        render_screen(g_screen);
+        render_screen(g_screen, app_state.buffer_index);
 
         // swap inputs
         in_current = in_current ? 0 : 1;

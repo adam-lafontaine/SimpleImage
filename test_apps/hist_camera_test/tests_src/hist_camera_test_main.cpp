@@ -9,7 +9,7 @@ constexpr auto APP_VERSION = "1.0";
 
 bool init_histogram_memory(u32 width, u32 height);
 void destroy_histogram_memory();
-void generate_histograms(img::View const& out);
+void generate_histograms(img::View const& src, img::View const& dst);
 
 
 static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
@@ -61,6 +61,16 @@ static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 }
 
 
+static void process_view(img::View const& src, app::AppState& state)
+{
+    auto id = !state.buffer_index;
+
+    generate_histograms(src, state.screen_buffer[id]);
+
+    state.buffer_index = id;
+}
+
+
 int main()
 {
     img::CameraUSB camera;
@@ -83,20 +93,25 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    auto out_view = app_state.screen_pixels;
-    adjust_screen_views(camera, out_view);
+    //auto out_view = app_state.screen_pixels;
+    //adjust_screen_views(camera, out_view);
 
-    if (!init_histogram_memory(out_view.width, out_view.height))
+    adjust_screen_views(camera, app_state.screen_buffer[0]);
+    adjust_screen_views(camera, app_state.screen_buffer[1]);
+
+    if (!init_histogram_memory(app_state.screen_buffer[0].width, app_state.screen_buffer[0].height))
     {
         img::close_camera(camera);
 		return EXIT_FAILURE;
     }
 
-    auto const on_input = [&](auto const& input) { generate_histograms(app_state.screen_pixels); };
+    auto const on_frame_grab = [&](img::View const& frame) { process_view(frame, app_state); };
+
+    auto const on_input = [&](auto const& input) {  };
 
     std::array<std::function<void()>, 2> app_procs = 
     {
-        [](){},
+        [&](){ img::grab_rgb_continuous(camera, on_frame_grab, [&](){ return !app_state.signal_stop; }); },
         [&](){ render_run(app_state, on_input); },
     };
 

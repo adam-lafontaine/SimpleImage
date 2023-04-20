@@ -70,11 +70,7 @@ static void process_camera_frame(img::View const& src, app::AppState& state)
 
     state.read_index = id;
 
-	if (state.signal_stop)
-	{
-		state.is_running = false;
-		return;
-	}
+	state.check_for_stop();
 }
 
 
@@ -113,7 +109,7 @@ int main()
 
     auto const on_input = [&](auto const& input) {  };
 
-	app_state.is_running = true;
+	app_state.start();
 	std::thread th([&]() { img::grab_rgb_continuous(camera, on_frame_grab, [&]() { return !app_state.signal_stop; }); });
 
 	render_run(app_state, on_input);

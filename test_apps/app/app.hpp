@@ -42,6 +42,16 @@ namespace app
         img::View screen_buffer[2];
         int read_index = 0;
 
+        void start()
+        {
+            is_running = true;
+        }
+
+        void stop()
+        {
+            is_running = false;
+        }
+
         void check_for_stop()
         {
             if (signal_stop)

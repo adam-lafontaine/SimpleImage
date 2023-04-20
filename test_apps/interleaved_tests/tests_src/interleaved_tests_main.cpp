@@ -80,7 +80,7 @@ static void run_next_test(Input const& input, app::AppState& app_state)
 
 	if (test_id >= tests.size())
 	{
-		app_state.signal_stop = true;
+		app_state.stop();
 		return;
 	}
 
@@ -115,6 +115,8 @@ int main()
 	{
 		return EXIT_FAILURE;
 	}
+
+	app_state.start();
 
     render_run(app_state, [&](auto const& input) { run_next_test(input, app_state); });
 

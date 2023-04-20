@@ -15,31 +15,7 @@
 //#define SIMAGE_NO_PARALLEL
 //#define SIMAGE_NO_FILESYSTEM
 
-//#define SIMAGE_NO_CPP17
-
-//#define RPI_3B_PLUS
-//#define JETSON_NANO
-
-
-#ifdef RPI_3B_PLUS
-
-#define SIMAGE_NO_CPP17
-
-#endif // RPI_3B_PLUS
-
-#ifdef JETSON_NANO
-
-#define SIMAGE_NO_CPP17
-
-#endif // JETSON_NANO
-
-
-#ifdef SIMAGE_NO_CPP17
-
-#define SIMAGE_NO_PARALLEL
-#define SIMAGE_NO_FILESYSTEM
-
-#endif // SIMAGE_NO_CPP17
+//#define SIMAGE_NO_USB_CAMERA
 
 
 using u8 = uint8_t;

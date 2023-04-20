@@ -805,6 +805,8 @@ namespace simage
 
 namespace simage
 {
+#ifndef SIMAGE_NO_USB_CAMERA
+
 	class CameraUSB
 	{
 	public:
@@ -842,6 +844,8 @@ namespace simage
 	bool grab_gray_continuous(CameraUSB const& camera, gray_callback const& grab_cb, bool_f const& grab_condition);
 
 	void set_roi(CameraUSB& camera, Range2Du32 roi);
+
+#endif // !SIMAGE_NO_USB_CAMERA
 }
 
 

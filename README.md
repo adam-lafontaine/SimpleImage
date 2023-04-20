@@ -63,7 +63,7 @@ An interleaved image or view.  It is in the format suitable for interacting with
 
 ## API Overview
 
-**See the `/test_apps` directory for complete examples**
+**See the `/test_apps/` directory for complete examples**
 
 ### Interleaved / Platform
 
@@ -276,7 +276,7 @@ skeleton()
 make_histograms()
 ```
 
-**See `/test_apps/interleaved_tests`**
+**See `/test_apps/interleaved_tests/`**
 
 ### Planar / Channel
 
@@ -394,7 +394,7 @@ blur()
 gradients()
 ```
 
-**See `/test_apps/planar_tests`**
+**See `/test_apps/planar_tests/`**
 
 ### USB Camera
 
@@ -516,17 +516,39 @@ grab_gray_continuous()
 set_roi()
 ```
 
-**See `/test_apps/usb_camera_tests`**
+**See `/test_apps/usb_camera_tests/`**
 
 ### Histograms
 
 The namespace simage::hist contains functionality for creating histograms of various color spaces.  Still not sure if it belongs here or not.
 
-**See `/test_apps/hist_camera_test`**
+**See `/test_apps/hist_camera_test/`**
 
 ### CUDA
 
 Basic implementation for processing images on Nvidia GPUs is on the way.
+
+### Settings
+
+**See `/simage/defines.hpp`**
+
+```
+// Support .png image files
+#define SIMAGE_PNG
+
+// Support .bmp image files
+#define SIMAGE_BMP
+
+// Disable multithreaded image processing
+#define SIMAGE_NO_PARALLEL
+
+// Disable std::filesystem file paths as an alternative to const char*
+// Uses std::string instead
+#define SIMAGE_NO_FILESYSTEM
+
+// Disable USB camera support
+#define SIMAGE_NO_USB_CAMERA
+```
 
 ## Credits (dependencies)
 
@@ -539,8 +561,8 @@ Basic implementation for processing images on Nvidia GPUs is on the way.
 
 Install the required libraries
 
-* libusb
-* OpenCV
+* libusb (USB camera, Linux)
+* OpenCV (USB camera, Windows)
 
 Edit the `ROOT_DIR` variable in `/test_apps/tests_include.hpp` to where your project is.
 
@@ -551,5 +573,5 @@ Windows
 Linux
 
 * Navigate to one of the test app directories
-* Run make setup to create a build directory
-* Run make build / make run
+* Run `make setup` to create a build directory
+* Run `make build` / `make run`

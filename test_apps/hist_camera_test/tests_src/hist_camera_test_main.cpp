@@ -62,18 +62,19 @@ static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
 }
 
 
-static void process_view(img::View const& src, app::AppState& state)
+static void process_camera_frame(img::View const& src, app::AppState& state)
 {
-	if (state.signal_stop)
-	{
-		return;
-	}
-
-    auto id = !state.read_index;
+	auto id = !state.read_index;
 
     generate_histograms(src, state.screen_buffer[id]);
 
     state.read_index = id;
+
+	if (state.signal_stop)
+	{
+		state.is_running = false;
+		return;
+	}
 }
 
 
@@ -108,10 +109,11 @@ int main()
 		return EXIT_FAILURE;
     }
 
-    auto const on_frame_grab = [&](img::View const& frame) { process_view(frame, app_state); };
+    auto const on_frame_grab = [&](img::View const& frame) { process_camera_frame(frame, app_state); };
 
     auto const on_input = [&](auto const& input) {  };
 
+	app_state.is_running = true;
 	std::thread th([&]() { img::grab_rgb_continuous(camera, on_frame_grab, [&]() { return !app_state.signal_stop; }); });
 
 	render_run(app_state, on_input);

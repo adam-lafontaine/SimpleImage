@@ -35,11 +35,20 @@ namespace app
     public:
 
         bool signal_stop = false;
+        bool is_running = false;
 
         DebugInfo dgb;
 
         img::View screen_buffer[2];
         int read_index = 0;
+
+        void check_for_stop()
+        {
+            if (signal_stop)
+            {
+                is_running = false;
+            }
+        }
     };
 }
 

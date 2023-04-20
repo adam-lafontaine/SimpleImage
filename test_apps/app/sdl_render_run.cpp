@@ -114,7 +114,6 @@ void render_once()
 
 void render_run(app::AppState& app_state, std::function<void(Input const&)> const& on_input)
 {
-
     auto const cleanup = [&]()
     {
         app_state.signal_stop = true;
@@ -160,7 +159,7 @@ void render_run(app::AppState& app_state, std::function<void(Input const&)> cons
     };
     
     sw.start();
-    while(g_running && !app_state.signal_stop)
+    while(app_state.is_running)
     {
         SDLEventInfo evt{};
         evt.first_in_queue = true;
@@ -179,6 +178,11 @@ void render_run(app::AppState& app_state, std::function<void(Input const&)> cons
         {
             process_keyboard_input(evt, g_input[in_old].keyboard, g_input[in_current].keyboard);
             process_mouse_input(evt, g_input[in_old].mouse, g_input[in_current].mouse);
+        }
+
+        if (!g_running)
+        {
+            app_state.signal_stop = true;
         }
 
         process_controller_input(g_controller_input, g_input[in_old], g_input[in_current]);

@@ -47,6 +47,8 @@ static bool run_preliminary_tests()
 
 static void run_next_test(Input const& input, app::AppState& app_state, img::CameraUSB const& camera)
 {
+	app_state.check_for_stop();
+
     static int test_id = -1;
 	static int frame_count = 0;
 

@@ -522,6 +522,8 @@ set_roi()
 
 The namespace simage::hist contains functionality for creating histograms of various color spaces.  Still not sure if it belongs here or not.
 
+**See `/test_apps/hist_camera_test`**
+
 ### CUDA
 
 Basic implementation for processing images on Nvidia GPUs is on the way.

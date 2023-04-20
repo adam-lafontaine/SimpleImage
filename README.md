@@ -60,6 +60,7 @@ An interleaved image or view.  It is in the format suitable for interacting with
 * #include "{your_path}/simage/simage.hpp" for the api
 * Compile/link with {your_path}/simage/simage.cpp
 * Note: For USB camera functionality, install libusb for Linux or OpenCV for windows
+    * Or #define SIMAGE_NO_USB_CAMERA
 
 ## API Overview
 
@@ -222,7 +223,7 @@ img::map_gray(view, gray); // RGBA to grayscale
 img::map_yuv(yuv, view);   // YUYV to RGBA
 ```
 
-Create custom image tranforms
+Create custom image transforms
 
 ```
 namespace img = simage;
@@ -520,7 +521,7 @@ set_roi()
 
 ### Histograms
 
-The namespace simage::hist contains functionality for creating histograms of various color spaces.  Still not sure if it belongs here or not.
+The namespace simage::hist contains functionality for creating histograms of various color spaces.  Still not sure if it belongs here or somewhere else.
 
 **See `/test_apps/hist_camera_test/`**
 

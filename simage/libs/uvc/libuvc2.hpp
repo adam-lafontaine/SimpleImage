@@ -1629,7 +1629,8 @@ namespace uvc
 
 namespace uvc
 {
-    static void print_libusb_error(auto err)
+    template <typename T>
+    static void print_libusb_error(T err)
     {
         printf("libusb error:\n%s\n", libusb_strerror((libusb_error)err));
     }
@@ -9764,7 +9765,8 @@ namespace opt
     };
 
 
-    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, auto out_format)
+    template <typename T>
+    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, T out_format)
     {
         auto& jerr = jinfo.jerr;
         auto& dinfo = jinfo.dinfo;
@@ -9818,7 +9820,8 @@ namespace opt
     }
 
 
-    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, auto out_format)
+    template <typename T>
+    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, T out_format)
     {
         // not actually parallel
 

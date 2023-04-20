@@ -95,7 +95,7 @@ INCLUDES  :=
 LIBRARIES := $(SDL2) -ltbb -pthread
 LIBRARIES += $(LIBUSB)
 
-CCFLAGS := -std=c++20 
+CCFLAGS := -std=c++17
 
 #CCFLAGS += -O3 -DNDEBUG
 

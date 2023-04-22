@@ -370,6 +370,7 @@ namespace uvc
 #endif
 
 
+
     /** Representation of the interface that brings data into the UVC device */
     typedef struct uvc_input_terminal
     {
@@ -1593,6 +1594,9 @@ namespace uvc
 
 
 #ifdef _WIN32
+
+#include "../pthread-win32/pthread.h"
+#include <libusb-1.0/libusb.h>
 
 #if 0
 
@@ -9765,8 +9769,9 @@ namespace opt
     };
 
 
-    template <typename T>
-    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, T out_format)
+    //template <typename T>
+    //static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, T out_format)
+    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, int out_format)
     {
         auto& jerr = jinfo.jerr;
         auto& dinfo = jinfo.dinfo;
@@ -9820,8 +9825,9 @@ namespace opt
     }
 
 
-    template <typename T>
-    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, T out_format)
+    //template <typename T>
+    //static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, T out_format)
+    static uvc_error_t mjpeg_convert(uvc_frame_t* in, u8* out, int out_format)
     {
         // not actually parallel
 
@@ -9866,7 +9872,7 @@ namespace opt
             return UVC_ERROR_NO_MEM;
         }
 
-        return opt::mjpeg_convert(in, out, image_format::RGBA8);
+        return opt::mjpeg_convert(in, out, (int)image_format::RGBA8);
     }
 
 
@@ -9877,7 +9883,7 @@ namespace opt
             return UVC_ERROR_NO_MEM;
         }
 
-        return opt::mjpeg_convert(in, out, image_format::GRAY8);
+        return opt::mjpeg_convert(in, out, (int)image_format::GRAY8);
     }
 
 #endif 

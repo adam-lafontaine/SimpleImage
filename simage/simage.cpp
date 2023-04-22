@@ -4,9 +4,14 @@
 
 #ifndef SIMAGE_NO_USB_CAMERA
 
+#include "libs/uvc/uvc_simage.cpp"
+#include "libs/pthread-win32/pthread.c"
+
+
+
 #ifdef _WIN32
 
-#include "libs/opencv/opencv_simage.cpp"
+//#include "libs/opencv/opencv_simage.cpp"
 
 #else
 

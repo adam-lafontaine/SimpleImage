@@ -70,7 +70,7 @@ An interleaved image or view.  It is in the format suitable for interacting with
 
 Read, resize, write
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -105,7 +105,7 @@ img::destroy_image(image2);
 
 Make a view from an image
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -125,7 +125,7 @@ img::destroy_image(image);
 
 Using a MemoryBuffer
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -152,7 +152,7 @@ img::destroy_buffer(buffer);
 
 Grayscale images
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -173,7 +173,7 @@ img::destroy_buffer(buffer);
 
 Isolate a rectagular region of an image for processing, without making a copy.
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -212,7 +212,7 @@ img::destroy_image(image);
 
 Convert between different image formats
 
-```
+```cpp
 View view;
 ViewGray gray;
 ViewYUV yuv;
@@ -225,7 +225,7 @@ img::map_yuv(yuv, view);   // YUYV to RGBA
 
 Create custom image transforms
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -261,7 +261,7 @@ img::destroy_buffer(buffer);
 
 Other functions
 
-```
+```cpp
 fill()
 copy()
 alpha_blend()
@@ -283,7 +283,7 @@ make_histograms()
 
 Make a view with up to 4 channels using a MemoryBuffer
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -308,7 +308,7 @@ img::destroy_buffer(buffer);
 
 Convert between platform view and channel view 
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -336,7 +336,7 @@ img::destroy_buffer(buffer);
 
 Convert between color spaces
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -360,7 +360,7 @@ img::destroy_buffer(buffer);
 
 Select a single channel as a separate view
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -380,7 +380,7 @@ img::destroy_buffer(buffer);
 
 Other functions
 
-```
+```cpp
 sub_view()
 select_rgb()
 map_gray()
@@ -401,7 +401,7 @@ gradients()
 
 Grab an image
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -435,7 +435,7 @@ img::close_camera(camera);
 
 Grab with a callback
 
-```
+```cpp
 namespace img = simage;
 
 
@@ -480,7 +480,7 @@ img::destroy_image(image);
 
 Grab continuous
 
-```
+```cpp
 #include <thread>
 
 namespace img = simage;
@@ -511,7 +511,7 @@ img::close_camera(camera);
 
 Other functions
 
-```
+```cpp
 grab_gray()
 grab_gray_continuous()
 set_roi()
@@ -533,7 +533,7 @@ Basic implementation for processing images on Nvidia GPUs is on the way.
 
 **See `/simage/defines.hpp`**
 
-```
+```cpp
 // Support .png image files
 #define SIMAGE_PNG
 

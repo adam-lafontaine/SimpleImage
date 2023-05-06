@@ -93,6 +93,7 @@ LIBRARIES := $(SDL2) -ltbb -pthread
 LIBRARIES += $(LIBUSB)
 
 CCFLAGS := -std=c++17 
+CCFLAGS += -DSIMAGE_NO_CUDA
 
 #CCFLAGS += -O3 -DNDEBUG
 

@@ -25,6 +25,9 @@
 // Disable USB camera support
 //#define SIMAGE_NO_USB_CAMERA
 
+// Disable CUDA GPU support
+//#define SIMAGE_NO_CUDA
+
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -35,7 +38,15 @@ using f64 = double;
 using i8 = int8_t;
 using i16 = short;
 using i32 = int32_t;
+using cstr = const char*;
 
+
+#ifndef SIMAGE_NO_CUDA
+
+// CUDA supports 16 bit half floats
+using f16 = u16;
+
+#endif
 
 #ifdef SIMAGE_NO_PARALLEL
 

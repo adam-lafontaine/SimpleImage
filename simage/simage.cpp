@@ -15,3 +15,11 @@
 #endif // _WIN32
 
 #endif // !SIMAGE_NO_USB_CAMERA
+
+#ifndef SIMAGE_NO_CUDA
+
+#include "libs/cuda/device.cu"
+#include "src/simage_cuda.cpp"
+#include "src/simage_cuda.cu"
+
+#endif // SIMAGE_NO_CUDA

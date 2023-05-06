@@ -23,18 +23,18 @@ namespace cuda
 }
 
 
-template <typename T>
-class DeviceBuffer
-{
-public:
-	T* data_ = nullptr;
-	u32 capacity_ = 0;
-	u32 size_ = 0;
-};
-
-
 namespace cuda
 {
+	template <typename T>
+	class DeviceBuffer
+	{
+	public:
+		T* data_ = nullptr;
+		u32 capacity_ = 0;
+		u32 size_ = 0;
+	};
+
+
     template <typename T>
     bool create_device_buffer(DeviceBuffer<T>& buffer, u32 n_elements)
     {

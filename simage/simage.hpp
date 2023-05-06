@@ -1095,6 +1095,42 @@ namespace simage
 */
 
 
+/* cuda */
+
+#ifndef SIMAGE_NO_CUDA
+
+#include "./libs/cuda/device.hpp"
+
+
+/* types */
+
+namespace simage
+{
+	using DeviceBuffer16 = cuda::DeviceBuffer<f16>;
+	
+	using DeviceView4f16 = View4<f16>;
+	using DeviceView3f16 = View3<f16>;
+	using DeviceView2f16 = View2<f16>;
+	using DeviceView1f16 = View1<f16>;
+}
+
+
+/* make_view */
+
+namespace simage
+{
+	DeviceView1f16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer);
+
+    DeviceView2f16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer);
+
+    DeviceView3f16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer);
+
+    DeviceView4f16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer);
+}
+
+#endif
+
+
 /* verify */
 
 namespace simage

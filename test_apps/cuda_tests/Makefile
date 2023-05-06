@@ -346,6 +346,7 @@ simage_dep += $(util)/color_space.hpp
 simage_dep += $(util)/execute.hpp
 simage_dep += $(util)/execute.cpp
 simage_dep += $(util)/memory_buffer.hpp
+simage_dep += $(cuda)/device.hpp
 
 simage_c := $(simage)/simage.cpp
 simage_o := $(build)/simage.o
@@ -356,8 +357,10 @@ object_files += $(simage_o)
 simage_cuda_dep := $(simage_h)
 simage_cuda_dep += $(cuda)/cuda_def.cuh
 simage_cuda_dep += $(cuda)/device.hpp
+simage_cuda_dep += $(cuda)/device.cu
+simage_cuda_dep += $(src)/simage_cuda_impl.cu
 
-simage_cuda_c := $(src)/simage_cuda.cu
+simage_cuda_c := $(simage)/simage_cuda.cu
 simage_cuda_o := $(build)/simage_cuda.o
 object_files += $(simage_cuda_o)
 

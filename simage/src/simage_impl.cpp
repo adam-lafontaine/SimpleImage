@@ -4075,11 +4075,76 @@ namespace simage
 }
 
 
-/* map device */
+/* copy device */
 
 namespace simage
 {
-	
+	void copy_to_device(View const& host_src, View const& device_dst)
+	{
+		assert(verify(host_src, device_dst));
+
+        auto const bytes_per_row = sizeof(Pixel) * host_src.width;
+
+        auto const row_func = [&](u32 y)
+        {
+            auto h = row_begin(host_src, y);
+            auto d = row_begin(device_dst, y);
+            if(!cuda::memcpy_to_device(h, d, bytes_per_row)) { assert(false); }
+        };
+
+        process_by_row(host_src.height, row_func);
+	}
+
+
+    void copy_to_device(ViewGray const& host_src, ViewGray const& device_dst)
+	{
+		assert(verify(host_src, device_dst));
+
+        auto const bytes_per_row = sizeof(u8) * host_src.width;
+
+        auto const row_func = [&](u32 y)
+        {
+            auto h = row_begin(host_src, y);
+            auto d = row_begin(device_dst, y);
+            if(!cuda::memcpy_to_device(h, d, bytes_per_row)) { assert(false); }
+        };
+
+        process_by_row(host_src.height, row_func);
+	}
+
+
+    void copy_to_host(View const& device_src, View const& host_dst)
+	{
+		assert(verify(device_src, host_dst));
+
+        auto const bytes_per_row = sizeof(Pixel) * device_src.width;
+
+        auto const row_func = [&](u32 y)
+        {
+            auto h = row_begin(host_dst, y);
+            auto d = row_begin(device_src, y);
+            if(!cuda::memcpy_to_host(d, h, bytes_per_row)) { assert(false); }
+        };
+
+        process_by_row(device_src.height, row_func);
+	}
+
+
+    void copy_to_host(ViewGray const& device_src, ViewGray const& host_dst)
+	{
+		assert(verify(device_src, host_dst));
+
+        auto const bytes_per_row = sizeof(u8) * device_src.width;
+
+        auto const row_func = [&](u32 y)
+        {
+            auto h = row_begin(host_dst, y);
+            auto d = row_begin(device_src, y);
+            if(!cuda::memcpy_to_host(d, h, bytes_per_row)) { assert(false); }
+        };
+
+        process_by_row(device_src.height, row_func);
+	}
 }
 
 

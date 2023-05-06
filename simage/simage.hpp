@@ -1108,8 +1108,6 @@ namespace simage
 {
 	using DeviceBuffer32 = cuda::DeviceBuffer<Pixel>;
 	using DeviceBuffer8 = cuda::DeviceBuffer<u8>;
-	
-	
 }
 
 
@@ -1123,11 +1121,17 @@ namespace simage
 }
 
 
-/* map device */
+/* copy device */
 
 namespace simage
 {
-	
+	void copy_to_device(View const& host_src, View const& device_dst);
+
+    void copy_to_device(ViewGray const& host_src, ViewGray const& device_dst);
+
+    void copy_to_host(View const& device_src, View const& host_dst);
+
+    void copy_to_host(ViewGray const& device_src, ViewGray const& host_dst);
 }
 
 

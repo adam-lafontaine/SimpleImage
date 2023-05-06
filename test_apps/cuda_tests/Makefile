@@ -376,7 +376,6 @@ INCLUDES  += -I$(CUDA_PATH)
 LIBRARIES += $(SDL2)
 LIBRARIES += $(LIBUSB)
 LIBRARIES += -ltbb
-#LIBRARIES += -Xcompiler="-pthread"
 
 CCFLAGS += -std=c++17
 

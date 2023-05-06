@@ -40,14 +40,6 @@ using i16 = short;
 using i32 = int32_t;
 using cstr = const char*;
 
-
-#ifndef SIMAGE_NO_CUDA
-
-// CUDA supports 16 bit half floats
-using f16 = u16;
-
-#endif
-
 #ifdef SIMAGE_NO_PARALLEL
 
 constexpr u32 N_THREADS = 1;

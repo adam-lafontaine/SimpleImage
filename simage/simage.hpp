@@ -1106,12 +1106,10 @@ namespace simage
 
 namespace simage
 {
-	using DeviceBuffer16 = cuda::DeviceBuffer<f16>;
+	using DeviceBuffer32 = cuda::DeviceBuffer<Pixel>;
+	using DeviceBuffer8 = cuda::DeviceBuffer<u8>;
 	
-	using DeviceView4f16 = View4<f16>;
-	using DeviceView3f16 = View3<f16>;
-	using DeviceView2f16 = View2<f16>;
-	using DeviceView1f16 = View1<f16>;
+	
 }
 
 
@@ -1119,16 +1117,21 @@ namespace simage
 
 namespace simage
 {
-	DeviceView1f16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer);
+	View make_view(u32 width, u32 height, DeviceBuffer32& buffer);
 
-    DeviceView2f16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer);
-
-    DeviceView3f16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer);
-
-    DeviceView4f16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer);
+	ViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
 }
 
-#endif
+
+/* map device */
+
+namespace simage
+{
+	
+}
+
+
+#endif // SIMAGE_NO_CUDA
 
 
 /* verify */

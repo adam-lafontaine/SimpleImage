@@ -4034,86 +4034,40 @@ namespace simage
 
 #ifndef SIMAGE_NO_CUDA
 
+
+/* make_view */
+
 namespace simage
 {
 	template <typename T>
-	static void do_make_device_view_1(View1<T>& view, u32 width, u32 height, cuda::DeviceBuffer<T>& buffer)
+	static MemoryBuffer<T>& reinterpret_device_buffer(cuda::DeviceBuffer<T>& buffer)
 	{
-		view.matrix_data_ = cuda::push_elements(buffer, width * height);
-		view.matrix_width = width;		
-		view.width = width;
-		view.height = height;
+		static_assert(sizeof(MemoryBuffer<T>) == sizeof(cuda::DeviceBuffer<T>));
 
-		view.range = make_range(width, height);
+		return *reinterpret_cast<MemoryBuffer<T>*>(&buffer);
 	}
 
 
-    template <typename T, size_t N>
-	static void do_make_device_view_n(ChannelView<T, N>& view, u32 width, u32 height, cuda::DeviceBuffer<T>& buffer)
-	{
-		view.channel_width_ = width;
-		view.width = width;
-		view.height = height;
-
-		view.range = make_range(width, height);
-
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			view.channel_data_[ch] = cuda::push_elements(buffer, width * height);
-		}
-	}
-
-
-	DeviceView1f16 make_view_1(u32 width, u32 height, DeviceBuffer16& buffer)
+	View make_view(u32 width, u32 height, DeviceBuffer32& buffer)
 	{
 		assert(verify(buffer, width * height));
 
-		DeviceView1f16 view;
+		View view;
 
-		do_make_device_view_1(view, width, height, buffer);
-
+		do_make_view_1(view, width, height, reinterpret_device_buffer(buffer));
 		assert(verify(view));
 
 		return view;
 	}
 
 
-    DeviceView2f16 make_view_2(u32 width, u32 height, DeviceBuffer16& buffer)
+	ViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer)
 	{
-		assert(verify(buffer, width * height * 2));
+		assert(verify(buffer, width * height));
 
-		DeviceView2f16 view;
+		ViewGray view;
 
-		do_make_device_view_n(view, width, height, buffer);
-
-		assert(verify(view));
-
-		return view;
-	}
-
-
-    DeviceView3f16 make_view_3(u32 width, u32 height, DeviceBuffer16& buffer)
-	{
-		assert(verify(buffer, width * height * 3));
-
-		DeviceView3f16 view;
-
-		do_make_device_view_n(view, width, height, buffer);
-
-		assert(verify(view));
-
-		return view;
-	}
-
-
-    DeviceView4f16 make_view_4(u32 width, u32 height, DeviceBuffer16& buffer)
-	{
-		assert(verify(buffer, width * height * 4));
-
-		DeviceView4f16 view;
-
-		do_make_device_view_n(view, width, height, buffer);
-
+		do_make_view_1(view, width, height, reinterpret_device_buffer(buffer));
 		assert(verify(view));
 
 		return view;
@@ -4121,6 +4075,12 @@ namespace simage
 }
 
 
+/* map device */
+
+namespace simage
+{
+	
+}
 
 
 #endif // SIMAGE_NO_CUDA

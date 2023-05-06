@@ -1164,16 +1164,6 @@ namespace simage
 	}
 
 
-	template <class IMG_A, class IMG_B>
-	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
-	{
-		return
-			verify(lhs) && verify(rhs) &&
-			lhs.width == rhs.width &&
-			lhs.height == rhs.height;
-	}
-
-
 	template <class IMG>
 	static bool verify(IMG const& image, Range2Du32 const& range)
 	{
@@ -1186,6 +1176,29 @@ namespace simage
 			range.y_begin < image.height &&
 			range.y_end <= image.height;
 	}
+
+
+#ifndef SIMAGE_NO_CUDA
+
+	template <typename T>
+	static bool verify(cuda::DeviceBuffer<T> const& buffer, u32 n_elements)
+	{
+		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
+	}
+
+
+#endif // SIMAGE_NO_CUDA
+
+
+	template <class IMG_A, class IMG_B>
+	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
+	{
+		return
+			verify(lhs) && verify(rhs) &&
+			lhs.width == rhs.width &&
+			lhs.height == rhs.height;
+	}
+
 
 #endif // !NDEBUG
 }

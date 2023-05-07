@@ -8,15 +8,28 @@ constexpr auto APP_VERSION = "1.0";
 constexpr int FRAMES_PER_TEST = 30;
 
 
+bool device_buffer_tests();
+bool unified_buffer_tests();
+
+
+void split_channels_red_test(img::View const& out);
+void split_channels_green_test(img::View const& out);
+void split_channels_blue_test(img::View const& out);
+
+
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-
+	split_channels_red_test,
+	//split_channels_green_test,
+	//split_channels_blue_test,
 };
 
 
 static bool run_preliminary_tests()
 {
 	return directory_files_test() &&
+		device_buffer_tests() &&
+		unified_buffer_tests() &&
 		true;
 }
 

@@ -1108,6 +1108,45 @@ namespace simage
 {
 	using DeviceBuffer32 = cuda::DeviceBuffer<Pixel>;
 	using DeviceBuffer8 = cuda::DeviceBuffer<u8>;
+
+
+	inline DeviceBuffer32 create_device_buffer32(u32 n_pixels)
+	{
+		DeviceBuffer32 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	inline DeviceBuffer8 create_device_buffer8(u32 n_pixels)
+	{
+		DeviceBuffer8 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	inline DeviceBuffer32 create_unified_buffer32(u32 n_pixels)
+	{
+		DeviceBuffer32 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	inline DeviceBuffer8 create_unified_buffer8(u32 n_pixels)
+	{
+		DeviceBuffer8 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	template <typename T>
+	inline void destroy_buffer(cuda::DeviceBuffer<T>& buffer)
+	{
+		cuda::destroy_buffer(buffer);
+	}
 }
 
 

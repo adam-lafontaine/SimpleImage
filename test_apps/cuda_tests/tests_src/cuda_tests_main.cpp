@@ -12,16 +12,12 @@ bool device_buffer_tests();
 bool unified_buffer_tests();
 
 
-void split_channels_red_test(img::View const& out);
-void split_channels_green_test(img::View const& out);
-void split_channels_blue_test(img::View const& out);
+void sub_view_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	split_channels_red_test,
-	//split_channels_green_test,
-	//split_channels_blue_test,
+	sub_view_test,
 };
 
 

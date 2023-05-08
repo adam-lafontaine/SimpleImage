@@ -367,7 +367,7 @@ object_files += $(simage_cuda_o)
 
 # tests
 tests_dep := $(tests_include_h)
-tests_dep += $(tests_src)/split_channels_tests.cpp
+tests_dep += $(tests_src)/sub_view_tests.cpp
 
 tests_c := $(tests_src)/tests.cpp
 tests_o := $(build)/tests.o

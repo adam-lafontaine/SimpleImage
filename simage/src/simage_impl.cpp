@@ -4114,7 +4114,7 @@ namespace simage
 
 
     void copy_to_host(View const& device_src, View const& host_dst)
-	{
+	{		
 		assert(verify(device_src, host_dst));
 
         auto const bytes_per_row = sizeof(Pixel) * device_src.width;

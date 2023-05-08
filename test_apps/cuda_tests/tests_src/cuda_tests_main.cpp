@@ -12,12 +12,14 @@ bool device_buffer_tests();
 bool unified_buffer_tests();
 
 
-void sub_view_test(img::View const& out);
+void sub_view_host_to_device_test(img::View const& out);
+void sub_view_device_to_host_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	sub_view_test,
+	sub_view_host_to_device_test,
+	sub_view_device_to_host_test,
 };
 
 

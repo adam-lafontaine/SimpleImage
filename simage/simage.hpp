@@ -1102,7 +1102,7 @@ namespace simage
 #include "./libs/cuda/device.hpp"
 
 
-/* types */
+/* device buffer */
 
 namespace simage
 {
@@ -1150,13 +1150,48 @@ namespace simage
 }
 
 
+/* device view */
+
+namespace simage
+{
+	template <typename T>
+    class DeviceMatrixView
+	{
+	public:
+
+		T* matrix_data_ = 0;
+		u32 matrix_width = 0;
+
+		u32 width = 0;
+		u32 height = 0;
+
+		union
+		{
+			Range2Du32 range = {};
+
+			struct
+			{
+				u32 x_begin;
+				u32 x_end;
+				u32 y_begin;
+				u32 y_end;
+			};
+		};		
+	};
+
+
+	using DeviceView = DeviceMatrixView<Pixel>;
+	using DeviceViewGray = DeviceMatrixView<u8>;
+}
+
+
 /* make_view */
 
 namespace simage
 {
-	View make_view(u32 width, u32 height, DeviceBuffer32& buffer);
+	DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer);
 
-	ViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
+	DeviceViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
 }
 
 
@@ -1164,13 +1199,23 @@ namespace simage
 
 namespace simage
 {
-	void copy_to_device(View const& host_src, View const& device_dst);
+	void copy_to_device(View const& host_src, DeviceView const& device_dst);
 
-    void copy_to_device(ViewGray const& host_src, ViewGray const& device_dst);
+    void copy_to_device(ViewGray const& host_src, DeviceViewGray const& device_dst);
 
-    void copy_to_host(View const& device_src, View const& host_dst);
+    void copy_to_host(DeviceView const& device_src, View const& host_dst);
 
-    void copy_to_host(ViewGray const& device_src, ViewGray const& host_dst);
+    void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst);
+}
+
+
+/* sub_view */
+
+namespace simage
+{
+	DeviceView sub_view(DeviceView const& view, Range2Du32 const& range);
+
+	DeviceViewGray sub_view(DeviceViewGray const& view, Range2Du32 const& range);
 }
 
 
@@ -1230,6 +1275,13 @@ namespace simage
 	static bool verify(cuda::DeviceBuffer<T> const& buffer, u32 n_elements)
 	{
 		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
+	}
+
+
+	template <typename T>
+	static bool verify(DeviceMatrixView<T> const& view)
+	{
+		return view.matrix_width && view.width && view.height && view.matrix_data_;
 	}
 
 

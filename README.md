@@ -54,14 +54,6 @@ An interleaved image or view.  It is in the format suitable for interacting with
 * `DeviceView` (CUDA): todo
 * `DeviceBuffer` (CUDA): todo
 
-## Compile Instructions
-
-* Copy the /simage directory to your project
-* #include "{your_path}/simage/simage.hpp" for the api
-* Compile/link with {your_path}/simage/simage.cpp
-* Note: For USB camera functionality, install libusb for Linux or OpenCV for windows
-    * Or #define SIMAGE_NO_USB_CAMERA
-
 ## API Overview
 
 **See the `/test_apps/` directory for complete examples**
@@ -557,6 +549,14 @@ Basic implementation for processing images on Nvidia GPUs is on the way.
 * [libuvc](https://github.com/libuvc/libuvc): Webcam support - Linux (included, requires libusb-1.0)
 * [OpenCV](https://opencv.org/): Wecam support - Windows (requires install)
 * [SDL2](https://www.libsdl.org/): Rendering test application examples (requires install)
+
+## Compile Instructions
+
+* Copy the /simage directory to your project
+* #include "{your_path}/simage/simage.hpp" for the api
+* Compile/link with {your_path}/simage/simage.cpp
+* Note: For USB camera functionality, install libusb for Linux or OpenCV for windows
+    * Or #define SIMAGE_NO_USB_CAMERA
 
 ## Run the examples
 

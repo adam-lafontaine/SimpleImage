@@ -16,6 +16,7 @@ static void process_by_row(u32 n_rows, id_func_t const& row_func)
 }
 
 
+#include "src/impl/verify.cpp"
 #include "src/impl/channel_pixels.cpp"
 #include "src/impl/platform_image.cpp"
 #include "src/impl/row_begin.cpp"
@@ -36,8 +37,6 @@ static void process_by_row(u32 n_rows, id_func_t const& row_func)
 #include "src/impl/skeleton.cpp"
 #include "src/impl/histogram.cpp"
 #include "src/impl/select_channel.cpp"
-
-
 
 #include "src/simage_impl.cpp"
 

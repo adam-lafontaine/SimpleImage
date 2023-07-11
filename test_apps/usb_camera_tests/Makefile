@@ -73,9 +73,6 @@ simage_dep += $(impl)/centroid.cpp
 simage_dep += $(impl)/skeleton.cpp
 simage_dep += $(impl)/histogram.cpp
 simage_dep += $(impl)/select_channel.cpp
-
-simage_dep += $(src)/simage_impl.cpp
-
 simage_dep += $(stb)/stb_image_resize.h
 simage_dep += $(stb)/stb_image_write.h
 simage_dep += $(stb)/stb_image.h

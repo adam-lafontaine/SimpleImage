@@ -34,6 +34,7 @@ object_files := $(main_o)
 
 # app
 app_dep := $(app_h)
+app_dep += $(util)/types.hpp
 app_dep += $(simage)/defines.hpp
 app_dep += $(simage_h)
 app_dep += $(app)/icon_64.h
@@ -80,6 +81,7 @@ simage_dep += $(stb)/stb_include.hpp
 simage_dep += $(stb)/stb_simage.cpp
 simage_dep += $(uvc)/libuvc2.hpp
 simage_dep += $(uvc)/uvc_simage.cpp
+simage_dep += $(util)/types.hpp
 simage_dep += $(util)/color_space.hpp
 simage_dep += $(util)/execute.hpp
 simage_dep += $(util)/execute.cpp

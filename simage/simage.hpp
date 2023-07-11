@@ -1,5 +1,6 @@
 #pragma once
 
+#include "defines.hpp"
 #include "src/util/memory_buffer.hpp"
 
 #include <functional>

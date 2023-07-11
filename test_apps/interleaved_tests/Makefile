@@ -35,6 +35,8 @@ object_files := $(main_o)
 # app
 app_dep := $(app_h)
 app_dep += $(simage_h)
+app_dep += $(util)/types.hpp
+app_dep += $(simage)/defines.hpp
 app_dep += $(app)/icon_64.h
 app_dep += $(app)/input_state.hpp
 app_dep += $(app)/input.hpp
@@ -51,6 +53,7 @@ object_files += $(app_o)
 # simage
 simage_dep := $(simage_h)
 simage_dep += $(simage)/defines.hpp
+simage_dep += $(util)/types.hpp
 
 simage_dep += $(impl)/channel_pixels.cpp
 simage_dep += $(impl)/platform_image.cpp

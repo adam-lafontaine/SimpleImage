@@ -38,11 +38,11 @@ void skeleton_test(img::View const& out);
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	fill_test,
-	fill_gray_test,
+	/*fill_test,
+	fill_gray_test,*/
 	copy_test,
 	copy_gray_test,
-	resize_image_test,
+	/*resize_image_test,
 	resize_gray_image_test,
 	split_channels_red_test,
 	split_channels_green_test,
@@ -60,7 +60,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	rotate_test,
 	rotate_gray_test,
 	centroid_test,
-	skeleton_test
+	skeleton_test*/
 };
 
 
@@ -98,6 +98,8 @@ static bool run_preliminary_tests()
 
 int main()
 {
+	perf::profile_init();
+
 	if (!run_preliminary_tests())
 	{
 		return EXIT_FAILURE;
@@ -119,6 +121,8 @@ int main()
 	app_state.start();
 
     render_run(app_state, [&](auto const& input) { run_next_test(input, app_state); });
+
+	perf::profile_report();
 
     return EXIT_SUCCESS;
 }

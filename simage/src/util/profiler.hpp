@@ -21,7 +21,8 @@ namespace perf
 {
     enum class ProfileLabel : int
     {
-        Copy,
+        CopyView,
+        CopyViewGray,
 
         Count,
         None = -1
@@ -34,7 +35,8 @@ namespace perf
 
         switch(label)
         {
-            case PL::Copy: return "Copy";
+            case PL::CopyView: return "CopyView";
+            case PL::CopyViewGray: return "CopyViewGray";
         }
 
         return "err";
@@ -61,6 +63,9 @@ namespace perf
         u64 cpu_end;
     };
 }
+
+
+using PL = perf::ProfileLabel;
 
 
 #define PROFILE_BLOCK(label) perf::Profile profile_block(label);

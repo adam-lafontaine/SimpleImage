@@ -30,7 +30,7 @@
 //#define SIMAGE_NO_CUDA
 
 // Disable API profiling
-#define SIMAGE_NO_PROFILE
+//#define SIMAGE_NO_PROFILE
 
 #ifdef SIMAGE_NO_PARALLEL
 

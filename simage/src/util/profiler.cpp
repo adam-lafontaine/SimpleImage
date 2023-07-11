@@ -127,7 +127,7 @@ namespace perf
         auto const compare = [](auto lhs, auto rhs){ return lhs.cpu_avg() < rhs.cpu_avg(); };
         auto min = std::min_element(begin, end, compare);
 
-        FILE* out = fopen("profile.txt", "a");
+        FILE* out = fopen("build_files/profile.txt", "a");
 
         print(out, "\nProfile Report:\n");
 

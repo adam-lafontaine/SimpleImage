@@ -38,7 +38,7 @@ constexpr u32 N_THREADS = 1;
 
 #else
 
-constexpr u32 N_THREADS = 16;
+constexpr u32 N_THREADS = 1;
 
 #endif //!SIMAGE_NO_PARALLEL
 

@@ -15,8 +15,6 @@ namespace simage
 	template <class IMG_SRC, class IMG_DST>
 	static void do_copy(IMG_SRC const& src, IMG_DST const& dst)
 	{
-		
-
 		auto const row_func = [&](u32 y)
 		{
 			auto s = row_begin(src, y);

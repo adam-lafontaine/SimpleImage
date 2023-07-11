@@ -38,6 +38,8 @@ static void process_by_row(u32 n_rows, id_func_t const& row_func)
 #include "src/impl/histogram.cpp"
 #include "src/impl/select_channel.cpp"
 
+#include "src/util/profiler.cpp"
+
 #include "src/simage_impl.cpp"
 
 #include "libs/stb/stb_simage.cpp"

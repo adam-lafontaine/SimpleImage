@@ -13,6 +13,7 @@ using i8 = int8_t;
 using i16 = short;
 using i32 = int32_t;
 using cstr = const char*;
+using b32 = u32;
 
 
 template <typename T>

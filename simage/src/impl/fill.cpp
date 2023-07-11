@@ -56,6 +56,7 @@ namespace simage
 {
 	void fill(View const& view, Pixel color)
 	{
+		PROFILE_BLOCK(PL::FillView)
 		assert(verify(view));
 
 		fill_channel(view, color);
@@ -64,6 +65,7 @@ namespace simage
 
 	void fill(ViewGray const& view, u8 gray)
 	{
+		PROFILE_BLOCK(PL::FillViewGray)
 		assert(verify(view));
 
 		fill_channel(view, gray);

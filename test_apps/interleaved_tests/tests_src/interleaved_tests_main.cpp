@@ -38,8 +38,8 @@ void skeleton_test(img::View const& out);
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	/*fill_test,
-	fill_gray_test,*/
+	fill_test,
+	fill_gray_test,
 	copy_test,
 	copy_gray_test,
 	/*resize_image_test,

@@ -23,6 +23,8 @@ namespace perf
     {
         CopyView,
         CopyViewGray,
+        FillView,
+        FillViewGray,
 
         Count,
         None = -1
@@ -37,6 +39,8 @@ namespace perf
         {
             case PL::CopyView: return "CopyView";
             case PL::CopyViewGray: return "CopyViewGray";
+            case PL::FillView: return "FillView";
+            case PL::FillViewGray: return "FillViewGray";
         }
 
         return "err";

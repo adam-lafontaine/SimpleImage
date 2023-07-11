@@ -78,7 +78,7 @@ namespace perf
         cpu_end = cpu_read_ticks();
         auto& record = g_records[profile_id];
 
-        record.cpu_total += cpu_end - cpu_start;
+        record.cpu_total += (cpu_end - cpu_start);
         ++record.hit_count;
         record.is_active = false;
     }
@@ -102,6 +102,12 @@ namespace perf
         va_start(args, format);
         vfprintf(file, format, args);
         va_end(args);
+    }
+
+
+    static int count_digits(u64 n)
+    {
+        return (int)floor(log10(n) + 1);
     }
 
 
@@ -132,6 +138,8 @@ namespace perf
         print(out, "\nProfile Report:\n");
 
         int label_len = 10;
+        int abs_len = 6;
+        int rel_len = 1;
         for (u32 i = 0; i < (u32)PL::Count; ++i)
         {
             auto& record = g_records[i];
@@ -139,9 +147,23 @@ namespace perf
             auto len = strlen(to_cstr((PL)i));
             if (len > label_len)
             {
-                label_len = len;
+                label_len = (int)len;
+            }
+
+            len = count_digits(record.cpu_avg());
+            if (len > abs_len)
+            {
+                abs_len = len;
+            }
+
+            len = count_digits(record.cpu_avg() / min->cpu_avg());
+            if (len > rel_len)
+            {
+                rel_len = len;
             }
         }
+
+        rel_len += 3;
 
         for (u32 i = 0; i < (u32)PL::Count; ++i)
         {
@@ -152,7 +174,9 @@ namespace perf
             auto cpu_rel = (f32)cpu_abs / min->cpu_avg();
             auto count = record.hit_count;
 
-            print(out, "%*s: %.2f (%lu x %u)\n", label_len, label, cpu_rel, cpu_abs, count);
+            auto format = "%*s: %*.2f (%*lu x %u) - %d\n";
+
+            print(out, format, label_len, label, rel_len, cpu_rel, abs_len, cpu_abs, count, count_digits(cpu_abs));
         }
 
         fclose(out);

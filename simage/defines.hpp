@@ -29,9 +29,6 @@
 // Disable CUDA GPU support
 //#define SIMAGE_NO_CUDA
 
-// Disable API profiling
-//#define SIMAGE_NO_PROFILE
-
 #ifdef SIMAGE_NO_PARALLEL
 
 constexpr u32 N_THREADS = 1;
@@ -47,13 +44,5 @@ constexpr u32 N_THREADS = 1;
 #ifdef ENABLE_CUDA
 #ifdef SIMAGE_NO_CUDA
 #undef SIMAGE_NO_CUDA
-#endif
-#endif
-
-
-// Force enable API profiling
-#ifdef ENABLE_PROFILE
-#ifdef SIMAGE_NO_PROFILE
-#undef SIMAGE_NO_PROFILE
 #endif
 #endif

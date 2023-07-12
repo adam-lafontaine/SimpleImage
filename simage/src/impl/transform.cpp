@@ -46,7 +46,6 @@ namespace simage
 
 	void threshold(ViewGray const& src, ViewGray const& dst, u8 min)
 	{
-		PROFILE_BLOCK(PL::ThresholdViewMin)
 		assert(verify(src, dst));
 
 		return do_transform(src, dst, [&](u8 p){ return p >= min ? p : 0; });
@@ -55,7 +54,6 @@ namespace simage
 
 	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max)
 	{
-		PROFILE_BLOCK(PL::ThresholdViewMinMax)
 		assert(verify(src, dst));
 
 		auto mn = std::min(min, max);

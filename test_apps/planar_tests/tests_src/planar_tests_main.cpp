@@ -95,8 +95,6 @@ static void run_next_test(Input const& input, app::AppState& app_state)
 
 int main()
 {
-	perf::profile_init();
-
 	if (!run_preliminary_tests())
 	{
 		return EXIT_FAILURE;
@@ -118,8 +116,6 @@ int main()
 	app_state.start();
 
     render_run(app_state, [&](auto const& input) { run_next_test(input, app_state); });
-
-	perf::profile_report();
 
     return EXIT_SUCCESS;
 }

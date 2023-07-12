@@ -42,25 +42,25 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	fill_gray_test,
 	copy_test,
 	copy_gray_test,
-	/*resize_image_test,
-	resize_gray_image_test,*/
+	resize_image_test,
+	resize_gray_image_test,
 	split_channels_red_test,
 	split_channels_green_test,
 	split_channels_blue_test,
 	alpha_blend_test,
-	/*transform_test,
-	transform_gray_test,*/
+	transform_test,
+	transform_gray_test,
 	threshold_min_test,
 	threshold_min_max_test,
-	/*binarize_test,
-	binarize_rgb_test,*/
+	binarize_test,
+	binarize_rgb_test,
 	blur_test,
 	gradients_test,
 	gradients_xy_test,
 	rotate_test,
 	rotate_gray_test,
 	centroid_test,
-	/*skeleton_test*/
+	skeleton_test
 };
 
 

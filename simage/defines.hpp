@@ -29,17 +29,6 @@
 // Disable CUDA GPU support
 //#define SIMAGE_NO_CUDA
 
-#ifdef SIMAGE_NO_PARALLEL
-
-constexpr u32 N_THREADS = 1;
-
-#else
-
-constexpr u32 N_THREADS = 1;
-
-#endif //!SIMAGE_NO_PARALLEL
-
-
 // Force enable CUDA
 #ifdef ENABLE_CUDA
 #ifdef SIMAGE_NO_CUDA

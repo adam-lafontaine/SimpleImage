@@ -3,54 +3,37 @@
 
 void copy_test(img::View const& out)
 {
-    img::Image vette;
-	img::read_image_from_file(CORVETTE_PATH, vette);
+	auto width = out.width;
+    auto height = out.height;
 
-	auto r = make_range(vette);
-	if (vette.width > out.width)
-	{
-		r.x_end = out.width;
-	}
+    img::Image image;
 
-	if (vette.height > out.height)
-	{
-		r.y_end = out.height;
-	}
+    auto pixels = img::create_buffer32(width * height);
 
-	img::copy(img::sub_view(vette, r), img::sub_view(out, r));
+    auto src = img::make_view_resized_from_file(CORVETTE_PATH, image, width, height, pixels);
 
-	img::destroy_image(vette);
+	img::copy(src, out);
+
+	img::destroy_image(image);
 }
 
 
 void copy_gray_test(img::View const& out)
 {
-    img::ImageGray vette;
-	img::read_image_from_file(CORVETTE_PATH, vette);
+	auto width = out.width;
+    auto height = out.height;
 
-	auto r = make_range(vette);
-	if (vette.width > out.width)
-	{
-		r.x_end = out.width;
-	}
+    img::ImageGray image;
 
-	if (vette.height > out.height)
-	{
-		r.y_end = out.height;
-	}
+    auto buffer = img::create_buffer8(width * height * 2);
 
-	auto src = img::sub_view(vette, r);
-	auto width = src.width;
-	auto height = src.height;
-
-	auto buffer = img::create_buffer8(width * height);
-
-	auto dst = img::make_view(width, height, buffer);
+    auto src = img::make_view_resized_from_file(CADILLAC_PATH, image, width, height, buffer);
+    auto dst = img::make_view(width, height, buffer);
 
 	img::copy(src, dst);
 
-	img::map_gray(dst, img::sub_view(out, r));
+	img::map_gray(dst, out);
 
-	img::destroy_image(vette);
+	img::destroy_image(image);
 	img::destroy_buffer(buffer);
 }

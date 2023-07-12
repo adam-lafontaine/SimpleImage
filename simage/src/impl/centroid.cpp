@@ -4,6 +4,8 @@ namespace simage
 {
 	Point2Du32 centroid(ViewGray const& src)
 	{
+		PROFILE_BLOCK(PL::CentroidView)
+		
 		f64 total = 0.0;
 		f64 x_total = 0.0;
 		f64 y_total = 0.0;
@@ -39,6 +41,8 @@ namespace simage
 
 	Point2Du32 centroid(ViewGray const& src, u8_to_bool_f const& func)
 	{
+		PROFILE_BLOCK(PL::CentroidViewGray)
+
 		f64 total = 0.0;
 		f64 x_total = 0.0;
 		f64 y_total = 0.0;

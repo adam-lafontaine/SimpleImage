@@ -25,6 +25,18 @@ namespace perf
         CopyViewGray,
         FillView,
         FillViewGray,
+        SplitRGB,
+        AlphaBlendView,
+        ThresholdViewMin,
+        ThresholdViewMinMax,
+        BlurViewGray,
+        GradientViewGray,
+        GradientXYViewGray,
+        RotateView,
+        RotateViewGray,
+        CentroidView,
+        CentroidViewGray,
+        Skeleton,
 
         Count,
         None = -1
@@ -41,6 +53,18 @@ namespace perf
             case PL::CopyViewGray: return "CopyViewGray";
             case PL::FillView: return "FillView";
             case PL::FillViewGray: return "FillViewGray";
+            case PL::SplitRGB: return "SplitRGB";
+            case PL::AlphaBlendView: return "AlphaBlend";
+            case PL::ThresholdViewMin: return "ThresholdViewMin";
+            case PL::ThresholdViewMinMax: return "ThresholdViewMinMax";
+            case PL::BlurViewGray: return "BlurViewGray";
+            case PL::GradientViewGray: return "GradientViewGray";
+            case PL::GradientXYViewGray: return "GradientXYViewGray";
+            case PL::RotateView: return "RotateView";
+            case PL::RotateViewGray: return "RotateViewGray";
+            case PL::CentroidView: return "CentroidView";
+            case PL::CentroidViewGray: return "CentroidViewGray";
+            case PL::Skeleton: return "Skeleton";
         }
 
         return "err";

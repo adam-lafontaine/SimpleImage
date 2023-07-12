@@ -4,6 +4,7 @@ namespace simage
 {
 	void split_rgb(View const& src, ViewGray const& red, ViewGray const& green, ViewGray const& blue)
 	{
+		PROFILE_BLOCK(PL::SplitRGB)
 		assert(verify(src, red));
 		assert(verify(src, green));
 		assert(verify(src, blue));

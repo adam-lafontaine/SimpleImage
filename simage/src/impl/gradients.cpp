@@ -323,6 +323,7 @@ namespace simage
 {
     void gradients(ViewGray const& src, ViewGray const& dst)
     {
+        PROFILE_BLOCK(PL::GradientViewGray)
         assert(verify(src, dst));
 
         gradients_1(src, dst);
@@ -331,6 +332,7 @@ namespace simage
 
     void gradients_xy(ViewGray const& src, ViewGray const& dst_x, ViewGray const& dst_y)
     {
+        PROFILE_BLOCK(PL::GradientXYViewGray)
         assert(verify(src, dst_x));
         assert(verify(src, dst_y));
 

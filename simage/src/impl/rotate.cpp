@@ -79,7 +79,7 @@ namespace simage
 
 
     template <typename T, size_t N>
-	void rotate_channels(ChannelView<T, N> const& src, ChannelView<T, N> const& dst, Point2Du32 origin, f32 rad)
+	static void rotate_channels(ChannelView<T, N> const& src, ChannelView<T, N> const& dst, Point2Du32 origin, f32 rad)
 	{
 		constexpr auto zero = 0.0f;
 		auto const width = (f32)src.width;
@@ -125,6 +125,7 @@ namespace simage
 {
 	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad)
 	{
+		PROFILE_BLOCK(PL::RotateView)
 		assert(verify(src, dst));
 
 		rotate_1(src, dst, origin, rad);
@@ -133,6 +134,7 @@ namespace simage
 
 	void rotate(ViewGray const& src, ViewGray const& dst, Point2Du32 origin, f32 rad)
 	{
+		PROFILE_BLOCK(PL::RotateViewGray)
 		assert(verify(src, dst));
 
 		rotate_1(src, dst, origin, rad);

@@ -130,7 +130,14 @@ namespace perf
     {
         auto begin = g_records;
         auto end = g_records + N_PROFILE_RECORDS;
-        auto const compare = [](auto lhs, auto rhs){ return lhs.cpu_avg() < rhs.cpu_avg(); };
+        auto const compare = [](auto lhs, auto rhs)
+        {
+            return 
+                lhs.hit_count > 0 && 
+                rhs.hit_count > 0 && 
+                lhs.cpu_avg() < rhs.cpu_avg(); 
+        };
+
         auto min = std::min_element(begin, end, compare);
 
         FILE* out = fopen("build_files/profile.txt", "a");
@@ -143,6 +150,10 @@ namespace perf
         for (u32 i = 0; i < (u32)PL::Count; ++i)
         {
             auto& record = g_records[i];
+            if (record.hit_count == 0)
+            {
+                continue;
+            }
 
             auto len = strlen(to_cstr((PL)i));
             if (len > label_len)
@@ -168,6 +179,10 @@ namespace perf
         for (u32 i = 0; i < (u32)PL::Count; ++i)
         {
             auto& record = g_records[i];
+            if (record.hit_count == 0)
+            {
+                continue;
+            }
 
             auto label = to_cstr((PL)i);
             auto cpu_abs = record.cpu_avg();

@@ -26,6 +26,7 @@ namespace simage
 
 	void alpha_blend(View const& src, View const& cur, View const& dst)
 	{
+		PROFILE_BLOCK(PL::AlphaBlendView)
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
@@ -44,6 +45,7 @@ namespace simage
 
 	void alpha_blend(View const& src, View const& cur_dst)
 	{
+		PROFILE_BLOCK(PL::AlphaBlendView)
 		assert(verify(src, cur_dst));
 
 		auto const row_func = [&](u32 y)

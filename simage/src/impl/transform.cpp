@@ -5,7 +5,7 @@ namespace simage
 	template <class IMG_S, class IMG_D, class FUNC>	
 	static void do_transform(IMG_S const& src, IMG_D const& dst, FUNC const& func)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -14,9 +14,7 @@ namespace simage
 			{
 				d[x] = func(s[x]);
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -88,7 +86,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y) 
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -97,9 +95,7 @@ namespace simage
 			{
 				d[x] = func32(s[x]);
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -107,7 +103,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s0 = channel_row_begin(src, y, 0);
 			auto s1 = channel_row_begin(src, y, 1);
@@ -117,9 +113,7 @@ namespace simage
 			{
 				d[x] = func32(s0[x], s1[x]);
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -127,7 +121,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s0 = channel_row_begin(src, y, 0);
 			auto s1 = channel_row_begin(src, y, 1);
@@ -138,9 +132,7 @@ namespace simage
 			{
 				d[x] = func32(s0[x], s1[x], s2[x]);
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -148,7 +140,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -157,9 +149,7 @@ namespace simage
 			{
 				d[x] = s[x] >= min32 ? s[x] : 0.0f;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -167,7 +157,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -176,15 +166,13 @@ namespace simage
 			{
 				d[x] = s[x] >= min32 && s[x] <= max32 ? s[x] : 0.0f;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
 	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> func32)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -193,8 +181,6 @@ namespace simage
 			{
 				d[x] = func32(s[x]) ? 1.0f : 0.0f;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }

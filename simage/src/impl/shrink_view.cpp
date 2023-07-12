@@ -93,7 +93,7 @@ namespace simage
 	template <class VIEW>
 	static void do_shrink_1D(VIEW const& src, View1f32 const& dst)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto d = row_begin(dst, y);
 
@@ -107,9 +107,7 @@ namespace simage
 				
 				d[x] = average(sub_view(src, r));
 			}
-		};
-
-		process_by_row(dst.height, row_func);
+		}
 	}
 
 
@@ -131,7 +129,7 @@ namespace simage
 		assert(dst.width <= src.width);
 		assert(dst.height <= src.height);
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto d0 = channel_row_begin(dst, y, 0);
 			auto d1 = channel_row_begin(dst, y, 1);
@@ -151,9 +149,7 @@ namespace simage
 				d1[x] = avg[1];
 				d2[x] = avg[2];
 			}
-		};
-
-		process_by_row(dst.height, row_func);
+		}
 	}
 
 
@@ -175,7 +171,7 @@ namespace simage
 		assert(dst.width <= src.width);
 		assert(dst.height <= src.height);
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto d = rgb_row_begin(dst, y);
 
@@ -192,9 +188,7 @@ namespace simage
 				d.G[x] = avg.green;
 				d.B[x] = avg.blue;				
 			}
-		};
-
-		process_by_row(dst.height, row_func);
+		}
 	}
 }
 #endif

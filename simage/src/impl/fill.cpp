@@ -17,13 +17,11 @@ namespace simage
 	{		
 		assert(verify(view));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto d = row_begin(view, y);
 			fill_channel_row(d, value, view.width);
-		};
-
-		process_by_row(view.height, row_func);
+		}
 	}
 
 
@@ -36,16 +34,14 @@ namespace simage
 			channels[ch] = cs::to_channel_f32(color.channels[ch]);
 		}
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < view.height; ++y)
 		{
 			for (u32 ch = 0; ch < N; ++ch)
 			{
 				auto d = channel_row_begin(view, y, ch);
 				fill_channel_row(d, channels[ch], view.width);
 			}
-		};
-
-		process_by_row(view.height, row_func);
+		}
 	}
 }
 

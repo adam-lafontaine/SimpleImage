@@ -5,16 +5,14 @@ namespace simage
 	template <typename T>
 	static void do_for_each_pixel(View1<T> const& view, std::function<void(T&)> const& func)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto s = row_begin(view, y);
 			for (u32 x = 0; x < view.width; ++x)
 			{
 				func(s[x]);
 			}
-		};
-
-		process_by_row(view.height, row_func);
+		}
 	}
 
 

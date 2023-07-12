@@ -7,15 +7,6 @@
 namespace cs = color_space;
 
 
-static void process_by_row(u32 n_rows, id_func_t const& row_func)
-{
-	auto const row_begin = 0;
-	auto const row_end = n_rows;
-
-	process_range(row_begin, row_end, row_func);
-}
-
-
 #include "src/impl/verify.cpp"
 #include "src/impl/channel_pixels.cpp"
 #include "src/impl/platform_image.cpp"

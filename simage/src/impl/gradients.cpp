@@ -276,13 +276,11 @@ namespace simage
 
     template <typename T>
     static void gradients_1(View1<T> const& src, View1<T> const& dst)
-    {
-        auto const row_func = [&](u32 y)
-        {            
+    {   
+        for (u32 y = 0; y < src.height; ++y)
+        {
             gradients_row(src, dst, y);
-        };
-
-        process_by_row(src.height, row_func);
+        }
     }
 	
 	
@@ -291,13 +289,11 @@ namespace simage
     {
 		auto const convert = [](f32 grad){ return (T)grad; };
 
-        auto const row_func = [&](u32 y)
-        {            
+        for (u32 y = 0; y < src.height; ++y)
+        {
             gradients_x_row(src, x_dst, y, convert);
             gradients_y_row(src, y_dst, y, convert);
-        };
-
-        process_by_row(src.height, row_func);
+        }
     }
 
 
@@ -306,13 +302,11 @@ namespace simage
     {
 		auto const convert = [](f32 grad){ return (T)std::abs(grad); };
 
-        auto const row_func = [&](u32 y)
-        {            
+        for (u32 y = 0; y < src.height; ++y)
+        {
             gradients_x_row(src, x_dst, y, convert);
             gradients_y_row(src, y_dst, y, convert);
-        };
-
-        process_by_row(src.height, row_func);
+        }
     }
 }
 

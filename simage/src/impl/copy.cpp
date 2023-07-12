@@ -15,14 +15,12 @@ namespace simage
 	template <class IMG_SRC, class IMG_DST>
 	static void do_copy(IMG_SRC const& src, IMG_DST const& dst)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 			copy_row(s, d, src.width);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 

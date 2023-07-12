@@ -8,7 +8,7 @@ namespace simage
 		assert(verify(src, green));
 		assert(verify(src, blue));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto r = row_begin(red, y);
@@ -22,9 +22,7 @@ namespace simage
 				g[x] = rgba.green;
 				b[x] = rgba.blue;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -35,7 +33,7 @@ namespace simage
 		assert(verify(src, blue));
 		assert(verify(src, alpha));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto r = row_begin(red, y);
@@ -51,9 +49,7 @@ namespace simage
 				b[x] = rgba.blue;
 				a[x] = rgba.alpha;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -63,7 +59,7 @@ namespace simage
 		assert(verify(src, sat));
 		assert(verify(src, val));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto p = row_begin(src, y);
 			auto h = row_begin(hue, y);
@@ -78,8 +74,6 @@ namespace simage
 				s[x] = hsv.sat;
 				v[x] = hsv.val;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }

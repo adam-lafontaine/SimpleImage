@@ -51,12 +51,10 @@ namespace simage
     template <typename T>
 	static void blur_1(View1<T> const& src, View1<T> const& dst)
 	{
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			blur_row(src, dst, y);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 

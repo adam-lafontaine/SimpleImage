@@ -6,7 +6,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -16,9 +16,7 @@ namespace simage
 				auto rgba = s[x].rgba;
 				d[x] = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -26,7 +24,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -37,9 +35,7 @@ namespace simage
 
 				d[x].rgba = gray;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -49,7 +45,7 @@ namespace simage
 		assert(src.width % 2 == 0);
 		static_assert(sizeof(YUV2u8) == 2);
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s2 = row_begin(src, y);
 			auto s422 = (YUV422u8*)s2;
@@ -73,9 +69,7 @@ namespace simage
 				d[x].rgba.blue = rgba.blue;
 				d[x].rgba.red = 255;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -83,7 +77,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -92,9 +86,7 @@ namespace simage
 			{
 				d[x] = s[x].y;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -102,7 +94,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -115,9 +107,7 @@ namespace simage
 				rgba.blue = s[x].blue;
 				rgba.alpha = 255;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}	
 
 
@@ -125,7 +115,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -138,9 +128,7 @@ namespace simage
 				rgba.blue = s[x].blue;
 				rgba.alpha = 255;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }
 
@@ -171,14 +159,12 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 			map_channel_row_u8_to_f32(s, d, src.width);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 	
 
@@ -186,14 +172,12 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 			map_channel_row_f32_to_u8(s, d, src.width);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -201,7 +185,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -210,9 +194,7 @@ namespace simage
 			{
 				d[x] = cs::to_channel_f32(s[x].y);
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -220,7 +202,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto d = row_begin(dst, y);
 			auto s = row_begin(src, y);			
@@ -234,9 +216,7 @@ namespace simage
 				d[x].rgba.blue = gray;
 				d[x].rgba.alpha = 255;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }
 
@@ -296,15 +276,13 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = rgba_row_begin(dst, y);
 
 			map_rgba_row_u8_to_f32(s, d, src.width);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -312,15 +290,13 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = rgba_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			map_rgba_row_f32_to_u8(s, d, src.width);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 	
@@ -328,15 +304,13 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
 
 			map_rgb_row_u8_to_f32(s, d, src.width);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -344,15 +318,13 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = rgb_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
 			map_rgb_row_f32_to_u8(s, d, src.width);
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }
 
@@ -365,7 +337,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = hsv_row_begin(dst, y);
@@ -378,9 +350,7 @@ namespace simage
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -388,7 +358,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y) 
+		for (u32 y = 0; y < src.height; ++y) 
 		{
 			auto s = hsv_row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -402,9 +372,7 @@ namespace simage
 				d[x].rgba.blue = rgb.blue;
 				d[x].rgba.alpha = 255;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -412,7 +380,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = rgb_row_begin(src, y);
 			auto d = hsv_row_begin(dst, y);
@@ -428,9 +396,7 @@ namespace simage
 				d.S[x] = hsv.sat;
 				d.V[x] = hsv.val;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -438,7 +404,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = hsv_row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
@@ -450,9 +416,7 @@ namespace simage
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }
 
@@ -465,7 +429,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = lch_row_begin(dst, y);
@@ -478,9 +442,7 @@ namespace simage
 				d.C[x] = lch.chroma;
 				d.H[x] = lch.hue;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -488,7 +450,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = lch_row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -502,9 +464,7 @@ namespace simage
 				d[x].rgba.blue = rgba.blue;
 				d[x].rgba.alpha = 255;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -512,7 +472,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = rgb_row_begin(src, y);
 			auto d = lch_row_begin(dst, y);
@@ -528,9 +488,7 @@ namespace simage
 				d.C[x] = lch.chroma;
 				d.H[x] = lch.hue;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 
@@ -538,7 +496,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = lch_row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
@@ -550,9 +508,7 @@ namespace simage
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }
 
@@ -567,7 +523,7 @@ namespace simage
 		assert(src.width % 2 == 0);
 		static_assert(sizeof(YUV2u8) == 2);
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s422 = (YUV422u8*)row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
@@ -588,9 +544,7 @@ namespace simage
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 
 /*
@@ -615,7 +569,7 @@ namespace simage
 			return (u8)(u32)(val + 0.5f);
 		};
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto src_y1 = y * 2;
 			auto src_y2 = src_y1 + 1;
@@ -637,9 +591,7 @@ namespace simage
 				d.G[x] = rgb.green;
 				d.B[x] = rgb.blue;
 			}
-		};
-
-		process_by_row(dst.height, row_func);
+		}
 	}*/
 
 
@@ -664,7 +616,7 @@ namespace simage
 			return (u8)(u32)(val + 0.5f);
 		};
 
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto src_y1 = y * 2;
 			auto src_y2 = src_y1 + 1;
@@ -687,9 +639,7 @@ namespace simage
 				d[x].rgba.blue = rgba.blue;
 				d[x].rgba.alpha = 255;
 			}
-		};
-
-		process_by_row(dst.height, row_func);
+		}
 	}
 
 
@@ -697,7 +647,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const row_func = [&](u32 y) 
+		for (u32 y = 0; y < src.height; ++y) 
 		{
 			auto s = yuv_row_begin(src, y);
 			auto d = row_begin(dst, y);
@@ -711,9 +661,7 @@ namespace simage
 				d[x].rgba.blue = rgb.blue;
 				d[x].rgba.alpha = 255;
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }
 
@@ -724,7 +672,7 @@ namespace simage
 {
 	void map_bgr_rgb(ViewBGR const& src, ViewRGBf32 const& dst)
 	{		
-		auto const row_func = [&](u32 y)
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
@@ -735,8 +683,6 @@ namespace simage
 				d.G[x] = cs::to_channel_f32(s[x].green);
 				d.B[x] = cs::to_channel_f32(s[x].blue);
 			}
-		};
-
-		process_by_row(src.height, row_func);
+		}
 	}
 }

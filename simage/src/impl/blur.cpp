@@ -85,7 +85,6 @@ namespace simage
 
     void blur(ViewGray const& src, ViewGray const& dst)
     {
-		PROFILE_BLOCK(PL::BlurViewGray)
         assert(verify(src, dst));
 
 		blur_1(src, dst);

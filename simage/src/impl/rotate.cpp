@@ -125,7 +125,6 @@ namespace simage
 {
 	void rotate(View const& src, View const& dst, Point2Du32 origin, f32 rad)
 	{
-		PROFILE_BLOCK(PL::RotateView)
 		assert(verify(src, dst));
 
 		rotate_1(src, dst, origin, rad);
@@ -134,7 +133,6 @@ namespace simage
 
 	void rotate(ViewGray const& src, ViewGray const& dst, Point2Du32 origin, f32 rad)
 	{
-		PROFILE_BLOCK(PL::RotateViewGray)
 		assert(verify(src, dst));
 
 		rotate_1(src, dst, origin, rad);

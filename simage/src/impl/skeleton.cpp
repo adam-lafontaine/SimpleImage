@@ -147,7 +147,6 @@ namespace simage
 
 	void skeleton(ViewGray const& src_dst)
 	{
-		PROFILE_BLOCK(PL::Skeleton)
 		assert(verify(src_dst));
 
 		u32 current_count = 0;

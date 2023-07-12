@@ -28,7 +28,6 @@ namespace simage
 
 	void copy(View const& src, View const& dst)
 	{
-		PROFILE_BLOCK(PL::CopyView)
 		assert(verify(src, dst));
 
 		do_copy(src, dst);
@@ -37,7 +36,6 @@ namespace simage
 
 	void copy(ViewGray const& src, ViewGray const& dst)
 	{
-		PROFILE_BLOCK(PL::CopyViewGray)
 		assert(verify(src, dst));
 
 		do_copy(src, dst);

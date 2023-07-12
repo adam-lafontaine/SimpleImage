@@ -4,6 +4,8 @@
 
 #include <cstdio>
 #include <cstdarg>
+#include <cstring>
+#include <cmath>
 #include <algorithm>
 
 
@@ -12,6 +14,8 @@ namespace
     class ProfileRecord
     {
     public:
+
+        cstr label = 0;
 
         u64 cpu_total = 0;
 
@@ -24,10 +28,42 @@ namespace
 }
 
 
-constexpr auto N_PROFILE_RECORDS = (int)perf::ProfileLabel::Count;
+static ProfileRecord g_records[1024] = { 0 };
+
+static u32 g_n_records = 0;
 
 
-static ProfileRecord g_records[N_PROFILE_RECORDS] = { 0 };
+static int find_record_id(cstr label)
+{
+    if (g_n_records == 0)
+    {
+        return -1;
+    }
+
+    for (u32 i = 0; i < g_n_records; ++i)
+    {
+        auto& record = g_records[i];
+        if (strcmp(label, record.label) == 0)
+        {
+            return (int)i;
+        }
+    }
+
+    return -1;
+}
+
+
+static int get_record_id(cstr label)
+{
+    auto id = find_record_id(label);
+    if (id < 0)
+    {
+        id = g_n_records++;
+        g_records[id].label = label;
+    }
+
+    return id;
+}
 
 
 #ifdef _WIN32
@@ -49,9 +85,9 @@ static u64 cpu_read_ticks()
 
 namespace perf
 {
-    Profile::Profile(ProfileLabel label)
+    Profile::Profile(cstr label)
     {
-        profile_id = (int)label;
+        profile_id = get_record_id(label);
 
         auto& record = g_records[profile_id];
 
@@ -89,9 +125,7 @@ namespace perf
 
 namespace perf
 {
-    using PL = perf::ProfileLabel;
-
-
+   
     static void print(FILE* file, cstr format, ...)
     {
         va_list args;
@@ -113,7 +147,7 @@ namespace perf
 
     void profile_init()
     {
-        for (u32 i = 0; i < (u32)PL::Count; ++i)
+        for (u32 i = 0; i < 1024; ++i)
         {
             g_records[i] = { 0 };
         }
@@ -129,7 +163,7 @@ namespace perf
     void profile_report()
     {
         auto begin = g_records;
-        auto end = g_records + N_PROFILE_RECORDS;
+        auto end = g_records + g_n_records;
         auto const compare = [](auto lhs, auto rhs)
         {
             return 
@@ -147,7 +181,7 @@ namespace perf
         int label_len = 10;
         int abs_len = 6;
         int rel_len = 1;
-        for (u32 i = 0; i < (u32)PL::Count; ++i)
+        for (u32 i = 0; i < g_n_records; ++i)
         {
             auto& record = g_records[i];
             if (record.hit_count == 0)
@@ -155,7 +189,7 @@ namespace perf
                 continue;
             }
 
-            auto len = strlen(to_cstr((PL)i));
+            auto len = strlen(record.label);
             if (len > label_len)
             {
                 label_len = (int)len;
@@ -176,7 +210,7 @@ namespace perf
 
         rel_len += 3;
 
-        for (u32 i = 0; i < (u32)PL::Count; ++i)
+        for (u32 i = 0; i < g_n_records; ++i)
         {
             auto& record = g_records[i];
             if (record.hit_count == 0)
@@ -184,7 +218,7 @@ namespace perf
                 continue;
             }
 
-            auto label = to_cstr((PL)i);
+            auto label = record.label;
             auto cpu_abs = record.cpu_avg();
             auto cpu_rel = (f32)cpu_abs / min->cpu_avg();
             auto count = record.hit_count;

@@ -19,36 +19,11 @@ namespace perf
 
 namespace perf
 {
-    enum class ProfileLabel : int
-    {
-        Anything,
-
-        Count,
-        None = -1
-    };
-
-
-    inline cstr to_cstr(ProfileLabel label)
-    {
-        using PL = perf::ProfileLabel;
-
-        switch(label)
-        {
-            default: return "err";
-        }
-
-        return "err";
-    }
-}
-
-
-namespace perf
-{
     class Profile
     {
     public:
         
-        Profile(ProfileLabel label);
+        Profile(cstr label);
 
         ~Profile();
 
@@ -61,9 +36,6 @@ namespace perf
         u64 cpu_end;
     };
 }
-
-
-using PL = perf::ProfileLabel;
 
 
 #define PROFILE_BLOCK(label) perf::Profile profile_block(label);

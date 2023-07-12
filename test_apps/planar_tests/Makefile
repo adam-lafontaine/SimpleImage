@@ -20,7 +20,6 @@ exe := $(build)/test_app
 simage_h := $(simage)/simage.hpp
 simage_h += $(util)/types.hpp
 simage_h += $(simage)/defines.hpp
-simage_h += $(util)/profiler.hpp
 
 app_h := $(app)/app.hpp
 tests_include_h := ../tests_include.hpp
@@ -85,7 +84,6 @@ simage_dep += $(uvc)/uvc_simage.cpp
 simage_dep += $(util)/color_space.hpp
 simage_dep += $(util)/execute.hpp
 simage_dep += $(util)/execute.cpp
-simage_dep += $(util)/profiler.cpp
 
 simage_c := $(simage)/simage.cpp
 simage_o := $(build)/simage.o

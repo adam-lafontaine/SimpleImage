@@ -1,5 +1,8 @@
 #pragma once
 
+#include "types.hpp"
+
+
 namespace perf
 {
     void profile_init();
@@ -10,11 +13,6 @@ namespace perf
 
     void profile_report();
 }
-
-
-#ifndef SIMAGE_NO_PROFILE
-
-#include "types.hpp"
 
 
 namespace perf
@@ -39,9 +37,3 @@ namespace perf
 
 
 #define PROFILE_BLOCK(label) perf::Profile profile_block(label);
-
-#else
-
-#define PROFILE_BLOCK(label) /* SIMAGE_NO_PROFILE */
-
-#endif

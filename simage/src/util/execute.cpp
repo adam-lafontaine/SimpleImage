@@ -2,6 +2,10 @@
 
 #ifndef SIMPLE_NO_PARALLEL
 
+#include <cassert>
+
+constexpr u32 N_THREADS = 16;
+
 template <class LIST_T, class FUNC_T>
 static void do_for_each(LIST_T const& list, FUNC_T const& func)
 {

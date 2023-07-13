@@ -1,5 +1,3 @@
-#ifndef SIMAGE_NO_PROFILE
-
 #include "profiler.hpp"
 
 #include <cstdio>
@@ -28,21 +26,24 @@ namespace
 }
 
 
-static ProfileRecord g_records[1024] = { 0 };
+static constexpr auto N_RECORDS = 64;
 
-static u32 g_n_records = 0;
+
+static ProfileRecord profile_records[N_RECORDS] = { 0 };
+
+static u32 n_records = 0;
 
 
 static int find_record_id(cstr label)
 {
-    if (g_n_records == 0)
+    if (n_records == 0)
     {
         return -1;
     }
 
-    for (u32 i = 0; i < g_n_records; ++i)
+    for (u32 i = 0; i < n_records; ++i)
     {
-        auto& record = g_records[i];
+        auto& record = profile_records[i];
         if (strcmp(label, record.label) == 0)
         {
             return (int)i;
@@ -58,8 +59,8 @@ static int get_record_id(cstr label)
     auto id = find_record_id(label);
     if (id < 0)
     {
-        id = g_n_records++;
-        g_records[id].label = label;
+        id = n_records++;
+        profile_records[id].label = label;
     }
 
     return id;
@@ -89,7 +90,7 @@ namespace perf
     {
         profile_id = get_record_id(label);
 
-        auto& record = g_records[profile_id];
+        auto& record = profile_records[profile_id];
 
         if (record.is_active)
         {
@@ -112,7 +113,7 @@ namespace perf
         }
 
         cpu_end = cpu_read_ticks();
-        auto& record = g_records[profile_id];
+        auto& record = profile_records[profile_id];
 
         record.cpu_total += (cpu_end - cpu_start);
         ++record.hit_count;
@@ -147,9 +148,12 @@ namespace perf
 
     void profile_init()
     {
-        for (u32 i = 0; i < 1024; ++i)
+        auto begin = profile_records;
+        auto end = profile_records + (n_records == 0 ? N_RECORDS : n_records);
+        
+        for (auto i = begin; i < end; ++i)
         {
-            g_records[i] = { 0 };
+            *i = { 0 };
         }
     }
 
@@ -162,8 +166,8 @@ namespace perf
 
     void profile_report()
     {
-        auto begin = g_records;
-        auto end = g_records + g_n_records;
+        auto begin = profile_records;
+        auto end = profile_records + n_records;
         auto const compare = [](auto lhs, auto rhs)
         {
             return 
@@ -181,9 +185,9 @@ namespace perf
         int label_len = 10;
         int abs_len = 6;
         int rel_len = 1;
-        for (u32 i = 0; i < g_n_records; ++i)
+        for (u32 i = 0; i < n_records; ++i)
         {
-            auto& record = g_records[i];
+            auto& record = profile_records[i];
             if (record.hit_count == 0)
             {
                 continue;
@@ -210,9 +214,9 @@ namespace perf
 
         rel_len += 3;
 
-        for (u32 i = 0; i < g_n_records; ++i)
+        for (u32 i = 0; i < n_records; ++i)
         {
-            auto& record = g_records[i];
+            auto& record = profile_records[i];
             if (record.hit_count == 0)
             {
                 continue;
@@ -231,18 +235,3 @@ namespace perf
         fclose(out);
     }
 }
-
-#else
-
-namespace perf
-{
-    void profile_init(){}
-
-
-    void profile_clear(){}
-
-
-    void profile_report(){}
-}
-
-#endif // SIMAGE_NO_PROFILE

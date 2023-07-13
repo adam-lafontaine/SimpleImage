@@ -22,6 +22,12 @@ namespace test
     }
 
 
+    /*static img::ViewGray make_view(img::Buffer8& buffer)
+    {
+
+    }*/
+
+
     static void destroy_image(img::Image& image)
     {
         PROFILE_BLOCK("destroy_image")
@@ -34,6 +40,9 @@ namespace test
         PROFILE_BLOCK("destroy_buffer")
         img::destroy_buffer(buffer);
     }
+
+
+
 }
 
 
@@ -44,13 +53,16 @@ void run_profile_tests()
     u32 width = 2000;
     u32 height = 2000;
 
-    auto pixels = test::create_buffer32(2);
+    auto pixels = test::create_buffer32(3);
 
     img::Image vette;
     img::Image caddy;
 
-    auto src = test::make_resized_view_from_file(CORVETTE_PATH, vette, pixels);
-    auto cur = test::make_resized_view_from_file(CADILLAC_PATH, caddy, pixels);
+    auto vette_v = test::make_resized_view_from_file(CORVETTE_PATH, vette, pixels);
+    auto caddy_v = test::make_resized_view_from_file(CADILLAC_PATH, caddy, pixels);
+
+
+
 
 
 

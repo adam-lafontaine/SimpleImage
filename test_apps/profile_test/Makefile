@@ -95,7 +95,7 @@ LIBRARIES += $(LIBUSB)
 CCFLAGS := -std=c++17
 CCFLAGS += -DSIMAGE_NO_CUDA
 
-#CCFLAGS += -O3 -DNDEBUG
+CCFLAGS += -O3 -DNDEBUG
 
 # build rules
 

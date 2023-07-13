@@ -223,13 +223,13 @@ namespace perf
             }
 
             auto label = record.label;
-            auto cpu_abs = record.cpu_avg();
-            auto cpu_rel = (f32)cpu_abs / min->cpu_avg();
+            auto cpu_abs = (f32)record.cpu_avg();
+            auto cpu_rel = cpu_abs / min->cpu_avg();
             auto count = record.hit_count;
 
-            auto format = "%*s: %*.2f (%*lu x %u) - %d\n";
+            auto format = "%*s: %*.2f (%3.2e x %u)\n";
 
-            print(out, format, label_len, label, rel_len, cpu_rel, abs_len, cpu_abs, count, count_digits(cpu_abs));
+            print(out, format, label_len, label, rel_len, cpu_rel, cpu_abs, count);
         }
 
         fclose(out);

@@ -178,7 +178,7 @@ namespace perf
 
         std::sort(begin, end, compare);
 
-        auto& min = profile_records[0]; // std::min_element(begin, end, compare);
+        auto& min = profile_records[0];
 
         FILE* out = fopen("build_files/profile.txt", "a");
 

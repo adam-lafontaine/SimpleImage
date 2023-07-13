@@ -176,7 +176,9 @@ namespace perf
                 lhs.cpu_avg() < rhs.cpu_avg(); 
         };
 
-        auto min = std::min_element(begin, end, compare);
+        std::sort(begin, end, compare);
+
+        auto& min = profile_records[0]; // std::min_element(begin, end, compare);
 
         FILE* out = fopen("build_files/profile.txt", "a");
 
@@ -205,7 +207,7 @@ namespace perf
                 abs_len = len;
             }
 
-            len = count_digits(record.cpu_avg() / min->cpu_avg());
+            len = count_digits(record.cpu_avg() / min.cpu_avg());
             if (len > rel_len)
             {
                 rel_len = len;
@@ -224,7 +226,7 @@ namespace perf
 
             auto label = record.label;
             auto cpu_abs = (f32)record.cpu_avg();
-            auto cpu_rel = cpu_abs / min->cpu_avg();
+            auto cpu_rel = cpu_abs / min.cpu_avg();
             auto count = record.hit_count;
 
             auto format = "%*s: %*.2f (%3.2e x %u)\n";

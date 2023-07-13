@@ -37,7 +37,14 @@ namespace prof
 
     static img::View make_resized_view_from_file(fs::path const& path, img::Image& image, img::Buffer32& pixels)
     {
-        PROFILE_BLOCK("make_resized_view")
+        PROFILE_BLOCK("make_resized_view_32")
+        return img::make_view_resized_from_file(path, image, WIDTH, HEIGHT, pixels);
+    }
+
+
+    static img::ViewGray make_resized_view_from_file(fs::path const& path, img::ImageGray& image, img::Buffer8& pixels)
+    {
+        PROFILE_BLOCK("make_resized_view_8")
         return img::make_view_resized_from_file(path, image, WIDTH, HEIGHT, pixels);
     }
     
@@ -83,22 +90,29 @@ namespace prof
 
 void run_profile_tests()
 {
-    auto pixels = prof::create_buffer32(3);
-    auto gray_pixels = prof::create_buffer8(3);
+    auto pixels32 = prof::create_buffer32(3);
+    auto pixels8 = prof::create_buffer8(6);
 
-    img::Image vette;
-    img::Image caddy;
+    img::Image vette32;
+    img::Image caddy32;
+    img::ImageGray vette8;
+    img::ImageGray caddy8;
 
-    auto vette_v = prof::make_resized_view_from_file(CORVETTE_PATH, vette, pixels);
-    auto caddy_v = prof::make_resized_view_from_file(CADILLAC_PATH, caddy, pixels);
-    auto view32 = prof::make_view_32(pixels);
+    auto vette32_v = prof::make_resized_view_from_file(CORVETTE_PATH, vette32, pixels32);
+    auto caddy32_v = prof::make_resized_view_from_file(CADILLAC_PATH, caddy32, pixels32);
+    auto view32 = prof::make_view_32(pixels32);
 
-    auto view8A = prof::make_view_8(gray_pixels);
-    auto view8B = prof::make_view_8(gray_pixels);
-    auto view8C = prof::make_view_8(gray_pixels);
+    auto vette8_v = prof::make_resized_view_from_file(CORVETTE_PATH, vette8, pixels8);
+    auto caddy8_v = prof::make_resized_view_from_file(CADILLAC_PATH, caddy8, pixels8);
+    auto view8 = prof::make_view_8(pixels8);
+
+    auto view8A = prof::make_view_8(pixels8);
+    auto view8B = prof::make_view_8(pixels8);
+    auto view8C = prof::make_view_8(pixels8);
+
     
-    auto sub32 = prof::sub_view_32(vette,  make_range(vette.width / 2, vette.height / 2));
-    sub32 = prof::sub_view_32(vette_v,  make_range(WIDTH / 2, HEIGHT / 2));
+    auto sub32 = prof::sub_view_32(vette32,  make_range(vette32.width / 2, vette32.height / 2));
+    sub32 = prof::sub_view_32(vette32_v,  make_range(WIDTH / 2, HEIGHT / 2));
 
 
 
@@ -106,8 +120,8 @@ void run_profile_tests()
 
     
 
-    prof::destroy_image(vette);
-    prof::destroy_image(caddy);
-    prof::destroy_buffer(pixels);
-    prof::destroy_buffer(gray_pixels);
+    prof::destroy_image(vette32);
+    prof::destroy_image(caddy32);
+    prof::destroy_buffer(pixels32);
+    prof::destroy_buffer(pixels8);
 }

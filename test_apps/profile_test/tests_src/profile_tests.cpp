@@ -8,7 +8,7 @@ constexpr u32 HEIGHT = 2000;
 
 void run_profile_tests()
 {
-    constexpr u32 n_channels_32 = 13;
+    constexpr u32 n_channels_32 = 16;
     constexpr u32 n_channels_8 = 6;
 
     auto pixels32 = PROFILE(img::create_buffer32(WIDTH * HEIGHT * n_channels_32))
@@ -47,6 +47,7 @@ void run_profile_tests()
     PROFILE(img::copy(caddy8_v, view8))
 
     PROFILE(img::map_gray(vette32_v, view8))
+    PROFILE(img::map_gray(view8, view32));
 
     PROFILE(img::alpha_blend(caddy32_v, vette32_v, view32))
 
@@ -66,6 +67,42 @@ void run_profile_tests()
     auto viewC2 = PROFILE(img::make_view_2(WIDTH, HEIGHT, pixels32))
     auto viewC3 = PROFILE(img::make_view_3(WIDTH, HEIGHT, pixels32))
     auto viewC4 = PROFILE(img::make_view_4(WIDTH, HEIGHT, pixels32))
+    auto viewCRGB = PROFILE(img::make_view_3(WIDTH, HEIGHT, pixels32))
+
+    auto subC1 = PROFILE(img::sub_view(viewC1, range))
+    auto subC2 = PROFILE(img::sub_view(viewC2, range))
+    auto subC3 = PROFILE(img::sub_view(viewC3, range))
+    auto subC4 = PROFILE(img::sub_view(viewC4, range))
+
+    auto ch_red = PROFILE(img::select_channel(viewC3, img::RGB::R))
+    auto ch_alpha = PROFILE(img::select_channel(viewC4, img::RGBA::A))
+
+    PROFILE(img::map_gray(view8, viewC1))
+    PROFILE(img::map_gray(viewC1, view8))
+    PROFILE(img::map_gray(viewC1, view32))
+    PROFILE(img::map_gray(caddy32_v, viewC1))
+
+    PROFILE(img::map_rgba(vette32_v, viewC4));
+    PROFILE(img::map_rgba(viewC4, view32))
+
+    PROFILE(img::map_rgb(caddy32_v, viewCRGB))
+    PROFILE(img::map_rgb(viewCRGB, view32))
+
+    PROFILE(img::map_rgb_hsv(vette32_v, viewC3))
+    PROFILE(img::map_hsv_rgb(viewC3, view32))
+    PROFILE(img::map_rgb_hsv(viewCRGB, viewC3))
+    PROFILE(img::map_hsv_rgb(viewC3, viewCRGB))
+
+    PROFILE(img::map_rgb_lch(vette32_v, viewC3))
+    PROFILE(img::map_lch_rgb(viewC3, view32))
+    PROFILE(img::map_rgb_lch(viewCRGB, viewC3))
+    PROFILE(img::map_lch_rgb(viewC3, viewCRGB))
+
+    PROFILE(img::fill(viewC4, img::to_pixel(20, 30, 40)))
+    PROFILE(img::fill(viewC3, img::to_pixel(20, 30, 40)))
+    PROFILE(img::fill(viewC1, 0.5f))
+    PROFILE(img::fill(viewC1, (u8)255))
+
 
     
 

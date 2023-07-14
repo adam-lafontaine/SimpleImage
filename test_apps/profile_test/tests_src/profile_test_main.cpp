@@ -20,7 +20,7 @@ int main()
 
     perf::profile_init();
 
-    for (u32 i = 0; i < 5; ++i)
+    for (u32 i = 0; i < 2; ++i)
     {
         run_profile_tests();
     }    

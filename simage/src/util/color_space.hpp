@@ -27,6 +27,9 @@ namespace color_space
 
             return lut;
         }
+
+
+        static constexpr std::array<f32, 256> u8_to_f32 = channel_f32();
     }
 }
 
@@ -56,9 +59,7 @@ namespace color_space
 
     inline constexpr f32 to_channel_f32(u8 value)
     {
-        constexpr auto lut = lut::channel_f32();
-
-        return lut[value];
+        return lut::u8_to_f32[value];
     }
 
 

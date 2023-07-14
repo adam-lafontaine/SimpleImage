@@ -218,6 +218,23 @@ namespace simage
 			}
 		}
 	}
+
+
+	void map_gray(View const& src, View1f32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto& s = row_begin(src, y)->rgba;			
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = gray::f32_from_rgb_f32(s.red, s.green, s.blue);
+			}
+		}
+	}
 }
 
 

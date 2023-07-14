@@ -131,14 +131,12 @@ namespace simage
 
         auto const bytes_per_row = sizeof(Pixel) * host_src.width;
 
-        auto const row_func = [&](u32 y)
+        for (u32 y = 0; y < host_src.height; ++y)
         {
             auto h = row_begin(host_src, y);
             auto d = row_begin(dst, y);
             if(!cuda::memcpy_to_device(h, d, bytes_per_row)) { assert(false); }
-        };
-
-        process_by_row(host_src.height, row_func);
+        }
 	}
 
 
@@ -150,14 +148,12 @@ namespace simage
 
         auto const bytes_per_row = sizeof(u8) * host_src.width;
 
-        auto const row_func = [&](u32 y)
+        for (u32 y = 0; y < host_src.height; ++y)
         {
             auto h = row_begin(host_src, y);
             auto d = row_begin(dst, y);
             if(!cuda::memcpy_to_device(h, d, bytes_per_row)) { assert(false); }
-        };
-
-        process_by_row(host_src.height, row_func);
+        }
 	}
 
 
@@ -169,14 +165,12 @@ namespace simage
 
         auto const bytes_per_row = sizeof(Pixel) * device_src.width;
 
-        auto const row_func = [&](u32 y)
+        for (u32 y = 0; y < device_src.height; ++y)
         {
             auto h = row_begin(host_dst, y);
             auto d = row_begin(src, y);
             if(!cuda::memcpy_to_host(d, h, bytes_per_row)) { assert(false); }
-        };
-
-        process_by_row(device_src.height, row_func);
+        }
 	}
 
 
@@ -188,14 +182,12 @@ namespace simage
 
         auto const bytes_per_row = sizeof(u8) * device_src.width;
 
-        auto const row_func = [&](u32 y)
+        for (u32 y = 0; y < device_src.height; ++y)
         {
             auto h = row_begin(host_dst, y);
             auto d = row_begin(src, y);
             if(!cuda::memcpy_to_host(d, h, bytes_per_row)) { assert(false); }
-        };
-
-        process_by_row(device_src.height, row_func);
+        }
 	}
 }
 

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <cassert>
 
 
 namespace
@@ -26,7 +27,7 @@ namespace
 }
 
 
-static constexpr auto N_RECORDS = 64;
+static constexpr auto N_RECORDS = 128;
 
 
 static ProfileRecord profile_records[N_RECORDS] = { 0 };
@@ -63,6 +64,8 @@ static int get_record_id(cstr label)
         profile_records[id].label = label;
     }
 
+    assert(id < N_RECORDS);
+
     return id;
 }
 
@@ -88,6 +91,7 @@ namespace perf
 {
     Profile::Profile(cstr label)
     {
+        //printf("%s\n", label);
         profile_id = get_record_id(label);
 
         auto& record = profile_records[profile_id];

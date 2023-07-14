@@ -216,6 +216,9 @@ namespace perf
 
         rel_len += 3;
 
+        //auto format = "%*s: %*.2f (%3.2e x %u)\n";
+        auto format = "%3.2e: %-*s (%*.2f) x %u\n";
+
         for (u32 i = 0; i < n_records; ++i)
         {
             auto& record = profile_records[i];
@@ -227,11 +230,10 @@ namespace perf
             auto label = record.label;
             auto cpu_abs = (f32)record.cpu_avg();
             auto cpu_rel = cpu_abs / min.cpu_avg();
-            auto count = record.hit_count;
+            auto count = record.hit_count;            
 
-            auto format = "%*s: %*.2f (%3.2e x %u)\n";
-
-            print(out, format, label_len, label, rel_len, cpu_rel, cpu_abs, count);
+            //print(out, format, label_len, label, rel_len, cpu_rel, cpu_abs, count);
+            print(out, format, cpu_abs, label_len, label, rel_len, cpu_rel, count);
         }
 
         fclose(out);

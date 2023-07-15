@@ -83,6 +83,11 @@ tests_o := $(build)/tests.o
 object_files += $(tests_o)
 
 
+# temp overwrite
+main_c := $(tests_src)/temp_main.cpp
+tests_c := $(tests_src)/temp_tests.cpp
+
+
 # flags
 INCLUDES  := 
 #INCLUDES += -I /usr/include/libusb-1.0

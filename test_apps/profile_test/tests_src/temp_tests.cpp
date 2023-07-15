@@ -47,16 +47,8 @@ void run_tests()
     auto viewC3b = img::make_view_3(WIDTH, HEIGHT, pixels32);
     auto viewC4b = img::make_view_4(WIDTH, HEIGHT, pixels32);
 
-
-    PROFILE(img::fill(view32, blue))
-    PROFILE(img::fill(view8, 128))
-
-    PROFILE(img::fill(viewC4a, blue))
-
-    PROFILE(img::fill(viewC3a, blue))
-    PROFILE(img::fill(viewC1a, 0.5f))
-    PROFILE(img::fill(viewC1a, (u8)255))
-
+    PROFILE(img::alpha_blend(caddy32_v, vette32_v, view32))
+    PROFILE(img::alpha_blend(viewC4a, viewC3b, viewC3a))
 
     img::destroy_buffer(pixels32);
     img::destroy_buffer(pixels8);

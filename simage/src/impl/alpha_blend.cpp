@@ -59,20 +59,24 @@ namespace simage
 
 namespace simage
 {
-	static void alpha_blend_row(RGBAf32p const& src, RGBf32p const& cur, RGBf32p const& dst, u32 width)
+	static inline f32 blend(f32 s, f32 c, f32 a)
 	{
-		auto const blend = [](f32 s, f32 c, f32 a)
-		{
-			return a * s + (1.0f - a) * c;
-		};
+		return a * s + (1.0f - a) * c;
+	}
 
-		for (u32 x = 0; x < width; ++x)
-		{
-			auto a = src.A[x];
 
-			dst.R[x] = blend(src.R[x], cur.R[x], a);
-			dst.G[x] = blend(src.G[x], cur.G[x], a);
-			dst.B[x] = blend(src.B[x], cur.B[x], a);
+	static void alpha_blend_channel(View1f32 const& src, View1f32 const& cur, View1f32 const& alpha, View1f32 const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto c = row_begin(cur, y);
+			auto a = row_begin(alpha, y);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = blend(s[x], c[x], a[x]);
+			}
 		}
 	}
 
@@ -82,13 +86,25 @@ namespace simage
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = rgba_row_begin(src, y);
-			auto c = rgb_row_begin(cur, y);
-			auto d = rgb_row_begin(dst, y);
+		auto const alpha_ch = select_channel(src, RGBA::A);
+		auto const src_rgb = select_rgb(src);
 
-			alpha_blend_row(s, c, d, src.width);
-		}
+		auto const channel_func = [&](RGB ch)
+		{
+			auto s_ch = select_channel(src_rgb, ch);
+			auto c_ch = select_channel(cur, ch);
+			auto d_ch = select_channel(dst, ch);
+
+			alpha_blend_channel(s_ch, c_ch, alpha_ch, d_ch);
+		};
+
+		std::array<std::function<void()>, 3> f_list
+		{
+			[&](){ channel_func(RGB::R); },
+			[&](){ channel_func(RGB::G); },
+			[&](){ channel_func(RGB::B); },
+		};
+
+    	execute(f_list);
 	}
 }

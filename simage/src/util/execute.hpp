@@ -45,15 +45,21 @@ inline void execute_sequential(std::vector<std::function<void()>> const& f_list)
 template <size_t N>
 inline void execute(std::array<std::function<void()>, N> const& f_list)
 {
+#ifndef SIMPLE_NO_PARALLEL
     execute_parallel(f_list);
-    //execute_sequential(f_list);
+#else
+    execute_sequential(f_list);
+#endif
 }
 
 
 inline void execute(std::vector<std::function<void()>> const& f_list)
 {
+#ifndef SIMPLE_NO_PARALLEL
     execute_parallel(f_list);
-    //execute_sequential(f_list);
+#else
+    execute_sequential(f_list);
+#endif
 }
 
 

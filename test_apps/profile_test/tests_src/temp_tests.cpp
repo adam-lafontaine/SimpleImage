@@ -46,9 +46,14 @@ void run_tests()
     auto viewC2b = img::make_view_2(WIDTH, HEIGHT, pixels32);
     auto viewC3b = img::make_view_3(WIDTH, HEIGHT, pixels32);
     auto viewC4b = img::make_view_4(WIDTH, HEIGHT, pixels32);
+    
+    PROFILE(img::rotate(vette32_v, view32, pt, rad))
+    PROFILE(img::rotate(vette8_v, view8, pt, rad))
 
-    PROFILE(img::alpha_blend(caddy32_v, vette32_v, view32))
-    PROFILE(img::alpha_blend(viewC4a, viewC3b, viewC3a))
+    PROFILE_X(img::rotate(viewC1a, viewC1b, pt, rad))
+    PROFILE_X(img::rotate(viewC2a, viewC2b, pt, rad))
+    PROFILE_X(img::rotate(viewC3a, viewC3b, pt, rad))
+    PROFILE_X(img::rotate(viewC4a, viewC4b, pt, rad))
 
     img::destroy_buffer(pixels32);
     img::destroy_buffer(pixels8);

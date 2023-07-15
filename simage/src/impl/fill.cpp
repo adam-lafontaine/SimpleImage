@@ -27,20 +27,20 @@ namespace simage
 
 	template <size_t N>
 	static void fill_n_channels(ChannelView<f32, N> const& view, Pixel color)
-	{
-		f32 channels[N] = {};
+	{		
+		
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			channels[ch] = cs::to_channel_f32(color.channels[ch]);
-		}
+			auto const c = cs::to_channel_f32(color.channels[ch]);
 
-		for (u32 y = 0; y < view.height; ++y)
-		{
-			for (u32 ch = 0; ch < N; ++ch)
+			auto channel = select_channel(view, ch);
+			fill_channel(channel, c);
+
+			/*for (u32 y = 0; y < view.height; ++y)
 			{
 				auto d = channel_row_begin(view, y, ch);
-				fill_channel_row(d, channels[ch], view.width);
-			}
+				fill_channel_row(d, c, view.width);
+			}*/
 		}
 	}
 }

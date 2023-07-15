@@ -61,3 +61,14 @@ using id_func_t = std::function<void(u32)>;
 
 
 void process_range(u32 id_begin, u32 id_end, id_func_t const& id_func);
+
+
+template <size_t N>
+inline void execute_n(id_func_t const& func)
+{
+    std::array<std::function<void()>, N> f_list;
+    for (size_t i = 0; i < N; ++i)
+    {
+        f_list[i] = [&](){ func(i); };
+    }
+}

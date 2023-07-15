@@ -44,3 +44,5 @@ namespace perf
 #define PROFILE(func_call) [&](){ perf::Profile p( #func_call ); return func_call; }();
 
 //#define PROFILE(func, ...) [&](){ perf::Profile p("\""#func"\""); return func(...); }();
+
+#define PROFILE_X(func_call) [&](){ perf::Profile p( "*" #func_call ); return func_call; }();

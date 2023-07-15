@@ -532,12 +532,18 @@ Basic implementation for processing images on Nvidia GPUs is on the way.
 // Support .bmp image files
 #define SIMAGE_BMP
 
+// Disable multithreaded image processing
+#define SIMAGE_NO_PARALLEL
+
 // Disable std::filesystem file paths as an alternative to const char*
 // Uses std::string instead
 #define SIMAGE_NO_FILESYSTEM
 
 // Disable USB camera support
 #define SIMAGE_NO_USB_CAMERA
+
+// Disable CUDA GPU support
+#define SIMAGE_NO_CUDA
 ```
 
 ## Credits (dependencies)

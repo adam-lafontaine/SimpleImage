@@ -12,6 +12,7 @@ simage := ../../simage
 stb := $(simage)/libs/stb
 uvc := $(simage)/libs/uvc
 src := $(simage)/src
+impl := $(src)/impl
 util := $(src)/util
 
 exe := $(build)/test_app
@@ -33,6 +34,7 @@ object_files := $(main_o)
 
 # app
 app_dep := $(app_h)
+app_dep += $(util)/types.hpp
 app_dep += $(simage)/defines.hpp
 app_dep += $(simage_h)
 app_dep += $(app)/icon_64.h
@@ -51,7 +53,28 @@ object_files += $(app_o)
 # simage
 simage_dep := $(simage_h)
 simage_dep += $(simage)/defines.hpp
-simage_dep += $(src)/simage_impl.cpp
+simage_dep += $(util)/types.hpp
+
+simage_dep += $(impl)/channel_pixels.cpp
+simage_dep += $(impl)/platform_image.cpp
+simage_dep += $(impl)/row_begin.cpp
+simage_dep += $(impl)/make_view.cpp
+simage_dep += $(impl)/sub_view.cpp
+simage_dep += $(impl)/fill.cpp
+simage_dep += $(impl)/convolve.cpp
+simage_dep += $(impl)/gradients.cpp
+simage_dep += $(impl)/blur.cpp
+simage_dep += $(impl)/rotate.cpp
+simage_dep += $(impl)/split_channels.cpp
+simage_dep += $(impl)/copy.cpp
+simage_dep += $(impl)/map_channels.cpp
+simage_dep += $(impl)/alpha_blend.cpp
+simage_dep += $(impl)/for_each_pixel.cpp
+simage_dep += $(impl)/transform.cpp
+simage_dep += $(impl)/centroid.cpp
+simage_dep += $(impl)/skeleton.cpp
+simage_dep += $(impl)/histogram.cpp
+simage_dep += $(impl)/select_channel.cpp
 simage_dep += $(stb)/stb_image_resize.h
 simage_dep += $(stb)/stb_image_write.h
 simage_dep += $(stb)/stb_image.h
@@ -86,6 +109,7 @@ LIBRARIES := $(SDL2) -ltbb -pthread
 LIBRARIES += $(LIBUSB)
 
 CCFLAGS := -std=c++17 
+CCFLAGS += -DSIMAGE_NO_CUDA
 
 #CCFLAGS += -O3 -DNDEBUG
 

@@ -21,7 +21,6 @@ simage_h := $(simage)/simage.hpp
 simage_h += $(util)/types.hpp
 simage_h += $(simage)/defines.hpp
 
-app_h := $(app)/app.hpp
 tests_include_h := ../tests_include.hpp
 
 
@@ -30,25 +29,9 @@ tests_include_h := ../tests_include.hpp
 main_dep := $(app_h)
 main_dep += $(tests_include_h)
 
-main_c := $(tests_src)/planar_tests_main.cpp
+main_c := $(tests_src)/profile_test_main.cpp
 main_o := $(build)/main.o
 object_files := $(main_o)
-
-
-# app
-app_dep := $(app_h)
-app_dep += $(simage_h)
-app_dep += $(app)/icon_64.h
-app_dep += $(app)/input_state.hpp
-app_dep += $(app)/input.hpp
-app_dep += $(app)/sdl_include.hpp
-app_dep += $(app)/stopwatch.hpp
-app_dep += $(app)/sdl_input.cpp
-app_dep += $(app)/sdl_render_run.cpp
-
-app_c := $(app)/app.cpp
-app_o := $(build)/app.o
-object_files += $(app_o)
 
 
 # simage
@@ -92,44 +75,37 @@ object_files += $(simage_o)
 
 # tests
 tests_dep := $(tests_include_h)
-tests_dep += $(tests_src)/fill_tests.cpp
-tests_dep += $(tests_src)/hsv_tests.cpp
-tests_dep += $(tests_src)/yuv_tests.cpp
-tests_dep += $(tests_src)/lch_tests.cpp
-tests_dep += $(tests_src)/map_rgb_gray_tests.cpp
-tests_dep += $(tests_src)/transform_tests.cpp
-tests_dep += $(tests_src)/alpha_blend_tests.cpp
-tests_dep += $(tests_src)/rotate_tests.cpp
-tests_dep += $(tests_src)/blur_tests.cpp
-tests_dep += $(tests_src)/gradients_tests.cpp
+tests_dep += $(util)/profiler.hpp
+tests_dep += $(util)/profiler.cpp
 
-
-tests_c := $(tests_src)/tests.cpp
+tests_c := $(tests_src)/profile_tests.cpp
 tests_o := $(build)/tests.o
 object_files += $(tests_o)
+
+
+# temp overwrite
+#main_c := $(tests_src)/temp_main.cpp
+#tests_c := $(tests_src)/temp_tests.cpp
 
 
 # flags
 INCLUDES  := 
 #INCLUDES += -I /usr/include/libusb-1.0
 
-LIBRARIES := $(SDL2) -ltbb -pthread
+LIBRARIES := -ltbb -pthread
 LIBRARIES += $(LIBUSB)
+#LIBRARIES += $(SDL2)
+
 
 CCFLAGS := -std=c++17
 CCFLAGS += -DSIMAGE_NO_CUDA
-
-CCFLAGS += -O3 -DNDEBUG
+CCFLAGS += -DNDEBUG
+CCFLAGS += -O3
 
 # build rules
 
 $(main_o): $(main_c) $(main_dep)
 	@echo "\n main"
-	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
-
-
-$(app_o): $(app_c) $(app_dep)
-	@echo "\n app"
 	$(GPP) $(CCFLAGS) -o $@ -c $< $(LIBRARIES)
 
 

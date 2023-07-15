@@ -1,5 +1,6 @@
 #pragma once
 
+#include "defines.hpp"
 #include "src/util/memory_buffer.hpp"
 
 #include <functional>
@@ -912,6 +913,8 @@ namespace simage
 
 	void map_gray(View1f32 const& src, View const& dst);
 
+	void map_gray(View const& src, View1f32 const& dst);
+
 	inline void map_gray(ImageGray const& src, View1f32 const& dst)
 	{
 		map_gray(make_view(src), dst);
@@ -1095,61 +1098,128 @@ namespace simage
 */
 
 
-/* verify */
+/* cuda */
+
+#ifndef SIMAGE_NO_CUDA
+
+#include "./libs/cuda/device.hpp"
+
+
+/* device buffer */
 
 namespace simage
 {
-#ifndef NDEBUG
-	template <typename T>
-	static bool verify(Matrix2D<T> const& image)
+	using DeviceBuffer32 = cuda::DeviceBuffer<Pixel>;
+	using DeviceBuffer8 = cuda::DeviceBuffer<u8>;
+
+
+	inline DeviceBuffer32 create_device_buffer32(u32 n_pixels)
 	{
-		return image.width && image.height && image.data_;
+		DeviceBuffer32 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	inline DeviceBuffer8 create_device_buffer8(u32 n_pixels)
+	{
+		DeviceBuffer8 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	inline DeviceBuffer32 create_unified_buffer32(u32 n_pixels)
+	{
+		DeviceBuffer32 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	inline DeviceBuffer8 create_unified_buffer8(u32 n_pixels)
+	{
+		DeviceBuffer8 buffer;
+		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
 	}
 
 
 	template <typename T>
-	static bool verify(MatrixView<T> const& view)
+	inline void destroy_buffer(cuda::DeviceBuffer<T>& buffer)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data_;
-	}	
-
-
-	template <typename T>
-	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
-	{
-		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
+		cuda::destroy_buffer(buffer);
 	}
-
-
-	template <typename T, size_t N>
-	static bool verify(ChannelView<T,N> const& view)
-	{
-		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
-	}
-
-
-	template <class IMG_A, class IMG_B>
-	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
-	{
-		return
-			verify(lhs) && verify(rhs) &&
-			lhs.width == rhs.width &&
-			lhs.height == rhs.height;
-	}
-
-
-	template <class IMG>
-	static bool verify(IMG const& image, Range2Du32 const& range)
-	{
-		return
-			verify(image) &&
-			range.x_begin < range.x_end &&
-			range.y_begin < range.y_end &&
-			range.x_begin < image.width &&
-			range.x_end <= image.width &&
-			range.y_begin < image.height &&
-			range.y_end <= image.height;
-	}
-
-#endif // !NDEBUG
 }
+
+
+/* device view */
+
+namespace simage
+{
+	template <typename T>
+    class DeviceMatrixView
+	{
+	public:
+
+		T* matrix_data_ = 0;
+		u32 matrix_width = 0;
+
+		u32 width = 0;
+		u32 height = 0;
+
+		union
+		{
+			Range2Du32 range = {};
+
+			struct
+			{
+				u32 x_begin;
+				u32 x_end;
+				u32 y_begin;
+				u32 y_end;
+			};
+		};		
+	};
+
+
+	using DeviceView = DeviceMatrixView<Pixel>;
+	using DeviceViewGray = DeviceMatrixView<u8>;
+}
+
+
+/* make_view */
+
+namespace simage
+{
+	DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer);
+
+	DeviceViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
+}
+
+
+/* copy device */
+
+namespace simage
+{
+	void copy_to_device(View const& host_src, DeviceView const& device_dst);
+
+    void copy_to_device(ViewGray const& host_src, DeviceViewGray const& device_dst);
+
+    void copy_to_host(DeviceView const& device_src, View const& host_dst);
+
+    void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst);
+}
+
+
+/* sub_view */
+
+namespace simage
+{
+	DeviceView sub_view(DeviceView const& view, Range2Du32 const& range);
+
+	DeviceViewGray sub_view(DeviceViewGray const& view, Range2Du32 const& range);
+}
+
+
+#endif // SIMAGE_NO_CUDA

@@ -56,16 +56,6 @@ namespace simage
 			blur_row(src, dst, y);
 		}
 	}
-
-
-	template <typename T, size_t N>
-	static void blur_n(ChannelView<T, N> const& src, ChannelView<T, N> const& dst)
-	{
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			blur_1(select_channel(src, ch), select_channel(dst, ch));
-		}
-	}
 }
 
 
@@ -106,7 +96,19 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		blur_n(src, dst);
+		auto const channel_func = [&](u32 ch)
+		{
+			blur_1(select_channel(src, ch), select_channel(dst, ch));
+		};
+
+		std::array<std::function<void()>, 3> f_list
+		{
+			[&](){ channel_func(0); },
+			[&](){ channel_func(1); },
+			[&](){ channel_func(2); },
+		};
+
+    	execute(f_list);
 	}
 }
 

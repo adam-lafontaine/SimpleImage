@@ -116,17 +116,17 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const channel_func = [&](RGBA ch)
+		auto const channel_func = [&](u32 ch)
 		{
 			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
 		};
 
 		std::array<std::function<void()>, 4> f_list
 		{
-			[&](){ channel_func(RGBA::R); },
-			[&](){ channel_func(RGBA::G); },
-			[&](){ channel_func(RGBA::B); },
-			[&](){ channel_func(RGBA::A); },
+			[&](){ channel_func(0); },
+			[&](){ channel_func(1); },
+			[&](){ channel_func(2); },
+			[&](){ channel_func(3); },
 		};
 
     	execute(f_list);
@@ -137,16 +137,16 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const channel_func = [&](RGB ch)
+		auto const channel_func = [&](u32 ch)
 		{
 			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
 		};
 
 		std::array<std::function<void()>, 3> f_list
 		{
-			[&](){ channel_func(RGB::R); },
-			[&](){ channel_func(RGB::G); },
-			[&](){ channel_func(RGB::B); },
+			[&](){ channel_func(0); },
+			[&](){ channel_func(1); },
+			[&](){ channel_func(2); },
 		};
 
     	execute(f_list);

@@ -460,9 +460,9 @@ auto const rotate_and_save = [&](img::View const& frame)
     img::write_image(image, make_file_path_by_id(id++));
 };
 
-img::grab _rgb(camera, rotate_and_save);
-img::grab _rgb(camera, rotate_and_save);
-img::grab _rgb(camera, rotate_and_save);
+img::grab_rgb(camera, rotate_and_save);
+img::grab_rgb(camera, rotate_and_save);
+img::grab_rgb(camera, rotate_and_save);
 
 // ...
 

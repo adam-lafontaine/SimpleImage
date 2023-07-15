@@ -13,6 +13,7 @@ void run_tests()
 
     auto const range = make_range(WIDTH / 2, HEIGHT / 2);
     auto const blue = img::to_pixel(32, 64, 128);
+    auto const red = img::to_pixel(255, 0, 0);
 
     Point2Du32 pt = { WIDTH / 2, HEIGHT / 2 };
     f32 rad = 60.0f;
@@ -51,6 +52,7 @@ void run_tests()
     PROFILE(img::fill(view8, 128))
 
     PROFILE(img::fill(viewC4a, blue))
+
     PROFILE(img::fill(viewC3a, blue))
     PROFILE(img::fill(viewC1a, 0.5f))
     PROFILE(img::fill(viewC1a, (u8)255))

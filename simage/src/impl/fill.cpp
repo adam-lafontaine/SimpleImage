@@ -23,26 +23,6 @@ namespace simage
 			fill_channel_row(d, value, view.width);
 		}
 	}
-
-
-	template <size_t N>
-	static void fill_n_channels(ChannelView<f32, N> const& view, Pixel color)
-	{		
-		
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			auto const c = cs::to_channel_f32(color.channels[ch]);
-
-			auto channel = select_channel(view, ch);
-			fill_channel(channel, c);
-
-			/*for (u32 y = 0; y < view.height; ++y)
-			{
-				auto d = channel_row_begin(view, y, ch);
-				fill_channel_row(d, c, view.width);
-			}*/
-		}
-	}
 }
 
 
@@ -76,7 +56,23 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_n_channels(view, color);
+		auto const channel_func = [&](u32 ch)
+		{
+			auto const c = cs::to_channel_f32(color.channels[ch]);
+
+			auto channel = select_channel(view, ch);
+			fill_channel(channel, c);
+		};
+
+		std::array<std::function<void()>, 4> f_list
+		{
+			[&](){ channel_func(0); },
+			[&](){ channel_func(1); },
+			[&](){ channel_func(2); },
+			[&](){ channel_func(3); },
+		};
+
+    	execute(f_list);
 	}
 
 
@@ -84,7 +80,22 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_n_channels(view, color);
+		auto const channel_func = [&](u32 ch)
+		{
+			auto const c = cs::to_channel_f32(color.channels[ch]);
+
+			auto channel = select_channel(view, ch);
+			fill_channel(channel, c);
+		};
+
+		std::array<std::function<void()>, 3> f_list
+		{
+			[&](){ channel_func(0); },
+			[&](){ channel_func(1); },
+			[&](){ channel_func(2); },
+		};
+
+    	execute(f_list);
 	}
 
 

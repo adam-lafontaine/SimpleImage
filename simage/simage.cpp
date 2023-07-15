@@ -11,6 +11,7 @@ namespace cs = color_space;
 #include "src/impl/channel_pixels.cpp"
 #include "src/impl/platform_image.cpp"
 #include "src/impl/row_begin.cpp"
+#include "src/impl/select_channel.cpp"
 #include "src/impl/make_view.cpp"
 #include "src/impl/sub_view.cpp"
 #include "src/impl/fill.cpp"
@@ -27,7 +28,7 @@ namespace cs = color_space;
 #include "src/impl/centroid.cpp"
 #include "src/impl/skeleton.cpp"
 #include "src/impl/histogram.cpp"
-#include "src/impl/select_channel.cpp"
+
 
 #include "src/simage_impl.cpp"
 

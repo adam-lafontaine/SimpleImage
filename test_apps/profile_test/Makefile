@@ -84,8 +84,8 @@ object_files += $(tests_o)
 
 
 # temp overwrite
-main_c := $(tests_src)/temp_main.cpp
-tests_c := $(tests_src)/temp_tests.cpp
+#main_c := $(tests_src)/temp_main.cpp
+#tests_c := $(tests_src)/temp_tests.cpp
 
 
 # flags

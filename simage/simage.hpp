@@ -1153,48 +1153,32 @@ namespace simage
 }
 
 
-/* device view */
+/* device image */
 
 namespace simage
 {
 	template <typename T>
-    class DeviceMatrixView
+	class DeviceMatrix2D
 	{
 	public:
-
-		T* matrix_data_ = 0;
-		u32 matrix_width = 0;
-
+		T* data_ = nullptr;
 		u32 width = 0;
 		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};		
 	};
 
 
-	using DeviceView = DeviceMatrixView<Pixel>;
-	using DeviceViewGray = DeviceMatrixView<u8>;
+	using DeviceImage = DeviceMatrix2D<Pixel>;
+	using DeviceImageGray = DeviceMatrix2D<u8>;
 }
 
 
-/* make_view */
+/* make_device_image */
 
 namespace simage
 {
-	DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer);
+	DeviceImage make_device_image(u32 width, u32 height, DeviceBuffer32& buffer);
 
-	DeviceViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
+	DeviceImageGray make_device_image(u32 width, u32 height, DeviceBuffer8& buffer);
 }
 
 
@@ -1202,23 +1186,13 @@ namespace simage
 
 namespace simage
 {
-	void copy_to_device(View const& host_src, DeviceView const& device_dst);
+	void copy_to_device(View const& host_src, DeviceImage const& device_dst);
 
-    void copy_to_device(ViewGray const& host_src, DeviceViewGray const& device_dst);
+    void copy_to_device(ViewGray const& host_src, DeviceImageGray const& device_dst);
 
-    void copy_to_host(DeviceView const& device_src, View const& host_dst);
+    void copy_to_host(DeviceImage const& device_src, View const& host_dst);
 
-    void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst);
-}
-
-
-/* sub_view */
-
-namespace simage
-{
-	DeviceView sub_view(DeviceView const& view, Range2Du32 const& range);
-
-	DeviceViewGray sub_view(DeviceViewGray const& view, Range2Du32 const& range);
+    void copy_to_host(DeviceImageGray const& device_src, ViewGray const& host_dst);
 }
 
 

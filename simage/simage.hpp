@@ -1167,8 +1167,8 @@ namespace simage
 	};
 
 
-	using DeviceImage = DeviceMatrix2D<Pixel>;
-	using DeviceImageGray = DeviceMatrix2D<u8>;
+	using DeviceView = DeviceMatrix2D<Pixel>;
+	using DeviceViewGray = DeviceMatrix2D<u8>;
 }
 
 
@@ -1176,9 +1176,9 @@ namespace simage
 
 namespace simage
 {
-	DeviceImage make_device_image(u32 width, u32 height, DeviceBuffer32& buffer);
+	DeviceView make_device_view(u32 width, u32 height, DeviceBuffer32& buffer);
 
-	DeviceImageGray make_device_image(u32 width, u32 height, DeviceBuffer8& buffer);
+	DeviceViewGray make_device_view(u32 width, u32 height, DeviceBuffer8& buffer);
 }
 
 
@@ -1186,13 +1186,13 @@ namespace simage
 
 namespace simage
 {
-	void copy_to_device(View const& host_src, DeviceImage const& device_dst);
+	void copy_to_device(View const& host_src, DeviceView const& device_dst);
 
-    void copy_to_device(ViewGray const& host_src, DeviceImageGray const& device_dst);
+    void copy_to_device(ViewGray const& host_src, DeviceViewGray const& device_dst);
 
-    void copy_to_host(DeviceImage const& device_src, View const& host_dst);
+    void copy_to_host(DeviceView const& device_src, View const& host_dst);
 
-    void copy_to_host(DeviceImageGray const& device_src, ViewGray const& host_dst);
+    void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst);
 }
 
 

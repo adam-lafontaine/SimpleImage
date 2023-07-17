@@ -70,9 +70,9 @@ namespace simage
 
 namespace simage
 {
-	DeviceImage make_device_image(u32 width, u32 height, DeviceBuffer32& buffer)
+	DeviceView make_device_view(u32 width, u32 height, DeviceBuffer32& buffer)
     {
-        DeviceImage image{};
+        DeviceView image{};
 
         image.data_ = cuda::push_elements(buffer, width * height);
         image.width = width;
@@ -82,9 +82,9 @@ namespace simage
     }
 
 
-	DeviceImageGray make_device_image(u32 width, u32 height, DeviceBuffer8& buffer)
+	DeviceViewGray make_device_view(u32 width, u32 height, DeviceBuffer8& buffer)
     {
-        DeviceImageGray image{};
+        DeviceViewGray image{};
 
         image.data_ = cuda::push_elements(buffer, width * height);
         image.width = width;
@@ -120,7 +120,7 @@ namespace simage
     {
         auto const mat = reinterpret_matrix(device_src);
 
-        auto const bytes_per_row = sizeof(T) * host_src.width;
+        auto const bytes_per_row = sizeof(T) * device_src.width;
 
         for (u32 y = 0; y < host_dst.height; ++y)
         {
@@ -131,7 +131,7 @@ namespace simage
     }
 
 
-	void copy_to_device(View const& host_src, DeviceImage const& device_dst)
+	void copy_to_device(View const& host_src, DeviceView const& device_dst)
     {
         assert(verify(host_src, device_dst));
 
@@ -139,7 +139,7 @@ namespace simage
     }
 
 
-    void copy_to_device(ViewGray const& host_src, DeviceImageGray const& device_dst)
+    void copy_to_device(ViewGray const& host_src, DeviceViewGray const& device_dst)
     {
         assert(verify(host_src, device_dst));
 
@@ -147,7 +147,7 @@ namespace simage
     }
 
 
-    void copy_to_host(DeviceImage const& device_src, View const& host_dst)
+    void copy_to_host(DeviceView const& device_src, View const& host_dst)
     {
         assert(verify(device_src, host_dst));
 
@@ -155,7 +155,7 @@ namespace simage
     }
 
 
-    void copy_to_host(DeviceImageGray const& device_src, ViewGray const& host_dst)
+    void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst)
     {
         assert(verify(device_src, host_dst));
 

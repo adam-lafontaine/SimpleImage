@@ -302,6 +302,9 @@ util := $(src)/util
 exe := $(build)/test_app
 
 simage_h := $(simage)/simage.hpp
+simage_h += $(util)/types.hpp
+simage_h += $(simage)/defines.hpp
+
 app_h := $(app)/app.hpp
 tests_include_h := ../tests_include.hpp
 
@@ -319,6 +322,8 @@ object_files := $(main_o)
 # app
 app_dep := $(app_h)
 app_dep += $(simage_h)
+app_dep += $(util)/types.hpp
+app_dep += $(simage)/defines.hpp
 app_dep += $(app)/icon_64.h
 app_dep += $(app)/input_state.hpp
 app_dep += $(app)/input.hpp
@@ -367,7 +372,7 @@ object_files += $(simage_cuda_o)
 
 # tests
 tests_dep := $(tests_include_h)
-tests_dep += $(tests_src)/sub_view_tests.cpp
+
 
 tests_c := $(tests_src)/tests.cpp
 tests_o := $(build)/tests.o

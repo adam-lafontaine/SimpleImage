@@ -11,10 +11,18 @@ constexpr int FRAMES_PER_TEST = 30;
 bool device_buffer_tests();
 bool unified_buffer_tests();
 
+void copy_device_test(img::View const& out);
+void copy_device_gray_test(img::View const& out);
+void copy_device_sub_view_test(img::View const& out);
+void copy_device_sub_view_gray_test(img::View const& out);
+
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	
+	copy_device_test,
+	copy_device_gray_test,
+	copy_device_sub_view_test,
+	copy_device_sub_view_gray_test,
 };
 
 
@@ -58,7 +66,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    /*app::WindowSettings window_settings{};
+    app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;
 	window_settings.version = APP_VERSION;
 	window_settings.screen_width = 1280;
@@ -73,7 +81,7 @@ int main()
 
 	app_state.start();
 
-    render_run(app_state, [&](auto const& input) { run_next_test(input, app_state); });*/
+    render_run(app_state, [&](auto const& input) { run_next_test(input, app_state); });
 
     return EXIT_SUCCESS;
 }

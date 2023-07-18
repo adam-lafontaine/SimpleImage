@@ -15,6 +15,7 @@ void copy_device_test(img::View const& out);
 void copy_device_gray_test(img::View const& out);
 void copy_device_sub_view_test(img::View const& out);
 void copy_device_sub_view_gray_test(img::View const& out);
+void rgb_gray_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -23,6 +24,7 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	copy_device_gray_test,
 	copy_device_sub_view_test,
 	copy_device_sub_view_gray_test,
+	rgb_gray_test,
 };
 
 

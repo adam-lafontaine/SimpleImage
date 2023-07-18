@@ -3,6 +3,7 @@
 namespace simage
 {
 #ifndef NDEBUG
+
 	template <typename T>
 	static bool verify(Matrix2D<T> const& image)
 	{

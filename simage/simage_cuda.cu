@@ -2,7 +2,6 @@
 
 #include "libs/cuda/device.cu"
 #include "src/simage_types.hpp"
-//#include "src/cpp/verify.cpp"
 
 namespace img = simage;
 
@@ -32,8 +31,12 @@ constexpr int calc_thread_blocks(u32 n_threads)
 }
 
 
+/* verify */
+
 namespace simage
 {
+#ifndef NDEBUG
+
     template <typename T>
 	static bool verify(DeviceMatrix2D<T> const& view)
 	{
@@ -49,6 +52,8 @@ namespace simage
 			lhs.width == rhs.width &&
 			lhs.height == rhs.height;
 	}
+
+#endif
 }
 
 

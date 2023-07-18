@@ -12,12 +12,16 @@ simage := ../../simage
 stb := $(simage)/libs/stb
 uvc := $(simage)/libs/uvc
 src := $(simage)/src
-impl := $(src)/impl
+cpp := $(src)/cpp
 util := $(src)/util
 
 exe := $(build)/test_app
 
 simage_h := $(simage)/simage.hpp
+simage_h += $(util)/types.hpp
+simage_h += $(simage)/defines.hpp
+simage_h += $(src)/simage_types.hpp
+
 app_h := $(app)/app.hpp
 tests_include_h := ../tests_include.hpp
 
@@ -34,9 +38,9 @@ object_files := $(main_o)
 
 # app
 app_dep := $(app_h)
+app_dep += $(simage_h)
 app_dep += $(util)/types.hpp
 app_dep += $(simage)/defines.hpp
-app_dep += $(simage_h)
 app_dep += $(app)/icon_64.h
 app_dep += $(app)/input_state.hpp
 app_dep += $(app)/input.hpp
@@ -52,28 +56,29 @@ object_files += $(app_o)
 
 # simage
 simage_dep := $(simage_h)
-simage_dep += $(simage)/defines.hpp
 
-simage_dep += $(impl)/channel_pixels.cpp
-simage_dep += $(impl)/platform_image.cpp
-simage_dep += $(impl)/row_begin.cpp
-simage_dep += $(impl)/make_view.cpp
-simage_dep += $(impl)/sub_view.cpp
-simage_dep += $(impl)/fill.cpp
-simage_dep += $(impl)/convolve.cpp
-simage_dep += $(impl)/gradients.cpp
-simage_dep += $(impl)/blur.cpp
-simage_dep += $(impl)/rotate.cpp
-simage_dep += $(impl)/split_channels.cpp
-simage_dep += $(impl)/copy.cpp
-simage_dep += $(impl)/map_channels.cpp
-simage_dep += $(impl)/alpha_blend.cpp
-simage_dep += $(impl)/for_each_pixel.cpp
-simage_dep += $(impl)/transform.cpp
-simage_dep += $(impl)/centroid.cpp
-simage_dep += $(impl)/skeleton.cpp
-simage_dep += $(impl)/histogram.cpp
-simage_dep += $(impl)/select_channel.cpp
+simage_dep += $(cpp)/alpha_blend.cpp
+simage_dep += $(cpp)/blur.cpp
+simage_dep += $(cpp)/centroid.cpp
+simage_dep += $(cpp)/channel_pixels.cpp
+simage_dep += $(cpp)/convolve.cpp
+simage_dep += $(cpp)/copy.cpp
+simage_dep += $(cpp)/fill.cpp
+simage_dep += $(cpp)/for_each_pixel.cpp
+simage_dep += $(cpp)/gradients.cpp
+simage_dep += $(cpp)/histogram.cpp
+simage_dep += $(cpp)/make_view.cpp
+simage_dep += $(cpp)/map_channels.cpp
+simage_dep += $(cpp)/platform_image.cpp
+simage_dep += $(cpp)/rotate.cpp
+simage_dep += $(cpp)/row_begin.cpp
+simage_dep += $(cpp)/select_channel.cpp
+simage_dep += $(cpp)/skeleton.cpp
+simage_dep += $(cpp)/split_channels.cpp
+simage_dep += $(cpp)/sub_view.cpp
+simage_dep += $(cpp)/transform.cpp
+simage_dep += $(cpp)/verify.cpp
+
 simage_dep += $(stb)/stb_image_resize.h
 simage_dep += $(stb)/stb_image_write.h
 simage_dep += $(stb)/stb_image.h
@@ -81,7 +86,6 @@ simage_dep += $(stb)/stb_include.hpp
 simage_dep += $(stb)/stb_simage.cpp
 simage_dep += $(uvc)/libuvc2.hpp
 simage_dep += $(uvc)/uvc_simage.cpp
-simage_dep += $(util)/types.hpp
 simage_dep += $(util)/color_space.hpp
 simage_dep += $(util)/execute.hpp
 simage_dep += $(util)/execute.cpp

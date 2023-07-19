@@ -321,6 +321,7 @@ namespace simage
 
 	using DeviceView = DeviceMatrix2D<Pixel>;
 	using DeviceViewGray = DeviceMatrix2D<u8>;
+	using DeviceViewYUV = DeviceMatrix2D<YUV2u8>;
 }
 
 #endif // SIMAGE_NO_CUDA

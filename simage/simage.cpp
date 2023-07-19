@@ -49,48 +49,14 @@ namespace cs = color_space;
 #ifndef SIMAGE_NO_CUDA
 
 
-/* reinterpret */
+/* row_begin */
 
 namespace simage
 {
     template <typename T>
-    static Matrix2D<T> reinterpret_matrix(DeviceMatrix2D<T> const& src)
+    static T* row_begin(DeviceMatrix2D<T> const& view, u32 y)
     {
-        Matrix2D<T> mat{};
-
-        mat.data_ = src.data_;
-        mat.width = src.width;
-        mat.height = src.height;
-
-        return mat;
-    }
-}
-
-/* make_device_image */
-
-namespace simage
-{
-	DeviceView make_device_view(u32 width, u32 height, DeviceBuffer32& buffer)
-    {
-        DeviceView image{};
-
-        image.data_ = cuda::push_elements(buffer, width * height);
-        image.width = width;
-        image.height = height;
-
-        return image;
-    }
-
-
-	DeviceViewGray make_device_view(u32 width, u32 height, DeviceBuffer8& buffer)
-    {
-        DeviceViewGray image{};
-
-        image.data_ = cuda::push_elements(buffer, width * height);
-        image.width = width;
-        image.height = height;
-
-        return image;
+        return view.data_ + (u64)(y * view.width);
     }
 }
 
@@ -102,14 +68,22 @@ namespace simage
     template <typename T>
     static void do_copy_to_device(MatrixView<T> const& host_src, DeviceMatrix2D<T> const& device_dst)
     {
-        auto const mat = reinterpret_matrix(device_dst);
+        if (host_src.width == host_src.matrix_width)
+        {
+            auto bytes = sizeof(T) * host_src.width * host_src.height;
+            auto h = row_begin(host_src, 0);
+            auto d = device_dst.data_;
+            if(!cuda::memcpy_to_device(h, d, bytes)) { assert(false); }
+
+            return;
+        }
 
         auto const bytes_per_row = sizeof(T) * host_src.width;
 
         for (u32 y = 0; y < host_src.height; ++y)
         {
             auto h = row_begin(host_src, y);
-            auto d = row_begin(mat, y);
+            auto d = row_begin(device_dst, y);
             if(!cuda::memcpy_to_device(h, d, bytes_per_row)) { assert(false); }
         }
     }
@@ -118,13 +92,21 @@ namespace simage
     template <typename T>
     static void do_copy_to_host(DeviceMatrix2D<T> const& device_src, MatrixView<T> const& host_dst)
     {
-        auto const mat = reinterpret_matrix(device_src);
+        if (host_dst.width == host_dst.matrix_width)
+        {
+            auto bytes = sizeof(T) * host_dst.width * host_dst.height;
+            auto d = device_src.data_;
+            auto h = row_begin(host_dst, 0);
+            if(!cuda::memcpy_to_host(d, h, bytes)) { assert(false); }
 
+            return;
+        }
+        
         auto const bytes_per_row = sizeof(T) * device_src.width;
 
         for (u32 y = 0; y < host_dst.height; ++y)
         {
-            auto d = row_begin(mat, y);
+            auto d = row_begin(device_src, y);
             auto h = row_begin(host_dst, y);
             if(!cuda::memcpy_to_host(d, h, bytes_per_row)) { assert(false); }
         }
@@ -147,6 +129,14 @@ namespace simage
     }
 
 
+    void copy_to_device(ViewYUV const& host_src, DeviceViewYUV const& device_dst)
+    {
+        assert(verify(host_src, device_dst));
+
+        do_copy_to_device(host_src, device_dst);
+    }
+
+
     void copy_to_host(DeviceView const& device_src, View const& host_dst)
     {
         assert(verify(device_src, host_dst));
@@ -156,6 +146,14 @@ namespace simage
 
 
     void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst)
+    {
+        assert(verify(device_src, host_dst));
+
+        do_copy_to_host(device_src, host_dst);
+    }
+
+
+    void copy_to_host(DeviceViewYUV const& device_src, ViewYUV const& host_dst)
     {
         assert(verify(device_src, host_dst));
 

@@ -818,35 +818,45 @@ namespace simage
 	using DeviceBuffer8 = cuda::DeviceBuffer<u8>;
 
 
-	inline DeviceBuffer32 create_device_buffer32(u32 n_pixels)
+	template <typename T>
+	cuda::DeviceBuffer<T> create_device_buffer(u32 n_pixels)
 	{
-		DeviceBuffer32 buffer;
+		cuda::DeviceBuffer<T> buffer;
 		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
 		return buffer;
+	}
+
+
+	template <typename T>
+	cuda::DeviceBuffer<T> create_unified_buffer(u32 n_pixels)
+	{
+		cuda::DeviceBuffer<T> buffer;
+		if (!cuda::create_unified_buffer(buffer, n_pixels)) { assert(false); }
+		return buffer;
+	}
+
+
+	inline DeviceBuffer32 create_device_buffer32(u32 n_pixels)
+	{
+		return create_device_buffer<Pixel>(n_pixels);
 	}
 
 
 	inline DeviceBuffer8 create_device_buffer8(u32 n_pixels)
 	{
-		DeviceBuffer8 buffer;
-		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
-		return buffer;
+		return create_device_buffer<u8>(n_pixels);
 	}
 
 
 	inline DeviceBuffer32 create_unified_buffer32(u32 n_pixels)
 	{
-		DeviceBuffer32 buffer;
-		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
-		return buffer;
+		return create_unified_buffer<Pixel>(n_pixels);
 	}
 
 
 	inline DeviceBuffer8 create_unified_buffer8(u32 n_pixels)
 	{
-		DeviceBuffer8 buffer;
-		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
-		return buffer;
+		return create_unified_buffer<u8>(n_pixels);
 	}
 
 
@@ -862,9 +872,17 @@ namespace simage
 
 namespace simage
 {
-	DeviceView make_device_view(u32 width, u32 height, DeviceBuffer32& buffer);
+	template <typename T>
+	DeviceMatrix2D<T> make_device_view(u32 width, u32 height, cuda::DeviceBuffer<T>& buffer)
+    {
+        DeviceMatrix2D<T> view{};
 
-	DeviceViewGray make_device_view(u32 width, u32 height, DeviceBuffer8& buffer);
+        view.data_ = cuda::push_elements(buffer, width * height);
+        view.width = width;
+        view.height = height;
+
+        return view;
+    }
 }
 
 
@@ -876,9 +894,14 @@ namespace simage
 
     void copy_to_device(ViewGray const& host_src, DeviceViewGray const& device_dst);
 
+	void copy_to_device(ViewYUV const& host_src, DeviceViewYUV const& device_dst);
+
+
     void copy_to_host(DeviceView const& device_src, View const& host_dst);
 
     void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst);
+
+	void copy_to_host(DeviceViewYUV const& device_src, ViewYUV const& host_dst);
 }
 
 

@@ -12,6 +12,12 @@ using DeviceMatrix2D = img::DeviceMatrix2D<T>;
 using Pixel = img::Pixel;
 using DeviceView = img::DeviceView;
 using DeviceViewGray = img::DeviceViewGray;
+using DeviceViewYUV = img::DeviceViewYUV;
+
+using RGBA = simage::RGBA;
+using RGB = simage::RGB;
+using HSV = simage::HSV;
+using YUV = simage::YUV;
 
 
 class ChannelXY
@@ -85,6 +91,23 @@ namespace gpuf
 		p.x = thread_id - p.y * view.width;
 
 		return p;
+	}
+
+
+    template <class VIEW>
+	GPU_FUNCTION
+	static ChannelXY get_thread_channel_xy(VIEW const& view, u32 thread_id)
+	{
+		auto width = view.width;
+		auto height = view.height;
+
+		ChannelXY cxy{};
+
+		cxy.ch = thread_id / (width * height);
+		cxy.y = (thread_id - width * height * cxy.ch) / width;
+		cxy.x = (thread_id - width * height * cxy.ch) - cxy.y * width;
+
+		return cxy;
 	}
 
 

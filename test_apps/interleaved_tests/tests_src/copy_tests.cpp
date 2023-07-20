@@ -32,7 +32,7 @@ void copy_gray_test(img::View const& out)
 
 	img::copy(src, dst);
 
-	img::map_gray(dst, out);
+	img::map_rgba(dst, out);
 
 	img::destroy_image(image);
 	img::destroy_buffer(buffer);

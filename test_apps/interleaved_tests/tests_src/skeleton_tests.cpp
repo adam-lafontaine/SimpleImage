@@ -17,7 +17,7 @@ void skeleton_test(img::View const& out)
 
     img::skeleton(dst);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);

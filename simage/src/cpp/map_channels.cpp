@@ -2,25 +2,7 @@
 
 namespace simage
 {
-	void map_gray(View const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto rgba = s[x].rgba;
-				d[x] = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-			}
-		}
-	}
-
-
-	void map_gray(ViewGray const& src, View const& dst)
+	void map_rgba(ViewGray const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -39,7 +21,7 @@ namespace simage
 	}
 
 
-	void map_yuv(ViewYUV const& src, View const& dst)
+	void map_rgba(ViewYUV const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 		assert(src.width % 2 == 0);
@@ -73,24 +55,7 @@ namespace simage
 	}
 
 
-	void map_gray(ViewYUV const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x].y;
-			}
-		}
-	}
-
-
-	void map_rgb(ViewBGR const& src, View const& dst)
+	void map_rgba(ViewBGR const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -111,7 +76,7 @@ namespace simage
 	}	
 
 
-	void map_rgb(ViewRGB const& src, View const& dst)
+	void map_rgba(ViewRGB const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -127,6 +92,41 @@ namespace simage
 				rgba.green = s[x].green;
 				rgba.blue = s[x].blue;
 				rgba.alpha = 255;
+			}
+		}
+	}
+
+
+	void map_gray(View const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto rgba = s[x].rgba;
+				d[x] = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+			}
+		}
+	}
+
+
+	void map_gray(ViewYUV const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = s[x].y;
 			}
 		}
 	}

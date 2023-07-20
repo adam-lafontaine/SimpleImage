@@ -20,7 +20,7 @@ void split_channels_red_test(img::View const& out)
 
     img::split_rgb(src, red, green, blue);
 
-    img::map_gray(red, out);
+    img::map_rgba(red, out);
 
     img::destroy_image(image);
     img::destroy_buffer(pixels);
@@ -49,7 +49,7 @@ void split_channels_green_test(img::View const& out)
 
     img::split_rgb(src, red, green, blue);
 
-    img::map_gray(green, out);
+    img::map_rgba(green, out);
 
     img::destroy_image(image);
     img::destroy_buffer(pixels);
@@ -78,7 +78,7 @@ void split_channels_blue_test(img::View const& out)
 
     img::split_rgb(src, red, green, blue);
 
-    img::map_gray(blue, out);
+    img::map_rgba(blue, out);
 
     img::destroy_image(image);
     img::destroy_buffer(pixels);

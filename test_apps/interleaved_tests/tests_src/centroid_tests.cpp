@@ -26,7 +26,7 @@ void centroid_test(img::View const& out)
 
     img::fill(img::sub_view(dst, c), 0);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);

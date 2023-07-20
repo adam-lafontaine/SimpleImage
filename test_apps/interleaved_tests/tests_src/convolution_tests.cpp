@@ -22,7 +22,7 @@ void blur_test(img::View const& out)
     img::blur(dst, src);
     img::blur(src, dst);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);
@@ -42,7 +42,7 @@ void gradients_test(img::View const& out)
 
     img::gradients(src, dst);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);
@@ -72,8 +72,8 @@ void gradients_xy_test(img::View const& out)
 
     img::gradients_xy(src, dst_x, dst_y);
 
-    img::map_gray(img::sub_view(dst_x, left), img::sub_view(out, left));
-    img::map_gray(img::sub_view(dst_y, right), img::sub_view(out, right));
+    img::map_rgba(img::sub_view(dst_x, left), img::sub_view(out, left));
+    img::map_rgba(img::sub_view(dst_y, right), img::sub_view(out, right));
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);

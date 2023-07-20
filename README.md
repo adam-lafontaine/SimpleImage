@@ -318,7 +318,7 @@ img::map_rgb(view, rgb);
 
 // ...
 
-img::map_rgb(rgb, view);
+img::map_rgba(rgb, view);
 
 // ...
 

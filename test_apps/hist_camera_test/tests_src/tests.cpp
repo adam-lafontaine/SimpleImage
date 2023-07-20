@@ -126,5 +126,5 @@ void generate_histograms(img::View const& src, img::View const& dst)
     img::hist::make_histograms(src, hists);
     draw(hists, hist_view, params);
 
-    img::map_gray(hist_view, dst);
+    img::map_rgba(hist_view, dst);
 }

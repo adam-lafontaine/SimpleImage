@@ -36,7 +36,7 @@ void map_rgb_tests(img::View const& out)
 
     img::map_rgb(src, dst);
 
-    img::map_rgb(dst, out);
+    img::map_rgba(dst, out);
 
     mb::destroy_buffer(buffer);
     img::destroy_image(image);
@@ -59,7 +59,7 @@ void map_gray_tests(img::View const& out)
 
     img::map_gray(src, dst);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     mb::destroy_buffer(buffer8);
     mb::destroy_buffer(buffer32);

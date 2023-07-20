@@ -198,7 +198,7 @@ namespace simage
 	}
 
 
-	void map_gray(View1f32 const& src, View const& dst)
+	void map_rgba(View1f32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -331,7 +331,7 @@ namespace simage
 	}
 
 
-	void map_rgb(ViewRGBf32 const& src, View const& dst)
+	void map_rgba(ViewRGBf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -371,7 +371,7 @@ namespace simage
 	}
 
 
-	void map_hsv_rgb(ViewHSVf32 const& src, View const& dst)
+	void map_hsv_rgba(ViewHSVf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -463,7 +463,7 @@ namespace simage
 	}
 
 
-	void map_lch_rgb(ViewLCHf32 const& src, View const& dst)
+	void map_lch_rgba(ViewLCHf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -660,7 +660,7 @@ namespace simage
 	}
 
 
-	void map_yuv_rgb(ViewYUVf32 const& src, View const& dst)
+	void map_yuv_rgba(ViewYUVf32 const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 

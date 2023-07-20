@@ -70,7 +70,7 @@ void lch_draw_test(img::View const& out)
 
     img::fill(view_L, 1.0f);
 
-    img::map_lch_rgb(lch, out);
+    img::map_lch_rgba(lch, out);
     
     mb::destroy_buffer(buffer);
 }

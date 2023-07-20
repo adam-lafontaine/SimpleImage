@@ -27,7 +27,7 @@ void blur_gray_test(img::View const& out)
     img::blur(dst, src);
     img::blur(src, dst);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer8);
     img::destroy_buffer(buffer32);
@@ -60,7 +60,7 @@ void blur_rgb_test(img::View const& out)
     img::blur(dst, src);
     img::blur(src, dst);
 
-    img::map_rgb(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer);
     img::destroy_image(image);

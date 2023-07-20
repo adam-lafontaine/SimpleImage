@@ -19,7 +19,7 @@ void gradients_tests(img::View const& out)
 
     img::gradients(src, dst);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer8);
     img::destroy_buffer(buffer32);
@@ -59,8 +59,8 @@ void gradients_xy_tests(img::View const& out)
     auto bottom = full;
     bottom.y_begin = height / 2;
 
-    img::map_gray(img::sub_view(grad_x, top), img::sub_view(out, top));
-    img::map_gray(img::sub_view(grad_y, bottom), img::sub_view(out, bottom));
+    img::map_rgba(img::sub_view(grad_x, top), img::sub_view(out, top));
+    img::map_rgba(img::sub_view(grad_y, bottom), img::sub_view(out, bottom));
 
     img::destroy_buffer(buffer8);
     img::destroy_buffer(buffer32);

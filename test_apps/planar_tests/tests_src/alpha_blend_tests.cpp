@@ -28,7 +28,7 @@ void alpha_blend_test(img::View const& out)
 
     img::alpha_blend(src, cur, dst);
 
-    img::map_rgb(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer);
     img::destroy_image(img_vette);

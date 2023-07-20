@@ -57,9 +57,6 @@ namespace simage
 
 namespace simage
 {
-	
-
-
 	View make_view(Image const& image);
 
 	ViewGray make_view(ImageGray const& image);

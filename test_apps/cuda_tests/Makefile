@@ -307,6 +307,7 @@ simage_h := $(simage)/simage.hpp
 simage_h += $(util)/types.hpp
 simage_h += $(simage)/defines.hpp
 simage_h += $(simage)/simage_types.hpp
+simage_h += $(simage)/simage_cuda.hpp
 
 app_h := $(app)/app.hpp
 tests_include_h := ../tests_include.hpp

@@ -13,6 +13,7 @@ using Pixel = img::Pixel;
 using DeviceView = img::DeviceView;
 using DeviceViewGray = img::DeviceViewGray;
 using DeviceViewYUV = img::DeviceViewYUV;
+using DeviceViewBGR = img::DeviceViewBGR;
 
 using RGBA = simage::RGBA;
 using RGB = simage::RGB;

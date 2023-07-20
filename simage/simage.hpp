@@ -910,6 +910,10 @@ namespace simage
 namespace simage
 {
 	void map_rgb_gray(DeviceView const& src, DeviceViewGray const& dst);
+
+	void map_yuv_rgba(DeviceViewYUV const& src, DeviceView const& dst);
+
+	void map_bgr_rgba(DeviceViewBGR const& src, DeviceView const& dst);
 }
 
 

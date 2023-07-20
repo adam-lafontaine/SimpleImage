@@ -116,7 +116,7 @@ namespace gpu
         auto dst_y = dst_cxy.y;
         auto dst_ch = (RGBA)dst_cxy.ch;
 
-        auto& dst_rgba = gpuf::xy_at(dst, dst_cxy.x, dst_cxy.y)->rgba;
+        auto& dst_rgba = gpuf::xy_at(dst, dst_x, dst_y)->rgba;
 
         if (dst_ch == RGBA::A)
         {
@@ -126,7 +126,7 @@ namespace gpu
 
         auto src_x = dst_cxy.x;
         auto src_y = dst_cxy.y;
-        auto src_uyvy_x = src_x / 2 * 2;        
+        auto src_uyvy_x = (src_x >> 1) << 1;        
 
         auto src_uyvy = *(img::YUV422u8*)gpuf::xy_at(src, src_uyvy_x, src_y);
 
@@ -145,6 +145,52 @@ namespace gpu
             break;
         case RGBA::B:
             dst_rgba.blue = gpuf::round_to_u8(gpuf::yuv_to_rgb_b(yuv_y, yuv_u, yuv_v));
+            break;
+        default:
+            break;
+        }
+    }
+
+
+    GPU_KERNAL
+    static void bgr_u8_to_rgba_u8(DeviceViewBGR src, DeviceView dst, u32 n_threads)
+    {
+        auto t = blockDim.x * blockIdx.x + threadIdx.x;
+		if (t >= n_threads)
+		{
+			return;
+		}
+
+        assert(n_threads == dst.width * dst.height * 4);
+
+        auto dst_cxy = gpuf::get_thread_channel_xy(dst, t);
+        auto dst_x = dst_cxy.x;
+        auto dst_y = dst_cxy.y;
+        auto dst_ch = (RGBA)dst_cxy.ch;
+
+        auto& dst_rgba = gpuf::xy_at(dst, dst_x, dst_y)->rgba;
+
+        if (dst_ch == RGBA::A)
+        {
+            dst_rgba.alpha = 255;
+            return;
+        }
+
+        auto src_x = dst_cxy.x;
+        auto src_y = dst_cxy.y;
+
+        auto src_bgr = *gpuf::xy_at(src, src_x, src_y);
+
+        switch(dst_ch)
+        {
+        case RGBA::R:
+            dst_rgba.red = src_bgr.red;
+            break;
+        case RGBA::G:
+            dst_rgba.green = src_bgr.green;
+            break;
+        case RGBA::B:
+            dst_rgba.blue = src_bgr.blue;
             break;
         default:
             break;
@@ -172,6 +218,42 @@ namespace simage
         cuda_launch_kernel(gpu::rgba_u8_to_gray_u8, n_blocks, block_size, src, dst, n_threads);
 
         auto result = cuda::launch_success("gpu::rgba_u8_to_gray_u8");
+		assert(result);
+    }
+
+
+    void map_yuv_rgba(DeviceViewYUV const& src, DeviceView const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height * 4;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::yuv_u8_to_rgba_u8, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::yuv_u8_to_rgba_u8");
+		assert(result);
+    }
+
+
+    void map_bgr_rgba(DeviceViewBGR const& src, DeviceView const& dst)
+    {
+        assert(verify(src, dst));
+
+        auto const width = src.width;
+		auto const height = src.height;
+
+		auto const n_threads = width * height * 4;
+		auto const n_blocks = calc_thread_blocks(n_threads);
+		constexpr auto block_size = THREADS_PER_BLOCK;
+
+        cuda_launch_kernel(gpu::bgr_u8_to_rgba_u8, n_blocks, block_size, src, dst, n_threads);
+
+        auto result = cuda::launch_success("gpu::bgr_u8_to_rgba_u8");
 		assert(result);
     }
 }

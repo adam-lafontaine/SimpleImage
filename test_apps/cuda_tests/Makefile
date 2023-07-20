@@ -391,8 +391,10 @@ simage_cuda_dep += $(cuda)/cuda_def.cuh
 simage_cuda_dep += $(cuda)/device.hpp
 simage_cuda_dep += $(cuda)/device.cu
 
+simage_cuda_dep += $(cu)/alpha_blend.cu
 simage_cuda_dep += $(cu)/map_channels.cu
 simage_cuda_dep += $(cu)/row_begin.cu
+simage_cuda_dep += $(cu)/threshold.cu
 
 simage_cuda_c := $(simage)/simage_cuda.cu
 simage_cuda_o := $(build)/simage_cuda.o
@@ -404,6 +406,7 @@ tests_dep := $(tests_include_h)
 tests_dep += $(tests_src)/copy_device_tests.cpp
 tests_dep += $(tests_src)/rgb_gray_tests.cpp
 tests_dep += $(tests_src)/alpha_blend_tests.cpp
+tests_dep += $(tests_src)/threshold_tests.cpp
 
 
 tests_c := $(tests_src)/tests.cpp

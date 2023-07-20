@@ -3,3 +3,4 @@
 #include "copy_device_tests.cpp"
 #include "rgb_gray_tests.cpp"
 #include "alpha_blend_tests.cpp"
+#include "threshold_tests.cpp"

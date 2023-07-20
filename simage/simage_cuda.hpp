@@ -116,3 +116,16 @@ namespace simage
 {
     void alpha_blend(DeviceView const& src, DeviceView const& cur, DeviceView const& dst);
 }
+
+
+/* threshold */
+
+namespace simage
+{
+    void threshold(DeviceViewGray const& src, DeviceViewGray const& dst, u8 min, u8 max);
+
+    inline void threshold(DeviceViewGray const& src, DeviceViewGray const& dst, u8 min)
+    {
+        threshold(src, dst, min, 255);
+    }
+}

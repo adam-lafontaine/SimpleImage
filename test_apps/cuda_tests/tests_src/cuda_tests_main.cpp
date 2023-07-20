@@ -17,6 +17,8 @@ void copy_device_sub_view_test(img::View const& out);
 void copy_device_sub_view_gray_test(img::View const& out);
 void rgb_gray_test(img::View const& out);
 void alpha_blend_test(img::View const& out);
+void threshold_min_test(img::View const& out);
+void threshold_min_max_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -27,6 +29,8 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	copy_device_sub_view_gray_test,
 	rgb_gray_test,
 	alpha_blend_test,
+	threshold_min_test,
+	threshold_min_max_test,
 };
 
 

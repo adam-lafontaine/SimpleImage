@@ -212,7 +212,7 @@ ViewYUV yuv;
 // ...
 
 img::map_gray(view, gray); // RGBA to grayscale
-img::map_yuv(yuv, view);   // YUYV to RGBA
+img::map_rgba(yuv, view);   // YUYV to RGBA
 ```
 
 Create custom image transforms

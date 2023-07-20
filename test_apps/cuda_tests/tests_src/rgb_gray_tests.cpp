@@ -33,7 +33,7 @@ void rgb_gray_test(img::View const& out)
     img::map_rgb_gray(device32, device8);
     img::copy_to_host(device8, host_dst);
 
-    img::map_gray(host_dst, out_left);
+    img::map_rgba(host_dst, out_left);
     img::copy(host_right, out_right);
 
     img::destroy_image(vette);

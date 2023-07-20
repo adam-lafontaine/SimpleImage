@@ -40,7 +40,7 @@ void copy_device_gray_test(img::View const& out)
     img::copy_to_device(host_src, device);
     img::copy_to_host(device, host_dst);
 
-    img::map_gray(host_dst, out);
+    img::map_rgba(host_dst, out);
 
     img::destroy_image(caddy);
     img::destroy_buffer(pixels);
@@ -120,7 +120,7 @@ void copy_device_sub_view_gray_test(img::View const& out)
     img::copy_to_device(host_right, device);
     img::copy_to_host(device, dst_left);
 
-    img::map_gray(host_dst, out);
+    img::map_rgba(host_dst, out);
 
     img::destroy_image(vette);
     img::destroy_image(caddy);

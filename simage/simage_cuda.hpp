@@ -108,3 +108,11 @@ namespace simage
 
 	void map_bgr_rgba(DeviceViewBGR const& src, DeviceView const& dst);
 }
+
+
+/* alpha blend */
+
+namespace simage
+{
+    void alpha_blend(DeviceView const& src, DeviceView const& cur, DeviceView const& dst);
+}

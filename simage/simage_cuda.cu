@@ -118,6 +118,7 @@ namespace gpuf
 
 #include "src/cu/row_begin.cu"
 #include "src/cu/map_channels.cu"
+#include "src/cu/alpha_blend.cu"
 
 
 

@@ -1,3 +1,5 @@
+
+
 namespace gpuf
 {    
     GPU_CONSTEXPR_FUNCTION
@@ -111,29 +113,27 @@ namespace gpu
 
         assert(n_threads == dst.width * dst.height * 4);
 
-        auto dst_cxy = gpuf::get_thread_channel_xy(dst, t);
-        auto dst_x = dst_cxy.x;
-        auto dst_y = dst_cxy.y;
-        auto dst_ch = (RGBA)dst_cxy.ch;
+        auto cxy = gpuf::get_thread_channel_xy(dst, t);
+        auto x = cxy.x;
+        auto y = cxy.y;
+        auto dst_ch = (RGBA)cxy.ch;
 
-        auto& dst_rgba = gpuf::xy_at(dst, dst_x, dst_y)->rgba;
+        auto& dst_rgba = gpuf::xy_at(dst, x, y)->rgba;
 
         if (dst_ch == RGBA::A)
         {
             dst_rgba.alpha = 255;
             return;
         }
+        
+        auto src_uyvy_x = (x >> 1) << 1;        
 
-        auto src_x = dst_cxy.x;
-        auto src_y = dst_cxy.y;
-        auto src_uyvy_x = (src_x >> 1) << 1;        
-
-        auto src_uyvy = *(img::YUV422u8*)gpuf::xy_at(src, src_uyvy_x, src_y);
+        auto src_uyvy = *(img::YUV422u8*)gpuf::xy_at(src, src_uyvy_x, y);
 
         auto yuv_u = src_uyvy.u;
         auto yuv_v = src_uyvy.v;
         
-        auto yuv_y = gpuf::xy_at(src, src_x, src_y)->y;
+        auto yuv_y = gpuf::xy_at(src, x, y)->y;
 
         switch(dst_ch)
         {

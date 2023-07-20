@@ -59,9 +59,7 @@ namespace simage
 		auto const channel_func = [&](u32 ch)
 		{
 			auto const c = cs::to_channel_f32(color.channels[ch]);
-
-			auto channel = select_channel(view, ch);
-			fill_channel(channel, c);
+			fill_channel(select_channel(view, ch), c);
 		};
 
 		std::array<std::function<void()>, 4> f_list
@@ -83,9 +81,7 @@ namespace simage
 		auto const channel_func = [&](u32 ch)
 		{
 			auto const c = cs::to_channel_f32(color.channels[ch]);
-
-			auto channel = select_channel(view, ch);
-			fill_channel(channel, c);
+			fill_channel(select_channel(view, ch), c);
 		};
 
 		std::array<std::function<void()>, 3> f_list

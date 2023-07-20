@@ -74,16 +74,6 @@ namespace simage
 			}
 		}
 	}
-
-
-    template <typename T, size_t N>
-	static void rotate_channels(ChannelView<T, N> const& src, ChannelView<T, N> const& dst, Point2Du32 origin, f32 rad)
-	{
-		for (u32 ch = 0; ch < N; ++ch)
-		{
-			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
-		}
-	}
 }
 
 

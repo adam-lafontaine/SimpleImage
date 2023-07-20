@@ -1,7 +1,7 @@
 #ifndef SIMAGE_NO_CUDA
 
 #include "libs/cuda/device.cu"
-#include "src/simage_types.hpp"
+#include "simage_types.hpp"
 
 namespace img = simage;
 

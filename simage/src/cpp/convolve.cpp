@@ -2,74 +2,6 @@
 
 namespace simage
 {
-    constexpr std::array<f32, 33> make_grad_x_3x11()
-	{
-		/*constexpr std::array<f32, 33> GRAD_X
-		{
-			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
-			-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
-			-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.01f,
-		};*/
-
-		std::array<f32, 33> grad = { 0 };
-
-		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
-
-		size_t w = 11;
-
-		for (size_t i = 0; i < 5; ++i)
-		{
-			grad[6 + i] = values[i];
-			grad[2 * w + 6 + i] = values[i];
-			grad[w + 6 + i] = 3 * values[i];
-			grad[4 - i] = -values[i];
-			grad[2 * w + 4 - i] = -values[i];
-			grad[w + 4 - i] = -3 * values[i];
-		}
-
-		return grad;
-	}
-
-
-	constexpr std::array<f32, 33> make_grad_y_11x3()
-	{
-		/*constexpr std::array<f32, 33> GRAD_Y
-		{
-			-0.02f, -0.06f, -0.02f,
-			-0.03f, -0.09f, -0.03f,
-			-0.04f, -0.12f, -0.04f,
-			-0.05f, -0.15f, -0.05f,
-
-			-0.06f, -0.18f, -0.06f,
-			 0.00f,  0.00f,  0.00f,
-			 0.06f,  0.18f,  0.06f,
-
-			 0.05f,  0.15f,  0.05f,
-			 0.04f,  0.12f,  0.04f,
-			 0.03f,  0.09f,  0.03f,
-			 0.02f,  0.06f,  0.02f,
-		};*/
-
-		std::array<f32, 33> grad = { 0 };
-
-		f32 values[] = { 0.08f, 0.06f, 0.04f, 0.02f, 0.01f };
-
-		size_t w = 3;
-
-		for (size_t i = 0; i < 5; ++i)
-		{
-			grad[w * (6 + i)] = values[i];
-			grad[w * (6 + i) + 2] = values[i];
-			grad[w * (6 + i) + 1] = 3 * values[i];
-			grad[w * (4 - i)] = -values[i];
-			grad[w * (4 - i) + 2] = -values[i];
-			grad[w * (4 - i) + 1] = -3 * values[i];
-		}
-
-		return grad;
-	}
-
-
     static constexpr std::array<f32, 9> make_gauss_3()
 	{
 		std::array<f32, 9> kernel = 
@@ -106,26 +38,7 @@ namespace simage
 
 		return kernel;
 	}
-
-
-    static constexpr auto GRAD_X_3x11 = make_grad_x_3x11();
-    static constexpr auto GRAD_Y_3x11 = make_grad_y_11x3();
-
-    static constexpr std::array<f32, 15> GRAD_X_3x5
-    {
-        -0.08f, -0.12f, 0.0f, 0.12f, 0.08f
-        -0.16f, -0.24f, 0.0f, 0.24f, 0.16f
-        -0.08f, -0.12f, 0.0f, 0.12f, 0.08f
-    };
-
-    static constexpr std::array<f32, 15> GRAD_Y_3x5
-    {
-        -0.08f, -0.16f, -0.08f,
-        -0.12f, -0.24f, -0.12f,
-         0.00f,  0.00f,  0.00f,
-         0.12f,  0.24f,  0.12f,
-         0.08f,  0.16f,  0.08f,
-    };
+	
 
     static constexpr std::array<f32, 9> GRAD_X_3x3
 	{
@@ -136,9 +49,93 @@ namespace simage
 
 	static constexpr std::array<f32, 9> GRAD_Y_3x3
 	{
-		-0.25f, -0.50f, -0.25f,
-		 0.0f,   0.0f,   0.0f,
-		 0.25f,  0.50f,  0.25f,
+		-0.2f, -0.6f, -0.2f,
+		0.0f,  0.0f,  0.0f,
+		0.2f,  0.6f,  0.2f,
+	};
+
+
+	static constexpr std::array<f32, 15> GRAD_X_3x5
+	{
+		-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+		-0.24f, -0.36f, 0.0f, 0.36f, 0.24f
+		-0.08f, -0.12f, 0.0f, 0.12f, 0.08f
+	};
+
+
+	static constexpr std::array<f32, 15> GRAD_Y_3x5
+	{
+		-0.08f, -0.24f, -0.08f,
+		-0.12f, -0.36f, -0.12f,
+		0.00f,  0.00f,  0.00f,
+		0.12f,  0.36f,  0.12f,
+		0.08f,  0.24f,  0.08f,
+	};
+
+
+	static constexpr std::array<f32, 21> GRAD_X_3x7
+	{
+		-0.04f, -0.07f, -0.09f, 0.0f, 0.09f, 0.07f, 0.04f,
+		-0.12f, -0.21f, -0.27f, 0.0f, 0.27f, 0.21f, 0.12f,
+		-0.04f, -0.07f, -0.09f, 0.0f, 0.09f, 0.07f, 0.04f,
+	};
+
+
+	static constexpr std::array<f32, 21> GRAD_Y_3x7
+	{
+		-0.04f, -0.12f, -0.04f,
+		-0.07f, -0.21f, -0.07f,
+		-0.09f, -0.27f, -0.09f,
+		0.00f,  0.00f,  0.00f,
+		0.09f,  0.27f,  0.09f,
+		0.07f,  0.21f,  0.07f,
+		0.04f,  0.12f,  0.04f,
+	};
+
+
+	static constexpr std::array<f32, 27> GRAD_X_3x9
+	{
+		-0.02f, -0.04f, -0.06f, -0.08f, 0.0f, 0.08f, 0.06f, 0.04f, 0.02f,
+		-0.06f, -0.12f, -0.18f, -0.24f, 0.0f, 0.24f, 0.18f, 0.12f, 0.06f,
+		-0.02f, -0.04f, -0.06f, -0.08f, 0.0f, 0.08f, 0.06f, 0.04f, 0.02f,
+	};
+
+
+	static constexpr std::array<f32, 27> GRAD_Y_3x9
+	{
+		-0.02f, -0.09f, -0.02f,
+		-0.04f, -0.12f, -0.04f,
+		-0.06f, -0.15f, -0.06f,
+		-0.08f, -0.18f, -0.08f,
+		0.00f,  0.00f,  0.00f,
+		0.08f,  0.18f,  0.08f,
+		0.06f,  0.15f,  0.06f,
+		0.04f,  0.12f,  0.04f,
+		0.02f,  0.09f,  0.02f,
+	};
+
+
+    static constexpr std::array<f32, 33> GRAD_X_3x11
+	{
+		-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
+		-0.06f, -0.09f, -0.12f, -0.15f, -0.18f, 0.0f, 0.18f, 0.15f, 0.12f, 0.09f, 0.06f,
+		-0.02f, -0.03f, -0.04f, -0.05f, -0.06f, 0.0f, 0.06f, 0.05f, 0.04f, 0.03f, 0.02f,
+	};
+
+
+    static constexpr std::array<f32, 33> GRAD_Y_3x11
+	{
+		-0.02f, -0.06f, -0.02f,
+		-0.03f, -0.09f, -0.03f,
+		-0.04f, -0.12f, -0.04f,
+		-0.05f, -0.15f, -0.05f,
+		-0.06f, -0.18f, -0.06f,
+		0.00f,  0.00f,  0.00f,
+		0.06f,  0.18f,  0.06f,
+		0.05f,  0.15f,  0.05f,
+		0.04f,  0.12f,  0.04f,
+		0.03f,  0.09f,  0.03f,
+		0.02f,  0.06f,  0.02f,
 	};
 
 

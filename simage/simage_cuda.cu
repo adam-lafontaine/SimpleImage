@@ -120,6 +120,7 @@ namespace gpuf
 #include "src/cu/map_channels.cu"
 #include "src/cu/alpha_blend.cu"
 #include "src/cu/threshold.cu"
+#include "src/cu/convolve.cu"
 
 
 

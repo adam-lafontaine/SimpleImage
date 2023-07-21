@@ -20,6 +20,54 @@ GPU_GLOBAL_CONSTANT f32 GAUSS_5x5[]
 };
 
 
+GPU_CONSTEXPR_FUNCTION f32 div140(int i) { return i / 140.0f; }
+
+GPU_GLOBAL_CONSTANT f32 GAUSS_7x7[]
+{
+    div140(1), div140(1), div140(2),  div140(2), div140(2), div140(1), div140(1),
+    div140(1), div140(2), div140(2),  div140(4), div140(2), div140(2), div140(1),
+    div140(2), div140(2), div140(4),  div140(8), div140(4), div140(2), div140(2),
+    div140(2), div140(4), div140(8), div140(16), div140(8), div140(4), div140(2),
+    div140(2), div140(2), div140(4),  div140(8), div140(4), div140(2), div140(2),
+    div140(1), div140(2), div140(2),  div140(4), div140(2), div140(2), div140(1),
+    div140(1), div140(1), div140(2),  div140(2), div140(2), div140(1), div140(1),
+};
+
+
+GPU_CONSTEXPR_FUNCTION f32 div448(int i) { return i / 448.0f; }
+
+GPU_GLOBAL_CONSTANT f32 GAUSS_9x9[]
+{
+    div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
+    div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
+    div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
+    div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
+    div448(4), div448(8), div448(16), div448(32), div448(64), div448(32), div448(16), div448(8), div448(4),
+    div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
+    div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
+    div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
+    div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
+};
+
+
+GPU_CONSTEXPR_FUNCTION f32 div225(int i) { return i / 225.0f; }
+
+GPU_GLOBAL_CONSTANT f32 GAUSS_11x11[]
+{
+    div225(1), div225(1), div225(2), div225(2), div225(3), div225(3), div225(3), div225(2), div225(2), div225(1), div225(1),
+    div225(1), div225(2), div225(2), div225(3), div225(4), div225(4), div225(4), div225(3), div225(2), div225(2), div225(1),
+    div225(2), div225(2), div225(3), div225(4), div225(5), div225(5), div225(5), div225(4), div225(3), div225(2), div225(2),
+    div225(2), div225(3), div225(4), div225(5), div225(7), div225(7), div225(7), div225(5), div225(4), div225(3), div225(2),
+    div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
+    div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
+    div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
+    div225(2), div225(3), div225(4), div225(5), div225(7), div225(7), div225(7), div225(5), div225(4), div225(3), div225(2),
+    div225(2), div225(2), div225(3), div225(4), div225(5), div225(5), div225(5), div225(4), div225(3), div225(2), div225(2),
+    div225(1), div225(2), div225(2), div225(3), div225(4), div225(4), div225(4), div225(3), div225(2), div225(2), div225(1),
+    div225(1), div225(1), div225(2), div225(2), div225(3), div225(3), div225(3), div225(2), div225(2), div225(1), div225(1),
+};
+
+
 GPU_GLOBAL_CONSTANT f32 GRAD_X_3x3[]
 {
     -0.2f,  0.0f,  0.2f,

@@ -2,42 +2,74 @@
 
 namespace simage
 {
-    static constexpr std::array<f32, 9> make_gauss_3()
+	static constexpr f32 div16(int i) { return i / 16.0f; }
+
+	static constexpr std::array<f32, 9> GAUSS_3x3
 	{
-		std::array<f32, 9> kernel = 
-		{
-			1.0f, 2.0f, 1.0f,
-			2.0f, 4.0f, 2.0f,
-			1.0f, 2.0f, 1.0f,
-		};
-
-		for (u32 i = 0; i < 9; ++i)
-		{
-			kernel[i] /= 16.0f;
-		}
-
-		return kernel;
-	}
+		div16(1), div16(2), div16(1),
+		div16(2), div16(4), div16(2),
+		div16(1), div16(2), div16(1),
+	};
 
 
-	static constexpr std::array<f32, 25> make_gauss_5()
+	static constexpr f32 div256(int i) { return i / 256.0f; }
+
+	static constexpr std::array<f32, 25> GAUSS_5x5
 	{
-		std::array<f32, 25> kernel =
-		{
-			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
-			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
-			6.0f, 24.0f, 36.0f, 24.0f, 6.0f,
-			4.0f, 16.0f, 24.0f, 16.0f, 4.0f,
-			1.0f, 4.0f,  6.0f,  4.0f,  1.0f,
-		};
+		div256(1), div256(4),  div256(6),  div256(4),  div256(1),
+		div256(4), div256(16), div256(24), div256(16), div256(4),
+		div256(6), div256(24), div256(36), div256(24), div256(6),
+		div256(4), div256(16), div256(24), div256(16), div256(4),
+		div256(1), div256(4),  div256(6),  div256(4),  div256(1),
+	};
 
-		for (u32 i = 0; i < 25; ++i)
-		{
-			kernel[i] /= 256.0f;
-		}
 
-		return kernel;
-	}
+	static constexpr f32 div140(int i) { return i / 140.0f; }
+
+	static constexpr std::array<f32, 49> GAUSS_7x7
+	{
+		div140(1), div140(1), div140(2),  div140(2), div140(2), div140(1), div140(1),
+		div140(1), div140(2), div140(2),  div140(4), div140(2), div140(2), div140(1),
+		div140(2), div140(2), div140(4),  div140(8), div140(4), div140(2), div140(2),
+		div140(2), div140(4), div140(8), div140(16), div140(8), div140(4), div140(2),
+		div140(2), div140(2), div140(4),  div140(8), div140(4), div140(2), div140(2),
+		div140(1), div140(2), div140(2),  div140(4), div140(2), div140(2), div140(1),
+		div140(1), div140(1), div140(2),  div140(2), div140(2), div140(1), div140(1),
+	};
+
+
+	static constexpr f32 div448(int i) { return i / 448.0f; }
+
+	static constexpr std::array<f32, 81> GAUSS_9x9
+	{
+		div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
+		div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
+		div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
+		div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
+		div448(4), div448(8), div448(16), div448(32), div448(64), div448(32), div448(16), div448(8), div448(4),
+		div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
+		div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
+		div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
+		div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
+	};
+
+
+	static constexpr f32 div225(int i) { return i / 225.0f; }
+
+	static constexpr std::array<f32, 121> GAUSS_11x11
+	{
+		div225(1), div225(1), div225(2), div225(2), div225(3), div225(3), div225(3), div225(2), div225(2), div225(1), div225(1),
+		div225(1), div225(2), div225(2), div225(3), div225(4), div225(4), div225(4), div225(3), div225(2), div225(2), div225(1),
+		div225(2), div225(2), div225(3), div225(4), div225(5), div225(5), div225(5), div225(4), div225(3), div225(2), div225(2),
+		div225(2), div225(3), div225(4), div225(5), div225(7), div225(7), div225(7), div225(5), div225(4), div225(3), div225(2),
+		div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
+		div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
+		div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
+		div225(2), div225(3), div225(4), div225(5), div225(7), div225(7), div225(7), div225(5), div225(4), div225(3), div225(2),
+		div225(2), div225(2), div225(3), div225(4), div225(5), div225(5), div225(5), div225(4), div225(3), div225(2), div225(2),
+		div225(1), div225(2), div225(2), div225(3), div225(4), div225(4), div225(4), div225(3), div225(2), div225(2), div225(1),
+		div225(1), div225(1), div225(2), div225(2), div225(3), div225(3), div225(3), div225(2), div225(2), div225(1), div225(1),
+	};
 	
 
     static constexpr std::array<f32, 9> GRAD_X_3x3
@@ -137,10 +169,6 @@ namespace simage
 		0.03f,  0.09f,  0.03f,
 		0.02f,  0.06f,  0.02f,
 	};
-
-
-	static constexpr auto GAUSS_3x3 = make_gauss_3();
-	static constexpr auto GAUSS_5x5 = make_gauss_5();
 }
 
 

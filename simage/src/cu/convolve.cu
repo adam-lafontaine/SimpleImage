@@ -170,6 +170,7 @@ GPU_GLOBAL_CONSTANT f32 GRAD_Y_3x11[]
 
 namespace gpuf
 {
+    GPU_FUNCTION
     static u8 convolve_at_xy(DeviceViewGray const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
     {
         f32 total = 0.0f;

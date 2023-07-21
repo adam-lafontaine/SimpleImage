@@ -2,58 +2,41 @@
 
 namespace simage
 {  
-	template <typename T>
-	static void blur_row(View1<T> const& src, View1<T> const& dst, u32 y)
+    template <typename T>
+	static void blur_1(View1<T> const& src, View1<T> const& dst)
 	{
 		auto const width = src.width;
         auto const height = src.height;
 
-		auto s = row_begin(src, y);
-		auto d = row_begin(dst, y);
+		auto const copy_xy = [&](u32 x, u32 y){ return *xy_at(src, x, y); };
+		auto const gauss3_xy = [&](u32 x, u32 y){ return (T)convolve_at_xy_gauss_3x3(src, x, y); };
+		auto const gauss5_xy = [&](u32 x, u32 y){ return (T)convolve_at_xy_gauss_5x5(src, x, y); };
+		auto const gauss7_xy = [&](u32 x, u32 y){ return (T)convolve_at_xy_gauss_7x7(src, x, y); };
+		auto const gauss9_xy = [&](u32 x, u32 y){ return (T)convolve_at_xy_gauss_9x9(src, x, y); };
+		auto const gauss11_xy = [&](u32 x, u32 y){ return (T)convolve_at_xy_gauss_11x11(src, x, y); };
 
-		if (y >= 2 && y < height - 2)
+		convolve_top_bottom(dst, 0, copy_xy);
+		convolve_left_right(dst, 0, copy_xy);
+
+		convolve_top_bottom(dst, 1, gauss3_xy);
+		convolve_left_right(dst, 1, gauss3_xy);
+
+		convolve_top_bottom(dst, 2, gauss5_xy);
+		convolve_left_right(dst, 2, gauss5_xy);
+
+		/*convolve_top_bottom(dst, 3, gauss7_xy);
+		convolve_left_right(dst, 3, gauss7_xy);
+
+		convolve_top_bottom(dst, 4, gauss9_xy);
+		convolve_left_right(dst, 4, gauss9_xy);*/
+
+		for (u32 y = 3; y < height - 3; ++y)
 		{
-			d[0] = s[0];
-			d[width - 1] = s[width - 1];
-
-			d[1] = (T)convolve_at_xy(src, 1, y, GAUSS_3x3);
-			d[width - 2] = (T)convolve_at_xy(src, width - 2, y, GAUSS_3x3);
-
-			for (u32 x = 2; x < width - 2; ++x)
+			auto d = row_begin(dst, y);
+			for (u32 x = 3; x < width - 3; ++x)
 			{
-				d[x] = (T)convolve_at_xy(src, x, y, GAUSS_5x5);
+				d[x] = gauss7_xy(x, y);
 			}
-
-			return;
-		}
-
-		if (y == 1 || y == height - 2)
-		{
-			d[0] = s[0];
-			d[width - 1] = s[width - 1];
-
-			for (u32 x = 1; x < width - 1; ++x)
-			{
-				d[x] = (T)convolve_at_xy(src, x, y, GAUSS_3x3);
-			}
-
-			return;
-		}
-
-		// y == 0 || y == height - 1
-		for (u32 x = 0; x < width; ++x)
-		{
-			d[x] = s[x];
-		}
-	}
-
-	 
-    template <typename T>
-	static void blur_1(View1<T> const& src, View1<T> const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			blur_row(src, dst, y);
 		}
 	}
 }

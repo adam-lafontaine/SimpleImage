@@ -13,14 +13,6 @@ void blur_test(img::View const& out)
     auto dst = img::make_view(width, height, buffer);
 
     img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
 
     img::map_rgba(dst, out);
 

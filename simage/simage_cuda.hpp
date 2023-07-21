@@ -129,3 +129,11 @@ namespace simage
         threshold(src, dst, min, 255);
     }
 }
+
+
+/* blur */
+
+namespace simage
+{
+    void blur(DeviceViewGray const& src, DeviceViewGray const& dst);
+}

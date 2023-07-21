@@ -4,3 +4,4 @@
 #include "rgb_gray_tests.cpp"
 #include "alpha_blend_tests.cpp"
 #include "threshold_tests.cpp"
+#include "convolution_tests.cpp"

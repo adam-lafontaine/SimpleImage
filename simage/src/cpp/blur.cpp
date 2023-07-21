@@ -27,15 +27,20 @@ namespace simage
 		/*convolve_top_bottom(dst, 3, gauss7_xy);
 		convolve_left_right(dst, 3, gauss7_xy);
 
-		convolve_top_bottom(dst, 4, gauss9_xy);
+		/*convolve_top_bottom(dst, 4, gauss9_xy);
 		convolve_left_right(dst, 4, gauss9_xy);*/
 
-		for (u32 y = 3; y < height - 3; ++y)
+		u32 const rc = 3;
+
+		for (u32 y = rc; y < height - rc; ++y)
 		{
 			auto d = row_begin(dst, y);
-			for (u32 x = 3; x < width - 3; ++x)
+			for (u32 x = rc; x < width - rc; ++x)
 			{
+				//d[x] = gauss5_xy(x, y);
 				d[x] = gauss7_xy(x, y);
+				//d[x] = gauss9_xy(x, y);
+				//d[x] = gauss11_xy(x, y);
 			}
 		}
 	}

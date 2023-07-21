@@ -121,6 +121,7 @@ namespace gpuf
 #include "src/cu/alpha_blend.cu"
 #include "src/cu/threshold.cu"
 #include "src/cu/convolve.cu"
+#include "src/cu/blur.cu"
 
 
 

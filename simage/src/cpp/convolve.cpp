@@ -1,5 +1,7 @@
 /* convolution kernels */
 
+#include <algorithm>
+
 namespace simage
 {
 	static constexpr f32 div16(int i) { return i / 16.0f; }
@@ -38,38 +40,59 @@ namespace simage
 	};
 
 
-	static constexpr f32 div448(int i) { return i / 448.0f; }
+	static constexpr f32 div548(int i) { return i / 548.0f; }
 
 	static constexpr std::array<f32, 81> GAUSS_9x9
 	{
-		div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
-		div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
-		div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
-		div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
-		div448(4), div448(8), div448(16), div448(32), div448(64), div448(32), div448(16), div448(8), div448(4),
-		div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
-		div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
-		div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
-		div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
+		div548(1), div548(1),  div548(2),  div548(2),  div548(4),  div548(2),  div548(2), div548(1), div548(1),
+		div548(1), div548(2),  div548(2),  div548(4),  div548(8),  div548(4),  div548(2), div548(2), div548(1),
+		div548(2), div548(2),  div548(4),  div548(8), div548(16),  div548(8),  div548(4), div548(2), div548(2),
+		div548(2), div548(4),  div548(8), div548(16), div548(32), div548(16),  div548(8), div548(4), div548(2),
+		div548(4), div548(8), div548(16), div548(32), div548(64), div548(32), div548(16), div548(8), div548(4),
+		div548(2), div548(4),  div548(8), div548(16), div548(32), div548(16),  div548(8), div548(4), div548(2),
+		div548(2), div548(2),  div548(4),  div548(8), div548(16),  div548(8),  div548(4), div548(2), div548(2),
+		div548(1), div548(2),  div548(2),  div548(4),  div548(8),  div548(4),  div548(2), div548(2), div548(1),
+		div548(1), div548(1),  div548(2),  div548(2),  div548(4),  div548(2),  div548(2), div548(1), div548(1),
 	};
 
 
-	static constexpr f32 div225(int i) { return i / 225.0f; }
+	static constexpr f32 div465(int i) { return i / 465.0f; }
 
 	static constexpr std::array<f32, 121> GAUSS_11x11
 	{
-		div225(1), div225(1), div225(2), div225(2), div225(3), div225(3), div225(3), div225(2), div225(2), div225(1), div225(1),
-		div225(1), div225(2), div225(2), div225(3), div225(4), div225(4), div225(4), div225(3), div225(2), div225(2), div225(1),
-		div225(2), div225(2), div225(3), div225(4), div225(5), div225(5), div225(5), div225(4), div225(3), div225(2), div225(2),
-		div225(2), div225(3), div225(4), div225(5), div225(7), div225(7), div225(7), div225(5), div225(4), div225(3), div225(2),
-		div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
-		div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
-		div225(3), div225(4), div225(5), div225(7), div225(9), div225(9), div225(9), div225(7), div225(5), div225(4), div225(3),
-		div225(2), div225(3), div225(4), div225(5), div225(7), div225(7), div225(7), div225(5), div225(4), div225(3), div225(2),
-		div225(2), div225(2), div225(3), div225(4), div225(5), div225(5), div225(5), div225(4), div225(3), div225(2), div225(2),
-		div225(1), div225(2), div225(2), div225(3), div225(4), div225(4), div225(4), div225(3), div225(2), div225(2), div225(1),
-		div225(1), div225(1), div225(2), div225(2), div225(3), div225(3), div225(3), div225(2), div225(2), div225(1), div225(1),
+		div465(1), div465(1), div465(2), div465(2), div465(3), div465(3), div465(3), div465(2), div465(2), div465(1), div465(1),
+		div465(1), div465(2), div465(2), div465(3), div465(4), div465(4), div465(4), div465(3), div465(2), div465(2), div465(1),
+		div465(2), div465(2), div465(3), div465(4), div465(5), div465(5), div465(5), div465(4), div465(3), div465(2), div465(2),
+		div465(2), div465(3), div465(4), div465(5), div465(7), div465(7), div465(7), div465(5), div465(4), div465(3), div465(2),
+		div465(3), div465(4), div465(5), div465(7), div465(9), div465(9), div465(9), div465(7), div465(5), div465(4), div465(3),
+		div465(3), div465(4), div465(5), div465(7), div465(9), div465(9), div465(9), div465(7), div465(5), div465(4), div465(3),
+		div465(3), div465(4), div465(5), div465(7), div465(9), div465(9), div465(9), div465(7), div465(5), div465(4), div465(3),
+		div465(2), div465(3), div465(4), div465(5), div465(7), div465(7), div465(7), div465(5), div465(4), div465(3), div465(2),
+		div465(2), div465(2), div465(3), div465(4), div465(5), div465(5), div465(5), div465(4), div465(3), div465(2), div465(2),
+		div465(1), div465(2), div465(2), div465(3), div465(4), div465(4), div465(4), div465(3), div465(2), div465(2), div465(1),
+		div465(1), div465(1), div465(2), div465(2), div465(3), div465(3), div465(3), div465(2), div465(2), div465(1), div465(1),
 	};
+
+
+	static constexpr f32 get_sum()
+	{
+		//auto arr = GAUSS_3x3;
+		//auto arr = GAUSS_5x5;
+		auto arr = GAUSS_7x7;
+		//auto arr = GAUSS_9x9;
+		//auto arr = GAUSS_11x11;
+
+		f32 sum = 0.0f;
+		for (size_t i = 0; i < arr.size(); ++i)
+		{
+			sum += arr[i];
+		}
+
+		return sum;
+	}
+
+
+	static constexpr auto SUM = get_sum();
 	
 
     static constexpr std::array<f32, 9> GRAD_X_3x3

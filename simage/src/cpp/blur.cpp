@@ -2,11 +2,62 @@
 
 namespace simage
 {  
+	template <typename T>
+	static void blur_at_xy(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+	{
+		u32 const w = src.width;
+		u32 const h = src.height;
+
+		auto& d = *xy_at(dst, x, y);
+
+		auto rc = std::min({x, w - x - 1, y, h - y - 1});
+
+		switch (rc)
+		{
+		case 0:
+            // copy
+            d = *xy_at(src, x, y);
+            break;
+
+        case 1:
+            // gauss3
+            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_3x3.data(), 3, 3);
+            break;
+
+        case 2:
+            // gauss5
+            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_5x5.data(), 5, 5);
+            break;
+        
+        case 3:
+		//default:
+            // gauss7
+            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_7x7.data(), 7, 7);
+            break;
+
+        case 4:
+		//default:
+            // gauss9
+            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_9x9.data(), 9, 9);
+            break;
+        
+        default:
+            // gauss11
+            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_11x11.data(), 11, 11);
+            break;
+		}
+	}
+
+
+
+
     template <typename T>
 	static void blur_1(View1<T> const& src, View1<T> const& dst)
 	{
 		auto const width = src.width;
         auto const height = src.height;
+
+#if 0
 
 		auto const copy_xy = [&](u32 x, u32 y){ return *xy_at(src, x, y); };
 		auto const gauss3_xy = [&](u32 x, u32 y){ return (T)convolve_at_xy_gauss_3x3(src, x, y); };
@@ -43,6 +94,18 @@ namespace simage
 				//d[x] = gauss11_xy(x, y);
 			}
 		}
+
+#else
+
+		for (u32 y = 0; y < height; ++y)
+		{
+			for (u32 x = 0; x < width; ++x)
+			{
+				blur_at_xy(src, dst, x, y);
+			}
+		}
+
+#endif
 	}
 }
 

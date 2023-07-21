@@ -34,26 +34,22 @@ namespace gpu
             break;
 
         case 2:
-            // gause5
+            // gauss5
             d = gpuf::convolve_at_xy(src, xy.x, xy.y, GAUSS_5x5, 5, 5);
             break;
-
-        /*default:
-            d = gpuf::convolve_at_xy(src, xy.x, xy.y, GAUSS_7x7, 7, 7);
-            break;*/
         
         case 3:
-            // gause7
+            // gauss7
             d = gpuf::convolve_at_xy(src, xy.x, xy.y, GAUSS_7x7, 7, 7);
             break;
 
         case 4:
-            // gause9
+            // gauss9
             d = gpuf::convolve_at_xy(src, xy.x, xy.y, GAUSS_9x9, 9, 9);
             break;
         
         default:
-            // gause11
+            // gauss11
             d = gpuf::convolve_at_xy(src, xy.x, xy.y, GAUSS_11x11, 11, 11);
             break;
         }

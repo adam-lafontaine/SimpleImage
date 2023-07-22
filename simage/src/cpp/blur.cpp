@@ -17,34 +17,27 @@ namespace simage
 		case 0:
             // copy
             d = *xy_at(src, x, y);
-            break;
+            return;
 
         case 1:
-            // gauss3
             d = convolve_at_xy(src, x, y, (f32*)GAUSS_3x3.data(), 3, 3);
-            break;
+            return;
 
         case 2:
-            // gauss5
             d = convolve_at_xy(src, x, y, (f32*)GAUSS_5x5.data(), 5, 5);
-            break;
+            return;
         
         case 3:
-		//default:
-            // gauss7
             d = convolve_at_xy(src, x, y, (f32*)GAUSS_7x7.data(), 7, 7);
-            break;
+            return;
 
         case 4:
-		//default:
-            // gauss9
             d = convolve_at_xy(src, x, y, (f32*)GAUSS_9x9.data(), 9, 9);
             break;
         
         default:
-            // gauss11
             d = convolve_at_xy(src, x, y, (f32*)GAUSS_11x11.data(), 11, 11);
-            break;
+            return;
 		}
 	}
 

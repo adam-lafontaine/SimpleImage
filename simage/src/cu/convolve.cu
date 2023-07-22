@@ -34,25 +34,9 @@ GPU_GLOBAL_CONSTANT f32 GAUSS_7x7[]
 };
 
 
-GPU_CONSTEXPR_FUNCTION f32 div448(int i) { return i / 448.0f; }
-
-GPU_GLOBAL_CONSTANT f32 GAUSS_9x9[]
-{
-    div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
-    div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
-    div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
-    div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
-    div448(4), div448(8), div448(16), div448(32), div448(64), div448(32), div448(16), div448(8), div448(4),
-    div448(2), div448(4),  div448(8), div448(16), div448(32), div448(16),  div448(8), div448(4), div448(2),
-    div448(2), div448(2),  div448(4),  div448(8), div448(16),  div448(8),  div448(4), div448(2), div448(2),
-    div448(1), div448(2),  div448(2),  div448(4),  div448(8),  div448(4),  div448(2), div448(2), div448(1),
-    div448(1), div448(1),  div448(2),  div448(2),  div448(4),  div448(2),  div448(2), div448(1), div448(1),
-};
-
-
 GPU_CONSTEXPR_FUNCTION f32 div548(int i) { return i / 548.0f; }
 
-GPU_GLOBAL_CONSTANT f32 GAUSS_11x11[]
+GPU_GLOBAL_CONSTANT f32 GAUSS_9x9[]
 {
     div548(1), div548(1),  div548(2),  div548(2),  div548(4),  div548(2),  div548(2), div548(1), div548(1),
     div548(1), div548(2),  div548(2),  div548(4),  div548(8),  div548(4),  div548(2), div548(2), div548(1),
@@ -63,6 +47,24 @@ GPU_GLOBAL_CONSTANT f32 GAUSS_11x11[]
     div548(2), div548(2),  div548(4),  div548(8), div548(16),  div548(8),  div548(4), div548(2), div548(2),
     div548(1), div548(2),  div548(2),  div548(4),  div548(8),  div548(4),  div548(2), div548(2), div548(1),
     div548(1), div548(1),  div548(2),  div548(2),  div548(4),  div548(2),  div548(2), div548(1), div548(1),
+};
+
+
+GPU_CONSTEXPR_FUNCTION f32 div465(int i) { return i / 465.0f; }
+
+GPU_GLOBAL_CONSTANT f32 GAUSS_11x11[]
+{
+    div465(1), div465(1), div465(2), div465(2), div465(3), div465(3), div465(3), div465(2), div465(2), div465(1), div465(1),
+    div465(1), div465(2), div465(2), div465(3), div465(4), div465(4), div465(4), div465(3), div465(2), div465(2), div465(1),
+    div465(2), div465(2), div465(3), div465(4), div465(5), div465(5), div465(5), div465(4), div465(3), div465(2), div465(2),
+    div465(2), div465(3), div465(4), div465(5), div465(7), div465(7), div465(7), div465(5), div465(4), div465(3), div465(2),
+    div465(3), div465(4), div465(5), div465(7), div465(9), div465(9), div465(9), div465(7), div465(5), div465(4), div465(3),
+    div465(3), div465(4), div465(5), div465(7), div465(9), div465(9), div465(9), div465(7), div465(5), div465(4), div465(3),
+    div465(3), div465(4), div465(5), div465(7), div465(9), div465(9), div465(9), div465(7), div465(5), div465(4), div465(3),
+    div465(2), div465(3), div465(4), div465(5), div465(7), div465(7), div465(7), div465(5), div465(4), div465(3), div465(2),
+    div465(2), div465(2), div465(3), div465(4), div465(5), div465(5), div465(5), div465(4), div465(3), div465(2), div465(2),
+    div465(1), div465(2), div465(2), div465(3), div465(4), div465(4), div465(4), div465(3), div465(2), div465(2), div465(1),
+    div465(1), div465(1), div465(2), div465(2), div465(3), div465(3), div465(3), div465(2), div465(2), div465(1), div465(1),
 };
 
 

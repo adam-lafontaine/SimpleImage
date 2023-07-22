@@ -19,7 +19,8 @@ void rgb_gray_test(img::View const& out);
 void alpha_blend_test(img::View const& out);
 void threshold_min_test(img::View const& out);
 void threshold_min_max_test(img::View const& out);
-void blur_test(img::View const& out);
+void blur_gray_test(img::View const& out);
+void blur_rgb_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -32,7 +33,8 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	alpha_blend_test,
 	threshold_min_test,
 	threshold_min_max_test,
-	blur_test,
+	blur_gray_test,
+	blur_rgb_test,
 };
 
 

@@ -219,25 +219,6 @@ namespace simage
 
 
 	template <typename T>
-    static f32 convolve_at_xy(View1<T> const& view, u32 x, u32 y, std::array<f32, 25> const& kernel_5x5)
-    {
-        f32 total = 0.0f;
-        u32 w = 0;
-
-        for (u32 v = 0; v < 5; ++v)
-        {
-            auto s = row_begin(view, y - 2 + v);
-            for (u32 u = 0; u < 5; ++u)
-            {
-                total += s[x - 2 + u] * kernel_5x5[w++];
-            }
-        }
-
-        return total;
-    }
-
-
-	template <typename T>
 	static f32 convolve_at_xy_f32(View1<T> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
     {
         f32 total = 0.0f;
@@ -304,76 +285,4 @@ namespace simage
 
         return p;
     }
-
-
-	template <typename T>
-	static f32 convolve_at_xy_gauss_3x3(View1<T> const& view, u32 x, u32 y)
-	{
-		return convolve_at_xy(view, x, y, (f32*)GAUSS_3x3.data(), 3, 3);
-	}
-
-
-	template <typename T>
-	static f32 convolve_at_xy_gauss_5x5(View1<T> const& view, u32 x, u32 y)
-	{
-		return convolve_at_xy(view, x, y, (f32*)GAUSS_5x5.data(), 5, 5);
-	}
-
-
-	template <typename T>
-	static f32 convolve_at_xy_gauss_7x7(View1<T> const& view, u32 x, u32 y)
-	{
-		return convolve_at_xy(view, x, y, (f32*)GAUSS_7x7.data(), 7, 7);
-	}
-
-
-	template <typename T>
-	static f32 convolve_at_xy_gauss_9x9(View1<T> const& view, u32 x, u32 y)
-	{
-		return convolve_at_xy(view, x, y, (f32*)GAUSS_9x9.data(), 9, 9);
-	}
-
-
-	template <typename T>
-	static f32 convolve_at_xy_gauss_11x11(View1<T> const& view, u32 x, u32 y)
-	{
-		return convolve_at_xy(view, x, y, (f32*)GAUSS_11x11.data(), 11, 11);
-	}
-
-
-	template <typename T, class CONV_F>
-	static void convolve_top_bottom(View1<T> const& dst, u32 row_col, CONV_F const& convolve_at_xy)
-	{
-		auto x_begin = row_col;
-		auto x_end = dst.width - row_col;
-		auto y_begin = row_col;
-		auto y_last = dst.height - row_col - 1;
-		
-		auto d_top = row_begin(dst, y_begin);
-		auto d_btm = row_begin(dst, y_last);
-
-		for (u32 x = x_begin; x < x_end; ++x)
-		{
-			d_top[x] = convolve_at_xy(x, y_begin);
-			d_btm[x] = convolve_at_xy(x, y_last);
-		}
-	}
-
-
-	template <typename T, class CONV_F>
-	static void convolve_left_right(View1<T> const& dst, u32 row_col, CONV_F const& convolve_at_xy)
-	{
-		auto y_begin = row_col + 1;
-		auto y_end = dst.height - row_col;
-		auto x_begin = row_col;
-		auto x_last = dst.width - row_col - 1;
-
-		for (u32 y = y_begin; y < y_end; ++y)
-		{
-			auto d = row_begin(dst, y);
-
-			d[x_begin] = convolve_at_xy(x_begin, y);
-			d[x_last] = convolve_at_xy(x_last, y);
-		}
-	}
 }

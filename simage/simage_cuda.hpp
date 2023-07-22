@@ -136,4 +136,7 @@ namespace simage
 namespace simage
 {
     void blur(DeviceViewGray const& src, DeviceViewGray const& dst);
+
+    void blur(DeviceView const& src, DeviceView const& dst);
+
 }

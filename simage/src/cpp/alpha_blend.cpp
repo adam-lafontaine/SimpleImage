@@ -7,7 +7,7 @@ namespace simage
 		auto const blend = [](u8 s, u8 c, f32 a)
 		{
 			auto blended = a * s + (1.0f - a) * c;
-			return (u8)(blended + 0.5f);
+			return round_to_u8(blended);
 		};
 
 		for (u32 x = 0; x < width; ++x)

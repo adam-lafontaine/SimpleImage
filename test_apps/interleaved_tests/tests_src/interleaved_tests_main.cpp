@@ -27,7 +27,8 @@ void threshold_min_test(img::View const& out);
 void threshold_min_max_test(img::View const& out);
 void binarize_test(img::View const& out);
 void binarize_rgb_test(img::View const& out);
-void blur_test(img::View const& out);
+void blur_gray_test(img::View const& out);
+void blur_rgb_test(img::View const& out);
 void gradients_test(img::View const& out);
 void gradients_xy_test(img::View const& out);
 void rotate_test(img::View const& out);
@@ -54,7 +55,8 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	threshold_min_max_test,
 	binarize_test,
 	binarize_rgb_test,
-	blur_test,
+	blur_gray_test,
+	blur_rgb_test,
 	gradients_test,
 	gradients_xy_test,
 	rotate_test,

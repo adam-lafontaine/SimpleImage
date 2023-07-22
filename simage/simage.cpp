@@ -7,6 +7,12 @@
 namespace cs = color_space;
 
 
+static inline u8 round_to_u8(f32 val)
+{
+    return (u8)(val + 0.5f);
+}
+
+
 #include "src/cpp/verify.cpp"
 #include "src/cpp/channel_pixels.cpp"
 #include "src/cpp/platform_image.cpp"

@@ -190,4 +190,39 @@ namespace gpuf
 
         return gpuf::round_to_u8(total);
     }
+
+
+    GPU_FUNCTION
+    static Pixel convolve_at_xy(DeviceView const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+    {
+        f32 red = 0.0f;
+        f32 green = 0.0f;
+        f32 blue = 0.0f;
+
+        u32 w = 0;
+
+        auto rx = x - (k_width / 2);
+        auto ry = y - (k_height / 2);
+
+        for (u32 v = 0; v < k_height; ++v)
+        {
+            auto s = gpuf::row_begin(view, ry + v);
+            for (u32 u = 0; u < k_width; ++u)
+            {
+                auto rgba = s[rx + u].rgba;
+                auto kw = kernel[w++];
+
+                red += rgba.red * kw;
+                green += rgba.green * kw;
+                blue += rgba.blue * kw;
+            }
+        }
+
+        auto p = *gpuf::xy_at(view, x, y);
+        p.rgba.red = gpuf::round_to_u8(red);
+        p.rgba.green = gpuf::round_to_u8(green);
+        p.rgba.blue = gpuf::round_to_u8(blue);
+
+        return p;
+    }
 }

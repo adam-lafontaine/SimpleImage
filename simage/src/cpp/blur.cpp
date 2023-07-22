@@ -21,29 +21,29 @@ namespace simage
 
         case 1:
             // gauss3
-            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_3x3.data(), 3, 3);
+            d = convolve_at_xy(src, x, y, (f32*)GAUSS_3x3.data(), 3, 3);
             break;
 
         case 2:
             // gauss5
-            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_5x5.data(), 5, 5);
+            d = convolve_at_xy(src, x, y, (f32*)GAUSS_5x5.data(), 5, 5);
             break;
         
         case 3:
 		//default:
             // gauss7
-            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_7x7.data(), 7, 7);
+            d = convolve_at_xy(src, x, y, (f32*)GAUSS_7x7.data(), 7, 7);
             break;
 
         case 4:
 		//default:
             // gauss9
-            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_9x9.data(), 9, 9);
+            d = convolve_at_xy(src, x, y, (f32*)GAUSS_9x9.data(), 9, 9);
             break;
         
         default:
             // gauss11
-            d = (T)convolve_at_xy(src, x, y, (f32*)GAUSS_11x11.data(), 11, 11);
+            d = convolve_at_xy(src, x, y, (f32*)GAUSS_11x11.data(), 11, 11);
             break;
 		}
 	}
@@ -75,13 +75,13 @@ namespace simage
 		convolve_top_bottom(dst, 2, gauss5_xy);
 		convolve_left_right(dst, 2, gauss5_xy);
 
-		/*convolve_top_bottom(dst, 3, gauss7_xy);
+		convolve_top_bottom(dst, 3, gauss7_xy);
 		convolve_left_right(dst, 3, gauss7_xy);
 
-		/*convolve_top_bottom(dst, 4, gauss9_xy);
-		convolve_left_right(dst, 4, gauss9_xy);*/
+		convolve_top_bottom(dst, 4, gauss9_xy);
+		convolve_left_right(dst, 4, gauss9_xy);
 
-		u32 const rc = 3;
+		u32 const rc = 5;
 
 		for (u32 y = rc; y < height - rc; ++y)
 		{
@@ -89,9 +89,9 @@ namespace simage
 			for (u32 x = rc; x < width - rc; ++x)
 			{
 				//d[x] = gauss5_xy(x, y);
-				d[x] = gauss7_xy(x, y);
+				//d[x] = gauss7_xy(x, y);
 				//d[x] = gauss9_xy(x, y);
-				//d[x] = gauss11_xy(x, y);
+				d[x] = gauss11_xy(x, y);
 			}
 		}
 
@@ -118,7 +118,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-		//blur_1(src, dst); TODO
+		blur_1(src, dst);
     }
 
 

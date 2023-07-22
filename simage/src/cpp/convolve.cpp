@@ -238,7 +238,7 @@ namespace simage
 
 
 	template <typename T>
-	static f32 convolve_at_xy(View1<T> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+	static f32 convolve_at_xy_f32(View1<T> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
     {
         f32 total = 0.0f;
         u32 w = 0;
@@ -256,6 +256,53 @@ namespace simage
         }
 
         return total;
+    }
+
+
+	static inline u8 convolve_at_xy(View1<u8> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+	{
+		auto val32 = convolve_at_xy_f32(view, x, y, kernel, k_width, k_height);
+		return round_to_u8(val32);
+	}
+
+
+	static inline f32 convolve_at_xy(View1<f32> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+	{
+		return convolve_at_xy_f32(view, x, y, kernel, k_width, k_height);
+	}
+
+
+	static Pixel convolve_at_xy(View const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+    {
+        f32 red = 0.0f;
+        f32 green = 0.0f;
+        f32 blue = 0.0f;
+
+        u32 w = 0;
+
+        auto rx = x - (k_width / 2);
+        auto ry = y - (k_height / 2);
+
+        for (u32 v = 0; v < k_height; ++v)
+        {
+            auto s = row_begin(view, ry + v);
+            for (u32 u = 0; u < k_width; ++u)
+            {
+                auto rgba = s[rx + u].rgba;
+                auto kw = kernel[w++];
+
+                red += rgba.red * kw;
+                green += rgba.green * kw;
+                blue += rgba.blue * kw;
+            }
+        }
+
+        auto p = *xy_at(view, x, y);
+        p.rgba.red = round_to_u8(red);
+        p.rgba.green = round_to_u8(green);
+        p.rgba.blue = round_to_u8(blue);
+
+        return p;
     }
 
 

@@ -1,7 +1,7 @@
 #include "../../tests_include.hpp"
 
 
-void blur_test(img::View const& out)
+void blur_gray_test(img::View const& out)
 {
     auto width = out.width;
     auto height = out.height;
@@ -15,6 +15,26 @@ void blur_test(img::View const& out)
     img::blur(src, dst);
 
     img::map_rgba(dst, out);
+
+    img::destroy_image(image);
+    img::destroy_buffer(buffer);
+}
+
+
+void blur_rgb_test(img::View const& out)
+{
+    auto width = out.width;
+    auto height = out.height;
+
+    auto buffer = img::create_buffer32(width * height * 2);
+
+    img::Image image;
+    auto src = img::make_view_resized_from_file(CORVETTE_PATH, image, width, height, buffer);
+    auto dst = img::make_view(width, height, buffer);
+
+    img::blur(src, dst);
+
+    img::copy(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);

@@ -3,7 +3,7 @@
 namespace gpu
 {
     GPU_KERNAL
-    void blur(DeviceViewGray src, DeviceViewGray dst, u32 n_threads)
+    void blur_gray(DeviceViewGray src, DeviceViewGray dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -70,9 +70,9 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-		cuda_launch_kernel(gpu::blur, n_blocks, block_size, src, dst, n_threads);
+		cuda_launch_kernel(gpu::blur_gray, n_blocks, block_size, src, dst, n_threads);
 
-		auto result = cuda::launch_success("gpu::blur");
+		auto result = cuda::launch_success("gpu::blur_gray");
 		assert(result);
     }
 }

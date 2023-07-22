@@ -23,6 +23,8 @@ void blur_gray_test(img::View const& out);
 void blur_rgb_test(img::View const& out);
 void gradients_test(img::View const& out);
 void gradients_xy_test(img::View const& out);
+void rotate_rgb_test(img::View const& out);
+void rotate_gray_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -39,6 +41,8 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	blur_rgb_test,
 	gradients_test,
 	gradients_xy_test,
+	rotate_rgb_test,
+	rotate_gray_test,
 };
 
 

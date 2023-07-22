@@ -396,6 +396,7 @@ simage_cuda_dep += $(cu)/blur.cu
 simage_cuda_dep += $(cu)/convolve.cu
 simage_cuda_dep += $(cu)/gradients.cu
 simage_cuda_dep += $(cu)/map_channels.cu
+simage_cuda_dep += $(cu)/rotate.cu
 simage_cuda_dep += $(cu)/row_begin.cu
 simage_cuda_dep += $(cu)/threshold.cu
 
@@ -406,11 +407,14 @@ object_files += $(simage_cuda_o)
 
 # tests
 tests_dep := $(tests_include_h)
-tests_dep += $(tests_src)/copy_device_tests.cpp
-tests_dep += $(tests_src)/rgb_gray_tests.cpp
 tests_dep += $(tests_src)/alpha_blend_tests.cpp
-tests_dep += $(tests_src)/threshold_tests.cpp
 tests_dep += $(tests_src)/convolution_tests.cpp
+tests_dep += $(tests_src)/copy_device_tests.cpp
+tests_dep += $(tests_src)/device_buffer_tests.cpp
+tests_dep += $(tests_src)/rgb_gray_tests.cpp
+tests_dep += $(tests_src)/rotate_tests.cpp
+tests_dep += $(tests_src)/threshold_tests.cpp
+
 
 
 tests_c := $(tests_src)/tests.cpp

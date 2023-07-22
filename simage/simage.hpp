@@ -233,6 +233,8 @@ namespace simage
 }
 
 
+/* centroid */
+
 namespace simage
 {
 	Point2Du32 centroid(ViewGray const& src);

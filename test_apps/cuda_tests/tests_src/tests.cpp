@@ -5,3 +5,4 @@
 #include "alpha_blend_tests.cpp"
 #include "threshold_tests.cpp"
 #include "convolution_tests.cpp"
+#include "rotate_tests.cpp"

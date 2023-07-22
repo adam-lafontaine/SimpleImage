@@ -149,3 +149,13 @@ namespace simage
 
     void gradients_xy(DeviceViewGray const& src, DeviceViewGray const& dst_x, DeviceViewGray const& dst_y);
 }
+
+
+/* rotate */
+
+namespace simage
+{
+	void rotate(DeviceView const& src, DeviceView const& dst, Point2Du32 origin, f32 rad);
+
+	void rotate(DeviceViewGray const& src, DeviceViewGray const& dst, Point2Du32 origin, f32 rad);
+}

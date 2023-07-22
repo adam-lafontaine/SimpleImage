@@ -112,6 +112,21 @@ namespace gpuf
 	}
 
 
+	GPU_CONSTEXPR_FUNCTION
+	static Pixel to_pixel(u8 red, u8 green, u8 blue)
+	{
+		Pixel p{};
+
+		p.rgba.red = red;
+		p.rgba.green = green;
+		p.rgba.blue = blue;
+		p.rgba.alpha = 255;
+
+		return p;
+	}
+
+
+
     
 }
 
@@ -123,6 +138,7 @@ namespace gpuf
 #include "src/cu/convolve.cu"
 #include "src/cu/blur.cu"
 #include "src/cu/gradients.cu"
+#include "src/cu/rotate.cu"
 
 
 

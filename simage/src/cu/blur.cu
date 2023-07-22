@@ -16,32 +16,27 @@ namespace gpuf
         case 0:
             // copy
             d = *gpuf::xy_at(src, x, y);
-            break;
+            return;
 
         case 1:
-            // gauss3
             d = gpuf::convolve_at_xy(src, x, y, GAUSS_3x3, 3, 3);
-            break;
+            return;
 
         case 2:
-            // gauss5
             d = gpuf::convolve_at_xy(src, x, y, GAUSS_5x5, 5, 5);
-            break;
+            return;
         
         case 3:
-            // gauss7
             d = gpuf::convolve_at_xy(src, x, y, GAUSS_7x7, 7, 7);
-            break;
+            return;
 
         case 4:
-            // gauss9
             d = gpuf::convolve_at_xy(src, x, y, GAUSS_9x9, 9, 9);
-            break;
+            return;
         
         default:
-            // gauss11
             d = gpuf::convolve_at_xy(src, x, y, GAUSS_11x11, 11, 11);
-            break;
+            return;
         }
     }
 }
@@ -49,7 +44,7 @@ namespace gpuf
 namespace gpu
 {
     GPU_KERNAL
-    void blur_gray(DeviceViewGray src, DeviceViewGray dst, u32 n_threads)
+    static void blur_gray(DeviceViewGray src, DeviceViewGray dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -61,12 +56,12 @@ namespace gpu
 
 		auto xy = gpuf::get_thread_xy(src, t);
 
-        gpuf::blur_at_xy(src, dst, xy.x, xy.y);        
+        gpuf::blur_at_xy(src, dst, xy.x, xy.y);
     }
 
 
     GPU_KERNAL
-    void blur_rgb(DeviceView src, DeviceView dst, u32 n_threads)
+    static void blur_rgb(DeviceView src, DeviceView dst, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -78,7 +73,7 @@ namespace gpu
 
 		auto xy = gpuf::get_thread_xy(src, t);
 
-        gpuf::blur_at_xy(src, dst, xy.x, xy.y);        
+        gpuf::blur_at_xy(src, dst, xy.x, xy.y);
     }
 }
 

@@ -171,7 +171,7 @@ GPU_GLOBAL_CONSTANT f32 GRAD_Y_3x11[]
 namespace gpuf
 {
     GPU_FUNCTION
-    static u8 convolve_at_xy(DeviceViewGray const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+    static f32 convolve_at_xy_f32(DeviceViewGray const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
     {
         f32 total = 0.0f;
         u32 w = 0;
@@ -188,7 +188,16 @@ namespace gpuf
             }
         }
 
-        return gpuf::round_to_u8(total);
+        return total;
+    }
+
+
+    GPU_FUNCTION
+    static inline u8 convolve_at_xy(DeviceViewGray const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+    {
+        auto val32 = convolve_at_xy_f32(view, x, y, kernel, k_width, k_height);
+
+        return gpuf::round_to_u8(val32);
     }
 
 

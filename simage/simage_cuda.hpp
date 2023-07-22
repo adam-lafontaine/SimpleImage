@@ -138,5 +138,14 @@ namespace simage
     void blur(DeviceViewGray const& src, DeviceViewGray const& dst);
 
     void blur(DeviceView const& src, DeviceView const& dst);
+}
 
+
+/* gradients */
+
+namespace simage
+{
+    void gradients(DeviceViewGray const& src, DeviceViewGray const& dst);
+
+    void gradients_xy(DeviceViewGray const& src, DeviceViewGray const& dst_x, DeviceViewGray const& dst_y);
 }

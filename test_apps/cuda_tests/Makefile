@@ -394,6 +394,7 @@ simage_cuda_dep += $(cuda)/device.cu
 simage_cuda_dep += $(cu)/alpha_blend.cu
 simage_cuda_dep += $(cu)/blur.cu
 simage_cuda_dep += $(cu)/convolve.cu
+simage_cuda_dep += $(cu)/gradients.cu
 simage_cuda_dep += $(cu)/map_channels.cu
 simage_cuda_dep += $(cu)/row_begin.cu
 simage_cuda_dep += $(cu)/threshold.cu

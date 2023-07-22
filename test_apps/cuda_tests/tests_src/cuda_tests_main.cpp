@@ -21,6 +21,8 @@ void threshold_min_test(img::View const& out);
 void threshold_min_max_test(img::View const& out);
 void blur_gray_test(img::View const& out);
 void blur_rgb_test(img::View const& out);
+void gradients_test(img::View const& out);
+void gradients_xy_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
@@ -35,6 +37,8 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	threshold_min_max_test,
 	blur_gray_test,
 	blur_rgb_test,
+	gradients_test,
+	gradients_xy_test,
 };
 
 

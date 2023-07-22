@@ -633,7 +633,7 @@ rotate()
 * Compile/link with {your_path}/simage/simage.cpp
 * Note: For USB camera functionality, install libusb for Linux or OpenCV for windows
     * Or #define SIMAGE_NO_USB_CAMERA
-* If compiling with CUDA, ompile/link with {your_path}/simage/simage_cuda.cu
+* If compiling with CUDA, compile/link with {your_path}/simage/simage_cuda.cu
 
 ## Run the examples
 
@@ -646,7 +646,7 @@ Edit the `ROOT_DIR` variable in `/test_apps/tests_include.hpp` to where your pro
 
 Windows
 
-* Use the Visual Studio solution provided
+* Use the Visual Studio solutions provided
 
 Linux
 

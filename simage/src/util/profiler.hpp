@@ -46,8 +46,3 @@ namespace perf
 //#define PROFILE(func, ...) [&](){ perf::Profile p("\""#func"\""); return func(...); }();
 
 #define PROFILE_X(func_call) [&](){ perf::Profile p( "*" #func_call ); return func_call; }();
-
-
-#ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif

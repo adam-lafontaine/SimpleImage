@@ -50,7 +50,7 @@ An interleaved image or view.  It is in the format suitable for interacting with
 * `View2f32`, `View3f32`, `View4f32`: Multi-channel float view
 * `Buffer32`: Allocates data for 4 byte pixel or float channel data
 * `Buffer8`: Allocates data for 1 byte pixel data
-* `DeviceView` (CUDA): A view to 4 byte image data stored in GPU memory
+* `DeviceView` (CUDA): A view to 4 byte RGBA interleaved image data stored in GPU memory
 * `DeviceViewGray` (CUDA): A view to 1 byte image data stored in GPU memory
 * `DeviceBuffer32` (CUDA): Allocates data for 4 byte pixel data stored in GPU memory
 * `DeviceBuffer8` (CUDA): Allocates data for 1 byte pixel data stored in GPU memory

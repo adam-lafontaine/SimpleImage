@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "USBCamera", "USBCamera\USBC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "USBCamHist", "USBCamHist\USBCamHist.vcxproj", "{4A159537-BF64-497E-B3C7-5CC64D47AEC0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profile", "Profile\Profile.vcxproj", "{A7EB7977-2D80-46EB-8251-328D47F69CAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -51,6 +53,14 @@ Global
 		{4A159537-BF64-497E-B3C7-5CC64D47AEC0}.Release|x64.Build.0 = Release|x64
 		{4A159537-BF64-497E-B3C7-5CC64D47AEC0}.Release|x86.ActiveCfg = Release|Win32
 		{4A159537-BF64-497E-B3C7-5CC64D47AEC0}.Release|x86.Build.0 = Release|Win32
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Debug|x64.ActiveCfg = Debug|x64
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Debug|x64.Build.0 = Debug|x64
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Debug|x86.ActiveCfg = Debug|Win32
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Debug|x86.Build.0 = Debug|Win32
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Release|x64.ActiveCfg = Release|x64
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Release|x64.Build.0 = Release|x64
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Release|x86.ActiveCfg = Release|Win32
+		{A7EB7977-2D80-46EB-8251-328D47F69CAA}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

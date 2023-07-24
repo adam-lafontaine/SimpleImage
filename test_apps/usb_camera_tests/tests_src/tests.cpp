@@ -133,7 +133,7 @@ void blur_rgb_test(img::CameraUSB const& camera, img::View const& out)
     {
         img::map_rgb(frame, view3src);
         img::blur(view3src, view3dst);
-        img::map_rgb(view3dst, out);
+        img::map_rgba(view3dst, out);
     };
 
     img::grab_rgb(camera, grab_cb);
@@ -156,7 +156,7 @@ void gradients_tests(img::CameraUSB const& camera, img::View const& out)
     {
         img::gradients(frame, view8_src);
         img::map_gray(view8_src, red);
-        img::map_rgb(view3dst, out);
+        img::map_rgba(view3dst, out);
     };
 
     img::grab_gray(camera, grab_cb);

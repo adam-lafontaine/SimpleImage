@@ -18,14 +18,6 @@ void blur_gray_test(img::View const& out)
     img::map_gray(view, src);
 
     img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
 
     img::map_rgba(dst, out);
 
@@ -50,14 +42,6 @@ void blur_rgb_test(img::View const& out)
 
     img::map_rgb(view, src);
 
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
-    img::blur(src, dst);
-    img::blur(dst, src);
     img::blur(src, dst);
 
     img::map_rgba(dst, out);

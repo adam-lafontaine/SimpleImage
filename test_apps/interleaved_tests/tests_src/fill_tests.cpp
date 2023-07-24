@@ -55,7 +55,7 @@ void fill_gray_test(img::View const& out)
     img::fill(img::sub_view(dst, mid), gray);
     img::fill(img::sub_view(dst, right), white);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer);
 }

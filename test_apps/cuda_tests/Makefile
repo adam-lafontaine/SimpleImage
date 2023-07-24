@@ -298,10 +298,17 @@ uvc := $(simage)/libs/uvc
 cuda :=$(simage)/libs/cuda
 src := $(simage)/src
 util := $(src)/util
+cpp := $(src)/cpp
+cu := $(src)/cu
 
 exe := $(build)/test_app
 
 simage_h := $(simage)/simage.hpp
+simage_h += $(util)/types.hpp
+simage_h += $(simage)/defines.hpp
+simage_h += $(simage)/simage_types.hpp
+simage_h += $(simage)/simage_cuda.hpp
+
 app_h := $(app)/app.hpp
 tests_include_h := ../tests_include.hpp
 
@@ -319,6 +326,8 @@ object_files := $(main_o)
 # app
 app_dep := $(app_h)
 app_dep += $(simage_h)
+app_dep += $(util)/types.hpp
+app_dep += $(simage)/defines.hpp
 app_dep += $(app)/icon_64.h
 app_dep += $(app)/input_state.hpp
 app_dep += $(app)/input.hpp
@@ -334,7 +343,29 @@ object_files += $(app_o)
 
 # simage
 simage_dep := $(simage_h)
-simage_dep += $(src)/simage_impl.cpp
+
+simage_dep += $(cpp)/alpha_blend.cpp
+simage_dep += $(cpp)/blur.cpp
+simage_dep += $(cpp)/centroid.cpp
+simage_dep += $(cpp)/channel_pixels.cpp
+simage_dep += $(cpp)/convolve.cpp
+simage_dep += $(cpp)/copy.cpp
+simage_dep += $(cpp)/fill.cpp
+simage_dep += $(cpp)/for_each_pixel.cpp
+simage_dep += $(cpp)/gradients.cpp
+simage_dep += $(cpp)/histogram.cpp
+simage_dep += $(cpp)/make_view.cpp
+simage_dep += $(cpp)/map_channels.cpp
+simage_dep += $(cpp)/platform_image.cpp
+simage_dep += $(cpp)/rotate.cpp
+simage_dep += $(cpp)/row_begin.cpp
+simage_dep += $(cpp)/select_channel.cpp
+simage_dep += $(cpp)/skeleton.cpp
+simage_dep += $(cpp)/split_channels.cpp
+simage_dep += $(cpp)/sub_view.cpp
+simage_dep += $(cpp)/transform.cpp
+simage_dep += $(cpp)/verify.cpp
+
 simage_dep += $(stb)/stb_image_resize.h
 simage_dep += $(stb)/stb_image_write.h
 simage_dep += $(stb)/stb_image.h
@@ -346,6 +377,7 @@ simage_dep += $(util)/color_space.hpp
 simage_dep += $(util)/execute.hpp
 simage_dep += $(util)/execute.cpp
 simage_dep += $(util)/memory_buffer.hpp
+
 simage_dep += $(cuda)/device.hpp
 
 simage_c := $(simage)/simage.cpp
@@ -358,7 +390,15 @@ simage_cuda_dep := $(simage_h)
 simage_cuda_dep += $(cuda)/cuda_def.cuh
 simage_cuda_dep += $(cuda)/device.hpp
 simage_cuda_dep += $(cuda)/device.cu
-simage_cuda_dep += $(src)/simage_cuda_impl.cu
+
+simage_cuda_dep += $(cu)/alpha_blend.cu
+simage_cuda_dep += $(cu)/blur.cu
+simage_cuda_dep += $(cu)/convolve.cu
+simage_cuda_dep += $(cu)/gradients.cu
+simage_cuda_dep += $(cu)/map_channels.cu
+simage_cuda_dep += $(cu)/rotate.cu
+simage_cuda_dep += $(cu)/row_begin.cu
+simage_cuda_dep += $(cu)/threshold.cu
 
 simage_cuda_c := $(simage)/simage_cuda.cu
 simage_cuda_o := $(build)/simage_cuda.o
@@ -367,7 +407,15 @@ object_files += $(simage_cuda_o)
 
 # tests
 tests_dep := $(tests_include_h)
-tests_dep += $(tests_src)/sub_view_tests.cpp
+tests_dep += $(tests_src)/alpha_blend_tests.cpp
+tests_dep += $(tests_src)/convolution_tests.cpp
+tests_dep += $(tests_src)/copy_device_tests.cpp
+tests_dep += $(tests_src)/device_buffer_tests.cpp
+tests_dep += $(tests_src)/rgb_gray_tests.cpp
+tests_dep += $(tests_src)/rotate_tests.cpp
+tests_dep += $(tests_src)/threshold_tests.cpp
+
+
 
 tests_c := $(tests_src)/tests.cpp
 tests_o := $(build)/tests.o
@@ -382,8 +430,11 @@ LIBRARIES += $(LIBUSB)
 LIBRARIES += -ltbb
 
 CCFLAGS += -std=c++17
+CCFLAGS += -DSIMAGE_ENABLE_CUDA
+#CCFLAGS += -DNDEBUG
+#CCFLAGS += -O3
 
-#CCFLAGS += -O3 -DNDEBUG
+ALL_CCFLAGS += -DSIMAGE_ENABLE_CUDA
 
 
 

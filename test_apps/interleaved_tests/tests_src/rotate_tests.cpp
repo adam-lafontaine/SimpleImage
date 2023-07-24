@@ -39,7 +39,7 @@ void rotate_gray_test(img::View const& out)
 
     img::rotate(src, dst, center, radians);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);

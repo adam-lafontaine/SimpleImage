@@ -50,9 +50,10 @@ An interleaved image or view.  It is in the format suitable for interacting with
 * `View2f32`, `View3f32`, `View4f32`: Multi-channel float view
 * `Buffer32`: Allocates data for 4 byte pixel or float channel data
 * `Buffer8`: Allocates data for 1 byte pixel data
-* `DeviceImage` (CUDA): todo
-* `DeviceView` (CUDA): todo
-* `DeviceBuffer` (CUDA): todo
+* `DeviceView` (CUDA): A view to 4 byte RGBA interleaved image data stored in GPU memory
+* `DeviceViewGray` (CUDA): A view to 1 byte image data stored in GPU memory
+* `DeviceBuffer32` (CUDA): Allocates data for 4 byte pixel data stored in GPU memory
+* `DeviceBuffer8` (CUDA): Allocates data for 1 byte pixel data stored in GPU memory
 
 ## API Overview
 
@@ -115,7 +116,7 @@ auto view = img::make_view(image);
 img::destroy_image(image);
 ```
 
-Using a MemoryBuffer
+Using a `MemoryBuffer`
 
 ```cpp
 namespace img = simage;
@@ -205,14 +206,17 @@ img::destroy_image(image);
 Convert between different image formats
 
 ```cpp
-View view;
-ViewGray gray;
-ViewYUV yuv;
+namespace img = simage;
+
+
+img::View view;
+img::ViewGray gray;
+img::ViewYUV yuv;
 
 // ...
 
 img::map_gray(view, gray); // RGBA to grayscale
-img::map_yuv(yuv, view);   // YUYV to RGBA
+img::map_rgba(yuv, view);   // YUYV to RGBA
 ```
 
 Create custom image transforms
@@ -221,7 +225,7 @@ Create custom image transforms
 namespace img = simage;
 
 
-Image image;
+img::Image image;
 auto src = img::make_view_from_file("file_path", image);
 
 auto width = src.width;
@@ -304,7 +308,7 @@ Convert between platform view and channel view
 namespace img = simage;
 
 
-Image image;
+img::Image image;
 auto view = img::make_view_from_file("file_path", image);
 
 auto width = view.width;
@@ -318,7 +322,7 @@ img::map_rgb(view, rgb);
 
 // ...
 
-img::map_rgb(rgb, view);
+img::map_rgba(rgb, view);
 
 // ...
 
@@ -332,7 +336,7 @@ Convert between color spaces
 namespace img = simage;
 
 
-Image image;
+img::Image image;
 auto view = img::make_view_from_file("file_path", image);
 
 auto width = view.width;
@@ -397,7 +401,7 @@ Grab an image
 namespace img = simage;
 
 
-CameraUSB camera;
+img::CameraUSB camera;
 
 auto success = img::open_camera(camera);
 
@@ -431,7 +435,7 @@ Grab with a callback
 namespace img = simage;
 
 
-CameraUSB camera;
+img::CameraUSB camera;
 if (!img::open_camera(camera))
 {
     // error
@@ -460,9 +464,9 @@ auto const rotate_and_save = [&](img::View const& frame)
     img::write_image(image, make_file_path_by_id(id++));
 };
 
-img::grab _rgb(camera, rotate_and_save);
-img::grab _rgb(camera, rotate_and_save);
-img::grab _rgb(camera, rotate_and_save);
+img::grab_rgb(camera, rotate_and_save);
+img::grab_rgb(camera, rotate_and_save);
+img::grab_rgb(camera, rotate_and_save);
 
 // ...
 
@@ -478,7 +482,7 @@ Grab continuous
 namespace img = simage;
 
 
-CameraUSB camera;
+img::CameraUSB camera;
 if (!img::open_camera(camera))
 {
     // error
@@ -519,7 +523,76 @@ The namespace simage::hist contains functionality for creating histograms of var
 
 ### CUDA
 
-Basic implementation for processing images on Nvidia GPUs is on the way.
+Allocate GPU memory with a `DeviceBuffer` to create a `DeviceView`
+
+```cpp
+namespace img = simage;
+
+
+img::Image image;
+auto view = img::make_view_from_file("file_path", image);
+
+auto width = view.width;
+auto height = view.height;
+
+auto d_pixels = img::create_device_buffer32(width * height * 2);
+
+auto d_viewA = img::make_device_view(width, height, d_pixels);
+auto d_viewB = img::make_device_view(width, height, d_pixels);
+
+// ...
+
+img::destroy_image(image);
+img::destroy_buffer(d_pixels);
+```
+
+Image data needs to be trasferred to the GPU for processing and then transferred back when complete.
+
+```cpp
+namespace img = simage;
+
+
+img::Image image;
+auto view = img::make_view_from_file("file_path", image);
+
+auto width = view.width;
+auto height = view.height;
+
+auto d_pixels = img::create_device_buffer32(width * height * 2);
+
+auto d_src = img::make_device_view(width, height, d_pixels);
+auto d_dst = img::make_device_view(width, height, d_pixels);
+
+img::copy_to_device(view, d_src);
+
+img::blur(d_src, d_dst);
+
+img::copy_to_host(d_dst, view);
+
+auto success = img::write_image(image, "new_file_path");
+if (!success)
+{
+    // error
+}
+
+img::destroy_image(image);
+img::destroy_buffer(d_pixels);
+```
+
+Other functions
+
+```cpp
+map_rgb_gray()
+map_yuv_rgba()
+map_bgr_rgba()
+alpha_blend()
+threshold()
+blur()
+gradients()
+rotate()
+```
+
+**See `/test_apps/cuda_tests/`**
 
 ### Settings
 
@@ -560,6 +633,7 @@ Basic implementation for processing images on Nvidia GPUs is on the way.
 * Compile/link with {your_path}/simage/simage.cpp
 * Note: For USB camera functionality, install libusb for Linux or OpenCV for windows
     * Or #define SIMAGE_NO_USB_CAMERA
+* If compiling with CUDA, compile/link with {your_path}/simage/simage_cuda.cu
 
 ## Run the examples
 
@@ -572,7 +646,7 @@ Edit the `ROOT_DIR` variable in `/test_apps/tests_include.hpp` to where your pro
 
 Windows
 
-* Use the Visual Studio solution provided
+* Use the Visual Studio solutions provided
 
 Linux
 

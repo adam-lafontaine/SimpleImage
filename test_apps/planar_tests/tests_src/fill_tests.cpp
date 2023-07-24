@@ -63,7 +63,7 @@ void fill_rgb_test(img::View const& out)
     img::fill(img::sub_view(rgb, mid), green);
     img::fill(img::sub_view(rgb, right), blue);
 
-    img::map_rgb(rgb, out);
+    img::map_rgba(rgb, out);
 
     mb::destroy_buffer(buffer);
 }
@@ -97,7 +97,7 @@ void fill_gray_test(img::View const& out)
     img::fill(img::sub_view(view, mid), gray);
     img::fill(img::sub_view(view, bottom), white);
 
-    img::map_gray(view, out);
+    img::map_rgba(view, out);
 
     mb::destroy_buffer(buffer);
 }

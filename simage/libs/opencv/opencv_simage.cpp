@@ -203,7 +203,7 @@ namespace simage
 
 		auto device_view = sub_view(device.bgr_image, camera.roi);
 
-		map_rgb(device_view, dst);
+		map_rgba(device_view, dst);
 
 		return true;
 	}
@@ -228,7 +228,7 @@ namespace simage
 		auto device_view = sub_view(device.bgr_image, camera.roi);
 		auto camera_view = sub_view(camera.frame_image, camera.roi);
 
-		map_rgb(device_view, camera_view);
+		map_rgba(device_view, camera_view);
 		grab_cb(camera_view);
 
         return true;
@@ -254,7 +254,7 @@ namespace simage
 			if (grab_and_convert_frame_bgr(device))
 			{
 				device_view = sub_view(device.bgr_image, camera.roi);
-				map_rgb(device_view, camera_view);
+				map_rgba(device_view, camera_view);
 				grab_cb(camera_view);
 			}
 		}

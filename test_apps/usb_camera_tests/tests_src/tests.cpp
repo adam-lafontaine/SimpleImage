@@ -57,7 +57,7 @@ void grab_rgb_test(img::CameraUSB const& camera, img::View const& out)
 
 void grab_gray_test(img::CameraUSB const& camera, img::View const& out)
 {
-    auto const grab_cb = [&](auto const& frame) { img::map_gray(frame, out); };
+    auto const grab_cb = [&](auto const& frame) { img::map_rgba(frame, out); };
 
     img::grab_gray(camera, grab_cb);
 }
@@ -88,7 +88,7 @@ void threshold_min_max_test(img::CameraUSB const& camera, img::View const& out)
     auto const grab_cb = [&](auto const& frame)
     {
         img::threshold(frame, frame, 30, 200);
-        img::map_gray(frame, out);
+        img::map_rgba(frame, out);
     };
 
     img::grab_gray(camera, grab_cb);
@@ -100,7 +100,7 @@ void binarize_test(img::CameraUSB const& camera, img::View const& out)
     auto const grab_cb = [&](auto const& frame)
     {
         img::binarize(frame, frame, [](u8 p){ return p < 150; });
-        img::map_gray(frame, out);
+        img::map_rgba(frame, out);
     };
 
     img::grab_gray(camera, grab_cb);
@@ -133,7 +133,7 @@ void blur_rgb_test(img::CameraUSB const& camera, img::View const& out)
     {
         img::map_rgb(frame, view3src);
         img::blur(view3src, view3dst);
-        img::map_rgb(view3dst, out);
+        img::map_rgba(view3dst, out);
     };
 
     img::grab_rgb(camera, grab_cb);
@@ -156,7 +156,7 @@ void gradients_tests(img::CameraUSB const& camera, img::View const& out)
     {
         img::gradients(frame, view8_src);
         img::map_gray(view8_src, red);
-        img::map_rgb(view3dst, out);
+        img::map_rgba(view3dst, out);
     };
 
     img::grab_gray(camera, grab_cb);

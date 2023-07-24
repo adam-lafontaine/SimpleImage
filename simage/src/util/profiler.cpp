@@ -8,6 +8,28 @@
 #include <cassert>
 
 
+
+
+
+static FILE* open_out_file()
+{
+    // specify your output text file here
+
+#ifdef _WIN32
+
+    FILE* file;
+    fopen_s(&file, "profile.txt", "a");
+
+    return file;
+
+#else
+
+    return fopen("build_files/profile.txt", "a");
+
+#endif
+}
+
+
 namespace
 {
     class ProfileRecord
@@ -184,7 +206,7 @@ namespace perf
 
         auto& min = profile_records[0];
 
-        FILE* out = fopen("build_files/profile.txt", "a");
+        FILE* out = open_out_file();        
 
         print(out, "\nProfile Report:\n");
 

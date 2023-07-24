@@ -73,7 +73,7 @@ void hsv_draw_test(img::View const& out)
 
     img::fill(val, 1.0f);
 
-    img::map_hsv_rgb(hsv, out);
+    img::map_hsv_rgba(hsv, out);
     
     mb::destroy_buffer(buffer);
 }

@@ -22,7 +22,7 @@ void transform_test(img::View const& out)
 
     img::transform(src, dst, invert);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer8);
     img::destroy_buffer(buffer32);
@@ -47,7 +47,7 @@ void transform_gray_test(img::View const& out)
 
     img::transform_gray(src, dst);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
     
     img::destroy_buffer(buffer);
     img::destroy_image(image);
@@ -73,7 +73,7 @@ void threshold_test(img::View const& out)
 
     img::threshold(src, dst, 0.4f);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer8);
     img::destroy_buffer(buffer32);
@@ -102,7 +102,7 @@ void binarize_test(img::View const& out)
 
     img::binarize(src, dst, pred);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_buffer(buffer8);
     img::destroy_buffer(buffer32);

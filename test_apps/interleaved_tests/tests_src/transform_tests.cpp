@@ -44,7 +44,7 @@ void transform_gray_test(img::View const& out)
 
     img::transform(src, dst, invert);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);
@@ -65,7 +65,7 @@ void threshold_min_test(img::View const& out)
 
     img::threshold(src, dst, 75);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);
@@ -86,7 +86,7 @@ void threshold_min_max_test(img::View const& out)
 
     img::threshold(src, dst, 30, 200);
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(image);
     img::destroy_buffer(buffer);
@@ -108,7 +108,7 @@ void binarize_test(img::View const& out)
 
     img::binarize(src, dst, [](u8 p){ return p < 150; });
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(weed);
     img::destroy_buffer(buffer);
@@ -133,7 +133,7 @@ void binarize_rgb_test(img::View const& out)
 
     img::binarize(src, dst, [](img::Pixel p){ return p.rgba.red > 200; });
 
-    img::map_gray(dst, out);
+    img::map_rgba(dst, out);
 
     img::destroy_image(weed);
     img::destroy_buffer(pixels);

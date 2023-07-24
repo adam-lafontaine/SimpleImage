@@ -1,0 +1,75 @@
+
+Profile Report:
+5.05e+02: img::select_channel(viewC4a, img::RGBA::A)                                        x 3
+5.14e+02: img::sub_view(viewC3a, range)                                                     x 3
+5.36e+02: img::make_view_4(WIDTH, HEIGHT, pixels32)                                         x 6
+6.60e+02: img::sub_view(viewC4a, range)                                                     x 3
+8.03e+02: img::make_view(WIDTH, HEIGHT, pixels8)                                            x 12
+8.43e+02: img::make_view_2(WIDTH, HEIGHT, pixels32)                                         x 6
+8.50e+02: img::make_view_3(WIDTH, HEIGHT, pixels32)                                         x 6
+1.05e+03: img::sub_view(viewC2a, range)                                                     x 3
+1.18e+03: img::sub_view(vette8_v, range)                                                    x 3
+1.52e+03: img::make_view(WIDTH, HEIGHT, pixels32)                                           x 3
+1.54e+03: img::make_view_1(WIDTH, HEIGHT, pixels32)                                         x 6
+1.58e+03: img::sub_view(viewC1a, range)                                                     x 3
+1.95e+03: img::sub_view(vette32_v, range)                                                   x 3
+2.15e+03: img::select_channel(viewC3a, img::RGB::R)                                         x 3
+9.59e+04: img::destroy_image(caddy8)                                                        x 3
+1.00e+05: img::destroy_image(vette8)                                                        x 3
+6.34e+05: img::destroy_image(caddy32)                                                       x 3
+6.89e+05: img::destroy_image(vette32)                                                       x 3
+5.75e+06: img::fill(view8, 128)                                                             x 3
+7.85e+06: img::copy(caddy8_v, view8)                                                        x 3
+7.90e+06: img::fill(viewC1a, (u8)255)                                                       x 3
+8.04e+06: img::fill(view32, blue)                                                           x 3
+8.31e+06: img::fill(viewC1a, 0.5f)                                                          x 3
+8.66e+06: img::destroy_buffer(pixels8)                                                      x 3
+9.04e+06: img::fill(viewC3a, blue)                                                          x 3
+9.54e+06: img::copy(caddy32_v, view32)                                                      x 3
+1.40e+07: img::threshold(viewC1b, viewC1a, 0.5f)                                            x 3
+1.41e+07: img::threshold(viewC1b, viewC1a, 0.4f, 0.8f)                                      x 3
+1.42e+07: img::create_buffer8(WIDTH * HEIGHT * n_channels_8)                                x 3
+1.77e+07: img::fill(viewC4a, blue)                                                          x 3
+1.82e+07: img::split_rgb(vette32_v, view8A, view8B, view8C)                                 x 3
+2.17e+07: img::split_rgba(caddy32_v, view8A, view8B, view8C, view8)                         x 3
+2.40e+07: img::threshold(vette8_v, view8, 128)                                              x 3
+3.16e+07: img::alpha_blend(viewC4a, viewC3b, viewC3a)                                       x 3
+3.76e+07: img::map_gray(view8, viewC1b)                                                     x 3
+3.86e+07: img::map_gray(caddy32_v, viewC1b)                                                 x 3
+5.01e+07: img::map_rgba(view8, view32)                                                      x 3
+9.50e+07: img::map_rgba(viewC1b, view32)                                                    x 3
+9.69e+07: img::map_gray(viewC1b, view8)                                                     x 3
+1.01e+08: img::map_gray(vette32_v, view8)                                                   x 3
+1.50e+08: img::map_hsv_rgb(viewC3a, viewC3b)                                                x 3
+1.72e+08: img::map_rgb(caddy32_v, viewC3b)                                                  x 3
+1.79e+08: img::destroy_buffer(pixels32)                                                     x 3
+1.94e+08: img::make_view_resized_from_file(CORVETTE_PATH, vette8, WIDTH, HEIGHT, pixels8)   x 3
+2.06e+08: img::alpha_blend(caddy32_v, vette32_v, view32)                                    x 3
+2.16e+08: img::make_view_resized_from_file(CADILLAC_PATH, caddy8, WIDTH, HEIGHT, pixels8)   x 3
+2.35e+08: img::map_rgba(vette32_v, viewC4a)                                                 x 3
+2.77e+08: img::create_buffer32(WIDTH * HEIGHT * n_channels_32)                              x 3
+3.05e+08: img::map_lch_rgb(viewC3a, viewC3b)                                                x 3
+3.19e+08: img::map_rgba(viewC3b, view32)                                                    x 3
+4.25e+08: img::map_rgba(viewC4a, view32)                                                    x 3
+5.21e+08: img::map_hsv_rgba(viewC3a, view32)                                                x 3
+5.72e+08: img::make_view_resized_from_file(CADILLAC_PATH, caddy32, WIDTH, HEIGHT, pixels32) x 3
+6.01e+08: img::make_view_resized_from_file(CORVETTE_PATH, vette32, WIDTH, HEIGHT, pixels32) x 3
+6.38e+08: img::map_lch_rgba(viewC3a, view32)                                                x 3
+8.20e+08: img::rotate(vette8_v, view8, pt, rad)                                             x 3
+8.58e+08: img::rotate(vette32_v, view32, pt, rad)                                           x 3
+8.97e+08: img::rotate(viewC1a, viewC1b, pt, rad)                                            x 3
+9.33e+08: img::rotate(viewC2a, viewC2b, pt, rad)                                            x 3
+9.85e+08: img::rotate(viewC3a, viewC3b, pt, rad)                                            x 3
+1.04e+09: img::rotate(viewC4a, viewC4b, pt, rad)                                            x 3
+1.08e+09: img::map_rgb_hsv(viewC3b, viewC3a)                                                x 3
+1.26e+09: img::map_rgb_hsv(vette32_v, viewC3a)                                              x 3
+1.57e+09: img::map_rgb_lch(viewC3b, viewC3a)                                                x 3
+1.66e+09: img::map_rgb_lch(vette32_v, viewC3a)                                              x 3
+2.10e+09: img::gradients_xy(viewC1a, viewC2a)                                               x 3
+2.18e+09: img::gradients(viewC1a, viewC1b)                                                  x 3
+2.22e+09: img::split_hsv(vette32_v, view8A, view8B, view8C)                                 x 3
+2.90e+09: img::gradients(vette8_v, view8A)                                                  x 3
+3.08e+09: img::gradients_xy(caddy8_v, view8B, view8C)                                       x 3
+3.95e+09: img::blur(viewC1a, viewC1b)                                                       x 3
+4.38e+09: img::blur(viewC3a, viewC3b)                                                       x 3
+5.92e+09: img::blur(caddy8_v, view8)                                                        x 3

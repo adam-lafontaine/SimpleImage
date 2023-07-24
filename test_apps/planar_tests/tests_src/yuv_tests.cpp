@@ -71,7 +71,7 @@ void yuv_draw_test(img::View const& out)
 
     img::fill(view_Y, 0.5f);
 
-    img::map_yuv_rgb(yuv, out);
+    img::map_yuv_rgba(yuv, out);
     
     mb::destroy_buffer(buffer);
 }

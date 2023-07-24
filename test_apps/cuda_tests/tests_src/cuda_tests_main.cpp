@@ -11,15 +11,38 @@ constexpr int FRAMES_PER_TEST = 30;
 bool device_buffer_tests();
 bool unified_buffer_tests();
 
-
-void sub_view_host_to_device_test(img::View const& out);
-void sub_view_device_to_host_test(img::View const& out);
+void copy_device_test(img::View const& out);
+void copy_device_gray_test(img::View const& out);
+void copy_device_sub_view_test(img::View const& out);
+void copy_device_sub_view_gray_test(img::View const& out);
+void rgb_gray_test(img::View const& out);
+void alpha_blend_test(img::View const& out);
+void threshold_min_test(img::View const& out);
+void threshold_min_max_test(img::View const& out);
+void blur_gray_test(img::View const& out);
+void blur_rgb_test(img::View const& out);
+void gradients_test(img::View const& out);
+void gradients_xy_test(img::View const& out);
+void rotate_rgb_test(img::View const& out);
+void rotate_gray_test(img::View const& out);
 
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	sub_view_host_to_device_test,
-	sub_view_device_to_host_test,
+	copy_device_test,
+	copy_device_gray_test,
+	copy_device_sub_view_test,
+	copy_device_sub_view_gray_test,
+	rgb_gray_test,
+	alpha_blend_test,
+	threshold_min_test,
+	threshold_min_max_test,
+	blur_gray_test,
+	blur_rgb_test,
+	gradients_test,
+	gradients_xy_test,
+	rotate_rgb_test,
+	rotate_gray_test,
 };
 
 

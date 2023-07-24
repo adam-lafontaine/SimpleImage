@@ -30,8 +30,8 @@ namespace perf
     
     private:
 
-        u64 cpu_start;
-        u64 cpu_end;
+        u64 cpu_start = 0;
+        u64 cpu_end = 0;
     };
 
 }

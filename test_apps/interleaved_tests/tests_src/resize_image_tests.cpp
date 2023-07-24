@@ -30,7 +30,7 @@ void resize_gray_image_test(img::View const& out)
 
 	img::resize_image(vette, image);
 
-	img::map_gray(img::make_view(image), out);
+	img::map_rgba(img::make_view(image), out);
 
 	img::destroy_image(vette);
 	img::destroy_image(image);

@@ -1,313 +1,11 @@
 #pragma once
 
-#include "defines.hpp"
+#include "simage_types.hpp"
 #include "src/util/memory_buffer.hpp"
-
-#include <functional>
 
 namespace mb = memory_buffer;
 
-
-namespace simage
-{
-	constexpr auto RGB_CHANNELS = 3u;
-	constexpr auto RGBA_CHANNELS = 4u;
-
-	class RGBAu8
-	{
-	public:
-		u8 red;
-		u8 green;
-		u8 blue;
-		u8 alpha;
-	};
-    
-}
-
-
-/* platform (interleaved) image */
-
-namespace simage
-{
-    typedef union pixel_t
-	{
-		u8 channels[4] = {};
-
-		u32 value;
-
-		RGBAu8 rgba;
-
-	} Pixel;
-
-
-	template <typename T>
-    class MatrixView
-	{
-	public:
-
-		T* matrix_data_ = 0;
-		u32 matrix_width = 0;
-
-		u32 width = 0;
-		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};		
-	};
-
-
-	using Image = Matrix2D<Pixel>;
-	using View = MatrixView<Pixel>;
-
-	using ImageGray = Matrix2D<u8>;
-	using ViewGray = MatrixView<u8>;
-}
-
-
-/* channel view */
-
-namespace simage
-{
-	template <typename T, size_t N>
-	class ChannelView
-	{
-	public:
-
-		u32 channel_width_ = 0;
-
-		T* channel_data_[N] = {};		
-
-		u32 width = 0;
-		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
-	};
-	
-
-	template <typename T>
-	using View4 = ChannelView<T, 4>;
-
-	template <typename T>
-	using View3 = ChannelView<T, 3>;
-
-	template <typename T>
-	using View2 = ChannelView<T, 2>;
-
-	template <typename T>
-	using View1 = MatrixView<T>;
-
-	using View4f32 = View4<f32>;
-	using View3f32 = View3<f32>;
-	using View2f32 = View2<f32>;
-	using View1f32 = View1<f32>;
-
-	using View1u8 = ViewGray;
-
-	using ViewRGBAf32 = View4f32;
-	using ViewRGBf32 = View3f32;
-	using ViewHSVf32 = View3f32;
-	using ViewYUVf32 = View3f32;
-	using ViewLCHf32 = View3f32;
-
-    using Buffer32 = MemoryBuffer<Pixel>;
-    using Buffer8 = MemoryBuffer<u8>;
-}
-
-
-/* camera types */
-
-namespace simage
-{
-	class YUV422u8
-	{
-	public:
-		u8 u;
-		u8 y1;
-		u8 v;
-		u8 y2;
-	};
-
-
-	class YUV2u8
-	{
-	public:
-		u8 uv;
-		u8 y;
-	};
-
-
-	class BGRu8
-	{
-	public:
-		u8 blue;
-		u8 green;
-		u8 red;
-	};
-
-
-	class RGBu8
-	{
-	public:
-		u8 red;
-		u8 green;
-		u8 blue;
-	};
-
-#if IS_LITTLE_ENDIAN
-
-	enum class RGB : int
-	{
-		R = 0, G = 1, B = 2
-	};
-
-
-	enum class RGBA : int
-	{
-		R = 0, G = 1, B = 2, A = 3
-	};
-
-
-	enum class HSV : int
-	{
-		H = 0, S = 1, V = 2
-	};
-
-
-	enum class LCH : int
-	{
-		L = 0, C = 1, H = 2
-	};
-
-
-	enum class YUV : int
-	{
-		Y = 0, U = 1, V = 2
-	};
-
-
-	enum class GA : int
-	{
-		G = 0, A = 1
-	};
-
-
-	enum class XY : int
-	{
-		X = 0, Y = 1
-	};
-
-#else
-
-	enum class RGB : int
-	{
-		R = 2, G = 1, B = 0
-	};
-
-
-	enum class RGBA : int
-	{
-		R = 3, G = 2, B = 1, A = 0
-	};
-
-
-	enum class HSV : int
-	{
-		H = 2, S = 1, V = 0
-	};
-
-
-	enum class LCH : int
-	{
-		L = 2, C = 1, H = 0
-	};
-
-
-	enum class YUV : int
-	{
-		Y = 2, U = 1, V = 0
-	};
-
-
-	enum class GA : int
-	{
-		G = 1, A = 0
-	};
-
-
-	enum class XY : int
-	{
-		X = 1, Y = 0
-	};
-
-#endif	
-
-
-	template <typename T>
-	constexpr inline int id_cast(T channel)
-	{
-		return static_cast<int>(channel);
-	}
-
-
-	using ImageYUV = Matrix2D<YUV2u8>;
-	using ViewYUV = MatrixView<YUV2u8>;
-
-	using ImageBGR = Matrix2D<BGRu8>;
-	using ViewBGR = MatrixView<BGRu8>;
-
-	using ImageRGB = Matrix2D<RGBu8>;
-	using ViewRGB = MatrixView<RGBu8>;
-}
-
-
-/* to_pixel */
-
-namespace simage
-{
-	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b, u8 a)
-	{
-		Pixel p{};
-		p.rgba.red = r;
-		p.rgba.green = g;
-		p.rgba.blue = b;
-		p.rgba.alpha = a;
-
-		return p;
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 r, u8 g, u8 b)
-	{
-		return to_pixel(r, g, b, 255);
-	}
-
-
-	constexpr inline Pixel to_pixel(u8 value)
-	{
-		return to_pixel(value, value, value, 255);
-	}
-}
+#include <functional>
 
 
 /* create destroy */
@@ -325,6 +23,10 @@ namespace simage
 	void destroy_image(ImageGray& image);
 
 	void destroy_image(ImageYUV& image);
+
+
+	using Buffer32 = MemoryBuffer<Pixel>;
+    using Buffer8 = MemoryBuffer<u8>;
 
 
 	inline Buffer32 create_buffer32(u32 n_pixels)
@@ -433,17 +135,17 @@ namespace simage
 
 namespace simage
 {
+	void map_rgba(ViewGray const& src, View const& dst);
+
+	void map_rgba(ViewYUV const& src, View const& dst);
+
+	void map_rgba(ViewBGR const& src, View const& dst);
+
+	void map_rgba(ViewRGB const& src, View const& dst);
+
 	void map_gray(View const& src, ViewGray const& dst);
 
-	void map_gray(ViewGray const& src, View const& dst);
-
-	void map_yuv(ViewYUV const& src, View const& dst);
-
 	void map_gray(ViewYUV const& src, ViewGray const& dst);
-
-	void map_rgb(ViewBGR const& src, View const& dst);
-
-	void map_rgb(ViewRGB const& src, View const& dst);
 }
 
 
@@ -505,7 +207,7 @@ namespace simage
 
 namespace simage
 {
-    //void blur(View const& src, View const& dst);
+    void blur(View const& src, View const& dst);
 
     void blur(ViewGray const& src, ViewGray const& dst);
 }
@@ -530,6 +232,8 @@ namespace simage
 	void rotate(ViewGray const& src, ViewGray const& dst, Point2Du32 origin, f32 rad);
 }
 
+
+/* centroid */
 
 namespace simage
 {
@@ -911,7 +615,7 @@ namespace simage
 
 	void map_gray(ViewYUV const& src, View1f32 const& dst);
 
-	void map_gray(View1f32 const& src, View const& dst);
+	void map_rgba(View1f32 const& src, View const& dst);
 
 	void map_gray(View const& src, View1f32 const& dst);
 
@@ -932,7 +636,7 @@ namespace simage
 	
 	void map_rgb(View const& src, ViewRGBf32 const& dst);
 
-	void map_rgb(ViewRGBf32 const& src, View const& dst);	
+	void map_rgba(ViewRGBf32 const& src, View const& dst);	
 
 
 	inline void map_rgba(Image const& src, ViewRGBAf32 const& dst)
@@ -949,7 +653,7 @@ namespace simage
 
 	inline void map_rgb(ViewRGBf32 const& src, Image const& dst)
 	{
-		map_rgb(src, make_view(dst));
+		map_rgba(src, make_view(dst));
 	}
 }
 
@@ -960,7 +664,7 @@ namespace simage
 {
 	void map_rgb_hsv(View const& src, ViewHSVf32 const& dst);
 
-	void map_hsv_rgb(ViewHSVf32 const& src, View const& dst);
+	void map_hsv_rgba(ViewHSVf32 const& src, View const& dst);
 
 
 	void map_rgb_hsv(ViewRGBf32 const& src, ViewHSVf32 const& dst);	
@@ -975,7 +679,7 @@ namespace simage
 {
 	void map_rgb_lch(View const& src, ViewLCHf32 const& dst);
 
-	void map_lch_rgb(ViewLCHf32 const& src, View const& dst);
+	void map_lch_rgba(ViewLCHf32 const& src, View const& dst);
 
 	void map_rgb_lch(ViewRGBf32 const& src, ViewLCHf32 const& dst);
 
@@ -989,7 +693,7 @@ namespace simage
 {
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
 
-	void map_yuv_rgb(ViewYUVf32 const& src, View const& dst);
+	void map_yuv_rgba(ViewYUVf32 const& src, View const& dst);
 }
 
 
@@ -1102,124 +806,6 @@ namespace simage
 
 #ifndef SIMAGE_NO_CUDA
 
-#include "./libs/cuda/device.hpp"
-
-
-/* device buffer */
-
-namespace simage
-{
-	using DeviceBuffer32 = cuda::DeviceBuffer<Pixel>;
-	using DeviceBuffer8 = cuda::DeviceBuffer<u8>;
-
-
-	inline DeviceBuffer32 create_device_buffer32(u32 n_pixels)
-	{
-		DeviceBuffer32 buffer;
-		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
-		return buffer;
-	}
-
-
-	inline DeviceBuffer8 create_device_buffer8(u32 n_pixels)
-	{
-		DeviceBuffer8 buffer;
-		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
-		return buffer;
-	}
-
-
-	inline DeviceBuffer32 create_unified_buffer32(u32 n_pixels)
-	{
-		DeviceBuffer32 buffer;
-		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
-		return buffer;
-	}
-
-
-	inline DeviceBuffer8 create_unified_buffer8(u32 n_pixels)
-	{
-		DeviceBuffer8 buffer;
-		if (!cuda::create_device_buffer(buffer, n_pixels)) { assert(false); }
-		return buffer;
-	}
-
-
-	template <typename T>
-	inline void destroy_buffer(cuda::DeviceBuffer<T>& buffer)
-	{
-		cuda::destroy_buffer(buffer);
-	}
-}
-
-
-/* device view */
-
-namespace simage
-{
-	template <typename T>
-    class DeviceMatrixView
-	{
-	public:
-
-		T* matrix_data_ = 0;
-		u32 matrix_width = 0;
-
-		u32 width = 0;
-		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};		
-	};
-
-
-	using DeviceView = DeviceMatrixView<Pixel>;
-	using DeviceViewGray = DeviceMatrixView<u8>;
-}
-
-
-/* make_view */
-
-namespace simage
-{
-	DeviceView make_view(u32 width, u32 height, DeviceBuffer32& buffer);
-
-	DeviceViewGray make_view(u32 width, u32 height, DeviceBuffer8& buffer);
-}
-
-
-/* copy device */
-
-namespace simage
-{
-	void copy_to_device(View const& host_src, DeviceView const& device_dst);
-
-    void copy_to_device(ViewGray const& host_src, DeviceViewGray const& device_dst);
-
-    void copy_to_host(DeviceView const& device_src, View const& host_dst);
-
-    void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst);
-}
-
-
-/* sub_view */
-
-namespace simage
-{
-	DeviceView sub_view(DeviceView const& view, Range2Du32 const& range);
-
-	DeviceViewGray sub_view(DeviceViewGray const& view, Range2Du32 const& range);
-}
-
+#include "simage_cuda.hpp"
 
 #endif // SIMAGE_NO_CUDA

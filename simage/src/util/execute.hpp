@@ -8,7 +8,7 @@
 #include <vector>
 
 
-#ifndef SIMPLE_NO_PARALLEL
+#ifndef SIMAGE_NO_PARALLEL
 
 #include <execution>
 // -ltbb
@@ -26,7 +26,7 @@ inline void execute_parallel(std::vector<std::function<void()>> const& f_list)
     std::for_each(std::execution::par, f_list.begin(), f_list.end(), [](auto const& f){ f(); });
 }
 
-#endif // !SIMPLE_NO_PARALLEL
+#endif // !SIMAGE_NO_PARALLEL
 
 
 template <size_t N>
@@ -45,7 +45,7 @@ inline void execute_sequential(std::vector<std::function<void()>> const& f_list)
 template <size_t N>
 inline void execute(std::array<std::function<void()>, N> const& f_list)
 {
-#ifndef SIMPLE_NO_PARALLEL
+#ifndef SIMAGE_NO_PARALLEL
     execute_parallel(f_list);
 #else
     execute_sequential(f_list);
@@ -55,7 +55,7 @@ inline void execute(std::array<std::function<void()>, N> const& f_list)
 
 inline void execute(std::vector<std::function<void()>> const& f_list)
 {
-#ifndef SIMPLE_NO_PARALLEL
+#ifndef SIMAGE_NO_PARALLEL
     execute_parallel(f_list);
 #else
     execute_sequential(f_list);

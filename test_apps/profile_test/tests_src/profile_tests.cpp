@@ -51,7 +51,7 @@ void run_profile_tests()
     PROFILE(img::copy(caddy8_v, view8))
 
     PROFILE(img::map_gray(vette32_v, view8))
-    PROFILE(img::map_gray(view8, view32));
+    PROFILE(img::map_rgba(view8, view32));
 
     PROFILE(img::alpha_blend(caddy32_v, vette32_v, view32))
 
@@ -86,22 +86,22 @@ void run_profile_tests()
 
     PROFILE(img::map_gray(view8, viewC1b))
     PROFILE(img::map_gray(viewC1b, view8))
-    PROFILE(img::map_gray(viewC1b, view32))
+    PROFILE(img::map_rgba(viewC1b, view32))
     PROFILE(img::map_gray(caddy32_v, viewC1b))
 
     PROFILE(img::map_rgba(vette32_v, viewC4a));
     PROFILE(img::map_rgba(viewC4a, view32))
 
     PROFILE(img::map_rgb(caddy32_v, viewC3b))
-    PROFILE(img::map_rgb(viewC3b, view32))
+    PROFILE(img::map_rgba(viewC3b, view32))
 
     PROFILE(img::map_rgb_hsv(vette32_v, viewC3a))
-    PROFILE(img::map_hsv_rgb(viewC3a, view32))
+    PROFILE(img::map_hsv_rgba(viewC3a, view32))
     PROFILE(img::map_rgb_hsv(viewC3b, viewC3a))
     PROFILE(img::map_hsv_rgb(viewC3a, viewC3b))
 
     PROFILE(img::map_rgb_lch(vette32_v, viewC3a))
-    PROFILE(img::map_lch_rgb(viewC3a, view32))
+    PROFILE(img::map_lch_rgba(viewC3a, view32))
     PROFILE(img::map_rgb_lch(viewC3b, viewC3a))
     PROFILE(img::map_lch_rgb(viewC3a, viewC3b))
 

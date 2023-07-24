@@ -27,7 +27,9 @@
 //#define SIMAGE_NO_USB_CAMERA
 
 // Disable CUDA GPU support
-//#define SIMAGE_NO_CUDA
+#ifndef __CUDACC__
+#define SIMAGE_NO_CUDA
+#endif
 
 // Force enable CUDA
 #ifdef ENABLE_CUDA

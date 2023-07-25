@@ -174,20 +174,16 @@ static void sub_view()
 
 static void map_gray()
 {
-    img::Image rgba;
-
-    auto path = CORVETTE_PATH;
-    auto n_channels32 = 4;
+    auto n_channels32 = 5;
     auto n_channels8 = 1;
-
-    auto res = img::read_image_from_file(path, rgba);
-    auto width = rgba.width;
-    auto height = rgba.height;
+    
+    auto width = WIDTH;
+    auto height = HEIGHT;
 
     auto buffer32 = img::create_buffer32(width * height * n_channels32);
     auto buffer8 = img::create_buffer8(width * height * n_channels8);
 
-    auto view_rgba = img::make_view(rgba);
+    auto view_rgba = img::make_view(width, height, buffer32);
     auto view_gray = img::make_view(width, height, buffer8);
     auto view_1 = img::make_view_1(width, height, buffer32);
     auto view_3 = img::make_view_3(width, height, buffer32);
@@ -195,8 +191,64 @@ static void map_gray()
     PROFILE(img::map_gray(view_rgba, view_gray));
     PROFILE(img::map_gray(view_rgba, view_1));
     PROFILE(img::map_gray(view_3, view_1));
+    
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
 
-    img::destroy_image(rgba);
+
+static void alpha_blend()
+{
+    auto n_channels32 = 13;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+
+    auto src_rgba = img::make_view(width, height, buffer32);
+    auto cur_rgba = img::make_view(width, height, buffer32);
+    auto dst_rgba = img::make_view(width, height, buffer32);
+
+    auto src_4 = img::make_view_4(width, height, buffer32);
+    auto cur_3 = img::make_view_3(width, height, buffer32);
+    auto dst_3 = img::make_view_3(width, height, buffer32);
+
+    PROFILE(img::alpha_blend(src_rgba, cur_rgba, dst_rgba));
+    PROFILE(img::alpha_blend(src_4, cur_3, dst_3));
+
+    img::destroy_buffer(buffer32);
+}
+
+
+static void blur()
+{
+    auto n_channels32 = 10;
+    auto n_channels8 = 2;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto src_rgba = img::make_view(width, height, buffer32);
+    auto dst_rgba = img::make_view(width, height, buffer32);
+
+    auto src_gray = img::make_view(width, height, buffer8);
+    auto dst_gray = img::make_view(width, height, buffer8);
+
+    auto src_3 = img::make_view_3(width, height, buffer32);
+    auto dst_3 = img::make_view_3(width, height, buffer32);
+
+    auto src_1 = img::make_view_1(width, height, buffer32);
+    auto dst_1 = img::make_view_1(width, height, buffer32);
+
+    PROFILE(img::blur(src_rgba, dst_rgba));
+    PROFILE(img::blur(src_gray, dst_gray));
+    PROFILE(img::blur(src_3, dst_3));
+    PROFILE(img::blur(src_1, dst_1));
+
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
 }
@@ -214,8 +266,8 @@ void run_profile_tests()
     run_test(make_view, "make_view");
     run_test(sub_view, "sub_view");
     run_test(map_gray, "map_gray");
-    
-
+    run_test(alpha_blend, "alpha_blend");
+    run_test(blur, "blur");
 
     
 }

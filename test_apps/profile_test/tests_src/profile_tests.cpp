@@ -221,6 +221,50 @@ static void alpha_blend()
 }
 
 
+static void rotate()
+{
+    auto n_channels32 = 22;
+    auto n_channels8 = 2;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto src_rgba = img::make_view(width, height, buffer32);
+    auto dst_rgba = img::make_view(width, height, buffer32);
+
+    auto src_gray = img::make_view(width, height, buffer8);
+    auto dst_gray = img::make_view(width, height, buffer8);
+
+    auto src_4 = img::make_view_4(width, height, buffer32);
+    auto dst_4 = img::make_view_4(width, height, buffer32);
+
+    auto src_3 = img::make_view_3(width, height, buffer32);
+    auto dst_3 = img::make_view_3(width, height, buffer32);
+
+    auto src_2 = img::make_view_2(width, height, buffer32);
+    auto dst_2 = img::make_view_2(width, height, buffer32);
+
+    auto src_1 = img::make_view_1(width, height, buffer32);
+    auto dst_1 = img::make_view_1(width, height, buffer32);
+
+    Point2Du32 origin = { width / 2, height / 2 };
+    f32 angle_rad = 0.3f * 2 * 3.14159f;
+
+    PROFILE(img::rotate(src_rgba, dst_rgba, origin, angle_rad));
+    PROFILE(img::rotate(src_gray, dst_gray, origin, angle_rad));
+    PROFILE(img::rotate(src_4, dst_4, origin, angle_rad));
+    PROFILE(img::rotate(src_3, dst_3, origin, angle_rad));
+    PROFILE(img::rotate(src_2, dst_2, origin, angle_rad));
+    PROFILE(img::rotate(src_1, dst_1, origin, angle_rad));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
 static void blur()
 {
     auto n_channels32 = 10;
@@ -254,6 +298,36 @@ static void blur()
 }
 
 
+static void gradients()
+{
+    auto n_channels32 = 4;
+    auto n_channels8 = 4;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto src_gray = img::make_view(width, height, buffer8);
+    auto dst_gray = img::make_view(width, height, buffer8);
+    auto dst_gray_x = img::make_view(width, height, buffer8);
+    auto dst_gray_y = img::make_view(width, height, buffer8);
+
+    auto src_1 = img::make_view_1(width, height, buffer32);
+    auto dst_1 = img::make_view_1(width, height, buffer32);
+    auto dst_2_xy = img::make_view_2(width, height, buffer32);
+
+    PROFILE(img::gradients(src_gray, dst_gray));
+    PROFILE(img::gradients_xy(src_gray, dst_gray_x, dst_gray_y));
+    PROFILE(img::gradients(src_1, dst_1));
+    PROFILE(img::gradients_xy(src_1, dst_2_xy));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
 
 
 
@@ -267,7 +341,7 @@ void run_profile_tests()
     run_test(sub_view, "sub_view");
     run_test(map_gray, "map_gray");
     run_test(alpha_blend, "alpha_blend");
+    run_test(rotate, "rotate");
     run_test(blur, "blur");
-
-    
+    run_test(gradients, "gradients");    
 }

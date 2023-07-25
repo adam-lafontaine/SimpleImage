@@ -1,5 +1,5 @@
 #include "../../tests_include.hpp"
-#include "../../../simage/src/util/profiler.hpp"
+
 
 
 void run_profile_tests();
@@ -18,14 +18,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    perf::profile_init();
-
-    for (u32 i = 0; i < 3; ++i)
-    {
-        run_profile_tests();
-    }    
-
-    perf::profile_report();
+    run_profile_tests();
 
     return EXIT_SUCCESS;
 }

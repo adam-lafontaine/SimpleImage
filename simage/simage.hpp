@@ -497,7 +497,7 @@ namespace simage
 		{
 			assert(false);
 			MatrixView<T> view;
-			return view;//
+			return view;
 		}
 
 		return make_view_resized(file_image, width, height, buffer);

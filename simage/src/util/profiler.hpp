@@ -7,11 +7,9 @@ namespace perf
 {
     void profile_init();
 
-
     void profile_clear();
 
-
-    void profile_report();
+    void profile_report(cstr report_label = 0);
 }
 
 

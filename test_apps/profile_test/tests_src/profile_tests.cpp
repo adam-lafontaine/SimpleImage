@@ -372,27 +372,47 @@ static void alpha_blend_planar(img::View const& src, img::View const& cur, img::
 }
 
 
-static void rotate_rgb_interleaved(img::View const& src, img::View const& dst)
+static void rotate_rgb_interleaved(img::View const& src, img::View const& dst, Point2Du32 origin, f32 rad)
 {
-
+    img::rotate(src, dst, origin, rad);
 }
 
 
-static void rotate_rgb_planar(img::View const& src, img::View const& dst)
+static void rotate_rgb_planar(img::View const& src, img::View const& dst, Point2Du32 origin, f32 rad, img::Buffer32& buffer)
 {
-    
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_view_3(w, h, buffer);
+    auto d = img::make_view_3(w, h, buffer);
+
+    img::map_rgb(src, s);
+
+    img::rotate(s, d, origin, rad);
+
+    img::map_rgba(d, dst);
 }
 
 
-static void rotate_gray_interleaved(img::View const& src, img::View const& dst)
+static void rotate_gray_interleaved(img::ViewGray const& src, img::ViewGray const& dst, Point2Du32 origin, f32 rad)
 {
-
+    img::rotate(src, dst, origin, rad);
 }
 
 
-static void rotate_gray_planar(img::View const& src, img::View const& dst)
+static void rotate_gray_planar(img::ViewGray const& src, img::ViewGray const& dst, Point2Du32 origin, f32 rad, img::Buffer32& buffer)
 {
-    
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_view_1(w, h, buffer);
+    auto d = img::make_view_1(w, h, buffer);
+
+    img::map_gray(src, s);
+
+    img::rotate(s, d, origin, rad);
+
+    img::map_gray(d, dst);
 }
 
 
@@ -438,6 +458,33 @@ static void compare_alpha_blend()
 }
 
 
+static void compare_rotate()
+{
+    auto n_channels32 = 10;
+    auto n_channels8 = 2;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto src_rgba = img::make_view(width, height, buffer32);
+    auto dst_rgba = img::make_view(width, height, buffer32);
+
+    auto src_gray = img::make_view(width, height, buffer8);
+    auto dst_gray = img::make_view(width, height, buffer8);
+
+    Point2Du32 origin = { width / 2, height / 2 };
+    f32 angle_rad = 0.3f * 2 * 3.14159f;
+
+    PROFILE(rotate_rgb_interleaved(src_rgba, dst_rgba, origin, angle_rad));
+    PROFILE(rotate_gray_interleaved(src_gray, dst_gray, origin, angle_rad));
+    PROFILE(rotate_rgb_planar(src_rgba, dst_rgba, origin, angle_rad, buffer32));
+    PROFILE(rotate_gray_planar(src_gray, dst_gray, origin, angle_rad, buffer32));
+}
+
+
 void run_profile_tests()
 {
     /*run_test(create_destroy_image, "create_destroy_image");
@@ -454,4 +501,5 @@ void run_profile_tests()
 
     run_test(compare_map_gray, "compare_map_gray");
     run_test(compare_alpha_blend, "compare_alpha_blend");
+    run_test(compare_rotate, "compare_rotate");
 }

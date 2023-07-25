@@ -207,6 +207,13 @@ namespace gray
     {
         return cs::round_to_u16(COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b);
     }
+
+
+    inline constexpr f32 f32_from_rgb_u8(u8 r, u8 g, u8 b)
+    {
+        auto gray = COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
+        return cs::to_channel_f32(gray / cs::CH_U8_MAX);
+    }
     
 }
 

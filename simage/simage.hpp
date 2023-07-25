@@ -619,6 +619,8 @@ namespace simage
 
 	void map_gray(View const& src, View1f32 const& dst);
 
+	void map_gray(ViewRGBf32 const& src, View1f32 const& dst);
+
 	inline void map_gray(ImageGray const& src, View1f32 const& dst)
 	{
 		map_gray(make_view(src), dst);

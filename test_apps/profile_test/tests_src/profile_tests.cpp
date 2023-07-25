@@ -172,7 +172,34 @@ static void sub_view()
 }
 
 
+static void map_gray()
+{
+    img::Image rgba;
 
+    auto path = CORVETTE_PATH;
+    auto n_channels32 = 4;
+    auto n_channels8 = 1;
+
+    auto res = img::read_image_from_file(path, rgba);
+    auto width = rgba.width;
+    auto height = rgba.height;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba = img::make_view(rgba);
+    auto view_gray = img::make_view(width, height, buffer8);
+    auto view_1 = img::make_view_1(width, height, buffer32);
+    auto view_3 = img::make_view_3(width, height, buffer32);
+
+    PROFILE(img::map_gray(view_rgba, view_gray));
+    PROFILE(img::map_gray(view_rgba, view_1));
+    PROFILE(img::map_gray(view_3, view_1));
+
+    img::destroy_image(rgba);
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
 
 
 
@@ -186,6 +213,7 @@ void run_profile_tests()
     run_test(resize_image, "resize_image");
     run_test(make_view, "make_view");
     run_test(sub_view, "sub_view");
+    run_test(map_gray, "map_gray");
     
 
 

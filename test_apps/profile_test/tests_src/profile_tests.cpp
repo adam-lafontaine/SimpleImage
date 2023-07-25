@@ -65,6 +65,7 @@ static void read_image()
     img::destroy_image(gray);
 }
 
+
 static void resize_image()
 {
     img::Image rgba_src;    
@@ -328,12 +329,118 @@ static void gradients()
 }
 
 
+static void map_gray_interleaved(img::View const& src, img::ViewGray const& dst)
+{
+    img::map_gray(src, dst);
+}
 
+
+static void map_gray_planar(img::View const& src, img::ViewGray const& dst, img::Buffer32& buffer)
+{
+    auto w = src.width;
+    auto h = src.height;
+    
+    auto d = img::make_view_1(w, h, buffer);
+
+    img::map_gray(src, d);
+
+    img::map_gray(d, dst);
+}
+
+
+static void alpha_blend_interleaved(img::View const& src, img::View const& cur, img::View const& dst)
+{
+    img::alpha_blend(src, cur, dst);
+}
+
+
+static void alpha_blend_planar(img::View const& src, img::View const& cur, img::View const& dst, img::Buffer32& buffer)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_view_4(w, h, buffer);
+    auto c = img::make_view_3(w, h, buffer);
+    auto d = img::make_view_3(w, h, buffer);
+
+    img::map_rgba(src, s);
+    img::map_rgb(cur, c);
+    
+    img::alpha_blend(s, c, d);
+
+    img::map_rgba(d, dst);
+}
+
+
+static void rotate_rgb_interleaved(img::View const& src, img::View const& dst)
+{
+
+}
+
+
+static void rotate_rgb_planar(img::View const& src, img::View const& dst)
+{
+    
+}
+
+
+static void rotate_gray_interleaved(img::View const& src, img::View const& dst)
+{
+
+}
+
+
+static void rotate_gray_planar(img::View const& src, img::View const& dst)
+{
+    
+}
+
+
+static void compare_map_gray()
+{
+    auto n_channels32 = 2;
+    auto n_channels8 = 1;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto src = img::make_view(width, height, buffer32);
+    auto dst = img::make_view(width, height, buffer8);
+
+    PROFILE(map_gray_interleaved(src, dst));
+    PROFILE(map_gray_planar(src, dst, buffer32));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
+static void compare_alpha_blend()
+{
+    auto n_channels32 = 13;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+
+    auto src = img::make_view(width, height, buffer32);
+    auto cur = img::make_view(width, height, buffer32);
+    auto dst = img::make_view(width, height, buffer32);
+
+    PROFILE(alpha_blend_interleaved(src, cur, dst));
+    PROFILE(alpha_blend_planar(src, cur, dst, buffer32));
+
+    img::destroy_buffer(buffer32);
+}
 
 
 void run_profile_tests()
 {
-    run_test(create_destroy_image, "create_destroy_image");
+    /*run_test(create_destroy_image, "create_destroy_image");
     run_test(create_destroy_buffer, "create_destroy_buffer");
     run_test(read_image, "read_image");
     run_test(resize_image, "resize_image");
@@ -343,5 +450,8 @@ void run_profile_tests()
     run_test(alpha_blend, "alpha_blend");
     run_test(rotate, "rotate");
     run_test(blur, "blur");
-    run_test(gradients, "gradients");    
+    run_test(gradients, "gradients");*/
+
+    run_test(compare_map_gray, "compare_map_gray");
+    run_test(compare_alpha_blend, "compare_alpha_blend");
 }

@@ -1,0 +1,48 @@
+
+create_destroy_device_buffer:
+3.01e+05: img::destroy_buffer(u_buffer8)               x 5
+3.23e+05: img::destroy_buffer(u_buffer32)              x 5
+3.51e+05: img::create_unified_buffer8(width * height)  x 5
+3.54e+05: img::create_device_buffer8(width * height)   x 5
+3.87e+05: img::create_unified_buffer32(width * height) x 5
+5.34e+05: img::destroy_buffer(d_buffer8)               x 5
+3.32e+06: img::destroy_buffer(d_buffer32)              x 5
+2.45e+08: img::create_device_buffer32(width * height)  x 5
+
+make_device_view:
+8.62e+02: img::make_device_view(width, height, d_buffer8)  x 5
+2.08e+03: img::make_device_view(width, height, d_buffer32) x 5
+
+compare_map_gray:
+1.07e+07: map_gray_cuda(src, dst, d_buffer32, d_buffer8) x 5
+1.28e+08: map_gray_interleaved(src, dst)                 x 5
+2.72e+08: map_gray_planar(src, dst, buffer32)            x 5
+
+compare_alpha_blend:
+3.04e+07: alpha_blend_cuda(src, cur, dst, d_buffer32) x 5
+2.20e+08: alpha_blend_interleaved(src, cur, dst)      x 5
+7.74e+08: alpha_blend_planar(src, cur, dst, buffer32) x 5
+
+compare_rotate:
+1.18e+08: rotate_gray_cuda(src_gray, dst_gray, origin, angle_rad, d_buffer8)  x 5
+1.43e+08: rotate_rgb_cuda(src_rgba, dst_rgba, origin, angle_rad, d_buffer32)  x 5
+7.85e+08: rotate_gray_interleaved(src_gray, dst_gray, origin, angle_rad)      x 5
+8.27e+08: rotate_rgb_interleaved(src_rgba, dst_rgba, origin, angle_rad)       x 5
+1.02e+09: rotate_gray_planar(src_gray, dst_gray, origin, angle_rad, buffer32) x 5
+1.51e+09: rotate_rgb_planar(src_rgba, dst_rgba, origin, angle_rad, buffer32)  x 5
+
+compare_blur:
+4.59e+07: blur_gray_cuda(src_gray, dst_gray, d_buffer8)  x 5
+7.74e+08: blur_rgb_cuda(src_rgba, dst_rgba, d_buffer32)  x 5
+4.03e+09: blur_gray_planar(src_gray, dst_gray, buffer32) x 5
+4.76e+09: blur_rgb_planar(src_rgba, dst_rgba, buffer32)  x 5
+5.27e+09: blur_rgb_interleaved(src_rgba, dst_rgba)       x 5
+5.82e+09: blur_gray_interleaved(src_gray, dst_gray)      x 5
+
+compare_gradients:
+3.32e+08: gradients_xy_cuda(src_gray, dst_x, dst_y, d_buffer8) x 5
+3.69e+08: gradients_cuda(src_gray, dst_gray, d_buffer8)        x 5
+2.18e+09: gradients_f32(src_gray, dst_gray, buffer32)          x 5
+2.32e+09: gradients_xy_f32(src_gray, dst_x, dst_y, buffer32)   x 5
+2.77e+09: gradients_u8(src_gray, dst_gray)                     x 5
+2.86e+09: gradients_xy_u8(src_gray, dst_x, dst_y)              x 5

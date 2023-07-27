@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cuda", "Cuda\Cuda.vcxproj", "{D624B9E5-28C3-47F0-A6BE-6B0545B61A18}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProfileCuda", "ProfileCuda\ProfileCuda.vcxproj", "{574600A5-E25C-4288-B8B0-A700C0378E88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{D624B9E5-28C3-47F0-A6BE-6B0545B61A18}.Debug|x64.Build.0 = Debug|x64
 		{D624B9E5-28C3-47F0-A6BE-6B0545B61A18}.Release|x64.ActiveCfg = Release|x64
 		{D624B9E5-28C3-47F0-A6BE-6B0545B61A18}.Release|x64.Build.0 = Release|x64
+		{574600A5-E25C-4288-B8B0-A700C0378E88}.Debug|x64.ActiveCfg = Debug|x64
+		{574600A5-E25C-4288-B8B0-A700C0378E88}.Debug|x64.Build.0 = Debug|x64
+		{574600A5-E25C-4288-B8B0-A700C0378E88}.Release|x64.ActiveCfg = Release|x64
+		{574600A5-E25C-4288-B8B0-A700C0378E88}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

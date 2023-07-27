@@ -73,3 +73,98 @@ Profile Report:
 3.95e+09: img::blur(viewC1a, viewC1b)                                                       x 3
 4.38e+09: img::blur(viewC3a, viewC3b)                                                       x 3
 5.92e+09: img::blur(caddy8_v, view8)                                                        x 3
+
+create_destroy_image:
+1.48e+06: img::destroy_image(gray)               x 5
+2.37e+06: img::create_image(gray, width, height) x 5
+5.22e+06: img::destroy_image(rgba)               x 5
+1.07e+07: img::create_image(rgba, width, height) x 5
+
+create_destroy_buffer:
+1.38e+06: img::destroy_buffer(buffer8)         x 5
+2.10e+06: img::create_buffer8(width * height)  x 5
+4.54e+06: img::destroy_buffer(buffer32)        x 5
+7.98e+06: img::create_buffer32(width * height) x 5
+
+read_image:
+4.70e+07: img::read_image_from_file(path, rgba) x 5
+5.16e+07: img::read_image_from_file(path, gray) x 5
+
+resize_image:
+1.46e+08: img::resize_image(gray_src, gray_dst) x 5
+4.70e+08: img::resize_image(rgba_src, rgba_dst) x 5
+
+make_view:
+8.00e+02: img::make_view_3(width, height, buffer32) x 5
+1.00e+03: img::make_view_4(width, height, buffer32) x 5
+1.22e+03: img::make_view_1(width, height, buffer32) x 5
+1.23e+03: img::make_view(width, height, buffer8)    x 5
+1.39e+03: img::make_view(gray)                      x 5
+1.54e+03: img::make_view(rgba)                      x 5
+1.67e+03: img::make_view_2(width, height, buffer32) x 5
+1.72e+03: img::make_view(width, height, buffer32)   x 5
+
+sub_view:
+6.78e+02: img::sub_view(view_3, range)    x 5
+6.89e+02: img::sub_view(view_4, range)    x 5
+7.18e+02: img::sub_view(view_gray, range) x 5
+8.02e+02: img::sub_view(view_2, range)    x 5
+8.88e+02: img::sub_view(view_rgba, range) x 5
+9.42e+02: img::sub_view(gray, range)      x 5
+1.16e+03: img::sub_view(view_1, range)    x 5
+1.42e+03: img::sub_view(rgba, range)      x 5
+
+map_gray:
+2.87e+07: img::map_gray(view_3, view_1)       x 5
+1.02e+08: img::map_gray(view_rgba, view_gray) x 5
+1.31e+08: img::map_gray(view_rgba, view_1)    x 5
+
+alpha_blend:
+3.16e+07: img::alpha_blend(src_4, cur_3, dst_3)          x 5
+1.97e+08: img::alpha_blend(src_rgba, cur_rgba, dst_rgba) x 5
+
+rotate:
+7.82e+08: img::rotate(src_gray, dst_gray, origin, angle_rad) x 5
+8.25e+08: img::rotate(src_rgba, dst_rgba, origin, angle_rad) x 5
+9.04e+08: img::rotate(src_1, dst_1, origin, angle_rad)       x 5
+9.30e+08: img::rotate(src_2, dst_2, origin, angle_rad)       x 5
+9.80e+08: img::rotate(src_3, dst_3, origin, angle_rad)       x 5
+1.05e+09: img::rotate(src_4, dst_4, origin, angle_rad)       x 5
+
+blur:
+3.85e+09: img::blur(src_1, dst_1)       x 5
+4.24e+09: img::blur(src_3, dst_3)       x 5
+5.24e+09: img::blur(src_rgba, dst_rgba) x 5
+5.83e+09: img::blur(src_gray, dst_gray) x 5
+
+gradients:
+2.09e+09: img::gradients_xy(src_1, dst_2_xy)                  x 5
+2.14e+09: img::gradients(src_1, dst_1)                        x 5
+2.86e+09: img::gradients(src_gray, dst_gray)                  x 5
+3.02e+09: img::gradients_xy(src_gray, dst_gray_x, dst_gray_y) x 5
+
+compare_map_gray:
+1.02e+08: map_gray_interleaved(src, dst)      x 5
+2.44e+08: map_gray_planar(src, dst, buffer32) x 5
+
+compare_alpha_blend:
+1.94e+08: alpha_blend_interleaved(src, cur, dst)      x 5
+7.81e+08: alpha_blend_planar(src, cur, dst, buffer32) x 5
+
+compare_rotate:
+7.88e+08: rotate_gray_interleaved(src_gray, dst_gray, origin, angle_rad)      x 5
+8.24e+08: rotate_rgb_interleaved(src_rgba, dst_rgba, origin, angle_rad)       x 5
+1.07e+09: rotate_gray_planar(src_gray, dst_gray, origin, angle_rad, buffer32) x 5
+1.50e+09: rotate_rgb_planar(src_rgba, dst_rgba, origin, angle_rad, buffer32)  x 5
+
+compare_blur:
+4.00e+09: blur_gray_planar(src_gray, dst_gray, buffer32) x 5
+4.81e+09: blur_rgb_planar(src_rgba, dst_rgba, buffer32)  x 5
+5.21e+09: blur_rgb_interleaved(src_rgba, dst_rgba)       x 5
+5.92e+09: blur_gray_interleaved(src_gray, dst_gray)      x 5
+
+compare_gradients:
+2.16e+09: gradients_f32(src_gray, dst_gray, buffer32)        x 5
+2.32e+09: gradients_xy_f32(src_gray, dst_x, dst_y, buffer32) x 5
+2.80e+09: gradients_u8(src_gray, dst_gray)                   x 5
+2.96e+09: gradients_xy_u8(src_gray, dst_x, dst_y)            x 5

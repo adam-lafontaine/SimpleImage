@@ -81,6 +81,22 @@ static void map_gray_planar(img::View const& src, img::ViewGray const& dst, img:
 }
 
 
+static void map_gray_cuda(img::View const& src, img::ViewGray const& dst, img::DeviceBuffer32& db32, img::DeviceBuffer8& db8)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w, h, db32);
+    auto d = img::make_device_view(w, h, db8);
+
+    img::copy_to_device(src, s);
+
+    img::map_rgb_gray(s, d);
+
+    img::copy_to_host(d, dst);
+}
+
+
 static void alpha_blend_interleaved(img::View const& src, img::View const& cur, img::View const& dst)
 {
     img::alpha_blend(src, cur, dst);
@@ -102,6 +118,24 @@ static void alpha_blend_planar(img::View const& src, img::View const& cur, img::
     img::alpha_blend(s, c, d);
 
     img::map_rgba(d, dst);
+}
+
+
+static void alpha_blend_cuda(img::View const& src, img::View const& cur, img::View const& dst, img::DeviceBuffer32& db32)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w ,h, db32);
+    auto c = img::make_device_view(w, h, db32);
+    auto d = img::make_device_view(w, h, db32);
+
+    img::copy_to_device(src, s);
+    img::copy_to_device(cur, c);
+
+    img::alpha_blend(s, c, d);
+
+    img::copy_to_host(d, dst);
 }
 
 
@@ -149,6 +183,38 @@ static void rotate_gray_planar(img::ViewGray const& src, img::ViewGray const& ds
 }
 
 
+static void rotate_rgb_cuda(img::View const& src, img::View const& dst, Point2Du32 origin, f32 rad, img::DeviceBuffer32& db32)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w, h, db32);
+    auto d = img::make_device_view(w, h, db32);
+
+    img::copy_to_device(src, s);
+
+    img::rotate(s, d, origin, rad);
+
+    img::copy_to_host(d, dst);
+}
+
+
+static void rotate_gray_cuda(img::ViewGray const& src, img::ViewGray const& dst, Point2Du32 origin, f32 rad, img::DeviceBuffer8& db8)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w, h, db8);
+    auto d = img::make_device_view(w, h, db8);
+
+    img::copy_to_device(src, s);
+
+    img::rotate(s, d, origin, rad);
+
+    img::copy_to_host(d, dst);
+}
+
+
 static void blur_gray_interleaved(img::ViewGray const& src, img::ViewGray const& dst)
 {
     img::blur(src, dst);
@@ -193,6 +259,38 @@ static void blur_rgb_planar(img::View const& src, img::View const& dst, img::Buf
 }
 
 
+static void blur_gray_cuda(img::ViewGray const& src, img::ViewGray const& dst, img::DeviceBuffer8& db8)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w, h, db8);
+    auto d = img::make_device_view(w, h, db8);
+
+    img::copy_to_device(src, s);
+
+    img::blur(s, d);
+
+    img::copy_to_host(d, dst);
+}
+
+
+static void blur_rgb_cuda(img::View const& src, img::View const& dst, img::DeviceBuffer32& db32)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w, h, db32);
+    auto d = img::make_device_view(w, h, db32);
+
+    img::copy_to_device(src, s);
+
+    img::blur(s, d);
+
+    img::copy_to_host(d, dst);
+}
+
+
 static void gradients_u8(img::ViewGray const& src, img::ViewGray const& dst)
 {
     img::gradients(src, dst);
@@ -216,8 +314,6 @@ static void gradients_f32(img::ViewGray const& src, img::ViewGray const& dst, im
     img::map_gray(src, s);
 
     img::gradients(s, d);
-
-    
 }
 
 
@@ -238,22 +334,61 @@ static void gradients_xy_f32(img::ViewGray const& src, img::ViewGray const& dst_
 }
 
 
+static void gradients_cuda(img::ViewGray const& src, img::ViewGray const& dst, img::DeviceBuffer8& db8)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w, h, db8);
+    auto d = img::make_device_view(w, h, db8);
+
+    img::copy_to_device(src, s);
+
+    img::gradients(s, d);
+
+    img::copy_to_host(d, dst);
+}
+
+
+static void gradients_xy_cuda(img::ViewGray const& src, img::ViewGray const& dst_x, img::ViewGray const& dst_y, img::DeviceBuffer8& db8)
+{
+    auto w = src.width;
+    auto h = src.height;
+
+    auto s = img::make_device_view(w, h, db8);
+    auto dx = img::make_device_view(w, h, db8);
+    auto dy = img::make_device_view(w, h, db8);
+
+    img::copy_to_device(src, s);
+
+    img::gradients_xy(s, dx, dy);
+
+    img::copy_to_host(dx, dst_x);
+    img::copy_to_host(dy, dst_y);
+}
+
+
 static void compare_map_gray()
 {
     auto n_channels32 = 2;
     auto n_channels8 = 1;
+    auto n_d_ch32 = 1;
+    auto n_d_ch8 = 1;
 
     auto width = WIDTH;
     auto height = HEIGHT;
 
     auto buffer32 = img::create_buffer32(width * height * n_channels32);
     auto buffer8 = img::create_buffer8(width * height * n_channels8);
+    auto d_buffer32 = img::create_device_buffer32(width * height * n_d_ch32);
+    auto d_buffer8 = img::create_device_buffer8(width * height * n_d_ch8);
 
     auto src = img::make_view(width, height, buffer32);
     auto dst = img::make_view(width, height, buffer8);
 
     PROFILE(map_gray_interleaved(src, dst));
     PROFILE(map_gray_planar(src, dst, buffer32));
+    PROFILE(map_gray_cuda(src, dst, d_buffer32, d_buffer8));
 
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
@@ -263,11 +398,13 @@ static void compare_map_gray()
 static void compare_alpha_blend()
 {
     auto n_channels32 = 13;
+    auto n_d_ch32 = 3;
 
     auto width = WIDTH;
     auto height = HEIGHT;
 
     auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto d_buffer32 = img::create_device_buffer32(width * height * n_d_ch32);
 
     auto src = img::make_view(width, height, buffer32);
     auto cur = img::make_view(width, height, buffer32);
@@ -275,6 +412,7 @@ static void compare_alpha_blend()
 
     PROFILE(alpha_blend_interleaved(src, cur, dst));
     PROFILE(alpha_blend_planar(src, cur, dst, buffer32));
+    PROFILE(alpha_blend_cuda(src, cur, dst, d_buffer32));
 
     img::destroy_buffer(buffer32);
 }
@@ -284,12 +422,16 @@ static void compare_rotate()
 {
     auto n_channels32 = 10;
     auto n_channels8 = 2;
+    auto n_d_ch32 = 2;
+    auto n_d_ch8 = 2;
 
     auto width = WIDTH;
     auto height = HEIGHT;
 
     auto buffer32 = img::create_buffer32(width * height * n_channels32);
     auto buffer8 = img::create_buffer8(width * height * n_channels8);
+    auto d_buffer32 = img::create_device_buffer32(width * height * n_d_ch32);
+    auto d_buffer8 = img::create_device_buffer8(width * height * n_d_ch8);
 
     auto src_rgba = img::make_view(width, height, buffer32);
     auto dst_rgba = img::make_view(width, height, buffer32);
@@ -304,6 +446,8 @@ static void compare_rotate()
     PROFILE(rotate_gray_interleaved(src_gray, dst_gray, origin, angle_rad));
     PROFILE(rotate_rgb_planar(src_rgba, dst_rgba, origin, angle_rad, buffer32));
     PROFILE(rotate_gray_planar(src_gray, dst_gray, origin, angle_rad, buffer32));
+    PROFILE(rotate_rgb_cuda(src_rgba, dst_rgba, origin, angle_rad, d_buffer32));
+    PROFILE(rotate_gray_cuda(src_gray, dst_gray, origin, angle_rad, d_buffer8));
 
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
@@ -314,12 +458,16 @@ static void compare_blur()
 {
     auto n_channels32 = 10;
     auto n_channels8 = 2;
+    auto n_d_ch32 = 2;
+    auto n_d_ch8 = 2;
 
     auto width = WIDTH;
     auto height = HEIGHT;
 
     auto buffer32 = img::create_buffer32(width * height * n_channels32);
     auto buffer8 = img::create_buffer8(width * height * n_channels8);
+    auto d_buffer32 = img::create_device_buffer32(width * height * n_d_ch32);
+    auto d_buffer8 = img::create_device_buffer8(width * height * n_d_ch8);
 
     auto src_rgba = img::make_view(width, height, buffer32);
     auto dst_rgba = img::make_view(width, height, buffer32);
@@ -331,6 +479,8 @@ static void compare_blur()
     PROFILE(blur_gray_interleaved(src_gray, dst_gray));
     PROFILE(blur_rgb_planar(src_rgba, dst_rgba, buffer32));
     PROFILE(blur_gray_planar(src_gray, dst_gray, buffer32));
+    PROFILE(blur_rgb_cuda(src_rgba, dst_rgba, d_buffer32));
+    PROFILE(blur_gray_cuda(src_gray, dst_gray, d_buffer8));
 
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
@@ -341,12 +491,14 @@ static void compare_gradients()
 {
     auto n_channels32 = 5;
     auto n_channels8 = 4;
+    auto n_d_ch8 = 5;
 
     auto width = WIDTH;
     auto height = HEIGHT;
 
     auto buffer32 = img::create_buffer32(width * height * n_channels32);
     auto buffer8 = img::create_buffer8(width * height * n_channels8);
+    auto d_buffer8 = img::create_device_buffer8(width * height * n_d_ch8);
 
     auto src_gray = img::make_view(width, height, buffer8);
     auto dst_gray = img::make_view(width, height, buffer8);
@@ -357,6 +509,8 @@ static void compare_gradients()
     PROFILE(gradients_xy_u8(src_gray, dst_x, dst_y));
     PROFILE(gradients_f32(src_gray, dst_gray, buffer32));
     PROFILE(gradients_xy_f32(src_gray, dst_x, dst_y, buffer32));
+    PROFILE(gradients_cuda(src_gray, dst_gray, d_buffer8));
+    PROFILE(gradients_xy_cuda(src_gray, dst_x, dst_y, d_buffer8));
 
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);

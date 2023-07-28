@@ -2,7 +2,7 @@
 
 
 
-void run_profile_tests();
+void run_cuda_profile_tests();
 
 
 static bool run_preliminary_tests()
@@ -18,7 +18,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-    run_profile_tests();
+    run_cuda_profile_tests();
 
     return EXIT_SUCCESS;
 }

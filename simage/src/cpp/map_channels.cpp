@@ -231,7 +231,30 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = gray::f32_from_rgb_f32(s.red, s.green, s.blue);
+				d[x] = gray::f32_from_rgb_u8(s.red, s.green, s.blue);
+			}
+		}
+	}
+
+
+	void map_gray(ViewRGBf32 const& src, View1f32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		auto red = select_channel(src, RGB::R);
+		auto green = select_channel(src, RGB::G);
+		auto blue = select_channel(src, RGB::B);
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = gray::f32_from_rgb_f32(r[x], g[x], b[x]);
 			}
 		}
 	}

@@ -30,6 +30,25 @@ static FILE* open_out_file()
 }
 
 
+static void print(FILE* file, cstr format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vfprintf(stdout, format, args);
+    va_end(args);
+
+    va_start(args, format);
+    vfprintf(file, format, args);
+    va_end(args);
+}
+
+
+static int count_digits(u64 n)
+{
+    return (int)floor(log10(n) + 1);
+}
+
+
 namespace
 {
     class ProfileRecord
@@ -133,12 +152,13 @@ namespace perf
 
     Profile::~Profile()
     {
+        cpu_end = cpu_read_ticks();
+
         if (profile_id == -1)
         {
             return;
         }
-
-        cpu_end = cpu_read_ticks();
+        
         auto& record = profile_records[profile_id];
 
         record.cpu_total += (cpu_end - cpu_start);
@@ -148,39 +168,23 @@ namespace perf
 }
 
 
-
-
 namespace perf
 {
-   
-    static void print(FILE* file, cstr format, ...)
-    {
-        va_list args;
-        va_start(args, format);
-        vfprintf(stdout, format, args);
-        va_end(args);
-
-        va_start(args, format);
-        vfprintf(file, format, args);
-        va_end(args);
-    }
-
-
-    static int count_digits(u64 n)
-    {
-        return (int)floor(log10(n) + 1);
-    }
-
-
     void profile_init()
     {
         auto begin = profile_records;
         auto end = profile_records + (n_records == 0 ? N_RECORDS : n_records);
         
-        for (auto i = begin; i < end; ++i)
+        for (auto r = begin; r < end; ++r)
         {
-            *i = { 0 };
+            auto& record = *r;
+            record.label = 0;
+            record.cpu_total = 0;
+            record.hit_count = 0;
+            record.is_active = false;
         }
+
+        n_records = 0;
     }
 
 
@@ -190,7 +194,7 @@ namespace perf
     }
 
 
-    void profile_report()
+    void profile_report(cstr report_label)
     {
         auto begin = profile_records;
         auto end = profile_records + n_records;
@@ -206,9 +210,16 @@ namespace perf
 
         auto& min = profile_records[0];
 
-        FILE* out = open_out_file();        
+        FILE* out = open_out_file();
 
-        print(out, "\nProfile Report:\n");
+        if (report_label)
+        {
+            print(out, "\n%s:\n", report_label);
+        }
+        else
+        {
+            print(out, "\nProfile Report:\n");
+        }
 
         int label_len = 10;
         for (u32 i = 0; i < n_records; ++i)

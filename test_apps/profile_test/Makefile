@@ -5,7 +5,6 @@ LIBUSB := `pkg-config --libs --cflags libusb-1.0` -ljpeg
 
 build := ./build_files
 
-app := ../app
 tests_src := ./tests_src
 
 simage := ../../simage

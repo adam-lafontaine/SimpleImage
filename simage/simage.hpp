@@ -497,7 +497,7 @@ namespace simage
 		{
 			assert(false);
 			MatrixView<T> view;
-			return view;//
+			return view;
 		}
 
 		return make_view_resized(file_image, width, height, buffer);
@@ -618,6 +618,8 @@ namespace simage
 	void map_rgba(View1f32 const& src, View const& dst);
 
 	void map_gray(View const& src, View1f32 const& dst);
+
+	void map_gray(ViewRGBf32 const& src, View1f32 const& dst);
 
 	inline void map_gray(ImageGray const& src, View1f32 const& dst)
 	{

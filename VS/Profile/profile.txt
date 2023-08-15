@@ -168,3 +168,9 @@ compare_gradients:
 2.32e+09: gradients_xy_f32(src_gray, dst_x, dst_y, buffer32) x 5
 2.80e+09: gradients_u8(src_gray, dst_gray)                   x 5
 2.96e+09: gradients_xy_u8(src_gray, dst_x, dst_y)            x 5
+
+blur:
+2.29e+09: img::blur(src_1, dst_1)       x 5
+2.96e+09: img::blur(src_3, dst_3)       x 5
+3.56e+09: img::blur(src_gray, dst_gray) x 5
+3.63e+09: img::blur(src_rgba, dst_rgba) x 5

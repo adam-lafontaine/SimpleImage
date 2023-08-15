@@ -198,7 +198,7 @@ namespace simage
 namespace simage
 {
 	template <typename T, size_t KW, size_t KH>
-	static f32 convolve_at_xy_f32(View1<T> const& view, u32 x, u32 y, f32* kernel)
+	static inline f32 convolve_at_xy_f32(View1<T> const& view, u32 x, u32 y, f32* kernel)
     {
 		constexpr u32 k_width = (u32)KW;
 		constexpr u32 k_height = (u32)KH;
@@ -222,55 +222,30 @@ namespace simage
     }
 
 
-	template <typename T, size_t KW, size_t KH>
-	static f32 convolve_at_xy_f32(View1<T> const& view, u32 x, u32 y, std::array<f32, KW * KH> const& kernel_array)
-    {
-		/*constexpr u32 k_width = (u32)KW;
-		constexpr u32 k_height = (u32)KH;
-
-        f32 total = 0.0f;
-        u32 w = 0;
-
-        auto rx = x - (k_width / 2);
-        auto ry = y - (k_height / 2);
-
-        for (u32 v = 0; v < k_height; ++v)
-        {
-            auto s = row_begin(view, ry + v);
-            for (u32 u = 0; u < k_width; ++u)
-            {
-                total += s[rx + u] * kernel[w++];
-            }
-        }
-
-        return total;*/
-
-		return convolve_at_xy_f32<T, KW, KH>(view, x, y, (f32*)kernel_array.data());
-    }
-
-
 	template <size_t KW, size_t KH>
-	static inline u8 convolve_at_xy(View1<u8> const& view, u32 x, u32 y, std::array<f32, KW * KH> const& kernel_array)
+	static inline u8 convolve_at_xy(View1<u8> const& view, u32 x, u32 y, f32* kernel_array)
 	{
-		auto val32 = convolve_at_xy_f32<u8, KW, KH>(view, x, y, (f32*)kernel_array.data());
+		auto val32 = convolve_at_xy_f32<u8, KW, KH>(view, x, y, kernel_array);
 		return round_to_u8(val32);
 	}
 
 
 	template <size_t KW, size_t KH>
-	static inline f32 convolve_at_xy(View1<f32> const& view, u32 x, u32 y, std::array<f32, KW * KH> const& kernel_array)
+	static inline f32 convolve_at_xy(View1<f32> const& view, u32 x, u32 y, f32* kernel_array)
 	{
-		return convolve_at_xy_f32<f32, KW, KH>(view, x, y, (f32*)kernel_array.data());
+		return convolve_at_xy_f32<f32, KW, KH>(view, x, y, kernel_array);
+
+
 	}
 
 
 	template <size_t KW, size_t KH>
-	static Pixel convolve_at_xy(View const& view, u32 x, u32 y, std::array<f32, KW * KH> const& kernel_array)
+	static Pixel convolve_at_xy(View const& view, u32 x, u32 y, f32* kernel_array)
     {
 		constexpr u32 k_width = (u32)KW;
 		constexpr u32 k_height = (u32)KH;
 
-		auto kernel = (f32*)kernel_array.data();
+		auto kernel = kernel_array;
 
         f32 red = 0.0f;
         f32 green = 0.0f;

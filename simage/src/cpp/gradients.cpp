@@ -12,27 +12,32 @@ namespace simage
         auto c = std::min(x, w - x - 1);
         auto rc = std::min(r, c);
 
-        if (rc == 0)
-        {
-            return 0.0f;
-        }
+        c *= (rc != 0);
+
+        constexpr auto grad_3x3 = GRAD_X_3x3.data();
+        constexpr auto grad_3x5 = GRAD_X_3x5.data();
+        constexpr auto grad_3x7 = GRAD_X_3x7.data();
+        constexpr auto grad_3x9 = GRAD_X_3x9.data();
+        constexpr auto grad_3x11 = GRAD_X_3x11.data();
 
         switch(c)
-        {        
+        { 
+        case 0:
+            return 0.0f;      
         case 1:
-            return convolve_at_xy_f32<T, 3, 3>(view, x, y, GRAD_X_3x3);
+            return convolve_at_xy_f32<T, 3, 3>(view, x, y, (f32*)grad_3x3);
 
         case 2:
-            return convolve_at_xy_f32<T, 5, 3>(view, x, y, GRAD_X_3x5);
+            return convolve_at_xy_f32<T, 5, 3>(view, x, y, (f32*)grad_3x5);
         
         case 3:
-            return convolve_at_xy_f32<T, 7, 3>(view, x, y, GRAD_X_3x7);
+            return convolve_at_xy_f32<T, 7, 3>(view, x, y, (f32*)grad_3x7);
 
         case 4:
-            return convolve_at_xy_f32<T, 9, 3>(view, x, y, GRAD_X_3x9);
+            return convolve_at_xy_f32<T, 9, 3>(view, x, y, (f32*)grad_3x9);
         
         default:
-            return convolve_at_xy_f32<T, 11, 3>(view, x, y, GRAD_X_3x11);
+            return convolve_at_xy_f32<T, 11, 3>(view, x, y, (f32*)grad_3x11);
         }
     }
 
@@ -47,27 +52,32 @@ namespace simage
         auto c = std::min(x, w - x - 1);
         auto rc = std::min(r, c);
 
-        if (rc == 0)
-        {
-            return 0.0f;
-        }
+        r *= (rc != 0);
+
+        constexpr auto grad_3x3 = GRAD_Y_3x3.data();
+        constexpr auto grad_3x5 = GRAD_Y_3x5.data();
+        constexpr auto grad_3x7 = GRAD_Y_3x7.data();
+        constexpr auto grad_3x9 = GRAD_Y_3x9.data();
+        constexpr auto grad_3x11 = GRAD_Y_3x11.data();
 
         switch(r)
         {
+        case 0:
+            return 0.0f;
         case 1:
-            return convolve_at_xy_f32<T, 3, 3>(view, x, y, GRAD_Y_3x3);
+            return convolve_at_xy_f32<T, 3, 3>(view, x, y, (f32*)grad_3x3);
 
         case 2:
-            return convolve_at_xy_f32<T, 3, 5>(view, x, y, GRAD_Y_3x5);
+            return convolve_at_xy_f32<T, 3, 5>(view, x, y, (f32*)grad_3x5);
         
         case 3:
-            return convolve_at_xy_f32<T, 3, 7>(view, x, y, GRAD_Y_3x7);
+            return convolve_at_xy_f32<T, 3, 7>(view, x, y, (f32*)grad_3x7);
 
         case 4:
-            return convolve_at_xy_f32<T, 3, 9>(view, x, y, GRAD_Y_3x9);
+            return convolve_at_xy_f32<T, 3, 9>(view, x, y, (f32*)grad_3x9);
         
         default:
-            return convolve_at_xy_f32<T, 3, 11>(view, x, y, GRAD_Y_3x11);
+            return convolve_at_xy_f32<T, 3, 11>(view, x, y, (f32*)grad_3x11);
         }
     }
 }

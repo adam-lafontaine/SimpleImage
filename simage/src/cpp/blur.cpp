@@ -12,6 +12,12 @@ namespace simage
 
 		auto rc = std::min({x, w - x - 1, y, h - y - 1});
 
+		constexpr auto gauss_3x3 = GAUSS_3x3.data();
+		constexpr auto gauss_5x5 = GAUSS_5x5.data();
+		constexpr auto gauss_7x7 = GAUSS_7x7.data();
+		constexpr auto gauss_9x9 = GAUSS_9x9.data();
+		constexpr auto gauss_11x11 = GAUSS_11x11.data();
+
 		switch (rc)
 		{
 		case 0:
@@ -20,23 +26,23 @@ namespace simage
             return;
 
 		case 1:
-            d = convolve_at_xy<3, 3>(src, x, y, GAUSS_3x3);
+            d = convolve_at_xy<3, 3>(src, x, y, (f32*)gauss_3x3);
             return;
 
         case 2:
-            d = convolve_at_xy<5, 5>(src, x, y, GAUSS_5x5);
+            d = convolve_at_xy<5, 5>(src, x, y, (f32*)gauss_5x5);
             return;
         
         case 3:
-            d = convolve_at_xy<7, 7>(src, x, y, GAUSS_7x7);
+            d = convolve_at_xy<7, 7>(src, x, y, (f32*)gauss_7x7);
             return;
 
         case 4:
-            d = convolve_at_xy<9, 9>(src, x, y, GAUSS_9x9);
+            d = convolve_at_xy<9, 9>(src, x, y, (f32*)gauss_9x9);
             return;
         
         default:
-            d = convolve_at_xy<11, 11>(src, x, y, GAUSS_11x11);
+            d = convolve_at_xy<11, 11>(src, x, y, (f32*)gauss_11x11);
             return;
 		}
 	}

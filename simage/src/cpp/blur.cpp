@@ -18,45 +18,25 @@ namespace simage
             // copy
             d = *xy_at(src, x, y);
             return;
-/*
-        case 1:
-            d = convolve_at_xy(src, x, y, (f32*)GAUSS_3x3.data(), 3, 3);
-            return;
 
-        case 2:
-            d = convolve_at_xy(src, x, y, (f32*)GAUSS_5x5.data(), 5, 5);
-            return;
-        
-        case 3:
-            d = convolve_at_xy(src, x, y, (f32*)GAUSS_7x7.data(), 7, 7);
-            return;
-
-        case 4:
-            d = convolve_at_xy(src, x, y, (f32*)GAUSS_9x9.data(), 9, 9);
-            return;
-        
-        default:
-            d = convolve_at_xy(src, x, y, (f32*)GAUSS_11x11.data(), 11, 11);
-            return;
-*/
 		case 1:
-            d = convolve_at_xy<3, 3>(src, x, y, (f32*)GAUSS_3x3.data());
+            d = convolve_at_xy<3, 3>(src, x, y, GAUSS_3x3);
             return;
 
         case 2:
-            d = convolve_at_xy<5, 5>(src, x, y, (f32*)GAUSS_5x5.data());
+            d = convolve_at_xy<5, 5>(src, x, y, GAUSS_5x5);
             return;
         
         case 3:
-            d = convolve_at_xy<7, 7>(src, x, y, (f32*)GAUSS_7x7.data());
+            d = convolve_at_xy<7, 7>(src, x, y, GAUSS_7x7);
             return;
 
         case 4:
-            d = convolve_at_xy<9, 9>(src, x, y, (f32*)GAUSS_9x9.data());
+            d = convolve_at_xy<9, 9>(src, x, y, GAUSS_9x9);
             return;
         
         default:
-            d = convolve_at_xy<11, 11>(src, x, y, (f32*)GAUSS_11x11.data());
+            d = convolve_at_xy<11, 11>(src, x, y, GAUSS_11x11);
             return;
 		}
 	}

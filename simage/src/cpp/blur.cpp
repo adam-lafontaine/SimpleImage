@@ -3,7 +3,7 @@
 namespace simage
 {  
 	template <typename T>
-	static void blur_at_xy(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+	static void blur_outer_at_xy(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
 	{
 		u32 const w = src.width;
 		u32 const h = src.height;
@@ -12,11 +12,13 @@ namespace simage
 
 		auto rc = std::min({x, w - x - 1, y, h - y - 1});
 
+		assert(rc < 5);
+
 		constexpr auto gauss_3x3 = GAUSS_3x3.data();
 		constexpr auto gauss_5x5 = GAUSS_5x5.data();
 		constexpr auto gauss_7x7 = GAUSS_7x7.data();
 		constexpr auto gauss_9x9 = GAUSS_9x9.data();
-		constexpr auto gauss_11x11 = GAUSS_11x11.data();
+		//constexpr auto gauss_11x11 = GAUSS_11x11.data();
 
 		switch (rc)
 		{
@@ -41,13 +43,21 @@ namespace simage
             d = convolve_at_xy<9, 9>(src, x, y, (f32*)gauss_9x9);
             return;
         
-        default:
+        /*default:
             d = convolve_at_xy<11, 11>(src, x, y, (f32*)gauss_11x11);
-            return;
+            return;*/
 		}
 	}
 
 
+	template <typename T>
+	static void blur_at_xy(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+	{
+		constexpr auto gauss_11x11 = GAUSS_11x11.data();
+
+		auto& d = *xy_at(dst, x, y);
+		d = convolve_at_xy<11, 11>(src, x, y, (f32*)gauss_11x11);
+	}
 
 
     template <typename T>
@@ -56,9 +66,27 @@ namespace simage
 		auto const width = src.width;
         auto const height = src.height;
 
-		for (u32 y = 0; y < height; ++y)
+		for (u32 y = 0; y < 5; ++y)
 		{
 			for (u32 x = 0; x < width; ++x)
+			{
+				blur_outer_at_xy(src, dst, x, y);
+				blur_outer_at_xy(src, dst, x, height - 1 - y);
+			}
+		}
+
+		for (u32 y = 5; y < height - 5; ++y)
+		{
+			for (u32 x = 0; x < 5; ++x)
+			{
+				blur_outer_at_xy(src, dst, x, y);
+				blur_outer_at_xy(src, dst, width - 1 - x, y);
+			}
+		}
+
+		for (u32 y = 5; y < height - 5; ++y)
+		{
+			for (u32 x = 5; x < width - 5; ++x)
 			{
 				blur_at_xy(src, dst, x, y);
 			}

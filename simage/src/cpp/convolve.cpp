@@ -234,8 +234,6 @@ namespace simage
 	static inline f32 convolve_at_xy(View1<f32> const& view, u32 x, u32 y, f32* kernel_array)
 	{
 		return convolve_at_xy_f32<f32, KW, KH>(view, x, y, kernel_array);
-
-
 	}
 
 

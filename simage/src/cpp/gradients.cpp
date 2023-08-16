@@ -104,35 +104,62 @@ namespace simage
         auto const width = src.width;
         auto const height = src.height;
 
-        for (u32 y = 0; y < 5; ++y)
+        f32 grad_x = 0.0f;
+        f32 grad_y = 0.0f;
+
+        T* d = 0;
+        T* d2 = 0;
+
+        u32 y = 0;
+        u32 y2 = 0;
+        u32 x = 0;
+        u32 x2 = 0;
+
+        y2 = height - 1;
+        for (y = 0; y < 5; ++y)
         {
-            auto d = row_begin(dst, y);
-            for (u32 x = 0; x < width; ++x)
+            d = row_begin(dst, y);
+            d2 = row_begin(dst, y2);
+            for (x = 0; x < width; ++x)
             {
-                auto grad_x = gradient_x_outer_at_xy(src, x, y);
-                auto grad_y = gradient_y_outer_at_xy(src, x, y);
+                grad_x = gradient_x_outer_at_xy(src, x, y);
+                grad_y = gradient_y_outer_at_xy(src, x, y);
                 d[x] = convert(grad_x, grad_y);
+
+                grad_x = gradient_x_outer_at_xy(src, x, y2);
+                grad_y = gradient_y_outer_at_xy(src, x, y2);
+                d2[x] = convert(grad_x, grad_y);
+            }
+
+            --y2;
+        }
+
+        for (y = 5; y < height - 5; ++y)
+        {
+            d = row_begin(dst, y);
+
+            x2 = width - 1;
+            for (x = 0; x < 5; ++x)
+            {
+                grad_x = gradient_x_outer_at_xy(src, x, y);
+                grad_y = gradient_y_outer_at_xy(src, x, y);
+                d[x] = convert(grad_x, grad_y);
+
+                grad_x = gradient_x_outer_at_xy(src, x2, y);
+                grad_y = gradient_y_outer_at_xy(src, x2, y);
+                d[x2] = convert(grad_x, grad_y);
+
+                --x2;
             }
         }
 
         for (u32 y = 5; y < height - 5; ++y)
         {
-            auto d = row_begin(dst, y);
-            for (u32 x = 0; x < 5; ++x)
-            {
-                auto grad_x = gradient_x_outer_at_xy(src, x, y);
-                auto grad_y = gradient_y_outer_at_xy(src, x, y);
-                d[x] = convert(grad_x, grad_y);
-            }
-        }
-
-        for (u32 y = 5; y < height - 5; ++y)
-        {
-            auto d = row_begin(dst, y);
+            d = row_begin(dst, y);
             for (u32 x = 5; x < width - 5; ++x)
             {
-                auto grad_x = gradient_x_at_xy(src, x, y);
-                auto grad_y = gradient_y_at_xy(src, x, y);
+                grad_x = gradient_x_at_xy(src, x, y);
+                grad_y = gradient_y_at_xy(src, x, y);
                 d[x] = convert(grad_x, grad_y);
             }
         }
@@ -145,40 +172,72 @@ namespace simage
         auto const width = src.width;
         auto const height = src.height;
 
-        for (u32 y = 0; y < 5; ++y)
+        f32 grad_x = 0.0f;
+        f32 grad_y = 0.0f;
+
+        T* d_x = 0;
+        T* d_y = 0;
+        T* d_x2 = 0;
+        T* d_y2 = 0;
+
+        u32 y = 0;
+        u32 y2 = 0;
+        u32 x = 0;
+        u32 x2 = 0;
+
+        y2 = height - 1;
+        for (y = 0; y < 5; ++y)
         {
-            auto d_x = row_begin(dst_x, y);
-            auto d_y = row_begin(dst_y, y);
-            for (u32 x = 0; x < width; ++x)
+            d_x = row_begin(dst_x, y);
+            d_y = row_begin(dst_y, y);
+            d_x2 = row_begin(dst_x, y2);
+            d_y2 = row_begin(dst_y, y2);
+            for (x = 0; x < width; ++x)
             {
-                auto grad_x = gradient_x_outer_at_xy(src, x, y);
-                auto grad_y = gradient_y_outer_at_xy(src, x, y);
+                grad_x = gradient_x_outer_at_xy(src, x, y);
+                grad_y = gradient_y_outer_at_xy(src, x, y);
                 d_x[x] = convert(grad_x);
                 d_y[x] = convert(grad_y);
+
+                grad_x = gradient_x_outer_at_xy(src, x, y2);
+                grad_y = gradient_y_outer_at_xy(src, x, y2);
+                d_x2[x] = convert(grad_x);
+                d_y2[x] = convert(grad_y);
             }
+
+            --y2;
         }
 
-        for (u32 y = 5; y < height - 5; ++y)
+        for (y = 5; y < height - 5; ++y)
         {
-            auto d_x = row_begin(dst_x, y);
-            auto d_y = row_begin(dst_y, y);
-            for (u32 x = 0; x < 5; ++x)
+            d_x = row_begin(dst_x, y);
+            d_y = row_begin(dst_y, y);
+
+            x2 = width - 1;
+            for (x = 0; x < 5; ++x)
             {
-                auto grad_x = gradient_x_outer_at_xy(src, x, y);
-                auto grad_y = gradient_y_outer_at_xy(src, x, y);
+                grad_x = gradient_x_outer_at_xy(src, x, y);
+                grad_y = gradient_y_outer_at_xy(src, x, y);
                 d_x[x] = convert(grad_x);
                 d_y[x] = convert(grad_y);
+
+                grad_x = gradient_x_outer_at_xy(src, x2, y);
+                grad_y = gradient_y_outer_at_xy(src, x2, y);
+                d_x[x2] = convert(grad_x);
+                d_y[x2] = convert(grad_y);
             }
+
+            --x2;
         }
 
-        for (u32 y = 5; y < height - 5; ++y)
+        for (y = 5; y < height - 5; ++y)
         {
-            auto d_x = row_begin(dst_x, y);
-            auto d_y = row_begin(dst_y, y);
-            for (u32 x = 5; x < width - 5; ++x)
+            d_x = row_begin(dst_x, y);
+            d_y = row_begin(dst_y, y);
+            for (x = 5; x < width - 5; ++x)
             {
-                auto grad_x = gradient_x_at_xy(src, x, y);
-                auto grad_y = gradient_y_at_xy(src, x, y);
+                grad_x = gradient_x_at_xy(src, x, y);
+                grad_y = gradient_y_at_xy(src, x, y);
                 d_x[x] = convert(grad_x);
                 d_y[x] = convert(grad_y);
             }

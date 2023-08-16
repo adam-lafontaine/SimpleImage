@@ -3,7 +3,7 @@
 namespace simage
 {
     template <typename T>
-	static f32 gradient_x_at_xy(View1<T> const& view, u32 x, u32 y)
+	static f32 gradient_x_outer_at_xy(View1<T> const& view, u32 x, u32 y)
     {
         u32 const w = view.width;
 		u32 const h = view.height;
@@ -43,7 +43,7 @@ namespace simage
 
 
     template <typename T>
-	static f32 gradient_y_at_xy(View1<T> const& view, u32 x, u32 y)
+	static f32 gradient_y_outer_at_xy(View1<T> const& view, u32 x, u32 y)
     {
         u32 const w = view.width;
 		u32 const h = view.height;
@@ -80,6 +80,110 @@ namespace simage
             return convolve_at_xy_f32<T, 3, 11>(view, x, y, (f32*)grad_3x11);
         }
     }
+
+
+    template <typename T>
+	static f32 gradient_x_at_xy(View1<T> const& view, u32 x, u32 y)
+    {
+        constexpr auto grad_3x11 = GRAD_X_3x11.data();
+        return convolve_at_xy_f32<T, 11, 3>(view, x, y, (f32*)grad_3x11);
+    }
+
+
+    template <typename T>
+	static f32 gradient_y_at_xy(View1<T> const& view, u32 x, u32 y)
+    {
+        constexpr auto grad_3x11 = GRAD_Y_3x11.data();
+        return convolve_at_xy_f32<T, 3, 11>(view, x, y, (f32*)grad_3x11);
+    }
+
+
+    template <typename T, class convert_to_T>
+    static void do_gradients(View1<T> const& src, View1<T> const& dst, convert_to_T const& convert)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        for (u32 y = 0; y < 5; ++y)
+        {
+            auto d = row_begin(dst, y);
+            for (u32 x = 0; x < width; ++x)
+            {
+                auto grad_x = gradient_x_outer_at_xy(src, x, y);
+                auto grad_y = gradient_y_outer_at_xy(src, x, y);
+                d[x] = convert(grad_x, grad_y);
+            }
+        }
+
+        for (u32 y = 5; y < height - 5; ++y)
+        {
+            auto d = row_begin(dst, y);
+            for (u32 x = 0; x < 5; ++x)
+            {
+                auto grad_x = gradient_x_outer_at_xy(src, x, y);
+                auto grad_y = gradient_y_outer_at_xy(src, x, y);
+                d[x] = convert(grad_x, grad_y);
+            }
+        }
+
+        for (u32 y = 5; y < height - 5; ++y)
+        {
+            auto d = row_begin(dst, y);
+            for (u32 x = 5; x < width - 5; ++x)
+            {
+                auto grad_x = gradient_x_at_xy(src, x, y);
+                auto grad_y = gradient_y_at_xy(src, x, y);
+                d[x] = convert(grad_x, grad_y);
+            }
+        }
+    }
+
+
+    template <typename T, class convert_to_T>
+    static void do_gradients_xy(View1<T> const& src, View1<T> const& dst_x, View1<T> const& dst_y, convert_to_T const& convert)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        for (u32 y = 0; y < 5; ++y)
+        {
+            auto d_x = row_begin(dst_x, y);
+            auto d_y = row_begin(dst_y, y);
+            for (u32 x = 0; x < width; ++x)
+            {
+                auto grad_x = gradient_x_outer_at_xy(src, x, y);
+                auto grad_y = gradient_y_outer_at_xy(src, x, y);
+                d_x[x] = convert(grad_x);
+                d_y[x] = convert(grad_y);
+            }
+        }
+
+        for (u32 y = 5; y < height - 5; ++y)
+        {
+            auto d_x = row_begin(dst_x, y);
+            auto d_y = row_begin(dst_y, y);
+            for (u32 x = 0; x < 5; ++x)
+            {
+                auto grad_x = gradient_x_outer_at_xy(src, x, y);
+                auto grad_y = gradient_y_outer_at_xy(src, x, y);
+                d_x[x] = convert(grad_x);
+                d_y[x] = convert(grad_y);
+            }
+        }
+
+        for (u32 y = 5; y < height - 5; ++y)
+        {
+            auto d_x = row_begin(dst_x, y);
+            auto d_y = row_begin(dst_y, y);
+            for (u32 x = 5; x < width - 5; ++x)
+            {
+                auto grad_x = gradient_x_at_xy(src, x, y);
+                auto grad_y = gradient_y_at_xy(src, x, y);
+                d_x[x] = convert(grad_x);
+                d_y[x] = convert(grad_y);
+            }
+        }
+    }
 }
 
 
@@ -91,16 +195,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.height; ++y)
-        {
-            auto d = row_begin(dst, y);
-            for (u32 x = 0; x < src.width; ++x)
-            {
-                auto grad_x = gradient_x_at_xy(src, x, y);
-                auto grad_y = gradient_y_at_xy(src, x, y);
-                d[x] = round_to_u8(std::hypotf(grad_x, grad_y));
-            }
-        }
+        do_gradients(src, dst, hypot_to_u8);
     }
 
 
@@ -109,40 +204,15 @@ namespace simage
         assert(verify(src, dst_x));
         assert(verify(src, dst_y));
 
-        for (u32 y = 0; y < src.height; ++y)
-        {
-            auto d_x = row_begin(dst_x, y);
-            auto d_y = row_begin(dst_y, y);
-            for (u32 x = 0; x < src.width; ++x)
-            {
-                auto grad_x = gradient_x_at_xy(src, x, y);
-                auto grad_y = gradient_y_at_xy(src, x, y);
-                d_x[x] = round_to_u8(std::abs(grad_x));
-                d_y[x] = round_to_u8(std::abs(grad_y));
-            }
-        }
+        do_gradients_xy(src, dst_x, dst_y, abs_to_u8);
     }
-}
+    
 
-
-/* gradients */
-
-namespace simage
-{
     void gradients(View1f32 const& src, View1f32 const& dst)
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.height; ++y)
-        {
-            auto d = row_begin(dst, y);
-            for (u32 x = 0; x < src.width; ++x)
-            {
-                auto grad_x = gradient_x_at_xy(src, x, y);
-                auto grad_y = gradient_y_at_xy(src, x, y);
-                d[x] = std::hypotf(grad_x, grad_y);
-            }
-        }
+        do_gradients(src, dst, std::hypotf);
     }
 
 
@@ -154,15 +224,8 @@ namespace simage
 		assert(verify(src, dst_x));
 		assert(verify(src, dst_y));
 
-        for (u32 y = 0; y < src.height; ++y)
-        {
-            auto d_x = row_begin(dst_x, y);
-            auto d_y = row_begin(dst_y, y);
-            for (u32 x = 0; x < src.width; ++x)
-            {
-                d_x[x] = gradient_x_at_xy(src, x, y);
-                d_y[x] = gradient_y_at_xy(src, x, y);
-            }
-        }
+        auto const f = [](f32 a){ return a; };
+
+        do_gradients_xy(src, dst_x, dst_y, f);
 	}
 }

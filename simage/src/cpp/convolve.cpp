@@ -226,7 +226,7 @@ namespace simage
 	static inline u8 convolve_at_xy(View1<u8> const& view, u32 x, u32 y, f32* kernel_array)
 	{
 		auto val32 = convolve_at_xy_f32<u8, KW, KH>(view, x, y, kernel_array);
-		return round_to_u8(val32);
+		return abs_to_u8(val32);
 	}
 
 
@@ -269,9 +269,9 @@ namespace simage
         }
 
         auto p = *xy_at(view, x, y);
-        p.rgba.red = round_to_u8(red);
-        p.rgba.green = round_to_u8(green);
-        p.rgba.blue = round_to_u8(blue);
+        p.rgba.red = abs_to_u8(red);
+        p.rgba.green = abs_to_u8(green);
+        p.rgba.blue = abs_to_u8(blue);
 
         return p;
     }

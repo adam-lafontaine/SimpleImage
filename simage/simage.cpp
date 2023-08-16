@@ -13,6 +13,18 @@ static inline u8 round_to_u8(f32 val)
 }
 
 
+static inline u8 abs_to_u8(f32 val)
+{
+    return (u8)(std::abs(val) + 0.5f);
+}
+
+
+static inline u8 hypot_to_u8(f32 a, f32 b)
+{
+    return (u8)(std::hypotf(a, b) + 0.5f);
+}
+
+
 #include "src/cpp/verify.cpp"
 #include "src/cpp/channel_pixels.cpp"
 #include "src/cpp/platform_image.cpp"

@@ -18,7 +18,6 @@ namespace simage
 		constexpr auto gauss_5x5 = GAUSS_5x5.data();
 		constexpr auto gauss_7x7 = GAUSS_7x7.data();
 		constexpr auto gauss_9x9 = GAUSS_9x9.data();
-		//constexpr auto gauss_11x11 = GAUSS_11x11.data();
 
 		switch (rc)
 		{
@@ -42,10 +41,8 @@ namespace simage
         case 4:
             d = convolve_at_xy<9, 9>(src, x, y, (f32*)gauss_9x9);
             return;
-        
-        /*default:
-            d = convolve_at_xy<11, 11>(src, x, y, (f32*)gauss_11x11);
-            return;*/
+			
+		default: return;
 		}
 	}
 

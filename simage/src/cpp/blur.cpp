@@ -41,7 +41,7 @@ namespace simage
         case 4:
             d = convolve_at_xy<9, 9>(src, x, y, (f32*)gauss_9x9);
             return;
-			
+
 		default: return;
 		}
 	}
@@ -57,8 +57,8 @@ namespace simage
 	}
 
 
-    template <typename T>
-	static void blur_1(View1<T> const& src, View1<T> const& dst)
+	template <typename T>
+	static void blur_top_bottom(View1<T> const& src, View1<T> const& dst)
 	{
 		auto const width = src.width;
         auto const height = src.height;
@@ -71,6 +71,14 @@ namespace simage
 				blur_outer_at_xy(src, dst, x, height - 1 - y);
 			}
 		}
+	}
+
+
+	template <typename T>
+	static void blur_left_right(View1<T> const& src, View1<T> const& dst)
+	{
+		auto const width = src.width;
+        auto const height = src.height;
 
 		for (u32 y = 5; y < height - 5; ++y)
 		{
@@ -80,6 +88,14 @@ namespace simage
 				blur_outer_at_xy(src, dst, width - 1 - x, y);
 			}
 		}
+	}
+
+
+	template <typename T>
+	static void blur_middle(View1<T> const& src, View1<T> const& dst)
+	{
+		auto const width = src.width;
+        auto const height = src.height;		
 
 		for (u32 y = 5; y < height - 5; ++y)
 		{
@@ -88,6 +104,16 @@ namespace simage
 				blur_at_xy(src, dst, x, y);
 			}
 		}
+	}
+
+
+    template <typename T>
+	static void do_blur(View1<T> const& src, View1<T> const& dst)
+	{
+		blur_top_bottom(src, dst);
+		blur_left_right(src, dst);
+
+		blur_middle(src, dst);
 	}
 }
 
@@ -100,7 +126,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-		blur_1(src, dst);
+		do_blur(src, dst);
     }
 
 
@@ -108,7 +134,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-		blur_1(src, dst);
+		do_blur(src, dst);
     }
 }
 
@@ -121,7 +147,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		blur_1(src, dst);
+		do_blur(src, dst);
 	}
 
 
@@ -131,7 +157,7 @@ namespace simage
 
 		auto const channel_func = [&](u32 ch)
 		{
-			blur_1(select_channel(src, ch), select_channel(dst, ch));
+			do_blur(select_channel(src, ch), select_channel(dst, ch));
 		};
 
 		std::array<std::function<void()>, 3> f_list

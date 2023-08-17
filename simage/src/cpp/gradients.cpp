@@ -99,7 +99,7 @@ namespace simage
 
 
     template <typename T, class convert_to_T>
-    static void do_gradients(View1<T> const& src, View1<T> const& dst, convert_to_T const& convert)
+    static void gradients_top_bottom(View1<T> const& src, View1<T> const& dst, convert_to_T const& convert)
     {
         auto const width = src.width;
         auto const height = src.height;
@@ -113,7 +113,6 @@ namespace simage
         u32 y = 0;
         u32 y2 = 0;
         u32 x = 0;
-        u32 x2 = 0;
 
         y2 = height - 1;
         for (y = 0; y < 5; ++y)
@@ -133,13 +132,24 @@ namespace simage
 
             --y2;
         }
+    }
 
-        for (y = 5; y < height - 5; ++y)
+
+    template <typename T, class convert_to_T>
+    static void gradients_left_right(View1<T> const& src, View1<T> const& dst, convert_to_T const& convert)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        f32 grad_x = 0.0f;
+        f32 grad_y = 0.0f;
+
+        for (u32 y = 5; y < height - 5; ++y)
         {
-            d = row_begin(dst, y);
+            auto d = row_begin(dst, y);
 
-            x2 = width - 1;
-            for (x = 0; x < 5; ++x)
+            u32 x2 = width - 1;
+            for (u32 x = 0; x < 5; ++x)
             {
                 grad_x = gradient_x_outer_at_xy(src, x, y);
                 grad_y = gradient_y_outer_at_xy(src, x, y);
@@ -152,10 +162,21 @@ namespace simage
                 --x2;
             }
         }
+    }
+
+
+    template <typename T, class convert_to_T>
+    static void gradients_middle(View1<T> const& src, View1<T> const& dst, convert_to_T const& convert)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        f32 grad_x = 0.0f;
+        f32 grad_y = 0.0f;
 
         for (u32 y = 5; y < height - 5; ++y)
         {
-            d = row_begin(dst, y);
+            auto d = row_begin(dst, y);
             for (u32 x = 5; x < width - 5; ++x)
             {
                 grad_x = gradient_x_at_xy(src, x, y);
@@ -167,7 +188,7 @@ namespace simage
 
 
     template <typename T, class convert_to_T>
-    static void do_gradients_xy(View1<T> const& src, View1<T> const& dst_x, View1<T> const& dst_y, convert_to_T const& convert)
+    static void gradients_xy_top_bottom(View1<T> const& src, View1<T> const& dst_x, View1<T> const& dst_y, convert_to_T const& convert)
     {
         auto const width = src.width;
         auto const height = src.height;
@@ -175,24 +196,14 @@ namespace simage
         f32 grad_x = 0.0f;
         f32 grad_y = 0.0f;
 
-        T* d_x = 0;
-        T* d_y = 0;
-        T* d_x2 = 0;
-        T* d_y2 = 0;
-
-        u32 y = 0;
-        u32 y2 = 0;
-        u32 x = 0;
-        u32 x2 = 0;
-
-        y2 = height - 1;
-        for (y = 0; y < 5; ++y)
+        u32 y2 = height - 1;
+        for (u32 y = 0; y < 5; ++y)
         {
-            d_x = row_begin(dst_x, y);
-            d_y = row_begin(dst_y, y);
-            d_x2 = row_begin(dst_x, y2);
-            d_y2 = row_begin(dst_y, y2);
-            for (x = 0; x < width; ++x)
+            auto d_x = row_begin(dst_x, y);
+            auto d_y = row_begin(dst_y, y);
+            auto d_x2 = row_begin(dst_x, y2);
+            auto d_y2 = row_begin(dst_y, y2);
+            for (u32 x = 0; x < width; ++x)
             {
                 grad_x = gradient_x_outer_at_xy(src, x, y);
                 grad_y = gradient_y_outer_at_xy(src, x, y);
@@ -207,14 +218,25 @@ namespace simage
 
             --y2;
         }
+    }
 
-        for (y = 5; y < height - 5; ++y)
+
+    template <typename T, class convert_to_T>
+    static void gradients_xy_left_right(View1<T> const& src, View1<T> const& dst_x, View1<T> const& dst_y, convert_to_T const& convert)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        f32 grad_x = 0.0f;
+        f32 grad_y = 0.0f;
+
+        for (u32 y = 5; y < height - 5; ++y)
         {
-            d_x = row_begin(dst_x, y);
-            d_y = row_begin(dst_y, y);
+            auto d_x = row_begin(dst_x, y);
+            auto d_y = row_begin(dst_y, y);
 
-            x2 = width - 1;
-            for (x = 0; x < 5; ++x)
+            u32 x2 = width - 1;
+            for (u32 x = 0; x < 5; ++x)
             {
                 grad_x = gradient_x_outer_at_xy(src, x, y);
                 grad_y = gradient_y_outer_at_xy(src, x, y);
@@ -229,12 +251,23 @@ namespace simage
 
             --x2;
         }
+    }
 
-        for (y = 5; y < height - 5; ++y)
+
+    template <typename T, class convert_to_T>
+    static void gradients_xy_middle(View1<T> const& src, View1<T> const& dst_x, View1<T> const& dst_y, convert_to_T const& convert)
+    {
+        auto const width = src.width;
+        auto const height = src.height;
+
+        f32 grad_x = 0.0f;
+        f32 grad_y = 0.0f;
+
+        for (u32 y = 5; y < height - 5; ++y)
         {
-            d_x = row_begin(dst_x, y);
-            d_y = row_begin(dst_y, y);
-            for (x = 5; x < width - 5; ++x)
+            auto d_x = row_begin(dst_x, y);
+            auto d_y = row_begin(dst_y, y);
+            for (u32 x = 5; x < width - 5; ++x)
             {
                 grad_x = gradient_x_at_xy(src, x, y);
                 grad_y = gradient_y_at_xy(src, x, y);
@@ -242,6 +275,24 @@ namespace simage
                 d_y[x] = convert(grad_y);
             }
         }
+    }
+
+
+    template <typename T, class convert_to_T>
+    static void do_gradients(View1<T> const& src, View1<T> const& dst, convert_to_T const& convert)
+    {
+        gradients_top_bottom(src, dst, convert);
+        gradients_left_right(src, dst, convert);
+        gradients_middle(src, dst, convert);
+    }
+
+
+    template <typename T, class convert_to_T>
+    static void do_gradients_xy(View1<T> const& src, View1<T> const& dst_x, View1<T> const& dst_y, convert_to_T const& convert)
+    {
+        gradients_xy_top_bottom(src, dst_x, dst_y, convert);
+        gradients_xy_left_right(src, dst_x, dst_y, convert);
+        gradients_xy_middle(src, dst_x, dst_y, convert);
     }
 }
 

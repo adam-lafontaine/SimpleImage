@@ -58,60 +58,37 @@ namespace simage
 
 
 	template <typename T>
+	static void copy_span(View1<T> const& src, View1<T> const& dst, u32 x_begin, u32 x_end, u32 y)
+	{
+		auto s = row_begin(src, y);
+		auto d = row_begin(dst, y);
+
+		for (u32 x = x_begin; x < x_end; ++x)
+		{
+			d[x] = s[x];
+		}
+	}
+
+
+	template <typename T>
 	static void blur_top_bottom(View1<T> const& src, View1<T> const& dst)
 	{
 		auto const width = src.width;
         auto const height = src.height;
 
-		constexpr auto gauss_3x3 = GAUSS_3x3.data();
-		constexpr auto gauss_5x5 = GAUSS_5x5.data();
-		constexpr auto gauss_7x7 = GAUSS_7x7.data();
-		constexpr auto gauss_9x9 = GAUSS_9x9.data();
-
-		u32 y = 0;
+		u32 y1 = 0;
 		u32 y2 = height - 1;
-
-		u32 x_begin = 0;
-		u32 x_end = width;
-
-		auto d = row_begin(dst, y);
-		auto d2 = row_begin(dst, y2);
-
-		auto s = row_begin(src, y);
-		auto s2 = row_begin(src, y2);
-
-		for (u32 x = x_begin; x < x_end; ++x)
+		
+		for (u32 y1 = 0; y1 < 5; ++y1)
 		{
-			d[x] = s[x];
-			d2[x] = s2[x];
-		}
-
-		++y;
-		--y2;
-		auto d = row_begin(dst, y);
-		auto d2 = row_begin(dst, y2);
-
-		for (u32 x = x_begin; x < x_end; ++x)
-		{
-
-		}
-
-
-
-		/*u32 y2 = height - 1;
-		for (u32 y = 0; y < 5; ++y)
-		{			
-			auto d = row_begin(dst, y);
-			auto d2 = row_begin(dst, y2);
-
 			for (u32 x = 0; x < width; ++x)
 			{
-				blur_outer_at_xy(src, dst, x, y);
+				blur_outer_at_xy(src, dst, x, y1);
 				blur_outer_at_xy(src, dst, x, y2);
 			}
 
-			--y2
-		}*/
+			--y2;
+		}
 	}
 
 
@@ -130,15 +107,53 @@ namespace simage
 			}
 		}
 	}
-
-
-	template <typename T>
-	static void blur_middle(View1<T> const& src, View1<T> const& dst)
+	
+	static void blur_middle(View1<f32> const& src, View1<f32> const& dst)
 	{
 		auto const width = src.width;
         auto const height = src.height;
 
-		constexpr auto gauss_11x11 = GAUSS_11x11.data();
+		constexpr auto gauss_11x11 = (f32*)GAUSS_11x11.data();
+
+		u32 x_begin = 5;
+		u32 x_end = width - 5;
+
+		for (u32 y = 5; y < height - 5; ++y)
+		{
+			convolve_span<11, 11>(src, dst, x_begin, x_end, y, gauss_11x11);
+		}
+	}
+
+
+	static void blur_middle(View1<u8> const& src, View1<u8> const& dst)
+	{
+		auto const width = src.width;
+        auto const height = src.height;
+
+		constexpr auto gauss_11x11 = (f32*)GAUSS_11x11.data();
+
+		u32 x_begin = 5;
+		u32 x_end = width - 5;
+
+		for (u32 y = 5; y < height - 5; ++y)
+		{
+			for (u32 x = 5; x < width - 5; ++x)
+			{
+				blur_at_xy(src, dst, x, y);
+			}
+		}
+	}
+	
+
+	static void blur_middle(View1<Pixel> const& src, View1<Pixel> const& dst)
+	{
+		auto const width = src.width;
+        auto const height = src.height;
+
+		constexpr auto gauss_11x11 = (f32*)GAUSS_11x11.data();
+
+		u32 x_begin = 5;
+		u32 x_end = width - 5;
 
 		for (u32 y = 5; y < height - 5; ++y)
 		{

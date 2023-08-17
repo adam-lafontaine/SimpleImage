@@ -222,6 +222,38 @@ namespace simage
     }
 
 
+	template <typename T, size_t KW, size_t KH>
+	static inline void convolve_span_f32(View1<T> const& src, View1<T> const& dst, u32 x_begin, u32 x_end, u32 y, f32* kernel)
+	{
+		constexpr u32 k_width = (u32)KW;
+		constexpr u32 k_height = (u32)KH;
+		constexpr u32 k_size = k_width * k_height;
+
+		auto d = row_begin(dst, y);
+
+		for (u32 x = x_begin; x < x_end; ++x)
+		{
+			d[x] = 0.0f;
+		}
+
+		auto rx = x_begin - (k_width / 2);
+		auto ry = y - (k_height / 2);
+
+		for (u32 w = 0; w < k_size; ++w)
+		{
+			u32 v = w / k_width;
+			u32 u = w - (v * k_width);
+
+			auto s = row_begin(src, ry + v) + rx + u;			
+
+			for (u32 x = x_begin; x < x_end; ++x)
+			{
+				d[x]+= kernel[w] * s[x];
+			}
+		}
+	}
+
+
 	template <size_t KW, size_t KH>
 	static inline u8 convolve_at_xy(View1<u8> const& view, u32 x, u32 y, f32* kernel_array)
 	{

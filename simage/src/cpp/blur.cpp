@@ -3,6 +3,16 @@
 namespace simage
 {  
 	template <typename T>
+	static void blur_at_xy(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
+	{
+		constexpr auto gauss_11x11 = GAUSS_11x11.data();
+
+		auto& d = *xy_at(dst, x, y);
+		d = convolve_at_xy<11, 11>(src, x, y, (f32*)gauss_11x11);
+	}
+
+
+	template <typename T>
 	static void blur_outer_at_xy(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
 	{
 		u32 const w = src.width;
@@ -48,29 +58,60 @@ namespace simage
 
 
 	template <typename T>
-	static void blur_at_xy(View1<T> const& src, View1<T> const& dst, u32 x, u32 y)
-	{
-		constexpr auto gauss_11x11 = GAUSS_11x11.data();
-
-		auto& d = *xy_at(dst, x, y);
-		d = convolve_at_xy<11, 11>(src, x, y, (f32*)gauss_11x11);
-	}
-
-
-	template <typename T>
 	static void blur_top_bottom(View1<T> const& src, View1<T> const& dst)
 	{
 		auto const width = src.width;
         auto const height = src.height;
 
-		for (u32 y = 0; y < 5; ++y)
+		constexpr auto gauss_3x3 = GAUSS_3x3.data();
+		constexpr auto gauss_5x5 = GAUSS_5x5.data();
+		constexpr auto gauss_7x7 = GAUSS_7x7.data();
+		constexpr auto gauss_9x9 = GAUSS_9x9.data();
+
+		u32 y = 0;
+		u32 y2 = height - 1;
+
+		u32 x_begin = 0;
+		u32 x_end = width;
+
+		auto d = row_begin(dst, y);
+		auto d2 = row_begin(dst, y2);
+
+		auto s = row_begin(src, y);
+		auto s2 = row_begin(src, y2);
+
+		for (u32 x = x_begin; x < x_end; ++x)
 		{
+			d[x] = s[x];
+			d2[x] = s2[x];
+		}
+
+		++y;
+		--y2;
+		auto d = row_begin(dst, y);
+		auto d2 = row_begin(dst, y2);
+
+		for (u32 x = x_begin; x < x_end; ++x)
+		{
+
+		}
+
+
+
+		/*u32 y2 = height - 1;
+		for (u32 y = 0; y < 5; ++y)
+		{			
+			auto d = row_begin(dst, y);
+			auto d2 = row_begin(dst, y2);
+
 			for (u32 x = 0; x < width; ++x)
 			{
 				blur_outer_at_xy(src, dst, x, y);
-				blur_outer_at_xy(src, dst, x, height - 1 - y);
+				blur_outer_at_xy(src, dst, x, y2);
 			}
-		}
+
+			--y2
+		}*/
 	}
 
 
@@ -95,7 +136,9 @@ namespace simage
 	static void blur_middle(View1<T> const& src, View1<T> const& dst)
 	{
 		auto const width = src.width;
-        auto const height = src.height;		
+        auto const height = src.height;
+
+		constexpr auto gauss_11x11 = GAUSS_11x11.data();
 
 		for (u32 y = 5; y < height - 5; ++y)
 		{
@@ -112,7 +155,6 @@ namespace simage
 	{
 		blur_top_bottom(src, dst);
 		blur_left_right(src, dst);
-
 		blur_middle(src, dst);
 	}
 }

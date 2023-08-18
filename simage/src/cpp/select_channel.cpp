@@ -133,4 +133,18 @@ namespace simage
 
 		return rgb;
 	}
+
+
+	template <typename T, size_t N>
+	static std::array<View1<T>, N> split_channels(ChannelView<T, N> const& view)
+	{
+		std::array<View1<T>, N> arr = { 0 };
+
+		for (u32 ch = 0; ch < (u32)N; ++ch)
+		{
+			arr[ch] = select_channel(view, ch);
+		}
+
+		return arr;
+	}
 }

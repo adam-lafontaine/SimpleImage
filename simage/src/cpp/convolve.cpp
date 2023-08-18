@@ -1,7 +1,5 @@
 /* convolution kernels */
 
-#include <algorithm>
-
 namespace simage
 {
 	static constexpr f32 div16(int i) { return i / 16.0f; }
@@ -199,28 +197,12 @@ namespace simage
 
 namespace simage
 {
-	template <typename T>
-    static f32 convolve_at_xy(View1<T> const& view, u32 x, u32 y, std::array<f32, 9> const& kernel_3x3)
+	template <typename T, size_t KW, size_t KH>
+	static inline f32 convolve_at_xy_f32(View1<T> const& view, u32 x, u32 y, f32* kernel)
     {
-        f32 total = 0.0f;
-        u32 w = 0;
+		constexpr u32 k_width = (u32)KW;
+		constexpr u32 k_height = (u32)KH;
 
-        for (u32 v = 0; v < 3; ++v)
-        {
-            auto s = row_begin(view, y - 1 + v);
-            for (u32 u = 0; u < 3; ++u)
-            {
-                total += s[x - 1 + u] * kernel_3x3[w++];
-            }
-        }
-
-        return total;
-    }
-
-
-	template <typename T>
-	static f32 convolve_at_xy_f32(View1<T> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
-    {
         f32 total = 0.0f;
         u32 w = 0;
 
@@ -240,21 +222,29 @@ namespace simage
     }
 
 
-	static inline u8 convolve_at_xy(View1<u8> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+	template <size_t KW, size_t KH>
+	static inline u8 convolve_at_xy(View1<u8> const& view, u32 x, u32 y, f32* kernel_array)
 	{
-		auto val32 = convolve_at_xy_f32(view, x, y, kernel, k_width, k_height);
-		return round_to_u8(val32);
+		auto val32 = convolve_at_xy_f32<u8, KW, KH>(view, x, y, kernel_array);
+		return abs_to_u8(val32);
 	}
 
 
-	static inline f32 convolve_at_xy(View1<f32> const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+	template <size_t KW, size_t KH>
+	static inline f32 convolve_at_xy(View1<f32> const& view, u32 x, u32 y, f32* kernel_array)
 	{
-		return convolve_at_xy_f32(view, x, y, kernel, k_width, k_height);
+		return convolve_at_xy_f32<f32, KW, KH>(view, x, y, kernel_array);
 	}
 
 
-	static Pixel convolve_at_xy(View const& view, u32 x, u32 y, f32* kernel, u32 k_width, u32 k_height)
+	template <size_t KW, size_t KH>
+	static Pixel convolve_at_xy(View const& view, u32 x, u32 y, f32* kernel_array)
     {
+		constexpr u32 k_width = (u32)KW;
+		constexpr u32 k_height = (u32)KH;
+
+		auto kernel = kernel_array;
+
         f32 red = 0.0f;
         f32 green = 0.0f;
         f32 blue = 0.0f;
@@ -279,10 +269,117 @@ namespace simage
         }
 
         auto p = *xy_at(view, x, y);
-        p.rgba.red = round_to_u8(red);
-        p.rgba.green = round_to_u8(green);
-        p.rgba.blue = round_to_u8(blue);
+        p.rgba.red = abs_to_u8(red);
+        p.rgba.green = abs_to_u8(green);
+        p.rgba.blue = abs_to_u8(blue);
 
         return p;
     }
+
+
+	template <typename T, size_t KW, size_t KH, class convert_to_T>
+	static inline void do_convolve_span(View1<T> const& src, View1<T> const& dst, u32 x_begin, u32 x_end, u32 y, f32* kernel, convert_to_T const& convert)
+	{
+		constexpr u32 k_width = (u32)KW;
+		constexpr u32 k_height = (u32)KH;
+		constexpr u32 k_size = k_width * k_height;
+
+		auto d = row_begin(dst, y);
+		
+		u32 ry = y - (k_height / 2);
+
+		u32 w = 0;
+
+		u32 v = w / k_width;
+		u32 u = w - (v * k_width);
+
+		auto kw = kernel[w];
+		auto s = row_begin(src, ry + v);
+
+		u32 xs = x_begin - (k_width / 2) + u;
+		for (u32 x = x_begin; x < x_end; ++x)
+		{
+			d[x] = convert(kw * s[xs]);
+			++xs;
+		}
+
+		for (w = 1; w < k_size; ++w)
+		{
+			v = w / k_width;
+			u = w - (v * k_width);
+
+			kw = kernel[w];
+			s = row_begin(src, ry + v);			
+			
+			xs = x_begin - (k_width / 2) + u;
+			for (u32 x = x_begin; x < x_end; ++x)
+			{
+				d[x] += convert(kw * s[xs]);
+				++xs;
+			}
+		}
+	}
+
+
+	template <size_t KW, size_t KH>
+	static void convolve_span(View1<u8> const& src, View1<u8> const& dst, u32 x_begin, u32 x_end, u32 y, f32* kernel)
+	{
+		do_convolve_span<u8, KW, KH>(src, dst, x_begin, x_end, y, kernel, abs_to_u8);
+	}
+
+
+	template <size_t KW, size_t KH>
+	static void convolve_span(View1<f32> const& src, View1<f32> const& dst, u32 x_begin, u32 x_end, u32 y, f32* kernel)
+	{
+		auto const f = [](f32 a){ return a; };
+		do_convolve_span<f32, KW, KH>(src, dst, x_begin, x_end, y, kernel, f);
+	}
+
+
+	template <size_t KW, size_t KH>
+	static void convolve_span(View1<Pixel> const& src, View1<Pixel> const& dst, u32 x_begin, u32 x_end, u32 y, f32* kernel)
+	{
+		constexpr u32 k_width = (u32)KW;
+		constexpr u32 k_height = (u32)KH;
+		constexpr u32 k_size = k_width * k_height;
+
+		auto d = row_begin(dst, y);
+		
+		u32 ry = y - (k_height / 2);
+
+		u32 w = 0;
+
+		u32 v = w / k_width;
+		u32 u = w - (v * k_width);
+
+		auto kw = kernel[w];
+		auto s = row_begin(src, ry + v);
+
+		u32 xs = x_begin - (k_width / 2) + u;
+		for (u32 x = x_begin; x < x_end; ++x)
+		{
+			d[x].rgba.red = abs_to_u8(kw * s[xs].rgba.red);
+			d[x].rgba.green = abs_to_u8(kw * s[xs].rgba.green);
+			d[x].rgba.blue = abs_to_u8(kw * s[xs].rgba.blue);
+			++xs;
+		}
+
+		for (w = 1; w < k_size; ++w)
+		{
+			v = w / k_width;
+			u = w - (v * k_width);
+
+			kw = kernel[w];
+			s = row_begin(src, ry + v);	
+
+			xs = x_begin - (k_width / 2) + u;
+			for (u32 x = x_begin; x < x_end; ++x)
+			{
+				d[x].rgba.red = abs_to_u8(kw * s[xs].rgba.red);
+				d[x].rgba.green = abs_to_u8(kw * s[xs].rgba.green);
+				d[x].rgba.blue = abs_to_u8(kw * s[xs].rgba.blue);
+				++xs;
+			}
+		}
+	}
 }

@@ -1,8 +1,8 @@
 #include "execute.hpp"
 
-#ifndef SIMPLE_NO_PARALLEL
-
 #include <cassert>
+
+#ifndef SIMAGE_NO_PARALLEL
 
 constexpr u32 N_THREADS = 16;
 
@@ -11,17 +11,6 @@ static void do_for_each(LIST_T const& list, FUNC_T const& func)
 {
 	std::for_each(std::execution::par, list.begin(), list.end(), func);
 }
-
-#else
-
-template <class LIST_T, class FUNC_T>
-static void do_for_each(LIST_T const& list, FUNC_T const& func)
-{
-	std::for_each(list.begin(), list.end(), func);
-}
-
-#endif // !SIMPLE_NO_PARALLEL
-
 
 class ThreadProcess
 {
@@ -74,3 +63,17 @@ void process_range(u32 id_begin, u32 id_end, id_func_t const& id_func)
 
     execute_procs(make_proc_list(thread_func));
 }
+
+#else
+
+void process_range(u32 id_begin, u32 id_end, id_func_t const& id_func)
+{
+    assert(id_begin <= id_end);
+
+    for (u32 i = id_begin; i < id_end; ++i)
+    {
+        id_func(i);
+    }
+}
+
+#endif // !SIMAGE_NO_PARALLEL

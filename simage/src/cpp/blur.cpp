@@ -107,70 +107,41 @@ namespace simage
 			}
 		}
 	}
+
+
+	template <typename T>
+	static void blur_middle(View1<T> const& src, View1<T> const& dst)
+	{
+		auto const width = src.width;
+        auto const height = src.height;
+
+		u32 x_begin = 5;
+		u32 x_end = width - 5;
+
+		for (u32 y = 5; y < height - 5; ++y)
+		{
+			for (u32 x = 5; x < width - 5; ++x)
+			{
+				blur_at_xy(src, dst, x, y);
+			}
+		}
+	}
+	
 	
 	static void blur_middle(View1<f32> const& src, View1<f32> const& dst)
 	{
 		auto const width = src.width;
         auto const height = src.height;
 
-		constexpr auto gauss_11x11 = (f32*)GAUSS_11x11.data();
+		constexpr auto gauss_11x11 = GAUSS_11x11.data();
 
 		u32 x_begin = 5;
 		u32 x_end = width - 5;
 
 		for (u32 y = 5; y < height - 5; ++y)
 		{
-			convolve_span<11, 11>(src, dst, x_begin, x_end, y, gauss_11x11);
+			convolve_span<11, 11>(src, dst, x_begin, x_end, y, (f32*)gauss_11x11);
 		}
-	}
-
-
-	static void blur_middle(View1<u8> const& src, View1<u8> const& dst)
-	{
-		auto const width = src.width;
-        auto const height = src.height;
-
-		constexpr auto gauss_11x11 = (f32*)GAUSS_11x11.data();
-
-		u32 x_begin = 5;
-		u32 x_end = width - 5;
-
-		for (u32 y = 5; y < height - 5; ++y)
-		{
-			for (u32 x = 5; x < width - 5; ++x)
-			{
-				blur_at_xy(src, dst, x, y);
-			}
-		}
-	}
-	
-
-	static void blur_middle(View1<Pixel> const& src, View1<Pixel> const& dst)
-	{
-		auto const width = src.width;
-        auto const height = src.height;
-
-		constexpr auto gauss_11x11 = (f32*)GAUSS_11x11.data();
-
-		u32 x_begin = 5;
-		u32 x_end = width - 5;
-
-		for (u32 y = 5; y < height - 5; ++y)
-		{
-			for (u32 x = 5; x < width - 5; ++x)
-			{
-				blur_at_xy(src, dst, x, y);
-			}
-		}
-	}
-
-
-    template <typename T>
-	static void do_blur(View1<T> const& src, View1<T> const& dst)
-	{
-		blur_top_bottom(src, dst);
-		blur_left_right(src, dst);
-		blur_middle(src, dst);
 	}
 }
 
@@ -183,7 +154,9 @@ namespace simage
     {
         assert(verify(src, dst));
 
-		do_blur(src, dst);
+		blur_top_bottom(src, dst);
+		blur_left_right(src, dst);
+		blur_middle(src, dst);
     }
 
 
@@ -191,7 +164,9 @@ namespace simage
     {
         assert(verify(src, dst));
 
-		do_blur(src, dst);
+		blur_top_bottom(src, dst);
+		blur_left_right(src, dst);
+		blur_middle(src, dst);
     }
 }
 
@@ -204,7 +179,9 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_blur(src, dst);
+		blur_top_bottom(src, dst);
+		blur_left_right(src, dst);
+		blur_middle(src, dst);
 	}
 
 
@@ -214,7 +191,7 @@ namespace simage
 
 		auto const channel_func = [&](u32 ch)
 		{
-			do_blur(select_channel(src, ch), select_channel(dst, ch));
+			blur(select_channel(src, ch), select_channel(dst, ch));
 		};
 
 		std::array<std::function<void()>, 3> f_list

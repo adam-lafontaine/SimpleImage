@@ -278,21 +278,22 @@ namespace simage
     }
 
 
-    template <typename T, class convert_to_T>
-    static void do_gradients(View1<T> const& src, View1<T> const& dst, convert_to_T const& convert)
+    static void gradients_xy_middle(View1<f32> const& src, View1<f32> const& dst_x, View1<f32> const& dst_y)
     {
-        gradients_top_bottom(src, dst, convert);
-        gradients_left_right(src, dst, convert);
-        gradients_middle(src, dst, convert);
-    }
+        auto const width = src.width;
+        auto const height = src.height;
 
+        constexpr auto grad_x_3x11 = GRAD_X_3x11.data();
+        constexpr auto grad_y_3x11 = GRAD_Y_3x11.data();
 
-    template <typename T, class convert_to_T>
-    static void do_gradients_xy(View1<T> const& src, View1<T> const& dst_x, View1<T> const& dst_y, convert_to_T const& convert)
-    {
-        gradients_xy_top_bottom(src, dst_x, dst_y, convert);
-        gradients_xy_left_right(src, dst_x, dst_y, convert);
-        gradients_xy_middle(src, dst_x, dst_y, convert);
+        u32 x_begin = 5;
+		u32 x_end = width - 5;
+
+        for (u32 y = 5; y < height - 5; ++y)
+        {
+            convolve_span<11, 3>(src, dst_x, x_begin, x_end, y, (f32*)grad_x_3x11);
+            convolve_span<3, 11>(src, dst_y, x_begin, x_end, y, (f32*)grad_y_3x11);
+        }
     }
 }
 
@@ -304,8 +305,10 @@ namespace simage
     void gradients(ViewGray const& src, ViewGray const& dst)
     {
         assert(verify(src, dst));
-
-        do_gradients(src, dst, hypot_to_u8);
+        
+        gradients_top_bottom(src, dst, hypot_to_u8);
+        gradients_left_right(src, dst, hypot_to_u8);
+        gradients_middle(src, dst, hypot_to_u8);
     }
 
 
@@ -313,8 +316,10 @@ namespace simage
     {
         assert(verify(src, dst_x));
         assert(verify(src, dst_y));
-
-        do_gradients_xy(src, dst_x, dst_y, abs_to_u8);
+        
+        gradients_xy_top_bottom(src, dst_x, dst_y, abs_to_u8);
+        gradients_xy_left_right(src, dst_x, dst_y, abs_to_u8);
+        gradients_xy_middle(src, dst_x, dst_y, abs_to_u8);
     }
     
 
@@ -322,7 +327,10 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        do_gradients(src, dst, std::hypotf);
+        gradients_top_bottom(src, dst, std::hypotf);
+        gradients_left_right(src, dst, std::hypotf);
+        gradients_middle(src, dst, std::hypotf);
+        
     }
 
 
@@ -336,6 +344,8 @@ namespace simage
 
         auto const f = [](f32 a){ return a; };
 
-        do_gradients_xy(src, dst_x, dst_y, f);
+        gradients_xy_top_bottom(src, dst_x, dst_y, f);
+        gradients_xy_left_right(src, dst_x, dst_y, f);
+        gradients_xy_middle(src, dst_x, dst_y);
 	}
 }

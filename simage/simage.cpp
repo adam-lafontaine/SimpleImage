@@ -24,6 +24,7 @@ static inline u8 hypot_to_u8(f32 a, f32 b)
     return (u8)(std::hypotf(a, b) + 0.5f);
 }
 
+#include "src/cpp/simd.cpp"
 
 #include "src/cpp/verify.cpp"
 #include "src/cpp/channel_pixels.cpp"

@@ -66,11 +66,25 @@ namespace simd
 
 
     using Pixel = simage::Pixel;
+    using RGBf32p = simage::RGBf32p;
+    using RGBAf32p = simage::RGBAf32p;
 }
 
 
+/* load store */
+
 namespace simd
 {
+    static Gray_f32_1 load_gray(f32* p)
+    {
+        Gray_f32_1 g{};
+
+        g.gray = _mm_load_ps(p);
+
+        return g;
+    }
+
+
     static Gray_f32_255 load_gray(u8* p)
     {
         Gray_f32_255 g{};
@@ -78,6 +92,18 @@ namespace simd
         g.gray = _mm_set_ps((f32)p[0], (f32)p[1], (f32)p[2], (f32)p[3]);
 
         return g;
+    }
+
+
+    static RGB_f32_1 load_rgb(RGBf32p p)
+    {
+        RGB_f32_1 rgb{};
+
+        rgb.red = _mm_load_ps(p.R);
+        rgb.green = _mm_load_ps(p.G);
+        rgb.blue = _mm_load_ps(p.B);
+
+        return rgb;
     }
 
 
@@ -116,6 +142,19 @@ namespace simd
     }
 
 
+    static RGBA_f32_1 load_rgba(RGBAf32p p)
+    {
+        RGBA_f32_1 rgb{};
+
+        rgb.red = _mm_load_ps(p.R);
+        rgb.green = _mm_load_ps(p.G);
+        rgb.blue = _mm_load_ps(p.B);
+        rgb.alpha = _mm_load_ps(p.A);
+
+        return rgb;
+    }
+
+
     static void store_gray(Gray_f32_255 const& src, u8* dst)
     {
         f32 gray[LEN] = { 0 };
@@ -126,6 +165,12 @@ namespace simd
         {
             dst[i] = (u8)gray[i];
         }
+    }
+
+
+    static void store_gray(Gray_f32_1 const& src, f32* dst)
+    {
+        _mm_store_ps(dst, src.gray);
     }
 
 
@@ -171,4 +216,98 @@ namespace simd
         }
     }
 
+}
+
+
+namespace simd
+{
+    static void map_gray(Gray_f32_255 const& src, Gray_f32_1& dst)
+    {
+        constexpr f32 scalar = 1.0f / 255.0f;
+        auto v_scalar = _mm_load_ps1(&scalar);
+
+        dst.gray = _mm_mul_ps(src.gray, v_scalar);
+    }
+
+
+    static void map_gray(Gray_f32_1 const& src, Gray_f32_255& dst)
+    {
+        constexpr f32 scalar = 255.0f;
+        auto v_scalar = _mm_load_ps1(&scalar);
+
+        dst.gray = _mm_mul_ps(src.gray, v_scalar);
+    }
+
+
+    static void map_rgb(RGB_f32_255 const& src, RGB_f32_1& dst)
+    {
+        constexpr f32 scalar = 1.0f / 255.0f;
+        auto v_scalar = _mm_load_ps1(&scalar);
+
+        dst.red = _mm_mul_ps(src.red, v_scalar);
+        dst.green = _mm_mul_ps(src.green, v_scalar);
+        dst.blue = _mm_mul_ps(src.blue, v_scalar);
+    }
+
+
+    static void map_rgba(RGBA_f32_255 const& src, RGBA_f32_1& dst)
+    {
+        constexpr f32 scalar = 255.0f;
+        auto v_scalar = _mm_load_ps1(&scalar);
+
+        dst.red = _mm_mul_ps(src.red, v_scalar);
+        dst.green = _mm_mul_ps(src.green, v_scalar);
+        dst.blue = _mm_mul_ps(src.blue, v_scalar);
+        dst.alpha = _mm_mul_ps(src.alpha, v_scalar);
+    }
+}
+
+
+namespace simd
+{
+    template <class PROC>
+    static void process_span(u32 width, PROC const& proc)
+    {
+        constexpr auto step = (u32)LEN;
+
+        u32 x = 0;
+        for (; x < width; x += step)
+        {
+            proc(x);
+        }
+
+        x = width - step;
+        proc(x);
+    }
+
+
+    static void map_channel_row_u8_to_f32(u8* src, f32* dst, u32 width)
+    {
+        Gray_f32_255 gray255;
+        Gray_f32_1 gray1;
+
+        auto const proc = [&](u32 x)
+        {
+            gray255 = load_gray(src + x);
+            map_gray(gray255, gray1);
+            store_gray(gray1, dst);
+        };
+
+        process_span(width, proc);
+    }
+
+
+    static void map_channel_row_f32_to_u8(f32* src, u8* dst, u32 width)
+    {
+        Gray_f32_255 gray255;
+        Gray_f32_1 gray1;
+
+        auto const proc = [&](u32 x)
+        {
+            gray1 = load_gray(src + x);
+            map_gray(gray1, gray255);
+        };
+
+        process_span(width, proc);
+    }
 }

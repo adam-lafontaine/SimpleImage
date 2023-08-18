@@ -163,7 +163,8 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			map_channel_row_u8_to_f32(s, d, src.width);
+			//map_channel_row_u8_to_f32(s, d, src.width);
+			simd::map_channel_row_u8_to_f32(s, d, src.width);
 		}
 	}
 	
@@ -176,7 +177,8 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			map_channel_row_f32_to_u8(s, d, src.width);
+			//map_channel_row_f32_to_u8(s, d, src.width);
+			simd::map_channel_row_f32_to_u8(s, d, src.width);
 		}
 	}
 

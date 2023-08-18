@@ -118,13 +118,56 @@ namespace simd
 
     static void store_gray(Gray_f32_255 const& src, u8* dst)
     {
-        f32 arr[LEN] = { 0 };
+        f32 gray[LEN] = { 0 };
 
-        _mm_store_ps(arr, src.gray);
+        _mm_store_ps(gray, src.gray);
 
         for (u32 i = 0; i < LEN; ++i)
         {
-            dst[i] = (u8)arr[i];
+            dst[i] = (u8)gray[i];
+        }
+    }
+
+
+    static void store_rgb(RGB_f32_255 const& src, Pixel* dst)
+    {
+        f32 red[LEN] = { 0 };
+        f32 green[LEN] = { 0 };
+        f32 blue[LEN] = { 0 };
+
+        _mm_store_ps(red, src.red);
+        _mm_store_ps(green, src.green);
+        _mm_store_ps(blue, src.blue);
+
+        for (u32 i = 0; i < LEN; ++i)
+        {
+            auto& p = dst[i].rgba;
+            p.red = (u8)red[i];
+            p.green = (u8)red[i];
+            p.blue = (u8)blue[i];
+        }
+    }
+
+
+    static void store_rgba(RGBA_f32_255 const& src, Pixel* dst)
+    {
+        f32 red[LEN] = { 0 };
+        f32 green[LEN] = { 0 };
+        f32 blue[LEN] = { 0 };
+        f32 alpha[LEN] = { 0 };
+
+        _mm_store_ps(red, src.red);
+        _mm_store_ps(green, src.green);
+        _mm_store_ps(blue, src.blue);
+        _mm_store_ps(alpha, src.alpha);
+
+        for (u32 i = 0; i < LEN; ++i)
+        {
+            auto& p = dst[i].rgba;
+            p.red = (u8)red[i];
+            p.green = (u8)red[i];
+            p.blue = (u8)blue[i];
+            p.alpha = (u8)alpha[i];
         }
     }
 

@@ -89,7 +89,7 @@ namespace simd
     {
         Gray_f32_255 g{};
 
-        g.gray = _mm_set_ps((f32)p[0], (f32)p[1], (f32)p[2], (f32)p[3]);
+        g.gray = _mm_set_ps((f32)p[3], (f32)p[2], (f32)p[1], (f32)p[0]);
 
         return g;
     }
@@ -279,35 +279,5 @@ namespace simd
         x = width - step;
         proc(x);
     }
-
-
-    static void map_channel_row_u8_to_f32(u8* src, f32* dst, u32 width)
-    {
-        Gray_f32_255 gray255;
-        Gray_f32_1 gray1;
-
-        auto const proc = [&](u32 x)
-        {
-            gray255 = load_gray(src + x);
-            map_gray(gray255, gray1);
-            store_gray(gray1, dst);
-        };
-
-        process_span(width, proc);
-    }
-
-
-    static void map_channel_row_f32_to_u8(f32* src, u8* dst, u32 width)
-    {
-        Gray_f32_255 gray255;
-        Gray_f32_1 gray1;
-
-        auto const proc = [&](u32 x)
-        {
-            gray1 = load_gray(src + x);
-            map_gray(gray1, gray255);
-        };
-
-        process_span(width, proc);
-    }
+    
 }

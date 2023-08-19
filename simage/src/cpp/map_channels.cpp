@@ -135,6 +135,40 @@ namespace simage
 
 /* map */
 
+namespace simd
+{
+	static void map_channel_row_u8_to_f32(u8* src, f32* dst, u32 width)
+    {
+		Gray_f32_255 gray255{};
+		Gray_f32_1 gray1{};
+
+        auto const proc = [&](u32 x)
+        {
+            gray255 = load_gray(src + x);
+            map_gray(gray255, gray1);
+            store_gray(gray1, dst + x);
+        };
+
+        process_span(width, proc);
+    }
+
+
+    static void map_channel_row_f32_to_u8(f32* src, u8* dst, u32 width)
+    {
+		Gray_f32_255 gray255{};
+		Gray_f32_1 gray1{};
+
+        auto const proc = [&](u32 x)
+        {
+            gray1 = load_gray(src + x);
+            map_gray(gray1, gray255);
+            store_gray(gray255, dst + x);
+        };
+
+        process_span(width, proc);
+    }
+}
+
 namespace simage
 {
 	static void map_channel_row_u8_to_f32(u8* src, f32* dst, u32 width)

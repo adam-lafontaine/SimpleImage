@@ -1,3 +1,63 @@
+/* map_row */
+
+namespace simage
+{
+#ifdef SIMAGE_NO_SIMD
+
+	static void map_row_u8_to_f32(u8* src, f32* dst, u32 width)
+	{
+		for (u32 x = 0; x < width; ++x)
+		{
+			dst[x] = cs::to_channel_f32(src[x]);
+		}
+	}
+
+
+	static void map_row_f32_to_u8(f32* src, u8* dst, u32 width)
+	{
+		for (u32 x = 0; x < width; ++x)
+		{
+			dst[x] = cs::to_channel_u8(src[x]);
+		}
+	}
+
+#else
+
+	static void map_row_u8_to_f32(u8* src, f32* dst, u32 width)
+	{
+		simd::Gray_f32_255 gray255{};
+		simd::Gray_f32_1 gray1{};
+
+		auto const proc = [&](u32 x)
+		{
+			gray255 = simd::load_gray(src + x);
+			simd::map_gray(gray255, gray1);
+			simd::store_gray(gray1, dst + x);
+		};
+
+		simd::process_span(width, proc);
+	}
+
+
+	static void map_row_f32_to_u8(f32* src, u8* dst, u32 width)
+    {
+		simd::Gray_f32_255 gray255{};
+		simd::Gray_f32_1 gray1{};
+
+        auto const proc = [&](u32 x)
+        {
+            gray1 = simd::load_gray(src + x);
+            simd::map_gray(gray1, gray255);
+            simd::store_gray(gray255, dst + x);
+        };
+
+        simd::process_span(width, proc);
+    }
+
+#endif
+}
+
+
 /* map */
 
 namespace simage
@@ -133,62 +193,8 @@ namespace simage
 }
 
 
-/* map */
-
-namespace simd
-{
-	static void map_channel_row_u8_to_f32(u8* src, f32* dst, u32 width)
-    {
-		Gray_f32_255 gray255{};
-		Gray_f32_1 gray1{};
-
-        auto const proc = [&](u32 x)
-        {
-            gray255 = load_gray(src + x);
-            map_gray(gray255, gray1);
-            store_gray(gray1, dst + x);
-        };
-
-        process_span(width, proc);
-    }
-
-
-    static void map_channel_row_f32_to_u8(f32* src, u8* dst, u32 width)
-    {
-		Gray_f32_255 gray255{};
-		Gray_f32_1 gray1{};
-
-        auto const proc = [&](u32 x)
-        {
-            gray1 = load_gray(src + x);
-            map_gray(gray1, gray255);
-            store_gray(gray255, dst + x);
-        };
-
-        process_span(width, proc);
-    }
-}
-
 namespace simage
 {
-	static void map_channel_row_u8_to_f32(u8* src, f32* dst, u32 width)
-	{
-		for (u32 x = 0; x < width; ++x)
-		{
-			dst[x] = cs::to_channel_f32(src[x]);
-		}
-	}
-
-
-	static void map_channel_row_f32_to_u8(f32* src, u8* dst, u32 width)
-	{
-		for (u32 x = 0; x < width; ++x)
-		{
-			dst[x] = cs::to_channel_u8(src[x]);
-		}
-	}
-
-
 	void map_gray(View1u8 const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
@@ -197,8 +203,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			//map_channel_row_u8_to_f32(s, d, src.width);
-			simd::map_channel_row_u8_to_f32(s, d, src.width);
+			map_row_u8_to_f32(s, d, src.width);
 		}
 	}
 	
@@ -211,8 +216,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			//map_channel_row_f32_to_u8(s, d, src.width);
-			simd::map_channel_row_f32_to_u8(s, d, src.width);
+			map_row_f32_to_u8(s, d, src.width);
 		}
 	}
 

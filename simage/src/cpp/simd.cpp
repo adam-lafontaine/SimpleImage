@@ -71,6 +71,26 @@ namespace simd
 }
 
 
+namespace simd
+{
+    template <class PROC>
+    static void process_span(u32 width, PROC const& proc)
+    {
+        constexpr auto step = (u32)LEN;
+
+        u32 x = 0;
+        for (; x < width; x += step)
+        {
+            proc(x);
+        }
+
+        x = width - step;
+        proc(x);
+    }
+    
+}
+
+
 /* load store */
 
 namespace simd
@@ -89,7 +109,10 @@ namespace simd
     {
         Gray_f32_255 g{};
 
-        g.gray = _mm_set_ps((f32)p[3], (f32)p[2], (f32)p[1], (f32)p[0]);
+        f32 gray[LEN] = { (f32)p[0], (f32)p[1], (f32)p[2], (f32)p[3] };
+
+        //g.gray = _mm_set_ps((f32)p[3], (f32)p[2], (f32)p[1], (f32)p[0]);
+        g.gray = _mm_load_ps(gray);
 
         return g;
     }
@@ -99,9 +122,9 @@ namespace simd
     {
         RGB_f32_1 rgb{};
 
-        rgb.red = _mm_load_ps(p.R);
+        rgb.red   = _mm_load_ps(p.R);
         rgb.green = _mm_load_ps(p.G);
-        rgb.blue = _mm_load_ps(p.B);
+        rgb.blue  = _mm_load_ps(p.B);
 
         return rgb;
     }
@@ -116,9 +139,9 @@ namespace simd
         auto& p2 = p[2].rgba;
         auto& p3 = p[3].rgba;
 
-        rgb.red   = _mm_set_ps((f32)p0.red, (f32)p1.red, (f32)p2.red, (f32)p3.red);
-        rgb.green = _mm_set_ps((f32)p0.green, (f32)p1.green, (f32)p2.green, (f32)p3.green);
-        rgb.blue  = _mm_set_ps((f32)p0.blue, (f32)p1.blue, (f32)p2.blue, (f32)p3.blue);
+        rgb.red   = _mm_set_ps((f32)p3.red, (f32)p2.red, (f32)p1.red, (f32)p0.red);
+        rgb.green = _mm_set_ps((f32)p3.green, (f32)p2.green, (f32)p1.green, (f32)p0.green);
+        rgb.blue  = _mm_set_ps((f32)p3.blue, (f32)p2.blue, (f32)p1.blue, (f32)p0.blue);
 
         return rgb;
     }
@@ -133,10 +156,10 @@ namespace simd
         auto& p2 = p[2].rgba;
         auto& p3 = p[3].rgba;
 
-        rgba.red   = _mm_set_ps((f32)p0.red, (f32)p1.red, (f32)p2.red, (f32)p3.red);
-        rgba.green = _mm_set_ps((f32)p0.green, (f32)p1.green, (f32)p2.green, (f32)p3.green);
-        rgba.blue  = _mm_set_ps((f32)p0.blue, (f32)p1.blue, (f32)p2.blue, (f32)p3.blue);
-        rgba.alpha = _mm_set_ps((f32)p0.alpha, (f32)p1.alpha, (f32)p2.alpha, (f32)p3.alpha);
+        rgba.red   = _mm_set_ps((f32)p3.red, (f32)p2.red, (f32)p1.red, (f32)p0.red);
+        rgba.green = _mm_set_ps((f32)p3.green, (f32)p2.green, (f32)p1.green, (f32)p0.green);
+        rgba.blue  = _mm_set_ps((f32)p3.blue, (f32)p2.blue, (f32)p1.blue, (f32)p0.blue);
+        rgba.alpha = _mm_set_ps((f32)p3.alpha, (f32)p2.alpha, (f32)p1.alpha, (f32)p0.alpha);
 
         return rgba;
     }
@@ -146,9 +169,9 @@ namespace simd
     {
         RGBA_f32_1 rgb{};
 
-        rgb.red = _mm_load_ps(p.R);
+        rgb.red   = _mm_load_ps(p.R);
         rgb.green = _mm_load_ps(p.G);
-        rgb.blue = _mm_load_ps(p.B);
+        rgb.blue  = _mm_load_ps(p.B);
         rgb.alpha = _mm_load_ps(p.A);
 
         return rgb;
@@ -176,9 +199,9 @@ namespace simd
 
     static void store_rgb(RGB_f32_255 const& src, Pixel* dst)
     {
-        f32 red[LEN] = { 0 };
+        f32 red[LEN]   = { 0 };
         f32 green[LEN] = { 0 };
-        f32 blue[LEN] = { 0 };
+        f32 blue[LEN]  = { 0 };
 
         _mm_store_ps(red, src.red);
         _mm_store_ps(green, src.green);
@@ -196,9 +219,9 @@ namespace simd
 
     static void store_rgba(RGBA_f32_255 const& src, Pixel* dst)
     {
-        f32 red[LEN] = { 0 };
+        f32 red[LEN]   = { 0 };
         f32 green[LEN] = { 0 };
-        f32 blue[LEN] = { 0 };
+        f32 blue[LEN]  = { 0 };
         f32 alpha[LEN] = { 0 };
 
         _mm_store_ps(red, src.red);
@@ -209,9 +232,9 @@ namespace simd
         for (u32 i = 0; i < LEN; ++i)
         {
             auto& p = dst[i].rgba;
-            p.red = (u8)red[i];
-            p.green = (u8)red[i];
-            p.blue = (u8)blue[i];
+            p.red   = (u8)red[i];
+            p.green = (u8)green[i];
+            p.blue  = (u8)blue[i];
             p.alpha = (u8)alpha[i];
         }
     }
@@ -244,9 +267,9 @@ namespace simd
         constexpr f32 scalar = 1.0f / 255.0f;
         auto v_scalar = _mm_load_ps1(&scalar);
 
-        dst.red = _mm_mul_ps(src.red, v_scalar);
+        dst.red   = _mm_mul_ps(src.red, v_scalar);
         dst.green = _mm_mul_ps(src.green, v_scalar);
-        dst.blue = _mm_mul_ps(src.blue, v_scalar);
+        dst.blue  = _mm_mul_ps(src.blue, v_scalar);
     }
 
 
@@ -255,29 +278,11 @@ namespace simd
         constexpr f32 scalar = 255.0f;
         auto v_scalar = _mm_load_ps1(&scalar);
 
-        dst.red = _mm_mul_ps(src.red, v_scalar);
+        dst.red   = _mm_mul_ps(src.red, v_scalar);
         dst.green = _mm_mul_ps(src.green, v_scalar);
-        dst.blue = _mm_mul_ps(src.blue, v_scalar);
+        dst.blue  = _mm_mul_ps(src.blue, v_scalar);
         dst.alpha = _mm_mul_ps(src.alpha, v_scalar);
     }
 }
 
 
-namespace simd
-{
-    template <class PROC>
-    static void process_span(u32 width, PROC const& proc)
-    {
-        constexpr auto step = (u32)LEN;
-
-        u32 x = 0;
-        for (; x < width; x += step)
-        {
-            proc(x);
-        }
-
-        x = width - step;
-        proc(x);
-    }
-    
-}

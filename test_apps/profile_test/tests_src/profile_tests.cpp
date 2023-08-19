@@ -192,9 +192,33 @@ static void map_gray()
     PROFILE(img::map_gray(view_rgba, view_gray));
     PROFILE(img::map_gray(view_rgba, view_1));
     PROFILE(img::map_gray(view_3, view_1));
+    PROFILE(img::map_gray(view_gray, view_1));
+    PROFILE(img::map_gray(view_1, view_gray));
     
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
+}
+
+
+static void map_rgba()
+{
+    auto n_channels32 = 8;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_3 = img::make_view_3(width, height, buffer32);
+    auto view_4 = img::make_view_4(width, height, buffer32);
+
+    PROFILE(img::map_rgb(view_rgba, view_3));
+    PROFILE(img::map_rgba(view_3, view_rgba));
+    PROFILE(img::map_rgba(view_rgba, view_4));
+    PROFILE(img::map_rgba(view_4, view_rgba));
+
+    img::destroy_buffer(buffer32);
 }
 
 
@@ -632,21 +656,22 @@ static void compare_gradients()
 
 void run_profile_tests()
 {
-    run_test(create_destroy_image, "create_destroy_image");
+    /*run_test(create_destroy_image, "create_destroy_image");
     run_test(create_destroy_buffer, "create_destroy_buffer");
     run_test(read_image, "read_image");
     run_test(resize_image, "resize_image");
     run_test(make_view, "make_view");
-    run_test(sub_view, "sub_view");
+    run_test(sub_view, "sub_view");*/
     run_test(map_gray, "map_gray");
-    run_test(alpha_blend, "alpha_blend");
+    run_test(map_rgba, "map_rgba");
+    /*run_test(alpha_blend, "alpha_blend");
     run_test(rotate, "rotate");
     run_test(blur, "blur");
-    run_test(gradients, "gradients");
+    run_test(gradients, "gradients");*/
 
-    run_test(compare_map_gray, "compare_map_gray");
+    /*run_test(compare_map_gray, "compare_map_gray");
     run_test(compare_alpha_blend, "compare_alpha_blend");
     run_test(compare_rotate, "compare_rotate");
     run_test(compare_blur, "compare_blur");
-    run_test(compare_gradients, "compare_gradients");
+    run_test(compare_gradients, "compare_gradients");*/
 }

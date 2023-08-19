@@ -37,3 +37,7 @@
 #undef SIMAGE_NO_CUDA
 #endif
 #endif
+
+
+// Disable SIMD support
+#define SIMAGE_NO_SIMD

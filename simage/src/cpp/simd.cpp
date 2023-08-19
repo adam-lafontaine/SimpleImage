@@ -11,9 +11,7 @@ namespace simd
 
 #ifdef SIMD_INTEL_128
 
-#include <immintrin.h>
-#include <xmmintrin.h>
-#include <smmintrin.h>
+#include <emmintrin.h>
 
 
 namespace simd
@@ -44,92 +42,23 @@ namespace simd
 
 namespace simd
 {
-    static vecf32 load_scalar_broadcast(f32 val)
+    static void load_scalar_broadcast(f32 value, vecf32& dst)
     {
-        return _mm_load_ps1(&val);
+        dst = _mm_load_ps1(&value);
     }
 
 
-    static Gray_f32_1 load_gray(f32* p)
+    static void load_gray(u8* src, vecf32& dst)
     {
-        Gray_f32_1 g{};
-
-        g.gray = _mm_load_ps(p);
-
-        return g;
+        auto p = src;
+        auto v_int = _mm_set_epi32(p[7], p[6], p[5], p[4]);
+        dst = _mm_cvtepi32_ps(v_int);
     }
 
 
-    static Gray_f32_255 load_gray(u8* p)
+    static void load_gray(f32* src, vecf32& dst)
     {
-        Gray_f32_255 g{};
-
-        f32 gray[LEN] = { (f32)p[0], (f32)p[1], (f32)p[2], (f32)p[3] };
-
-        //g.gray = _mm_set_ps((f32)p[3], (f32)p[2], (f32)p[1], (f32)p[0]);
-        g.gray = _mm_load_ps(gray);
-
-        return g;
-    }
-
-
-    static RGB_f32_255 load_rgb(Pixel* p)
-    {
-        RGB_f32_255 rgb{};
-
-        auto& p0 = p[0].rgba;
-        auto& p1 = p[1].rgba;
-        auto& p2 = p[2].rgba;
-        auto& p3 = p[3].rgba;
-
-        rgb.red   = _mm_set_ps((f32)p3.red, (f32)p2.red, (f32)p1.red, (f32)p0.red);
-        rgb.green = _mm_set_ps((f32)p3.green, (f32)p2.green, (f32)p1.green, (f32)p0.green);
-        rgb.blue  = _mm_set_ps((f32)p3.blue, (f32)p2.blue, (f32)p1.blue, (f32)p0.blue);
-
-        return rgb;
-    }
-
-
-    static RGBA_f32_255 load_rgba(Pixel* p)
-    {
-        RGBA_f32_255 rgba{};
-
-        auto& p0 = p[0].rgba;
-        auto& p1 = p[1].rgba;
-        auto& p2 = p[2].rgba;
-        auto& p3 = p[3].rgba;
-
-        rgba.red   = _mm_set_ps((f32)p3.red, (f32)p2.red, (f32)p1.red, (f32)p0.red);
-        rgba.green = _mm_set_ps((f32)p3.green, (f32)p2.green, (f32)p1.green, (f32)p0.green);
-        rgba.blue  = _mm_set_ps((f32)p3.blue, (f32)p2.blue, (f32)p1.blue, (f32)p0.blue);
-        rgba.alpha = _mm_set_ps((f32)p3.alpha, (f32)p2.alpha, (f32)p1.alpha, (f32)p0.alpha);
-
-        return rgba;
-    }
-
-
-    static RGB_f32_1 load_rgb(RGBf32p p)
-    {
-        RGB_f32_1 rgb{};
-
-        rgb.red   = _mm_load_ps(p.R);
-        rgb.green = _mm_load_ps(p.G);
-        rgb.blue  = _mm_load_ps(p.B);
-
-        return rgb;
-    }
-
-
-    static RGBA_f32_1 load_rgba(RGBAf32p p)
-    {
-        RGBA_f32_1 rgb{};
-
-        rgb.red   = _mm_load_ps(p.R);
-        rgb.green = _mm_load_ps(p.G);
-        rgb.blue  = _mm_load_ps(p.B);
-        rgb.alpha = _mm_load_ps(p.A);
-
-        return rgb;
+        dst = _mm_loadu_ps(src);
     }
 }
 
@@ -138,11 +67,11 @@ namespace simd
 
 namespace simd
 {
-    static void store_gray(Gray_f32_255 const& src, u8* dst)
+    static void store_gray(vecf32 const& src, u8* dst)
     {
         f32 gray[LEN] = { 0 };
 
-        _mm_store_ps(gray, src.gray);
+        _mm_store_ps(gray, src);
 
         for (u32 i = 0; i < LEN; ++i)
         {
@@ -151,109 +80,21 @@ namespace simd
     }
 
 
-    static void store_gray(Gray_f32_1 const& src, f32* dst)
+    static void store_gray(vecf32 const& src, f32* dst)
     {
-        _mm_store_ps(dst, src.gray);
-    }
-
-
-    static void store_rgb(RGB_f32_255 const& src, Pixel* dst)
-    {
-        f32 red[LEN]   = { 0 };
-        f32 green[LEN] = { 0 };
-        f32 blue[LEN]  = { 0 };
-
-        _mm_store_ps(red, src.red);
-        _mm_store_ps(green, src.green);
-        _mm_store_ps(blue, src.blue);
-
-        for (u32 i = 0; i < LEN; ++i)
-        {
-            auto& p = dst[i].rgba;
-            p.red = (u8)red[i];
-            p.green = (u8)red[i];
-            p.blue = (u8)blue[i];
-        }
-    }
-
-
-    static void store_rgba(RGBA_f32_255 const& src, Pixel* dst)
-    {
-        f32 red[LEN]   = { 0 };
-        f32 green[LEN] = { 0 };
-        f32 blue[LEN]  = { 0 };
-        f32 alpha[LEN] = { 0 };
-
-        _mm_store_ps(red, src.red);
-        _mm_store_ps(green, src.green);
-        _mm_store_ps(blue, src.blue);
-        _mm_store_ps(alpha, src.alpha);
-
-        for (u32 i = 0; i < LEN; ++i)
-        {
-            auto& p = dst[i].rgba;
-            p.red   = (u8)red[i];
-            p.green = (u8)green[i];
-            p.blue  = (u8)blue[i];
-            p.alpha = (u8)alpha[i];
-        }
+        _mm_store_ps(dst, src);
     }
 
 }
 
 
+/* operations */
+
 namespace simd
 {
-    static void multiply(Gray_f32_255 const& src, vecf32 const& v_val, Gray_f32_1& dst)
+    static void multiply(vecf32 const& a, vecf32 const& b, vecf32& dst)
     {
-        dst.gray = _mm_mul_ps(src.gray, v_val);
-    }
-
-
-    static void multiply(Gray_f32_1 const& src, vecf32 const& v_val, Gray_f32_255& dst)
-    {
-        dst.gray = _mm_mul_ps(src.gray, v_val);
-    }
-
-
-    static void map_gray(Gray_f32_255 const& src, Gray_f32_1& dst)
-    {
-        constexpr f32 scalar = 1.0f / 255.0f;
-        auto v_scalar = _mm_load_ps1(&scalar);
-
-        dst.gray = _mm_mul_ps(src.gray, v_scalar);
-    }
-
-
-    static void map_gray(Gray_f32_1 const& src, Gray_f32_255& dst)
-    {
-        constexpr f32 scalar = 255.0f;
-        auto v_scalar = _mm_load_ps1(&scalar);
-
-        dst.gray = _mm_mul_ps(src.gray, v_scalar);
-    }
-
-
-    static void map_rgb(RGB_f32_255 const& src, RGB_f32_1& dst)
-    {
-        constexpr f32 scalar = 1.0f / 255.0f;
-        auto v_scalar = _mm_load_ps1(&scalar);
-
-        dst.red   = _mm_mul_ps(src.red, v_scalar);
-        dst.green = _mm_mul_ps(src.green, v_scalar);
-        dst.blue  = _mm_mul_ps(src.blue, v_scalar);
-    }
-
-
-    static void map_rgba(RGBA_f32_255 const& src, RGBA_f32_1& dst)
-    {
-        constexpr f32 scalar = 255.0f;
-        auto v_scalar = _mm_load_ps1(&scalar);
-
-        dst.red   = _mm_mul_ps(src.red, v_scalar);
-        dst.green = _mm_mul_ps(src.green, v_scalar);
-        dst.blue  = _mm_mul_ps(src.blue, v_scalar);
-        dst.alpha = _mm_mul_ps(src.alpha, v_scalar);
+        dst = _mm_mul_ps(a, b);
     }
 }
 

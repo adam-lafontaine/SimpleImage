@@ -663,7 +663,7 @@ void run_profile_tests()
     run_test(make_view, "make_view");
     run_test(sub_view, "sub_view");*/
     run_test(map_gray, "map_gray");
-    run_test(map_rgba, "map_rgba");
+    //run_test(map_rgba, "map_rgba");
     /*run_test(alpha_blend, "alpha_blend");
     run_test(rotate, "rotate");
     run_test(blur, "blur");

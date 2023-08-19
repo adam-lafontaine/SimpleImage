@@ -1,3 +1,7 @@
+#ifndef SIMAGE_NO_SIMD
+
+#ifdef SIMD_INTEL_128
+
 #include <immintrin.h>
 #include <xmmintrin.h>
 #include <smmintrin.h>
@@ -9,6 +13,21 @@ namespace simd
 
     using vecf32 = __m128;
 }
+
+#endif // SIMD_INTEL_128
+
+#ifdef SIMD_INTEL_256
+
+#include <immintrin.h>
+
+namespace simd
+{
+    constexpr size_t LEN = 8;
+
+    using vecf32 = __m256;
+}
+
+#endif // SIMD_INTEL_256
 
 
 namespace simd
@@ -91,10 +110,18 @@ namespace simd
 }
 
 
-/* load store */
+#ifdef SIMD_INTEL_128
+
+/* load */
 
 namespace simd
 {
+    static vecf32 load_scalar_broadcast(f32 val)
+    {
+        return _mm_load_ps1(&val);
+    }
+
+
     static Gray_f32_1 load_gray(f32* p)
     {
         Gray_f32_1 g{};
@@ -115,18 +142,6 @@ namespace simd
         g.gray = _mm_load_ps(gray);
 
         return g;
-    }
-
-
-    static RGB_f32_1 load_rgb(RGBf32p p)
-    {
-        RGB_f32_1 rgb{};
-
-        rgb.red   = _mm_load_ps(p.R);
-        rgb.green = _mm_load_ps(p.G);
-        rgb.blue  = _mm_load_ps(p.B);
-
-        return rgb;
     }
 
 
@@ -165,6 +180,18 @@ namespace simd
     }
 
 
+    static RGB_f32_1 load_rgb(RGBf32p p)
+    {
+        RGB_f32_1 rgb{};
+
+        rgb.red   = _mm_load_ps(p.R);
+        rgb.green = _mm_load_ps(p.G);
+        rgb.blue  = _mm_load_ps(p.B);
+
+        return rgb;
+    }
+
+
     static RGBA_f32_1 load_rgba(RGBAf32p p)
     {
         RGBA_f32_1 rgb{};
@@ -176,8 +203,13 @@ namespace simd
 
         return rgb;
     }
+}
 
 
+/* store */
+
+namespace simd
+{
     static void store_gray(Gray_f32_255 const& src, u8* dst)
     {
         f32 gray[LEN] = { 0 };
@@ -244,6 +276,18 @@ namespace simd
 
 namespace simd
 {
+    static void multiply(Gray_f32_255 const& src, vecf32 const& v_val, Gray_f32_1& dst)
+    {
+        dst.gray = _mm_mul_ps(src.gray, v_val);
+    }
+
+
+    static void multiply(Gray_f32_1 const& src, vecf32 const& v_val, Gray_f32_255& dst)
+    {
+        dst.gray = _mm_mul_ps(src.gray, v_val);
+    }
+
+
     static void map_gray(Gray_f32_255 const& src, Gray_f32_1& dst)
     {
         constexpr f32 scalar = 1.0f / 255.0f;
@@ -285,4 +329,94 @@ namespace simd
     }
 }
 
+#endif // SIMD_INTEL_128
 
+#ifdef SIMD_INTEL_256
+
+/* load */
+
+namespace simd
+{
+    static Gray_f32_1 load_gray(f32* p)
+    {
+        Gray_f32_1 g{};
+
+        g.gray = _mm256_loadu_ps(p);
+
+        return g;
+    }
+
+
+    static Gray_f32_255 load_gray(u8* p)
+    {
+        Gray_f32_255 g{};
+
+        f32 gray[LEN] = 
+        { 
+            (f32)p[0], 
+            (f32)p[1], 
+            (f32)p[2], 
+            (f32)p[3], 
+            (f32)p[4],
+            (f32)p[5], 
+            (f32)p[6], 
+            (f32)p[7] 
+        };
+        
+        g.gray = _mm256_loadu_ps(gray);
+
+        return g;
+    }
+}
+
+
+/* store */
+
+namespace simd
+{
+    static void store_gray(Gray_f32_255 const& src, u8* dst)
+    {
+        f32 gray[LEN] = { 0 };
+
+        _mm256_store_ps(gray, src.gray);
+
+        for (u32 i = 0; i < LEN; ++i)
+        {
+            dst[i] = (u8)gray[i];
+        }
+    }
+
+
+    static void store_gray(Gray_f32_1 const& src, f32* dst)
+    {
+        _mm256_store_ps(dst, src.gray);
+    }
+}
+
+
+/* map */
+
+namespace simd
+{
+    static void map_gray(Gray_f32_255 const& src, Gray_f32_1& dst)
+    {
+        constexpr f32 scalar = 1.0f / 255.0f;
+        auto v_scalar = _mm256_broadcast_ss(&scalar);
+
+        dst.gray = _mm256_mul_ps(src.gray, v_scalar);
+    }
+
+
+    static void map_gray(Gray_f32_1 const& src, Gray_f32_255& dst)
+    {
+        constexpr f32 scalar = 255.0f;
+        auto v_scalar = _mm256_broadcast_ss(&scalar);
+
+        dst.gray = _mm256_mul_ps(src.gray, v_scalar);
+    }
+}
+
+#endif // SIMD_INTEL_256
+
+
+#endif // !SIMAGE_NO_SIMD

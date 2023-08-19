@@ -23,7 +23,7 @@ namespace simage
 
 #else
 
-	static void map_row_u8_to_f32(u8* src, f32* dst, u32 width)
+	static void map_row_u8_to_f32(u8* src, f32* dst, u32 width) // slower
 	{
 		simd::Gray_f32_255 gray255{};
 		simd::Gray_f32_1 gray1{};

@@ -173,7 +173,31 @@ static void sub_view()
 }
 
 
-static void map_gray()
+static void copy()
+{
+    auto n_channels32 = 2;
+    auto n_channels8 = 2;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba_s = img::make_view(width, height, buffer32);
+    auto view_rgba_d = img::make_view(width, height, buffer32);
+    auto view_gray_s = img::make_view(width, height, buffer8);
+    auto view_gray_d = img::make_view(width, height, buffer8);
+
+    PROFILE(img::copy(view_rgba_s, view_rgba_d));
+    PROFILE(img::copy(view_gray_s, view_gray_d));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
+static void map_gray_gray()
 {
     auto n_channels32 = 5;
     auto n_channels8 = 1;
@@ -189,12 +213,32 @@ static void map_gray()
     auto view_1 = img::make_view_1(width, height, buffer32);
     auto view_3 = img::make_view_3(width, height, buffer32);
 
-    /*PROFILE(img::map_gray(view_rgba, view_gray));
-    PROFILE(img::map_gray(view_rgba, view_1));
-    PROFILE(img::map_gray(view_3, view_1));*/
     PROFILE(img::map_gray(view_gray, view_1));
     PROFILE(img::map_gray(view_1, view_gray));
     
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
+static void map_gray_rgba()
+{
+    auto n_channels32 = 2;
+    auto n_channels8 = 1;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_gray = img::make_view(width, height, buffer8);
+    auto view_1 = img::make_view_1(width, height, buffer32);
+
+    PROFILE(img::map_rgba(view_gray, view_rgba));
+    PROFILE(img::map_rgba(view_1, view_rgba));
+
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
 }
@@ -656,18 +700,19 @@ static void compare_gradients()
 
 void run_profile_tests()
 {
-    /*run_test(create_destroy_image, "create_destroy_image");
-    run_test(create_destroy_buffer, "create_destroy_buffer");
-    run_test(read_image, "read_image");
-    run_test(resize_image, "resize_image");
-    run_test(make_view, "make_view");
-    run_test(sub_view, "sub_view");*/
-    run_test(map_gray, "map_gray");
-    //run_test(map_rgba, "map_rgba");
-    /*run_test(alpha_blend, "alpha_blend");
-    run_test(rotate, "rotate");
-    run_test(blur, "blur");
-    run_test(gradients, "gradients");*/
+    //run_test(create_destroy_image, "create_destroy_image");
+    //run_test(create_destroy_buffer, "create_destroy_buffer");
+    //run_test(read_image, "read_image");
+    //run_test(resize_image, "resize_image");
+    //run_test(make_view, "make_view");
+    //run_test(sub_view, "sub_view");
+    run_test(copy, "copy");
+    //run_test(map_gray_gray, "map_gray_gray");
+    //run_test(map_gray_rgba, "map_gray_rgba");    
+    //run_test(alpha_blend, "alpha_blend");
+    //run_test(rotate, "rotate");
+    //run_test(blur, "blur");
+    //run_test(gradients, "gradients");
 
     /*run_test(compare_map_gray, "compare_map_gray");
     run_test(compare_alpha_blend, "compare_alpha_blend");

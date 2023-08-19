@@ -4,7 +4,18 @@ namespace simage
 {
 #ifdef SIMAGE_NO_SIMD
 
-	static void map_row_u8_to_f32(u8* src, f32* dst, u32 width)
+	void map_row_u8_to_pixel(u8* src, Pixel* dst, u32 width)
+	{
+		for (u32 x = 0; x < width; ++x)
+		{
+			RGBAu8 gray = { src[x], src[x], src[x], 255 };
+
+			dst[x].rgba = gray;
+		}
+	}
+
+
+	static void map_row_ch_u8_to_f32(u8* src, f32* dst, u32 width)
 	{
 		for (u32 x = 0; x < width; ++x)
 		{
@@ -13,7 +24,7 @@ namespace simage
 	}
 
 
-	static void map_row_f32_to_u8(f32* src, u8* dst, u32 width)
+	static void map_row_ch_f32_to_u8(f32* src, u8* dst, u32 width)
 	{
 		for (u32 x = 0; x < width; ++x)
 		{
@@ -23,7 +34,7 @@ namespace simage
 
 #else
 
-	static void map_row_u8_to_f32(u8* src, f32* dst, u32 width) // slower
+	static void map_row_ch_u8_to_f32(u8* src, f32* dst, u32 width)
 	{		
 		constexpr auto step = (u32)simd::LEN;
 		constexpr f32 scalar = 1.0f / 255.0f;
@@ -49,7 +60,7 @@ namespace simage
 	}
 
 
-	static void map_row_f32_to_u8(f32* src, u8* dst, u32 width)
+	static void map_row_ch_f32_to_u8(f32* src, u8* dst, u32 width)
     {
 		constexpr auto step = (u32)simd::LEN;
 		constexpr f32 scalar = 255.0f;
@@ -82,6 +93,9 @@ namespace simage
 
 namespace simage
 {
+	
+
+
 	void map_rgba(ViewGray const& src, View const& dst)
 	{
 		assert(verify(src, dst));
@@ -223,7 +237,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			map_row_u8_to_f32(s, d, src.width);
+			map_row_ch_u8_to_f32(s, d, src.width);
 		}
 	}
 	
@@ -236,7 +250,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			map_row_f32_to_u8(s, d, src.width);
+			map_row_ch_f32_to_u8(s, d, src.width);
 		}
 	}
 

@@ -51,7 +51,7 @@ namespace simd
     static void load_gray(u8* src, vecf32& dst)
     {
         auto p = src;
-        auto v_int = _mm_set_epi32(p[7], p[6], p[5], p[4]);
+        auto v_int = _mm_set_epi32(p[3], p[2], p[1], p[0]);
         dst = _mm_cvtepi32_ps(v_int);
     }
 
@@ -106,6 +106,20 @@ namespace simd
 
 namespace simd
 {
+    union i32_u8
+    {
+        i32 val_i32 = 0;
+
+        struct
+        {
+            u8 val_u8;
+            u8 pad1;
+            u8 pad2;
+            u8 pad3;
+        };
+        
+    };
+
     static void load_scalar_broadcast(f32 value, vecf32& dst)
     {
         dst = _mm256_broadcast_ss(&value);
@@ -113,9 +127,11 @@ namespace simd
 
 
     static void load_gray(u8* src, vecf32& dst)
-    {
+    {        
         auto p = src;
+
         auto v_int = _mm256_set_epi32(p[7], p[6], p[5], p[4], p[3], p[2], p[1], p[0]);
+
         dst =  _mm256_cvtepi32_ps(v_int);
     }
 
@@ -130,16 +146,18 @@ namespace simd
 /* store */
 
 namespace simd
-{  
+{
     static void store_gray(vecf32 const& src, u8* dst)
     {
-        f32 gray[LEN] = { 0 };
+        int gray32[LEN] = { 0 };
 
-        _mm256_store_ps(gray, src);
+        auto v_int = _mm256_cvtps_epi32(src);
 
+        _mm256_storeu_epi32(gray32, v_int);
+        
         for (u32 i = 0; i < LEN; ++i)
         {
-            dst[i] = (u8)gray[i];
+            dst[i] = (u8)gray32[i];
         }
     }
 

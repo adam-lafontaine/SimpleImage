@@ -1,5 +1,14 @@
 #ifndef SIMAGE_NO_SIMD
 
+
+namespace simd
+{
+    using Pixel = simage::Pixel;
+    using RGBf32p = simage::RGBf32p;
+    using RGBAf32p = simage::RGBAf32p;
+}
+
+
 #ifdef SIMD_INTEL_128
 
 #include <immintrin.h>
@@ -28,87 +37,6 @@ namespace simd
 }
 
 #endif // SIMD_INTEL_256
-
-
-namespace simd
-{
-    class Gray_f32_255
-    {
-    public:
-        vecf32 gray;
-    };
-
-
-    class RGB_f32_255
-    {
-    public:
-        vecf32 red;
-        vecf32 green;
-        vecf32 blue;
-    };
-
-
-    class RGBA_f32_255
-    {
-    public:
-        vecf32 red;
-        vecf32 green;
-        vecf32 blue;
-        vecf32 alpha;
-    };
-
-
-    class Gray_f32_1
-    {
-    public:
-        vecf32 gray;
-    };
-
-
-    class RGB_f32_1
-    {
-    public:
-        vecf32 red;
-        vecf32 green;
-        vecf32 blue;
-    };
-
-
-    class RGBA_f32_1
-    {
-    public:
-        vecf32 red;
-        vecf32 green;
-        vecf32 blue;
-        vecf32 alpha;
-    };
-
-
-    using Pixel = simage::Pixel;
-    using RGBf32p = simage::RGBf32p;
-    using RGBAf32p = simage::RGBAf32p;
-}
-
-
-namespace simd
-{
-    template <class PROC>
-    static void process_span(u32 width, PROC const& proc)
-    {
-        constexpr auto step = (u32)LEN;
-
-        u32 x = 0;
-        for (; x < width; x += step)
-        {
-            proc(x);
-        }
-
-        x = width - step;
-        proc(x);
-    }
-    
-}
-
 
 #ifdef SIMD_INTEL_128
 
@@ -337,35 +265,23 @@ namespace simd
 
 namespace simd
 {
-    static Gray_f32_1 load_gray(f32* p)
+    static void load_scalar_broadcast(f32 value, vecf32& dst)
     {
-        Gray_f32_1 g{};
-
-        g.gray = _mm256_loadu_ps(p);
-
-        return g;
+        dst = _mm256_broadcast_ss(&value);
     }
 
 
-    static Gray_f32_255 load_gray(u8* p)
+    static void load_gray(u8* src, vecf32& dst)
     {
-        Gray_f32_255 g{};
+        auto p = src;
+        auto v_int = _mm256_set_epi32(p[7], p[6], p[5], p[4], p[3], p[2], p[1], p[0]);
+        dst =  _mm256_cvtepi32_ps(v_int);
+    }
 
-        f32 gray[LEN] = 
-        { 
-            (f32)p[0], 
-            (f32)p[1], 
-            (f32)p[2], 
-            (f32)p[3], 
-            (f32)p[4],
-            (f32)p[5], 
-            (f32)p[6], 
-            (f32)p[7] 
-        };
-        
-        g.gray = _mm256_loadu_ps(gray);
 
-        return g;
+    static void load_gray(f32* src, vecf32& dst)
+    {
+        dst = _mm256_loadu_ps(src);
     }
 }
 
@@ -373,12 +289,12 @@ namespace simd
 /* store */
 
 namespace simd
-{
-    static void store_gray(Gray_f32_255 const& src, u8* dst)
+{  
+    static void store_gray(vecf32 const& src, u8* dst)
     {
         f32 gray[LEN] = { 0 };
 
-        _mm256_store_ps(gray, src.gray);
+        _mm256_store_ps(gray, src);
 
         for (u32 i = 0; i < LEN; ++i)
         {
@@ -387,32 +303,20 @@ namespace simd
     }
 
 
-    static void store_gray(Gray_f32_1 const& src, f32* dst)
+    static void store_gray(vecf32 const& src, f32* dst)
     {
-        _mm256_store_ps(dst, src.gray);
+        _mm256_store_ps(dst, src);
     }
 }
 
 
-/* map */
+/* operations */
 
 namespace simd
 {
-    static void map_gray(Gray_f32_255 const& src, Gray_f32_1& dst)
+    static void multiply(vecf32 const& a, vecf32 const& b, vecf32& dst)
     {
-        constexpr f32 scalar = 1.0f / 255.0f;
-        auto v_scalar = _mm256_broadcast_ss(&scalar);
-
-        dst.gray = _mm256_mul_ps(src.gray, v_scalar);
-    }
-
-
-    static void map_gray(Gray_f32_1 const& src, Gray_f32_255& dst)
-    {
-        constexpr f32 scalar = 255.0f;
-        auto v_scalar = _mm256_broadcast_ss(&scalar);
-
-        dst.gray = _mm256_mul_ps(src.gray, v_scalar);
+        dst = _mm256_mul_ps(a, b);
     }
 }
 

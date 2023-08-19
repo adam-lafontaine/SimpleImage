@@ -189,9 +189,9 @@ static void map_gray()
     auto view_1 = img::make_view_1(width, height, buffer32);
     auto view_3 = img::make_view_3(width, height, buffer32);
 
-    PROFILE(img::map_gray(view_rgba, view_gray));
+    /*PROFILE(img::map_gray(view_rgba, view_gray));
     PROFILE(img::map_gray(view_rgba, view_1));
-    PROFILE(img::map_gray(view_3, view_1));
+    PROFILE(img::map_gray(view_3, view_1));*/
     PROFILE(img::map_gray(view_gray, view_1));
     PROFILE(img::map_gray(view_1, view_gray));
     

@@ -24,34 +24,54 @@ namespace simage
 #else
 
 	static void map_row_u8_to_f32(u8* src, f32* dst, u32 width) // slower
-	{
-		simd::Gray_f32_255 gray255{};
-		simd::Gray_f32_1 gray1{};
+	{		
+		constexpr auto step = (u32)simd::LEN;
+		constexpr f32 scalar = 1.0f / 255.0f;
+		
+		simd::vecf32 gray255;
+		simd::vecf32 gray1;
+		simd::vecf32 conv;
 
-		auto const proc = [&](u32 x)
+		simd::load_scalar_broadcast(scalar, conv);
+
+		u32 x = 0;
+        for (; x < width; x += step)
 		{
-			gray255 = simd::load_gray(src + x);
-			simd::map_gray(gray255, gray1);
+			simd::load_gray(src + x, gray255);
+			simd::multiply(gray255, conv, gray1);
 			simd::store_gray(gray1, dst + x);
-		};
+		}
 
-		simd::process_span(width, proc);
+		x = width - step;
+		simd::load_gray(src + x, gray255);
+		simd::multiply(gray255, conv, gray1);
+		simd::store_gray(gray1, dst + x);
 	}
 
 
 	static void map_row_f32_to_u8(f32* src, u8* dst, u32 width)
     {
-		simd::Gray_f32_255 gray255{};
-		simd::Gray_f32_1 gray1{};
+		constexpr auto step = (u32)simd::LEN;
+		constexpr f32 scalar = 255.0f;
+		
+		simd::vecf32 gray255;
+		simd::vecf32 gray1;
+		simd::vecf32 conv;
 
-        auto const proc = [&](u32 x)
-        {
-            gray1 = simd::load_gray(src + x);
-            simd::map_gray(gray1, gray255);
-            simd::store_gray(gray255, dst + x);
-        };
+		simd::load_scalar_broadcast(scalar, conv);
 
-        simd::process_span(width, proc);
+		u32 x = 0;
+        for (; x < width; x += step)
+		{
+			simd::load_gray(src + x, gray1);
+			simd::multiply(gray1, conv, gray255);
+			simd::store_gray(gray255, dst + x);
+		}
+
+		x = width - step;
+		simd::load_gray(src + x, gray1);
+		simd::multiply(gray1, conv, gray255);
+		simd::store_gray(gray255, dst + x);
     }
 
 #endif

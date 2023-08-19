@@ -60,6 +60,18 @@ namespace simd
     {
         dst = _mm_loadu_ps(src);
     }
+    
+    static void load_f32(f32* src, vecf32& dst)
+    {
+        dst = _mm_loadu_ps(src);
+    }
+
+
+    template <typename T>
+    static void load_bytes(T* src, vecf32& dst)
+    {
+        load_f32((f32*)src, dst);
+    }
 }
 
 
@@ -85,6 +97,19 @@ namespace simd
         _mm_store_ps(dst, src);
     }
 
+
+    static void store_f32(vecf32 const& src, f32* dst)
+    {
+        _mm_store_ps(dst, src);
+    }
+
+
+    template <typename T>
+    static void store_bytes(vecf32 const& src, T* dst)
+    {
+        store_f32(src, (f32*)dst);
+    }
+
 }
 
 
@@ -106,20 +131,6 @@ namespace simd
 
 namespace simd
 {
-    union i32_u8
-    {
-        i32 val_i32 = 0;
-
-        struct
-        {
-            u8 val_u8;
-            u8 pad1;
-            u8 pad2;
-            u8 pad3;
-        };
-        
-    };
-
     static void load_scalar_broadcast(f32 value, vecf32& dst)
     {
         dst = _mm256_broadcast_ss(&value);
@@ -139,6 +150,19 @@ namespace simd
     static void load_gray(f32* src, vecf32& dst)
     {
         dst = _mm256_loadu_ps(src);
+    }
+
+
+    static void load_f32(f32* src, vecf32& dst)
+    {
+        dst = _mm256_loadu_ps(src);
+    }
+
+
+    template <typename T>
+    static void load_bytes(T* src, vecf32& dst)
+    {
+        load_f32((f32*)src, dst);
     }
 }
 
@@ -165,6 +189,19 @@ namespace simd
     static void store_gray(vecf32 const& src, f32* dst)
     {
         _mm256_store_ps(dst, src);
+    }
+
+
+    static void store_f32(vecf32 const& src, f32* dst)
+    {
+        _mm256_store_ps(dst, src);
+    }
+
+
+    template <typename T>
+    static void store_bytes(vecf32 const& src, T* dst)
+    {
+        store_f32(src, (f32*)dst);
     }
 }
 

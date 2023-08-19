@@ -1,27 +1,57 @@
-/* copy */
+/* copy row */
 
 namespace simage
-{	
-	template <class IMG_SRC, class IMG_DST>
-	static void do_copy(IMG_SRC const& src, IMG_DST const& dst)
+{
+#ifdef SIMAGE_NO_SIMD
+
+	template <typename T>
+	static void copy_row(T* src, T* dst, u32 width)
 	{
-		for (u32 y = 0; y < src.height; ++y)
+		for (u32 i = 0; i < width; ++i)
 		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 i = 0; i < src.width; ++i)
-			{
-				d[i] = s[i];
-			}
+			dst[i] = src[i];
 		}
 	}
 
+#else
 
+	template <typename T>
+	static void copy_row(T* src, T* dst, u32 width)
+	{
+		constexpr auto step = (u32)simd::LEN * sizeof(f32) / sizeof(T);
+
+		simd::vecf32 v_bytes;
+
+		u32 x = 0;
+        for (; x < width; x += step)
+		{
+			simd::load_bytes(src + x, v_bytes);
+			simd::store_bytes(v_bytes, dst + x);
+		}
+
+		x = width - step;
+		simd::load_bytes(src + x, v_bytes);
+		simd::store_bytes(v_bytes, dst + x);
+	}
+
+#endif // SIMAGE_NO_SIMD
+}
+
+
+/* copy */
+
+namespace simage
+{		
 	void copy(View const& src, View const& dst)
 	{
 		assert(verify(src, dst));
 
-		do_copy(src, dst);
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			copy_row(s, d, src.width);
+		}
 	}
 
 
@@ -29,6 +59,11 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_copy(src, dst);
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			copy_row(s, d, src.width);
+		}
 	}
 }

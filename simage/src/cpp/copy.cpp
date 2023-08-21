@@ -2,15 +2,27 @@
 
 namespace simage
 {
+	template <typename T>
+	static inline void copy_1_no_simd(View1<T> const& src, View1<T> const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+			for (u32 i = 0; i < src.width; ++i)
+			{
+				d[i] = s[i];
+			}
+		}
+	}
+
+
 #ifdef SIMAGE_NO_SIMD
 
 	template <typename T>
-	static void copy_span(T* src, T* dst, u32 len)
+	static inline void copy_1(View1<T> const& src, View1<T> const& dst)
 	{
-		for (u32 i = 0; i < len; ++i)
-		{
-			dst[i] = src[i];
-		}
+		copy_1_no_simd(src, dst);
 	}
 
 #else
@@ -34,17 +46,16 @@ namespace simage
 		simd::store_bytes(v_bytes, dst + i);
 	}
 
-#endif // SIMAGE_NO_SIMD
-}
 
-
-/* copy */
-
-namespace simage
-{
 	template <typename T>
 	static void copy_1(View1<T> const& src, View1<T> const& dst)
 	{
+		if (src.width < simd::LEN)
+		{
+			copy_1_no_simd(src, dst);
+			return;
+		}
+
 		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
@@ -53,7 +64,14 @@ namespace simage
 		}
 	}
 
+#endif // SIMAGE_NO_SIMD
+}
 
+
+/* copy */
+
+namespace simage
+{
 	void copy(View const& src, View const& dst)
 	{
 		assert(verify(src, dst));

@@ -28,13 +28,9 @@ namespace simage
 #else
 
 
-	static inline void fill_span(f32* dst, f32 value, u32 len)
+	static inline void fill_span(f32* dst, simd::vecf32 const& v_val, u32 len)
 	{
-		constexpr auto step = simd::LEN;
-
-		simd::vecf32 v_val{};
-
-		simd::load_f32_broadcast(value, v_val);
+		constexpr auto step = simd::LEN;		
 
 		u32 i = 0;
         for (; i <= (len - step); i += step)
@@ -47,26 +43,14 @@ namespace simage
 	}
 
 
-	static inline void fill_span(u8* dst, u8 value, u32 len)
-	{
-		for (u32 i = 0; i < len; ++i)
-		{
-			dst[i] = value;
-		}
-	}
-
-
-	static inline void fill_span(Pixel* dst, Pixel value, u32 len)
-	{
-		for (u32 i = 0; i < len; ++i)
-		{
-			dst[i] = value;
-		}
-	}
-
-
 	template <typename T>
 	static void fill_channel(View1<T> const& view, T value)
+	{
+		fill_channel_no_simd(view, value);
+	}
+
+
+	static void fill_channel(View1<f32> const& view, f32 value)
 	{
 		if (view.width < simd::LEN)
 		{
@@ -74,10 +58,13 @@ namespace simage
 			return;
 		}
 
+		simd::vecf32 v_val{};
+		simd::load_f32_broadcast(value, v_val);
+
 		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto d = row_begin(view, y);
-			fill_span(d, value, view.width);
+			fill_span(d, v_val, view.width);
 		}
 	}
 

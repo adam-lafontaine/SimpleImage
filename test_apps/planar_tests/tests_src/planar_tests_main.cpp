@@ -12,9 +12,10 @@ bool hsv_conversion_test();
 bool yuv_conversion_test();
 bool lch_conversion_test();
 
-void map_rgba_tests(img::View const& out);
-void map_rgb_tests(img::View const& out);
-void map_gray_tests(img::View const& out);
+void map_rgba_test(img::View const& out);
+void map_rgb_test(img::View const& out);
+void map_gray_test(img::View const& out);
+void map_rgb_gray_test(img::View const& out);
 void fill_rgba_test(img::View const& out);
 void fill_rgb_test(img::View const& out);
 void fill_gray_test(img::View const& out);
@@ -39,9 +40,10 @@ void gradients_xy_tests(img::View const& out);
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	map_rgba_tests,
-	map_rgb_tests,
-	map_gray_tests,
+	map_rgba_test,
+	map_rgb_test,
+	map_gray_test,
+	map_rgb_gray_test,
 	fill_rgba_test,
 	fill_rgb_test,
 	fill_gray_test,

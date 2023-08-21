@@ -146,7 +146,7 @@ namespace simd
 
     static void setzero_f32(vecf32& dst)
     {
-
+        dst = _mm256_setzero_ps();
     }
 
 
@@ -226,6 +226,18 @@ namespace simd
     static void multiply(vecf32 const& a, vecf32 const& b, vecf32& dst)
     {
         dst = _mm256_mul_ps(a, b);
+    }
+
+
+    static void mul(vecf32 const& a, vecf32 const& b, vecf32& dst)
+    {
+        dst = _mm256_mul_ps(a, b);
+    }
+
+
+    static void fmadd(vecf32 const& a, vecf32 const& b, vecf32 const& c, vecf32& dst)
+    {
+        dst = _mm256_fmadd_ps(a, b, c);
     }
 }
 

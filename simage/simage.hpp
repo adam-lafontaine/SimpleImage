@@ -707,6 +707,20 @@ namespace simage
 }
 
 
+/* copy */
+
+namespace simage
+{
+	void copy(View4f32 const& src, View4f32 const& dst);
+
+	void copy(View3f32 const& src, View3f32 const& dst);
+
+	void copy(View2f32 const& src, View2f32 const& dst);
+
+	void copy(View1f32 const& src, View1f32 const& dst);
+}
+
+
 /* fill */
 
 namespace simage

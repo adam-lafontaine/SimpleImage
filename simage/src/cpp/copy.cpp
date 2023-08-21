@@ -41,11 +41,10 @@ namespace simage
 /* copy */
 
 namespace simage
-{		
-	void copy(View const& src, View const& dst)
+{
+	template <typename T>
+	static void copy_1(View1<T> const& src, View1<T> const& dst)
 	{
-		assert(verify(src, dst));
-
 		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
@@ -55,15 +54,76 @@ namespace simage
 	}
 
 
+	void copy(View const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		copy_1(src, dst);
+	}
+
+
 	void copy(ViewGray const& src, ViewGray const& dst)
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
+		copy_1(src, dst);
+	}
+}
+
+
+/* copy */
+
+namespace simage
+{
+	void copy(View4f32 const& src, View4f32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		std::array<std::function<void()>, 4> f_list = 
+		{ 
+			[&]() { copy_1(select_channel(src, 0), select_channel(dst, 0)); },
+			[&]() { copy_1(select_channel(src, 1), select_channel(dst, 1)); },
+			[&]() { copy_1(select_channel(src, 2), select_channel(dst, 2)); },
+			[&]() { copy_1(select_channel(src, 3), select_channel(dst, 3)); }
+		};
+
+		execute(f_list);
+	}
+
+
+	void copy(View3f32 const& src, View3f32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		std::array<std::function<void()>, 3> f_list =
 		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			copy_span(s, d, src.width);
-		}
+			[&]() { copy_1(select_channel(src, 0), select_channel(dst, 0)); },
+			[&]() { copy_1(select_channel(src, 1), select_channel(dst, 1)); },
+			[&]() { copy_1(select_channel(src, 2), select_channel(dst, 2)); },
+		};
+
+		execute(f_list);
+	}
+
+
+	void copy(View2f32 const& src, View2f32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		std::array<std::function<void()>, 2> f_list =
+		{
+			[&]() { copy_1(select_channel(src, 0), select_channel(dst, 0)); },
+			[&]() { copy_1(select_channel(src, 1), select_channel(dst, 1)); },
+		};
+
+		execute(f_list);
+	}
+
+
+	void copy(View1f32 const& src, View1f32 const& dst)
+	{
+		assert(verify(src, dst));
+
+		copy_1(src, dst);
 	}
 }

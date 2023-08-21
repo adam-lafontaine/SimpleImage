@@ -3,9 +3,9 @@
 namespace simage
 {
     template <typename T>
-	static void fill_channel_row(T* d, T value, u32 width)
+	static void fill_channel_span(T* d, T value, u32 len)
 	{
-		for (u32 i = 0; i < width; ++i)
+		for (u32 i = 0; i < len; ++i)
 		{
 			d[i] = value;
 		}
@@ -20,7 +20,7 @@ namespace simage
 		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto d = row_begin(view, y);
-			fill_channel_row(d, value, view.width);
+			fill_channel_span(d, value, view.width);
 		}
 	}
 }
@@ -56,18 +56,20 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto const channel_func = [&](u32 ch)
+		f32 colors[4] = 
 		{
-			auto const c = cs::to_channel_f32(color.channels[ch]);
-			fill_channel(select_channel(view, ch), c);
+			cs::to_channel_f32(color.channels[0]),
+			cs::to_channel_f32(color.channels[1]),
+			cs::to_channel_f32(color.channels[2]),
+			cs::to_channel_f32(color.channels[3])
 		};
 
 		std::array<std::function<void()>, 4> f_list
 		{
-			[&](){ channel_func(0); },
-			[&](){ channel_func(1); },
-			[&](){ channel_func(2); },
-			[&](){ channel_func(3); },
+			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
+			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
+			[&](){ fill_channel(select_channel(view, 2), colors[2]); },
+			[&](){ fill_channel(select_channel(view, 3), colors[3]); },
 		};
 
     	execute(f_list);
@@ -78,17 +80,18 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto const channel_func = [&](u32 ch)
+		f32 colors[3] = 
 		{
-			auto const c = cs::to_channel_f32(color.channels[ch]);
-			fill_channel(select_channel(view, ch), c);
+			cs::to_channel_f32(color.channels[0]),
+			cs::to_channel_f32(color.channels[1]),
+			cs::to_channel_f32(color.channels[2]),
 		};
 
 		std::array<std::function<void()>, 3> f_list
 		{
-			[&](){ channel_func(0); },
-			[&](){ channel_func(1); },
-			[&](){ channel_func(2); },
+			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
+			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
+			[&](){ fill_channel(select_channel(view, 2), colors[2]); },
 		};
 
     	execute(f_list);

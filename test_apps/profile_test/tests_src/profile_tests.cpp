@@ -175,7 +175,7 @@ static void sub_view()
 
 static void copy()
 {
-    auto n_channels32 = 2;
+    auto n_channels32 = 22;
     auto n_channels8 = 2;
 
     auto width = WIDTH;
@@ -188,9 +188,21 @@ static void copy()
     auto view_rgba_d = img::make_view(width, height, buffer32);
     auto view_gray_s = img::make_view(width, height, buffer8);
     auto view_gray_d = img::make_view(width, height, buffer8);
+    auto view_1_s = img::make_view_1(width, height, buffer32);
+    auto view_2_s = img::make_view_2(width, height, buffer32);
+    auto view_3_s = img::make_view_3(width, height, buffer32);
+    auto view_4_s = img::make_view_4(width, height, buffer32);
+    auto view_1_d = img::make_view_1(width, height, buffer32);
+    auto view_2_d = img::make_view_2(width, height, buffer32);
+    auto view_3_d = img::make_view_3(width, height, buffer32);
+    auto view_4_d = img::make_view_4(width, height, buffer32);
 
     PROFILE(img::copy(view_rgba_s, view_rgba_d));
     PROFILE(img::copy(view_gray_s, view_gray_d));
+    PROFILE(img::copy(view_1_s, view_1_d));
+    PROFILE(img::copy(view_2_s, view_2_d));
+    PROFILE(img::copy(view_3_s, view_3_d));
+    PROFILE(img::copy(view_4_s, view_4_d));
 
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);

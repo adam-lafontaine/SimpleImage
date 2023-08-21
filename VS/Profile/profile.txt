@@ -281,3 +281,19 @@ make_view:
 1.51e+03: img::make_view_1(width, height, buffer32) x 5
 7.34e+03: img::make_view(width, height, buffer32)   x 5
 7.84e+03: img::make_view(rgba)                      x 5
+
+copy:
+6.20e+06: img::copy(view_gray_s, view_gray_d) x 5
+7.03e+06: img::copy(view_1_s, view_1_d)       x 5
+8.09e+06: img::copy(view_rgba_s, view_rgba_d) x 5
+1.38e+07: img::copy(view_2_s, view_2_d)       x 5
+2.08e+07: img::copy(view_3_s, view_3_d)       x 5
+2.79e+07: img::copy(view_4_s, view_4_d)       x 5
+
+copy:
+7.23e+06: img::copy(view_gray_s, view_gray_d) x 5
+7.74e+06: img::copy(view_1_s, view_1_d)       x 5
+8.07e+06: img::copy(view_rgba_s, view_rgba_d) x 5
+1.56e+07: img::copy(view_2_s, view_2_d)       x 5
+2.26e+07: img::copy(view_3_s, view_3_d)       x 5
+3.42e+07: img::copy(view_4_s, view_4_d)       x 5

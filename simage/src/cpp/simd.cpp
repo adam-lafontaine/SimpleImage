@@ -42,7 +42,7 @@ namespace simd
 
 namespace simd
 {
-    static void load_scalar_broadcast(f32 value, vecf32& dst)
+    static void load_f32_broadcast(f32 value, vecf32& dst)
     {
         dst = _mm_load_ps1(&value);
     }
@@ -131,9 +131,15 @@ namespace simd
 
 namespace simd
 {
-    static void load_scalar_broadcast(f32 value, vecf32& dst)
+    static void load_f32_broadcast(f32 value, vecf32& dst)
     {
         dst = _mm256_broadcast_ss(&value);
+    }
+
+
+    static void load_u8_broadcast(u8 value, vecf32& dst)
+    {
+        auto v_int = _mm256_set_epi32(value, value, value, value, value, value, value, value);
     }
 
 

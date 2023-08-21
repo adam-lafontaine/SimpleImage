@@ -1,17 +1,65 @@
-/* fill static */
+/* fill span */
 
 namespace simage
 {
-    template <typename T>
-	static void fill_channel_span(T* d, T value, u32 len)
+#ifdef SIMAGE_NO_SIMD
+
+	template <typename T>
+	static void fill_span(T* dst, T value, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
-			d[i] = value;
+			dst[i] = value;
+		}
+	}
+
+#else
+
+
+	static void fill_span(f32* dst, f32 value, u32 len)
+	{
+		constexpr auto step = simd::LEN;
+
+		simd::vecf32 v_val{};
+
+		simd::load_f32_broadcast(value, v_val);
+
+		u32 i = 0;
+        for (; i <= (len - step); i += step)
+		{
+			simd::store_f32(v_val, dst + i);
+		}
+
+		i = len - step;
+		simd::store_f32(v_val, dst + i);
+	}
+
+
+	static void fill_span(u8* dst, u8 value, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = value;
 		}
 	}
 
 
+	static void fill_span(Pixel* dst, Pixel value, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = value;
+		}
+	}
+
+#endif // SIMAGE_NO_SIMD
+}
+
+
+/* fill static */
+
+namespace simage
+{
 	template <typename T>
 	static void fill_channel(View1<T> const& view, T value)
 	{		
@@ -20,7 +68,7 @@ namespace simage
 		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto d = row_begin(view, y);
-			fill_channel_span(d, value, view.width);
+			fill_span(d, value, view.width);
 		}
 	}
 }
@@ -64,7 +112,7 @@ namespace simage
 			cs::to_channel_f32(color.channels[3])
 		};
 
-		std::array<std::function<void()>, 4> f_list
+		/*std::array<std::function<void()>, 4> f_list
 		{
 			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
 			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
@@ -72,7 +120,12 @@ namespace simage
 			[&](){ fill_channel(select_channel(view, 3), colors[3]); },
 		};
 
-    	execute(f_list);
+    	execute(f_list);*/
+
+		for (u32 ch = 0; ch < 4; ++ch)
+		{
+			fill_channel(select_channel(view, ch), colors[ch]);
+		}
 	}
 
 
@@ -87,14 +140,19 @@ namespace simage
 			cs::to_channel_f32(color.channels[2]),
 		};
 
-		std::array<std::function<void()>, 3> f_list
+		/*std::array<std::function<void()>, 3> f_list
 		{
 			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
 			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
 			[&](){ fill_channel(select_channel(view, 2), colors[2]); },
 		};
 
-    	execute(f_list);
+    	execute(f_list);*/
+
+		for (u32 ch = 0; ch < 3; ++ch)
+		{
+			fill_channel(select_channel(view, ch), colors[ch]);
+		}
 	}
 
 

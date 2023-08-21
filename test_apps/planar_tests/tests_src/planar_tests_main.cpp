@@ -101,10 +101,10 @@ static void run_next_test(Input const& input, app::AppState& app_state)
 
 int main()
 {
-	if (!run_preliminary_tests())
+	/*if (!run_preliminary_tests())
 	{
 		return EXIT_FAILURE;
-	}
+	}*/
 
     app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;

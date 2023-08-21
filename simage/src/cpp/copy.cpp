@@ -1,4 +1,4 @@
-/* copy row */
+/* copy span */
 
 namespace simage
 {
@@ -23,7 +23,7 @@ namespace simage
 		simd::vecf32 v_bytes;
 
 		u32 i = 0;
-        for (; i < len; i += step)
+        for (; i <= (len - step); i += step)
 		{
 			simd::load_bytes(src + i, v_bytes);
 			simd::store_bytes(v_bytes, dst + i);

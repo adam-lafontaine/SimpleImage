@@ -41,10 +41,10 @@ namespace simage
 		simd::vecf32 gray1;
 		simd::vecf32 conv;
 
-		simd::load_scalar_broadcast(scalar, conv);
+		simd::load_f32_broadcast(scalar, conv);
 
 		u32 i = 0;
-        for (; i < len; i += step)
+        for (; i <= (len - step); i += step)
 		{
 			simd::load_gray(src + i, gray255);
 			simd::multiply(gray255, conv, gray1);
@@ -67,10 +67,10 @@ namespace simage
 		simd::vecf32 gray1;
 		simd::vecf32 conv;
 
-		simd::load_scalar_broadcast(scalar, conv);
+		simd::load_f32_broadcast(scalar, conv);
 
 		u32 i = 0;
-        for (; i < len; i += step)
+        for (; i <= (len - step); i += step)
 		{
 			simd::load_gray(src + i, gray1);
 			simd::multiply(gray1, conv, gray255);

@@ -123,7 +123,7 @@ namespace simage
 			cs::to_channel_f32(color.channels[3])
 		};
 
-		/*std::array<std::function<void()>, 4> f_list
+		std::array<std::function<void()>, 4> f_list
 		{
 			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
 			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
@@ -131,12 +131,7 @@ namespace simage
 			[&](){ fill_channel(select_channel(view, 3), colors[3]); },
 		};
 
-    	execute(f_list);*/
-
-		for (u32 ch = 0; ch < 4; ++ch)
-		{
-			fill_channel(select_channel(view, ch), colors[ch]);
-		}
+    	execute(f_list);
 	}
 
 
@@ -151,19 +146,14 @@ namespace simage
 			cs::to_channel_f32(color.channels[2]),
 		};
 
-		/*std::array<std::function<void()>, 3> f_list
+		std::array<std::function<void()>, 3> f_list
 		{
 			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
 			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
 			[&](){ fill_channel(select_channel(view, 2), colors[2]); },
 		};
 
-    	execute(f_list);*/
-
-		for (u32 ch = 0; ch < 3; ++ch)
-		{
-			fill_channel(select_channel(view, ch), colors[ch]);
-		}
+    	execute(f_list);
 	}
 
 

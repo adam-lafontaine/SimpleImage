@@ -197,6 +197,24 @@ static void copy()
 }
 
 
+static void fill()
+{
+    auto n_channels32 = 2;
+    auto n_channels8 = 2;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba_s = img::make_view(width, height, buffer32);
+    auto view_rgba_d = img::make_view(width, height, buffer32);
+    auto view_gray_s = img::make_view(width, height, buffer8);
+    auto view_gray_d = img::make_view(width, height, buffer8);
+}
+
+
 static void map_gray_gray()
 {
     auto n_channels32 = 5;

@@ -5,9 +5,9 @@ namespace simage
 #ifdef SIMAGE_NO_SIMD
 
 	template <typename T>
-	static void copy_row(T* src, T* dst, u32 width)
+	static void copy_span(T* src, T* dst, u32 len)
 	{
-		for (u32 i = 0; i < width; ++i)
+		for (u32 i = 0; i < len; ++i)
 		{
 			dst[i] = src[i];
 		}
@@ -16,22 +16,22 @@ namespace simage
 #else
 
 	template <typename T>
-	static void copy_row(T* src, T* dst, u32 width)
+	static void copy_span(T* src, T* dst, u32 len)
 	{
 		constexpr auto step = (u32)simd::LEN * sizeof(f32) / sizeof(T);
 
 		simd::vecf32 v_bytes;
 
-		u32 x = 0;
-        for (; x < width; x += step)
+		u32 i = 0;
+        for (; i < len; i += step)
 		{
-			simd::load_bytes(src + x, v_bytes);
-			simd::store_bytes(v_bytes, dst + x);
+			simd::load_bytes(src + i, v_bytes);
+			simd::store_bytes(v_bytes, dst + i);
 		}
 
-		x = width - step;
-		simd::load_bytes(src + x, v_bytes);
-		simd::store_bytes(v_bytes, dst + x);
+		i = len - step;
+		simd::load_bytes(src + i, v_bytes);
+		simd::store_bytes(v_bytes, dst + i);
 	}
 
 #endif // SIMAGE_NO_SIMD
@@ -50,7 +50,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			copy_row(s, d, src.width);
+			copy_span(s, d, src.width);
 		}
 	}
 
@@ -63,7 +63,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			copy_row(s, d, src.width);
+			copy_span(s, d, src.width);
 		}
 	}
 }

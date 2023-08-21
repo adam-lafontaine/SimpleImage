@@ -1,40 +1,42 @@
-/* map_row */
+/* map_span */
 
 namespace simage
 {
 #ifdef SIMAGE_NO_SIMD
 
-	void map_row_u8_to_pixel(u8* src, Pixel* dst, u32 width)
+	void map_span_u8_to_pixel(u8* src, Pixel* dst, u32 len)
 	{
-		for (u32 x = 0; x < width; ++x)
-		{
-			RGBAu8 gray = { src[x], src[x], src[x], 255 };
+		RGBAu8 gray{};
 
-			dst[x].rgba = gray;
+		for (u32 i = 0; i < len; ++i)
+		{
+			gray = { src[i], src[i], src[i], 255 };
+
+			dst[i].rgba = gray;
 		}
 	}
 
 
-	static void map_row_ch_u8_to_f32(u8* src, f32* dst, u32 width)
+	static void map_span_ch_u8_to_f32(u8* src, f32* dst, u32 len)
 	{
-		for (u32 x = 0; x < width; ++x)
+		for (u32 i = 0; i < len; ++i)
 		{
-			dst[x] = cs::to_channel_f32(src[x]);
+			dst[i] = cs::to_channel_f32(src[i]);
 		}
 	}
 
 
-	static void map_row_ch_f32_to_u8(f32* src, u8* dst, u32 width)
+	static void map_span_ch_f32_to_u8(f32* src, u8* dst, u32 len)
 	{
-		for (u32 x = 0; x < width; ++x)
+		for (u32 i = 0; i < len; ++i)
 		{
-			dst[x] = cs::to_channel_u8(src[x]);
+			dst[i] = cs::to_channel_u8(src[i]);
 		}
 	}
 
 #else
 
-	static void map_row_ch_u8_to_f32(u8* src, f32* dst, u32 width)
+	static void map_span_ch_u8_to_f32(u8* src, f32* dst, u32 len)
 	{		
 		constexpr auto step = (u32)simd::LEN;
 		constexpr f32 scalar = 1.0f / 255.0f;
@@ -45,22 +47,22 @@ namespace simage
 
 		simd::load_scalar_broadcast(scalar, conv);
 
-		u32 x = 0;
-        for (; x < width; x += step)
+		u32 i = 0;
+        for (; i < len; i += step)
 		{
-			simd::load_gray(src + x, gray255);
+			simd::load_gray(src + i, gray255);
 			simd::multiply(gray255, conv, gray1);
-			simd::store_gray(gray1, dst + x);
+			simd::store_gray(gray1, dst + i);
 		}
 
-		x = width - step;
-		simd::load_gray(src + x, gray255);
+		i = len - step;
+		simd::load_gray(src + i, gray255);
 		simd::multiply(gray255, conv, gray1);
-		simd::store_gray(gray1, dst + x);
+		simd::store_gray(gray1, dst + i);
 	}
 
 
-	static void map_row_ch_f32_to_u8(f32* src, u8* dst, u32 width)
+	static void map_span_ch_f32_to_u8(f32* src, u8* dst, u32 len)
     {
 		constexpr auto step = (u32)simd::LEN;
 		constexpr f32 scalar = 255.0f;
@@ -71,18 +73,18 @@ namespace simage
 
 		simd::load_scalar_broadcast(scalar, conv);
 
-		u32 x = 0;
-        for (; x < width; x += step)
+		u32 i = 0;
+        for (; i < len; i += step)
 		{
-			simd::load_gray(src + x, gray1);
+			simd::load_gray(src + i, gray1);
 			simd::multiply(gray1, conv, gray255);
-			simd::store_gray(gray255, dst + x);
+			simd::store_gray(gray255, dst + i);
 		}
 
-		x = width - step;
-		simd::load_gray(src + x, gray1);
+		i = len - step;
+		simd::load_gray(src + i, gray1);
 		simd::multiply(gray1, conv, gray255);
-		simd::store_gray(gray255, dst + x);
+		simd::store_gray(gray255, dst + i);
     }
 
 #endif
@@ -237,7 +239,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			map_row_ch_u8_to_f32(s, d, src.width);
+			map_span_ch_u8_to_f32(s, d, src.width);
 		}
 	}
 	
@@ -250,7 +252,7 @@ namespace simage
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
-			map_row_ch_f32_to_u8(s, d, src.width);
+			map_span_ch_f32_to_u8(s, d, src.width);
 		}
 	}
 

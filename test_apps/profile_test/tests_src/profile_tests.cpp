@@ -211,8 +211,8 @@ static void copy()
 
 static void fill()
 {
-    auto n_channels32 = 2;
-    auto n_channels8 = 2;
+    auto n_channels32 = 12;
+    auto n_channels8 = 1;
 
     auto width = WIDTH;
     auto height = HEIGHT;
@@ -220,10 +220,22 @@ static void fill()
     auto buffer32 = img::create_buffer32(width * height * n_channels32);
     auto buffer8 = img::create_buffer8(width * height * n_channels8);
 
-    auto view_rgba_s = img::make_view(width, height, buffer32);
-    auto view_rgba_d = img::make_view(width, height, buffer32);
-    auto view_gray_s = img::make_view(width, height, buffer8);
-    auto view_gray_d = img::make_view(width, height, buffer8);
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_gray = img::make_view(width, height, buffer8);
+    auto view_1 = img::make_view_1(width, height, buffer32);
+    auto view_3 = img::make_view_3(width, height, buffer32);
+    auto view_4 = img::make_view_4(width, height, buffer32);
+
+    auto black32 = img::to_pixel(0, 0, 0);
+
+    PROFILE(img::fill(view_rgba, black32));
+    PROFILE(img::fill(view_gray, 0));
+    PROFILE(img::fill(view_1, 0.0f));
+    PROFILE(img::fill(view_3, black32));
+    PROFILE(img::fill(view_4, black32));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
 }
 
 
@@ -736,7 +748,8 @@ void run_profile_tests()
     //run_test(resize_image, "resize_image");
     //run_test(make_view, "make_view");
     //run_test(sub_view, "sub_view");
-    run_test(copy, "copy");
+    //run_test(copy, "copy");
+    run_test(fill, "fill");
     //run_test(map_gray_gray, "map_gray_gray");
     //run_test(map_gray_rgba, "map_gray_rgba");    
     //run_test(alpha_blend, "alpha_blend");

@@ -4,19 +4,6 @@ namespace simage
 {
 #ifdef SIMAGE_NO_SIMD
 
-	void map_span_u8_to_pixel(u8* src, Pixel* dst, u32 len)
-	{
-		RGBAu8 gray{};
-
-		for (u32 i = 0; i < len; ++i)
-		{
-			gray = { src[i], src[i], src[i], 255 };
-
-			dst[i].rgba = gray;
-		}
-	}
-
-
 	static void map_span_ch_u8_to_f32(u8* src, f32* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
@@ -31,6 +18,15 @@ namespace simage
 		for (u32 i = 0; i < len; ++i)
 		{
 			dst[i] = cs::to_channel_u8(src[i]);
+		}
+	}
+
+
+	static void map_span_f32_rgb_to_gray(f32* r, f32* g, f32* b, f32* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = gray::f32_from_rgb_f32(r[i], g[i], b[i]);
 		}
 	}
 
@@ -87,6 +83,15 @@ namespace simage
 		simd::store_gray(gray255, dst + i);
     }
 
+
+	static void map_span_f32_rgb_to_gray(f32* r, f32* g, f32* b, f32* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = gray::f32_from_rgb_f32(r[i], g[i], b[i]);
+		}
+	}
+
 #endif
 }
 
@@ -95,12 +100,11 @@ namespace simage
 
 namespace simage
 {
-	
-
-
 	void map_rgba(ViewGray const& src, View const& dst)
 	{
 		assert(verify(src, dst));
+
+		RGBAu8 gray{};
 
 		for (u32 y = 0; y < src.height; ++y)
 		{
@@ -109,7 +113,7 @@ namespace simage
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				RGBAu8 gray = { s[x], s[x], s[x], 255 };
+				gray = { s[x], s[x], s[x], 255 };
 
 				d[x].rgba = gray;
 			}
@@ -328,10 +332,7 @@ namespace simage
 			auto g = row_begin(green, y);
 			auto b = row_begin(blue, y);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = gray::f32_from_rgb_f32(r[x], g[x], b[x]);
-			}
+			map_span_f32_rgb_to_gray(r, g, b, d, src.width);
 		}
 	}
 }

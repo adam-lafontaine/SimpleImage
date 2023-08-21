@@ -2,21 +2,33 @@
 
 namespace simage
 {
+	template <typename T>
+	static void fill_channel_no_simd(View1<T> const& view, T value)
+	{
+		for (u32 y = 0; y < view.height; ++y)
+		{
+			auto d = row_begin(view, y);
+			for (u32 i = 0; i < view.width; ++i)
+			{
+				d[i] = value;
+			}
+		}
+	}
+
+
 #ifdef SIMAGE_NO_SIMD
 
+
 	template <typename T>
-	static void fill_span(T* dst, T value, u32 len)
+	static void fill_channel(View1<T> const& view, T value)
 	{
-		for (u32 i = 0; i < len; ++i)
-		{
-			dst[i] = value;
-		}
+		fill_channel_no_simd(view, value);
 	}
 
 #else
 
 
-	static void fill_span(f32* dst, f32 value, u32 len)
+	static inline void fill_span(f32* dst, f32 value, u32 len)
 	{
 		constexpr auto step = simd::LEN;
 
@@ -35,7 +47,7 @@ namespace simage
 	}
 
 
-	static void fill_span(u8* dst, u8 value, u32 len)
+	static inline void fill_span(u8* dst, u8 value, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -44,7 +56,7 @@ namespace simage
 	}
 
 
-	static void fill_span(Pixel* dst, Pixel value, u32 len)
+	static inline void fill_span(Pixel* dst, Pixel value, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -52,18 +64,15 @@ namespace simage
 		}
 	}
 
-#endif // SIMAGE_NO_SIMD
-}
 
-
-/* fill static */
-
-namespace simage
-{
 	template <typename T>
 	static void fill_channel(View1<T> const& view, T value)
-	{		
-		assert(verify(view));
+	{
+		if (view.width < simd::LEN)
+		{
+			fill_channel_no_simd(view, value);
+			return;
+		}
 
 		for (u32 y = 0; y < view.height; ++y)
 		{
@@ -71,6 +80,8 @@ namespace simage
 			fill_span(d, value, view.width);
 		}
 	}
+
+#endif // SIMAGE_NO_SIMD
 }
 
 

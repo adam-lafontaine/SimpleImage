@@ -40,21 +40,39 @@ namespace simage
 		}
 	}
 
+
+	static inline void map_rgb_to_gray_no_simd(ViewRGBf32 const& src, View1f32 const& dst)
+	{
+		auto red = select_channel(src, RGB::R);
+		auto green = select_channel(src, RGB::G);
+		auto blue = select_channel(src, RGB::B);
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+
+			for (u32 i = 0; i < src.width; ++i)
+			{
+				d[i] = gray::f32_from_rgb_f32(r[i], g[i], b[i]);
+			}
+		}
+	}
+
 #ifdef SIMAGE_NO_SIMD
 
 	template <class SRC, class DST>
-	static void map_channel_gray(SRC const& src, DST const& dst)
+	static inline void map_channel_gray(SRC const& src, DST const& dst)
 	{
 		map_channel_gray_no_simd(src, dst);
 	}
 
 
-	static void map_span_rgb_to_gray(f32* r, f32* g, f32* b, f32* dst, u32 len)
+	static inline void map_rgb_to_gray(ViewRGBf32 const& src, View1f32 const& dst)
 	{
-		for (u32 i = 0; i < len; ++i)
-		{
-			dst[i] = gray::f32_from_rgb_f32(r[i], g[i], b[i]);
-		}
+		map_rgb_to_gray_no_simd(src, dst);
 	}
 
 #else
@@ -111,15 +129,6 @@ namespace simage
     }
 
 
-	static void map_span_rgb_to_gray(f32* r, f32* g, f32* b, f32* dst, u32 len)
-	{
-		for (u32 i = 0; i < len; ++i)
-		{
-			dst[i] = gray::f32_from_rgb_f32(r[i], g[i], b[i]);
-		}
-	}
-
-
 	template <class SRC, class DST>
 	static void map_channel_gray(SRC const& src, DST const& dst)
 	{
@@ -135,6 +144,50 @@ namespace simage
 			auto d = row_begin(dst, y);
 			map_span_gray(s, d, src.width);
 		}
+	}
+
+
+	static inline void map_rgb_to_gray(ViewRGBf32 const& src, View1f32 const& dst)
+	{
+		if (src.width < simd::LEN)
+		{
+			map_rgb_to_gray_no_simd(src, dst);
+			return;
+		}
+
+		auto red = select_channel(src, RGB::R);
+		auto green = select_channel(src, RGB::G);
+		auto blue = select_channel(src, RGB::B);
+
+		simd::vecf32 v_c_red{};
+		simd::vecf32 v_c_green{};
+		simd::vecf32 v_c_blue{};
+		simd::load_f32_broadcast(gray::COEFF_RED, v_c_red);
+		simd::load_f32_broadcast(gray::COEFF_GREEN, v_c_green);
+		simd::load_f32_broadcast(gray::COEFF_BLUE, v_c_blue);
+
+		simd::vecf32 v_red{};
+		simd::vecf32 v_green{};
+		simd::vecf32 v_blue{};
+		simd::vecf32 v_gray{};
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto r = row_begin(red, y);
+			auto g = row_begin(green, y);
+			auto b = row_begin(blue, y);
+
+			simd::load_f32(r, v_red);
+			simd::load_f32(r, v_green);
+			simd::load_f32(r, v_blue);
+
+			simd::mul(v_red, v_c_red, v_gray);
+			simd::fmadd(v_green, v_c_green, v_gray, v_gray);
+			simd::fmadd(v_blue, v_c_blue, v_gray, v_gray);
+
+			simd::store_f32(v_gray, d);
+		}		
 	}
 
 #endif
@@ -356,19 +409,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto red = select_channel(src, RGB::R);
-		auto green = select_channel(src, RGB::G);
-		auto blue = select_channel(src, RGB::B);
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = row_begin(dst, y);
-			auto r = row_begin(red, y);
-			auto g = row_begin(green, y);
-			auto b = row_begin(blue, y);
-
-			map_span_rgb_to_gray(r, g, b, d, src.width);
-		}
+		map_rgb_to_gray(src, dst);
 	}
 }
 

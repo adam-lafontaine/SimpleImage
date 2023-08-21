@@ -140,6 +140,13 @@ namespace simd
     static void load_u8_broadcast(u8 value, vecf32& dst)
     {
         auto v_int = _mm256_set_epi32(value, value, value, value, value, value, value, value);
+        dst =  _mm256_cvtepi32_ps(v_int);
+    }
+
+
+    static void setzero_f32(vecf32& dst)
+    {
+
     }
 
 

@@ -40,7 +40,7 @@
 
 
 // Disable SIMD support
-//#define SIMAGE_NO_SIMD
+#define SIMAGE_NO_SIMD
 
 #ifndef SIMAGE_NO_SIMD
 

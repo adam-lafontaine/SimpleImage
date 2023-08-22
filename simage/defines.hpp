@@ -45,6 +45,7 @@
 #ifndef SIMAGE_NO_SIMD
 
 //#define SIMD_INTEL_128
-#define SIMD_INTEL_256
+//#define SIMD_INTEL_256
+#define SIMD_INTEL_512
 
 #endif

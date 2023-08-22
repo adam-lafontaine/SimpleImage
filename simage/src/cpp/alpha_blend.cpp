@@ -88,6 +88,7 @@ namespace simage
 
 	static inline void alpha_blend_span_u8(Pixel* src, Pixel* cur, Pixel* dst, u32 len)
 	{
+		// TODO
 		alpha_blend_span_u8_no_simd(src, cur, dst, len);
 	}
 
@@ -211,6 +212,8 @@ namespace simage
 			
 			alpha_blend_span_f32(s, c, a, d, src.width);
 		}
+
+		//alpha_blend_f32_no_simd(src, cur, alpha, dst);
 	}
 
 #endif // SIMAGE_NO_SIMD

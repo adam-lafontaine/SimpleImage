@@ -1,4 +1,4 @@
-/* map_span */
+/* map_span no_simd */
 
 namespace simage
 {
@@ -29,6 +29,14 @@ namespace simage
 	}
 
 
+	
+}
+
+
+/* map no_simd */
+
+namespace simage
+{
 	template <class SRC, class DST>
 	static inline void map_channel_gray_no_simd(SRC const& src, DST const& dst)
 	{
@@ -54,28 +62,18 @@ namespace simage
 			auto g = row_begin(green, y);
 			auto b = row_begin(blue, y);
 
-			for (u32 i = 0; i < src.width; ++i)
-			{
-				d[i] = gray::f32_from_rgb_f32(r[i], g[i], b[i]);
-			}
+			map_span_rgb_to_gray_no_simd(r, g, b, d, src.width);
 		}
 	}
 
-#ifdef SIMAGE_NO_SIMD
-
-	template <class SRC, class DST>
-	static inline void map_channel_gray(SRC const& src, DST const& dst)
-	{
-		map_channel_gray_no_simd(src, dst);
-	}
+}
 
 
-	static inline void map_rgb_to_gray(ViewRGBf32 const& src, View1f32 const& dst)
-	{
-		map_rgb_to_gray_no_simd(src, dst);
-	}
+/* map_span simd */
 
-#else
+namespace simage
+{
+#ifndef SIMAGE_NO_SIMD
 
 	static void map_span_gray(u8* src, f32* dst, u32 len)
 	{		
@@ -127,6 +125,68 @@ namespace simage
     }
 
 
+	static void map_span_rgb_to_gray(f32* r, f32* g, f32* b, f32* dst, u32 len)
+	{
+		constexpr auto step = (u32)simd::LEN;
+
+		simd::vecf32 v_c_red = simd::load_f32_broadcast(gray::COEFF_RED);
+		simd::vecf32 v_c_green = simd::load_f32_broadcast(gray::COEFF_GREEN);
+		simd::vecf32 v_c_blue = simd::load_f32_broadcast(gray::COEFF_BLUE);
+
+		simd::vecf32 v_red;
+		simd::vecf32 v_green;
+		simd::vecf32 v_blue;
+		simd::vecf32 v_gray;
+
+		u32 i = 0;
+		for (; i <= (len - step); i += step)
+		{
+			v_red = simd::load_f32(r + i);
+			v_green = simd::load_f32(g + i);
+			v_blue = simd::load_f32(b + i);
+			
+			v_gray = simd::fmadd(v_blue, v_c_blue, simd::fmadd(v_green, v_c_green, simd::mul(v_red, v_c_red)));
+
+			simd::store_f32(v_gray, dst + i);
+		}
+
+		i = len - step;
+		v_red = simd::load_f32(r + i);
+		v_green = simd::load_f32(g + i);
+		v_blue = simd::load_f32(b + i);
+
+		v_gray = simd::fmadd(v_blue, v_c_blue, simd::fmadd(v_green, v_c_green, simd::mul(v_red, v_c_red)));
+
+		simd::store_f32(v_gray, dst + i);
+	}
+
+	
+
+#endif // !SIMAGE_NO_SIMD
+}
+
+
+/* map view simd option */
+
+namespace simage
+{
+
+#ifdef SIMAGE_NO_SIMD
+
+	template <class SRC, class DST>
+	static inline void map_channel_gray(SRC const& src, DST const& dst)
+	{
+		map_channel_gray_no_simd(src, dst);
+	}
+
+
+	static inline void map_rgb_to_gray(ViewRGBf32 const& src, View1f32 const& dst)
+	{
+		map_rgb_to_gray_no_simd(src, dst);
+	}
+
+#else
+
 	template <class SRC, class DST>
 	static void map_channel_gray(SRC const& src, DST const& dst)
 	{
@@ -145,7 +205,7 @@ namespace simage
 	}
 
 
-	static inline void map_rgb_to_gray(ViewRGBf32 const& src, View1f32 const& dst)
+	static void map_rgb_to_gray(ViewRGBf32 const& src, View1f32 const& dst)
 	{
 		if (src.width < simd::LEN)
 		{
@@ -157,18 +217,6 @@ namespace simage
 		auto green = select_channel(src, RGB::G);
 		auto blue = select_channel(src, RGB::B);
 
-		simd::vecf32 v_c_red = simd::load_f32_broadcast(gray::COEFF_RED);
-		simd::vecf32 v_c_green = simd::load_f32_broadcast(gray::COEFF_GREEN);
-		simd::vecf32 v_c_blue = simd::load_f32_broadcast(gray::COEFF_BLUE);
-
-		simd::vecf32 v_red;
-		simd::vecf32 v_green;
-		simd::vecf32 v_blue;
-		simd::vecf32 v_gray;
-
-		constexpr auto step = (u32)simd::LEN;
-		auto len = src.width;
-
 		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto d = row_begin(dst, y);
@@ -176,132 +224,37 @@ namespace simage
 			auto g = row_begin(green, y);
 			auto b = row_begin(blue, y);
 
-			u32 i = 0;
-        	for (; i <= (len - step); i += step)
-			{
-				v_red = simd::load_f32(r + i);
-				v_green = simd::load_f32(g + i);
-				v_blue = simd::load_f32(b + i);
-				
-				v_gray = simd::fmadd(v_blue, v_c_blue, simd::fmadd(v_green, v_c_green, simd::mul(v_red, v_c_red)));
-
-				simd::store_f32(v_gray, d + i);
-			}
-
-			i = len - step;
-			v_red = simd::load_f32(r + i);
-			v_green = simd::load_f32(g + i);
-			v_blue = simd::load_f32(b + i);
-
-			v_gray = simd::fmadd(v_blue, v_c_blue, simd::fmadd(v_green, v_c_green, simd::mul(v_red, v_c_red)));
-
-			simd::store_f32(v_gray, d + i);
+			map_span_rgb_to_gray(r, g, b, d, src.width);
 		}		
 	}
+
+
 
 #endif
 }
 
 
-/* map */
+/* map_gray u8 */
 
 namespace simage
 {
-	void map_rgba(ViewGray const& src, View const& dst)
+	static inline void map_span_rgb_to_gray(Pixel* src, u8* dst, u32 len)
 	{
-		assert(verify(src, dst));
-
-		RGBAu8 gray{};
-
-		for (u32 y = 0; y < src.height; ++y)
+		for (u32 i = 0; i < len; ++i)
 		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				gray = { s[x], s[x], s[x], 255 };
-
-				d[x].rgba = gray;
-			}
+			auto rgba = src[i].rgba;
+			dst[i] = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 		}
 	}
 
 
-	void map_rgba(ViewYUV const& src, View const& dst)
+	static inline void map_span_yuv_gray(YUV2u8* src, u8* dst, u32 len)
 	{
-		assert(verify(src, dst));
-		assert(src.width % 2 == 0);
-		static_assert(sizeof(YUV2u8) == 2);
-
-		for (u32 y = 0; y < src.height; ++y)
+		for (u32 i = 0; i < len; ++i)
 		{
-			auto s2 = row_begin(src, y);
-			auto s422 = (YUV422u8*)s2;
-			auto d = row_begin(dst, y);
-
-			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
-			{
-				auto yuv = s422[x422];
-
-				auto x = 2 * x422;
-				auto rgba = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
-				d[x].rgba.red = 255;
-
-				++x;
-				rgba = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
-				d[x].rgba.red = 255;
-			}
-		}
-	}
-
-
-	void map_rgba(ViewBGR const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto& rgba = d[x].rgba;
-				rgba.red = s[x].red;
-				rgba.green = s[x].green;
-				rgba.blue = s[x].blue;
-				rgba.alpha = 255;
-			}
+			dst[i] = src[i].y;
 		}
 	}	
-
-
-	void map_rgba(ViewRGB const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto& rgba = d[x].rgba;
-				rgba.red = s[x].red;
-				rgba.green = s[x].green;
-				rgba.blue = s[x].blue;
-				rgba.alpha = 255;
-			}
-		}
-	}
 
 
 	void map_gray(View const& src, ViewGray const& dst)
@@ -310,14 +263,10 @@ namespace simage
 
 		for (u32 y = 0; y < src.height; ++y)
 		{
-			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
+			auto s = row_begin(src, y);			
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto rgba = s[x].rgba;
-				d[x] = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-			}
+			map_span_rgb_to_gray(s, d, src.width);
 		}
 	}
 
@@ -331,17 +280,35 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x].y;
-			}
+			map_span_yuv_gray(s, d, src.width);
 		}
 	}
 }
 
 
+/* map_gray f32 */
+
 namespace simage
 {
+	static inline void map_span_yuv_gray(YUV2u8* src, f32* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = cs::to_channel_f32(src[i].y);
+		}
+	}
+
+
+	static inline void map_span_rgb_to_gray(Pixel* src, f32* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgba = src[i].rgba;
+			dst[i] = gray::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+		}
+	}
+
+
 	void map_gray(View1u8 const& src, View1f32 const& dst)
 	{
 		assert(verify(src, dst));
@@ -367,32 +334,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = cs::to_channel_f32(s[x].y);
-			}
-		}
-	}
-
-
-	void map_rgba(View1f32 const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = row_begin(dst, y);
-			auto s = row_begin(src, y);			
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto const gray = cs::to_channel_u8(s[x]);
-
-				d[x].rgba.red = gray;
-				d[x].rgba.green = gray;
-				d[x].rgba.blue = gray;
-				d[x].rgba.alpha = 255;
-			}
+			map_span_yuv_gray(s, d, src.width);
 		}
 	}
 
@@ -406,11 +348,7 @@ namespace simage
 			auto d = row_begin(dst, y);
 			auto s = row_begin(src, y);			
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto rgba = s[x].rgba;
-				d[x] = gray::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-			}
+			map_span_rgb_to_gray(s, d, src.width);
 		}
 	}
 
@@ -419,8 +357,138 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
+		// slower
 		map_rgb_to_gray(src, dst);
+
+		//map_rgb_to_gray_no_simd(src, dst);
 	}
+}
+
+
+/* map_rgba u8 */
+
+namespace simage
+{
+	static inline void map_span_gray_rgba(u8* src, Pixel* dst, u32 len)
+	{
+		RGBAu8 gray{};
+
+		for (u32 i = 0; i < len; ++i)
+		{
+			gray = { src[i], src[i], src[i], 255 };
+
+			dst[i].rgba = gray;
+		}
+	}
+
+
+	static inline void map_span_yuv_rgba(YUV422u8* src, Pixel* dst, u32 len)
+	{
+		for (u32 i422 = 0; i422 < len / 2; ++i422)
+		{
+			auto yuv = src[i422];
+
+			auto i = 2 * i422;
+			auto rgba = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
+			dst[i].rgba.red = rgba.red;
+			dst[i].rgba.green = rgba.green;
+			dst[i].rgba.blue = rgba.blue;
+			dst[i].rgba.red = 255;
+
+			++i;
+			rgba = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
+			dst[i].rgba.red = rgba.red;
+			dst[i].rgba.green = rgba.green;
+			dst[i].rgba.blue = rgba.blue;
+			dst[i].rgba.red = 255;
+		}
+	}
+
+
+	static inline void map_span_bgr_rgba(BGRu8* src, Pixel* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto& rgba = dst[i].rgba;
+			rgba.red = src[i].red;
+			rgba.green = src[i].green;
+			rgba.blue = src[i].blue;
+			rgba.alpha = 255;
+		}
+	}
+
+
+	static inline void map_span_rgb_rgba(RGBu8* src, Pixel* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto& rgba = dst[i].rgba;
+			rgba.red = src[i].red;
+			rgba.green = src[i].green;
+			rgba.blue = src[i].blue;
+			rgba.alpha = 255;
+		}
+	}
+
+
+	void map_rgba(ViewGray const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_gray_rgba(s, d, src.width);
+		}
+	}
+
+
+	void map_rgba(ViewYUV const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+		assert(src.width % 2 == 0);
+		static_assert(sizeof(YUV2u8) == 2);
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s2 = row_begin(src, y);
+			auto s422 = (YUV422u8*)s2;
+			auto d = row_begin(dst, y);
+
+			map_span_yuv_rgba(s422, d, src.width);
+		}
+	}
+
+
+	void map_rgba(ViewBGR const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_bgr_rgba(s, d, src.width);
+		}
+	}	
+
+
+	void map_rgba(ViewRGB const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_rgb_rgba(s, d, src.width);
+		}
+	}
+	
 }
 
 
@@ -428,49 +496,66 @@ namespace simage
 
 namespace simage
 {	
-	static void map_rgba_row_u8_to_f32(Pixel* src, RGBAf32p const& dst, u32 width)
+	static void map_span_rgba_u8_to_f32(Pixel* src, RGBAf32p const& dst, u32 len)
 	{
-		for (u32 x = 0; x < width; ++x)
+		for (u32 i = 0; i < len; ++i)
 		{
-			dst.R[x] = cs::to_channel_f32(src[x].rgba.red);
-			dst.G[x] = cs::to_channel_f32(src[x].rgba.green);
-			dst.B[x] = cs::to_channel_f32(src[x].rgba.blue);
-			dst.A[x] = cs::to_channel_f32(src[x].rgba.alpha);
+			dst.R[i] = cs::to_channel_f32(src[i].rgba.red);
+			dst.G[i] = cs::to_channel_f32(src[i].rgba.green);
+			dst.B[i] = cs::to_channel_f32(src[i].rgba.blue);
+			dst.A[i] = cs::to_channel_f32(src[i].rgba.alpha);
 		}
 	}
 
 
-	static void map_rgba_row_f32_to_u8(RGBAf32p const& src, Pixel* dst, u32 width)
+	static void map_span_rgb_u8_to_f32(Pixel* src, RGBf32p const& dst, u32 len)
 	{
-		for (u32 x = 0; x < width; ++x)
+		for (u32 i = 0; i < len; ++i)
 		{
-			dst[x].rgba.red = cs::to_channel_u8(src.R[x]);
-			dst[x].rgba.green = cs::to_channel_u8(src.G[x]);
-			dst[x].rgba.blue = cs::to_channel_u8(src.B[x]);
-			dst[x].rgba.alpha = cs::to_channel_u8(src.A[x]);
+			dst.R[i] = cs::to_channel_f32(src[i].rgba.red);
+			dst.G[i] = cs::to_channel_f32(src[i].rgba.green);
+			dst.B[i] = cs::to_channel_f32(src[i].rgba.blue);
 		}
 	}
 
 
-	static void map_rgb_row_u8_to_f32(Pixel* src, RGBf32p const& dst, u32 width)
+	static void map_span_rgba_f32_to_u8(RGBAf32p const& src, Pixel* dst, u32 len)
 	{
-		for (u32 x = 0; x < width; ++x)
+		for (u32 i = 0; i < len; ++i)
 		{
-			dst.R[x] = cs::to_channel_f32(src[x].rgba.red);
-			dst.G[x] = cs::to_channel_f32(src[x].rgba.green);
-			dst.B[x] = cs::to_channel_f32(src[x].rgba.blue);
+			auto& rgba = dst[i].rgba;
+			rgba.red = cs::to_channel_u8(src.R[i]);
+			rgba.green = cs::to_channel_u8(src.G[i]);
+			rgba.blue = cs::to_channel_u8(src.B[i]);
+			rgba.alpha = cs::to_channel_u8(src.A[i]);
 		}
 	}
 
 
-	static void map_rgb_row_f32_to_u8(RGBf32p const& src, Pixel* dst, u32 width)
+	static void map_span_rgb_f32_to_u8(RGBf32p const& src, Pixel* dst, u32 len)
 	{
-		for (u32 x = 0; x < width; ++x)
+		for (u32 i = 0; i < len; ++i)
 		{
-			dst[x].rgba.red = cs::to_channel_u8(src.R[x]);
-			dst[x].rgba.green = cs::to_channel_u8(src.G[x]);
-			dst[x].rgba.blue = cs::to_channel_u8(src.B[x]);
-			dst[x].rgba.alpha = 255;
+			auto& rgba = dst[i].rgba;
+			rgba.red = cs::to_channel_u8(src.R[i]);
+			rgba.green = cs::to_channel_u8(src.G[i]);
+			rgba.blue = cs::to_channel_u8(src.B[i]);
+			rgba.alpha = 255;
+		}
+	}
+
+
+	static inline void map_span_rgba_f32_to_u8(f32* src, Pixel* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto const gray = cs::to_channel_u8(src[i]);
+			auto& rgba = dst[i].rgba;
+
+			rgba.red = gray;
+			rgba.green = gray;
+			rgba.blue = gray;
+			rgba.alpha = 255;
 		}
 	}
 
@@ -484,21 +569,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = rgba_row_begin(dst, y);
 
-			map_rgba_row_u8_to_f32(s, d, src.width);
-		}
-	}
-
-
-	void map_rgba(ViewRGBAf32 const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = rgba_row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			map_rgba_row_f32_to_u8(s, d, src.width);
+			map_span_rgba_u8_to_f32(s, d, src.width);
 		}
 	}
 
@@ -512,7 +583,21 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
 
-			map_rgb_row_u8_to_f32(s, d, src.width);
+			map_span_rgb_u8_to_f32(s, d, src.width);
+		}
+	}
+
+
+	void map_rgba(ViewRGBAf32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = rgba_row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_rgba_f32_to_u8(s, d, src.width);
 		}
 	}
 
@@ -526,9 +611,24 @@ namespace simage
 			auto s = rgb_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			map_rgb_row_f32_to_u8(s, d, src.width);
+			map_span_rgb_f32_to_u8(s, d, src.width);
 		}
 	}
+
+
+	void map_rgba(View1f32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto s = row_begin(src, y);			
+
+			map_span_rgba_f32_to_u8(s, d, src.width);
+		}
+	}
+
 }
 
 

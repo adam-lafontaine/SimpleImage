@@ -57,9 +57,8 @@ namespace simage
 			fill_channel_no_simd(view, value);
 			return;
 		}
-
-		simd::vecf32 v_val{};
-		simd::load_f32_broadcast(value, v_val);
+		
+		auto v_val = simd::load_f32_broadcast(value);
 
 		for (u32 y = 0; y < view.height; ++y)
 		{

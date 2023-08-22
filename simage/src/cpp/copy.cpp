@@ -32,17 +32,17 @@ namespace simage
 	{
 		constexpr auto step = (u32)simd::LEN * sizeof(f32) / sizeof(T);
 
-		simd::vecf32 v_bytes;
+		simd::vecf32 v_bytes{};
 
 		u32 i = 0;
         for (; i <= (len - step); i += step)
 		{
-			simd::load_bytes(src + i, v_bytes);
+			v_bytes = simd::load_bytes(src + i);
 			simd::store_bytes(v_bytes, dst + i);
 		}
 
 		i = len - step;
-		simd::load_bytes(src + i, v_bytes);
+		v_bytes = simd::load_bytes(src + i);
 		simd::store_bytes(v_bytes, dst + i);
 	}
 

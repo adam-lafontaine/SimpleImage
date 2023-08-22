@@ -84,21 +84,20 @@ namespace simage
 		
 		simd::vecf32 gray255;
 		simd::vecf32 gray1;
-		simd::vecf32 conv;
 
-		simd::load_f32_broadcast(scalar, conv);
+		auto conv = simd::load_f32_broadcast(scalar);
 
 		u32 i = 0;
         for (; i <= (len - step); i += step)
 		{
-			simd::load_gray(src + i, gray255);
-			simd::multiply(gray255, conv, gray1);
+			gray255 = simd::load_gray(src + i);
+			gray1 = simd::mul(gray255, conv);
 			simd::store_gray(gray1, dst + i);
 		}
 
 		i = len - step;
-		simd::load_gray(src + i, gray255);
-		simd::multiply(gray255, conv, gray1);
+		gray255 = simd::load_gray(src + i);
+		gray1 = simd::mul(gray255, conv);
 		simd::store_gray(gray1, dst + i);
 	}
 
@@ -110,21 +109,20 @@ namespace simage
 		
 		simd::vecf32 gray255;
 		simd::vecf32 gray1;
-		simd::vecf32 conv;
 
-		simd::load_f32_broadcast(scalar, conv);
+		auto conv = simd::load_f32_broadcast(scalar);
 
 		u32 i = 0;
         for (; i <= (len - step); i += step)
 		{
-			simd::load_gray(src + i, gray1);
-			simd::multiply(gray1, conv, gray255);
+			gray1 = simd::load_gray(src + i);
+			gray255 = simd::mul(gray1, conv);
 			simd::store_gray(gray255, dst + i);
 		}
 
 		i = len - step;
-		simd::load_gray(src + i, gray1);
-		simd::multiply(gray1, conv, gray255);
+		gray1 = simd::load_gray(src + i);
+		gray255 = simd::mul(gray1, conv);
 		simd::store_gray(gray255, dst + i);
     }
 
@@ -159,15 +157,14 @@ namespace simage
 		auto green = select_channel(src, RGB::G);
 		auto blue = select_channel(src, RGB::B);
 
-		simd::vecf32 v_c_red{};
-		simd::vecf32 v_c_green{};
-		simd::vecf32 v_c_blue{};
-		simd::load_f32_broadcast(gray::COEFF_RED, v_c_red);
-		simd::load_f32_broadcast(gray::COEFF_GREEN, v_c_green);
-		simd::load_f32_broadcast(gray::COEFF_BLUE, v_c_blue);
+		simd::vecf32 v_c_red = simd::load_f32_broadcast(gray::COEFF_RED);
+		simd::vecf32 v_c_green = simd::load_f32_broadcast(gray::COEFF_GREEN);
+		simd::vecf32 v_c_blue = simd::load_f32_broadcast(gray::COEFF_BLUE);
 
-		simd::vecf32 v_channel{};
-		simd::vecf32 v_gray{};
+		simd::vecf32 v_red;
+		simd::vecf32 v_green;
+		simd::vecf32 v_blue;
+		simd::vecf32 v_gray;
 
 		constexpr auto step = (u32)simd::LEN;
 		auto len = src.width;
@@ -182,23 +179,22 @@ namespace simage
 			u32 i = 0;
         	for (; i <= (len - step); i += step)
 			{
-				simd::load_f32(r + i, v_channel);			
-				simd::mul(v_channel, v_c_red, v_gray);
-				simd::load_f32(g + i, v_channel);
-				simd::fmadd(v_channel, v_c_green, v_gray, v_gray);
-				simd::load_f32(b + i, v_channel);
-				simd::fmadd(v_channel, v_c_blue, v_gray, v_gray);
+				v_red = simd::load_f32(r + i);
+				v_green = simd::load_f32(g + i);
+				v_blue = simd::load_f32(b + i);
+				
+				v_gray = simd::fmadd(v_blue, v_c_blue, simd::fmadd(v_green, v_c_green, simd::mul(v_red, v_c_red)));
+
 				simd::store_f32(v_gray, d + i);
 			}
 
 			i = len - step;
+			v_red = simd::load_f32(r + i);
+			v_green = simd::load_f32(g + i);
+			v_blue = simd::load_f32(b + i);
 
-			simd::load_f32(r + i, v_channel);			
-			simd::mul(v_channel, v_c_red, v_gray);
-			simd::load_f32(g + i, v_channel);
-			simd::fmadd(v_channel, v_c_green, v_gray, v_gray);
-			simd::load_f32(b + i, v_channel);
-			simd::fmadd(v_channel, v_c_blue, v_gray, v_gray);
+			v_gray = simd::fmadd(v_blue, v_c_blue, simd::fmadd(v_green, v_c_green, simd::mul(v_red, v_c_red)));
+
 			simd::store_f32(v_gray, d + i);
 		}		
 	}
@@ -408,11 +404,12 @@ namespace simage
 		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto d = row_begin(dst, y);
-			auto& s = row_begin(src, y)->rgba;			
+			auto s = row_begin(src, y);			
 
 			for (u32 x = 0; x < src.width; ++x)
 			{
-				d[x] = gray::f32_from_rgb_u8(s.red, s.green, s.blue);
+				auto rgba = s[x].rgba;
+				d[x] = gray::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 			}
 		}
 	}

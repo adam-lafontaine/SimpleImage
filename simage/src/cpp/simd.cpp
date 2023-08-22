@@ -12,6 +12,7 @@ namespace simd
 #ifdef SIMD_INTEL_128
 
 #include <emmintrin.h>
+#include <immintrin.h>
 
 
 namespace simd
@@ -42,35 +43,49 @@ namespace simd
 
 namespace simd
 {
-    static void load_f32_broadcast(f32 value, vecf32& dst)
+    static inline vecf32 load_f32_broadcast(f32 value)
     {
-        dst = _mm_load_ps1(&value);
+        return _mm_load_ps1(&value);
     }
 
 
-    static void load_gray(u8* src, vecf32& dst)
+    static inline vecf32 load_u8_broadcast(u8 value)
+    {
+        auto v_int = _mm_set_epi32(value, value, value, value);
+        return _mm_cvtepi32_ps(v_int);
+    }
+
+
+    static inline vecf32 setzero_f32()
+    {
+        return _mm_setzero_ps();
+    }    
+
+
+    static inline vecf32 load_f32(f32* src)
+    {
+        return _mm_loadu_ps(src);
+    }
+
+
+    static inline vecf32 load_gray(f32* src)
+    {
+        return load_f32(src);
+    }
+
+
+    static inline vecf32 load_gray(u8* src)
     {
         auto p = src;
         auto v_int = _mm_set_epi32(p[3], p[2], p[1], p[0]);
-        dst = _mm_cvtepi32_ps(v_int);
-    }
-
-
-    static void load_gray(f32* src, vecf32& dst)
-    {
-        dst = _mm_loadu_ps(src);
-    }
-    
-    static void load_f32(f32* src, vecf32& dst)
-    {
-        dst = _mm_loadu_ps(src);
+        return _mm_cvtepi32_ps(v_int);
     }
 
 
     template <typename T>
-    static void load_bytes(T* src, vecf32& dst)
+    static inline vecf32 load_bytes(T* src)
     {
-        load_f32((f32*)src, dst);
+        return load_f32((f32*)src);
     }
 }
 
@@ -117,9 +132,15 @@ namespace simd
 
 namespace simd
 {
-    static void multiply(vecf32 const& a, vecf32 const& b, vecf32& dst)
+    static inline vecf32 mul(vecf32 const& a, vecf32 const& b)
     {
-        dst = _mm_mul_ps(a, b);
+        return _mm_mul_ps(a, b);
+    }
+
+
+    static inline vecf32 fmadd(vecf32 const& a, vecf32 const& b, vecf32 const& c)
+    {
+        return _mm_fmadd_ps(a, b, c);
     }
 }
 
@@ -131,51 +152,49 @@ namespace simd
 
 namespace simd
 {
-    static void load_f32_broadcast(f32 value, vecf32& dst)
+    static inline vecf32 load_f32_broadcast(f32 value)
     {
-        dst = _mm256_broadcast_ss(&value);
+        return _mm256_broadcast_ss(&value);
     }
 
 
-    static void load_u8_broadcast(u8 value, vecf32& dst)
+    static inline vecf32 load_u8_broadcast(u8 value)
     {
         auto v_int = _mm256_set_epi32(value, value, value, value, value, value, value, value);
-        dst =  _mm256_cvtepi32_ps(v_int);
+        return _mm256_cvtepi32_ps(v_int);
     }
 
 
-    static void setzero_f32(vecf32& dst)
+    static inline vecf32 setzero_f32()
     {
-        dst = _mm256_setzero_ps();
+        return _mm256_setzero_ps();
+    }    
+
+
+    static inline vecf32 load_f32(f32* src)
+    {
+        return _mm256_loadu_ps(src);
     }
 
 
-    static void load_gray(u8* src, vecf32& dst)
-    {        
+    static inline vecf32 load_gray(f32* src)
+    {
+        return load_f32(src);
+    }
+
+
+    static inline vecf32 load_gray(u8* src)
+    {
         auto p = src;
-
         auto v_int = _mm256_set_epi32(p[7], p[6], p[5], p[4], p[3], p[2], p[1], p[0]);
-
-        dst =  _mm256_cvtepi32_ps(v_int);
-    }
-
-
-    static void load_gray(f32* src, vecf32& dst)
-    {
-        dst = _mm256_loadu_ps(src);
-    }
-
-
-    static void load_f32(f32* src, vecf32& dst)
-    {
-        dst = _mm256_loadu_ps(src);
+        return _mm256_cvtepi32_ps(v_int);
     }
 
 
     template <typename T>
-    static void load_bytes(T* src, vecf32& dst)
+    static inline vecf32 load_bytes(T* src)
     {
-        load_f32((f32*)src, dst);
+        return load_f32((f32*)src);
     }
 }
 
@@ -223,21 +242,15 @@ namespace simd
 
 namespace simd
 {
-    static void multiply(vecf32 const& a, vecf32 const& b, vecf32& dst)
+    static inline vecf32 mul(vecf32 const& a, vecf32 const& b)
     {
-        dst = _mm256_mul_ps(a, b);
+        return _mm256_mul_ps(a, b);
     }
 
 
-    static void mul(vecf32 const& a, vecf32 const& b, vecf32& dst)
+    static inline vecf32 fmadd(vecf32 const& a, vecf32 const& b, vecf32 const& c)
     {
-        dst = _mm256_mul_ps(a, b);
-    }
-
-
-    static void fmadd(vecf32 const& a, vecf32 const& b, vecf32 const& c, vecf32& dst)
-    {
-        dst = _mm256_fmadd_ps(a, b, c);
+        return _mm256_fmadd_ps(a, b, c);
     }
 }
 

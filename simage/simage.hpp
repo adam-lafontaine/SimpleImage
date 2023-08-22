@@ -638,13 +638,13 @@ namespace simage
 {	
 	void map_rgba(View const& src, ViewRGBAf32 const& dst);
 
-	void map_rgba(ViewRGBAf32 const& src, View const& dst);
-
-	void map_rgba(View1f32 const& src, View const& dst);
-	
 	void map_rgb(View const& src, ViewRGBf32 const& dst);
 
-	void map_rgba(ViewRGBf32 const& src, View const& dst);	
+	void map_rgba(ViewRGBAf32 const& src, View const& dst);
+
+	void map_rgba(ViewRGBf32 const& src, View const& dst);
+
+	void map_rgba(View1f32 const& src, View const& dst);
 
 
 	inline void map_rgba(Image const& src, ViewRGBAf32 const& dst)

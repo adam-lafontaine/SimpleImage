@@ -7,7 +7,7 @@
 namespace cs = color_space;
 
 
-static inline u8 round_to_u8(f32 val)
+static constexpr inline u8 round_to_u8(f32 val)
 {
     return (u8)(val + 0.5f);
 }

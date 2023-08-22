@@ -776,9 +776,9 @@ void run_profile_tests()
     //run_test(fill, "fill");
     //run_test(map_gray_gray, "map_gray_gray");
     //run_test(map_gray_rgba, "map_gray_rgba");
-    run_test(map_rgba, "map_rgba");
+    //run_test(map_rgba, "map_rgba");
     //run_test(map_rgb_gray, "map_rgb_gray");
-    //run_test(alpha_blend, "alpha_blend");
+    run_test(alpha_blend, "alpha_blend");
     //run_test(rotate, "rotate");
     //run_test(blur, "blur");
     //run_test(gradients, "gradients");

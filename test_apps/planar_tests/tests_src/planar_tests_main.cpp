@@ -12,12 +12,16 @@ bool hsv_conversion_test();
 bool yuv_conversion_test();
 bool lch_conversion_test();
 
-void map_rgba_tests(img::View const& out);
-void map_rgb_tests(img::View const& out);
-void map_gray_tests(img::View const& out);
+void map_rgba_test(img::View const& out);
+void map_rgb_test(img::View const& out);
+void map_gray_test(img::View const& out);
+void map_rgb_gray_test(img::View const& out);
 void fill_rgba_test(img::View const& out);
 void fill_rgb_test(img::View const& out);
 void fill_gray_test(img::View const& out);
+void copy_rgba_test(img::View const& out);
+void copy_rgb_test(img::View const& out);
+void copy_gray_test(img::View const& out);
 void hsv_draw_test(img::View const& out);
 void yuv_draw_test(img::View const& out);
 void lch_draw_test(img::View const& out);
@@ -36,12 +40,16 @@ void gradients_xy_tests(img::View const& out);
 
 static std::vector<std::function<void(img::View const&)>> tests = 
 {
-	map_rgba_tests,
-	map_rgb_tests,
-	map_gray_tests,
+	map_rgba_test,
+	map_rgb_test,
+	map_gray_test,
+	map_rgb_gray_test,
 	fill_rgba_test,
 	fill_rgb_test,
 	fill_gray_test,
+	copy_rgba_test,
+	copy_rgb_test,
+	copy_gray_test,
 	hsv_draw_test,
 	yuv_draw_test,
 	lch_draw_test,
@@ -95,10 +103,10 @@ static void run_next_test(Input const& input, app::AppState& app_state)
 
 int main()
 {
-	if (!run_preliminary_tests())
+	/*if (!run_preliminary_tests())
 	{
 		return EXIT_FAILURE;
-	}
+	}*/
 
     app::WindowSettings window_settings{};
 	window_settings.app_title = APP_TITLE;

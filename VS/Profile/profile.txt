@@ -174,3 +174,126 @@ blur:
 2.96e+09: img::blur(src_3, dst_3)       x 5
 3.56e+09: img::blur(src_gray, dst_gray) x 5
 3.63e+09: img::blur(src_rgba, dst_rgba) x 5
+
+create_destroy_image:
+7.62e+05: img::destroy_image(gray)               x 5
+1.06e+06: img::create_image(gray, width, height) x 5
+3.12e+06: img::destroy_image(rgba)               x 5
+4.04e+06: img::create_image(rgba, width, height) x 5
+
+create_destroy_buffer:
+7.95e+05: img::destroy_buffer(buffer8)         x 5
+1.41e+06: img::create_buffer8(width * height)  x 5
+3.65e+06: img::destroy_buffer(buffer32)        x 5
+4.36e+06: img::create_buffer32(width * height) x 5
+
+read_image:
+3.17e+07: img::read_image_from_file(path, rgba) x 5
+3.65e+07: img::read_image_from_file(path, gray) x 5
+
+resize_image:
+1.22e+08: img::resize_image(gray_src, gray_dst) x 5
+4.07e+08: img::resize_image(rgba_src, rgba_dst) x 5
+
+make_view:
+3.99e+02: img::make_view_4(width, height, buffer32) x 5
+4.46e+02: img::make_view_3(width, height, buffer32) x 5
+6.64e+02: img::make_view(gray)                      x 5
+8.57e+02: img::make_view_2(width, height, buffer32) x 5
+1.34e+03: img::make_view(width, height, buffer8)    x 5
+1.67e+03: img::make_view_1(width, height, buffer32) x 5
+6.31e+03: img::make_view(width, height, buffer32)   x 5
+1.23e+04: img::make_view(rgba)                      x 5
+
+sub_view:
+4.32e+02: img::sub_view(view_rgba, range) x 5
+4.32e+02: img::sub_view(view_gray, range) x 5
+4.32e+02: img::sub_view(view_3, range)    x 5
+4.86e+02: img::sub_view(gray, range)      x 5
+5.96e+02: img::sub_view(view_4, range)    x 5
+8.22e+02: img::sub_view(view_2, range)    x 5
+8.39e+02: img::sub_view(view_1, range)    x 5
+6.19e+03: img::sub_view(rgba, range)      x 5
+
+map_gray:
+2.47e+07: img::map_gray(view_3, view_1)       x 5
+6.30e+07: img::map_gray(view_rgba, view_gray) x 5
+8.12e+07: img::map_gray(view_rgba, view_1)    x 5
+
+alpha_blend:
+3.46e+07: img::alpha_blend(src_4, cur_3, dst_3)          x 5
+1.43e+08: img::alpha_blend(src_rgba, cur_rgba, dst_rgba) x 5
+
+rotate:
+5.70e+08: img::rotate(src_gray, dst_gray, origin, angle_rad) x 5
+5.88e+08: img::rotate(src_1, dst_1, origin, angle_rad)       x 5
+6.14e+08: img::rotate(src_rgba, dst_rgba, origin, angle_rad) x 5
+6.94e+08: img::rotate(src_2, dst_2, origin, angle_rad)       x 5
+7.99e+08: img::rotate(src_3, dst_3, origin, angle_rad)       x 5
+9.17e+08: img::rotate(src_4, dst_4, origin, angle_rad)       x 5
+
+blur:
+3.00e+09: img::blur(src_1, dst_1)       x 5
+3.37e+09: img::blur(src_gray, dst_gray) x 5
+3.67e+09: img::blur(src_rgba, dst_rgba) x 5
+5.30e+09: img::blur(src_3, dst_3)       x 5
+
+gradients:
+1.44e+09: img::gradients(src_1, dst_1)                        x 5
+1.80e+09: img::gradients_xy(src_1, dst_2_xy)                  x 5
+2.04e+09: img::gradients(src_gray, dst_gray)                  x 5
+2.09e+09: img::gradients_xy(src_gray, dst_gray_x, dst_gray_y) x 5
+
+compare_map_gray:
+7.63e+07: map_gray_interleaved(src, dst)      x 5
+2.14e+08: map_gray_planar(src, dst, buffer32) x 5
+
+compare_alpha_blend:
+1.64e+08: alpha_blend_interleaved(src, cur, dst)      x 5
+6.56e+08: alpha_blend_planar(src, cur, dst, buffer32) x 5
+
+create_destroy_image:
+7.62e+05: img::destroy_image(gray)               x 5
+8.22e+05: img::create_image(gray, width, height) x 5
+3.00e+06: img::destroy_image(rgba)               x 5
+3.50e+06: img::create_image(rgba, width, height) x 5
+
+create_destroy_buffer:
+7.05e+05: img::destroy_buffer(buffer8)         x 5
+1.00e+06: img::create_buffer8(width * height)  x 5
+3.62e+06: img::create_buffer32(width * height) x 5
+3.79e+06: img::destroy_buffer(buffer32)        x 5
+
+read_image:
+3.30e+07: img::read_image_from_file(path, rgba) x 5
+3.71e+07: img::read_image_from_file(path, gray) x 5
+
+resize_image:
+1.21e+08: img::resize_image(gray_src, gray_dst) x 5
+3.65e+08: img::resize_image(rgba_src, rgba_dst) x 5
+
+make_view:
+3.49e+02: img::make_view_4(width, height, buffer32) x 5
+5.21e+02: img::make_view_3(width, height, buffer32) x 5
+6.18e+02: img::make_view(gray)                      x 5
+7.93e+02: img::make_view_2(width, height, buffer32) x 5
+1.17e+03: img::make_view(width, height, buffer8)    x 5
+1.51e+03: img::make_view_1(width, height, buffer32) x 5
+7.34e+03: img::make_view(width, height, buffer32)   x 5
+7.84e+03: img::make_view(rgba)                      x 5
+
+copy:
+6.20e+06: img::copy(view_gray_s, view_gray_d) x 5
+7.03e+06: img::copy(view_1_s, view_1_d)       x 5
+8.09e+06: img::copy(view_rgba_s, view_rgba_d) x 5
+1.38e+07: img::copy(view_2_s, view_2_d)       x 5
+2.08e+07: img::copy(view_3_s, view_3_d)       x 5
+2.79e+07: img::copy(view_4_s, view_4_d)       x 5
+
+copy:
+7.23e+06: img::copy(view_gray_s, view_gray_d) x 5
+7.74e+06: img::copy(view_1_s, view_1_d)       x 5
+8.07e+06: img::copy(view_rgba_s, view_rgba_d) x 5
+1.56e+07: img::copy(view_2_s, view_2_d)       x 5
+2.26e+07: img::copy(view_3_s, view_3_d)       x 5
+3.42e+07: img::copy(view_4_s, view_4_d)       x 5

@@ -1,28 +1,73 @@
-/* fill static */
+/* fill span */
 
 namespace simage
 {
-    template <typename T>
-	static void fill_channel_row(T* d, T value, u32 width)
+	template <typename T>
+	static void fill_channel_no_simd(View1<T> const& view, T value)
 	{
-		for (u32 i = 0; i < width; ++i)
+		for (u32 y = 0; y < view.height; ++y)
 		{
-			d[i] = value;
+			auto d = row_begin(view, y);
+			for (u32 i = 0; i < view.width; ++i)
+			{
+				d[i] = value;
+			}
 		}
+	}
+
+
+#ifdef SIMAGE_NO_SIMD
+
+
+	template <typename T>
+	static void fill_channel(View1<T> const& view, T value)
+	{
+		fill_channel_no_simd(view, value);
+	}
+
+#else
+
+
+	static inline void fill_span(f32* dst, simd::vecf32 const& v_val, u32 len)
+	{
+		constexpr auto step = simd::LEN;		
+
+		u32 i = 0;
+        for (; i <= (len - step); i += step)
+		{
+			simd::store_f32(v_val, dst + i);
+		}
+
+		i = len - step;
+		simd::store_f32(v_val, dst + i);
 	}
 
 
 	template <typename T>
 	static void fill_channel(View1<T> const& view, T value)
-	{		
-		assert(verify(view));
+	{
+		fill_channel_no_simd(view, value);
+	}
+
+
+	static void fill_channel(View1<f32> const& view, f32 value)
+	{
+		if (view.width < simd::LEN)
+		{
+			fill_channel_no_simd(view, value);
+			return;
+		}
+		
+		auto v_val = simd::load_f32_broadcast(value);
 
 		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto d = row_begin(view, y);
-			fill_channel_row(d, value, view.width);
+			fill_span(d, v_val, view.width);
 		}
 	}
+
+#endif // SIMAGE_NO_SIMD
 }
 
 
@@ -56,18 +101,20 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto const channel_func = [&](u32 ch)
+		f32 colors[4] = 
 		{
-			auto const c = cs::to_channel_f32(color.channels[ch]);
-			fill_channel(select_channel(view, ch), c);
+			cs::to_channel_f32(color.channels[0]),
+			cs::to_channel_f32(color.channels[1]),
+			cs::to_channel_f32(color.channels[2]),
+			cs::to_channel_f32(color.channels[3])
 		};
 
 		std::array<std::function<void()>, 4> f_list
 		{
-			[&](){ channel_func(0); },
-			[&](){ channel_func(1); },
-			[&](){ channel_func(2); },
-			[&](){ channel_func(3); },
+			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
+			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
+			[&](){ fill_channel(select_channel(view, 2), colors[2]); },
+			[&](){ fill_channel(select_channel(view, 3), colors[3]); },
 		};
 
     	execute(f_list);
@@ -78,17 +125,18 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto const channel_func = [&](u32 ch)
+		f32 colors[3] = 
 		{
-			auto const c = cs::to_channel_f32(color.channels[ch]);
-			fill_channel(select_channel(view, ch), c);
+			cs::to_channel_f32(color.channels[0]),
+			cs::to_channel_f32(color.channels[1]),
+			cs::to_channel_f32(color.channels[2]),
 		};
 
 		std::array<std::function<void()>, 3> f_list
 		{
-			[&](){ channel_func(0); },
-			[&](){ channel_func(1); },
-			[&](){ channel_func(2); },
+			[&](){ fill_channel(select_channel(view, 0), colors[0]); },
+			[&](){ fill_channel(select_channel(view, 1), colors[1]); },
+			[&](){ fill_channel(select_channel(view, 2), colors[2]); },
 		};
 
     	execute(f_list);

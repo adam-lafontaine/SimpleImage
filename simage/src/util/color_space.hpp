@@ -48,6 +48,9 @@ namespace color_space
         }
 
         return value;
+        
+        // slower
+        //return (value >= 0 && value <= 1) * value + 1.0f * (value > 1);
     }
 
 

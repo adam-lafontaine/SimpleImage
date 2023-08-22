@@ -1,7 +1,7 @@
 #include "../../tests_include.hpp"
 
 
-void map_rgba_tests(img::View const& out)
+void map_rgba_test(img::View const& out)
 {
     auto width = out.width;
     auto height = out.height;
@@ -22,7 +22,7 @@ void map_rgba_tests(img::View const& out)
 }
 
 
-void map_rgb_tests(img::View const& out)
+void map_rgb_test(img::View const& out)
 {
     auto width = out.width;
     auto height = out.height;
@@ -43,7 +43,7 @@ void map_rgb_tests(img::View const& out)
 }
 
 
-void map_gray_tests(img::View const& out)
+void map_gray_test(img::View const& out)
 {
     auto width = out.width;
     auto height = out.height;
@@ -62,6 +62,32 @@ void map_gray_tests(img::View const& out)
     img::map_rgba(dst, out);
 
     mb::destroy_buffer(buffer8);
+    mb::destroy_buffer(buffer32);
+    img::destroy_image(image);
+}
+
+void map_rgb_gray_test(img::View const& out)
+{
+    auto width = out.width;
+    auto height = out.height;
+
+    auto n_channels32 = 5;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+
+    img::Image image;
+
+    auto src = img::make_view_resized_from_file(CADILLAC_PATH, image, width, height, buffer32);
+
+    auto rgb = img::make_view_3(width, height, buffer32);
+    auto gray = img::make_view_1(width, height, buffer32);
+
+    img::map_rgb(src, rgb);
+
+    img::map_gray(rgb, gray);
+
+    img::map_rgba(gray, out);
+
     mb::destroy_buffer(buffer32);
     img::destroy_image(image);
 }

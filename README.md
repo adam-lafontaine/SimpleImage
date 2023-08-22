@@ -617,6 +617,9 @@ rotate()
 
 // Disable CUDA GPU support
 #define SIMAGE_NO_CUDA
+
+// Disable SIMD support
+#define SIMAGE_NO_SIMD
 ```
 
 ## Credits (dependencies)

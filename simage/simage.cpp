@@ -7,7 +7,7 @@
 namespace cs = color_space;
 
 
-static inline u8 round_to_u8(f32 val)
+static constexpr inline u8 round_to_u8(f32 val)
 {
     return (u8)(val + 0.5f);
 }
@@ -24,10 +24,12 @@ static inline u8 hypot_to_u8(f32 a, f32 b)
     return (u8)(std::hypotf(a, b) + 0.5f);
 }
 
-
 #include "src/cpp/verify.cpp"
 #include "src/cpp/channel_pixels.cpp"
 #include "src/cpp/platform_image.cpp"
+
+#include "src/cpp/simd.cpp"
+
 #include "src/cpp/row_begin.cpp"
 #include "src/cpp/select_channel.cpp"
 #include "src/cpp/make_view.cpp"

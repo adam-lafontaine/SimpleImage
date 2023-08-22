@@ -173,7 +173,73 @@ static void sub_view()
 }
 
 
-static void map_gray()
+static void copy()
+{
+    auto n_channels32 = 22;
+    auto n_channels8 = 2;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba_s = img::make_view(width, height, buffer32);
+    auto view_rgba_d = img::make_view(width, height, buffer32);
+    auto view_gray_s = img::make_view(width, height, buffer8);
+    auto view_gray_d = img::make_view(width, height, buffer8);
+    auto view_1_s = img::make_view_1(width, height, buffer32);
+    auto view_2_s = img::make_view_2(width, height, buffer32);
+    auto view_3_s = img::make_view_3(width, height, buffer32);
+    auto view_4_s = img::make_view_4(width, height, buffer32);
+    auto view_1_d = img::make_view_1(width, height, buffer32);
+    auto view_2_d = img::make_view_2(width, height, buffer32);
+    auto view_3_d = img::make_view_3(width, height, buffer32);
+    auto view_4_d = img::make_view_4(width, height, buffer32);
+
+    PROFILE(img::copy(view_rgba_s, view_rgba_d));
+    PROFILE(img::copy(view_gray_s, view_gray_d));
+    PROFILE(img::copy(view_1_s, view_1_d));
+    PROFILE(img::copy(view_2_s, view_2_d));
+    PROFILE(img::copy(view_3_s, view_3_d));
+    PROFILE(img::copy(view_4_s, view_4_d));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
+static void fill()
+{
+    auto n_channels32 = 12;
+    auto n_channels8 = 1;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_gray = img::make_view(width, height, buffer8);
+    auto view_1 = img::make_view_1(width, height, buffer32);
+    auto view_3 = img::make_view_3(width, height, buffer32);
+    auto view_4 = img::make_view_4(width, height, buffer32);
+
+    auto black32 = img::to_pixel(0, 0, 0);
+
+    PROFILE(img::fill(view_rgba, black32));
+    PROFILE(img::fill(view_gray, 0));
+    PROFILE(img::fill(view_1, 0.0f));
+    PROFILE(img::fill(view_3, black32));
+    PROFILE(img::fill(view_4, black32));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
+static void map_gray_gray()
 {
     auto n_channels32 = 5;
     auto n_channels8 = 1;
@@ -189,12 +255,80 @@ static void map_gray()
     auto view_1 = img::make_view_1(width, height, buffer32);
     auto view_3 = img::make_view_3(width, height, buffer32);
 
-    PROFILE(img::map_gray(view_rgba, view_gray));
-    PROFILE(img::map_gray(view_rgba, view_1));
-    PROFILE(img::map_gray(view_3, view_1));
+    PROFILE(img::map_gray(view_gray, view_1));
+    PROFILE(img::map_gray(view_1, view_gray));
     
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
+}
+
+
+static void map_gray_rgba()
+{
+    auto n_channels32 = 2;
+    auto n_channels8 = 1;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_gray = img::make_view(width, height, buffer8);
+    auto view_1 = img::make_view_1(width, height, buffer32);
+
+    PROFILE(img::map_rgba(view_gray, view_rgba));
+    PROFILE(img::map_rgba(view_1, view_rgba));
+
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
+}
+
+
+static void map_rgba()
+{
+    auto n_channels32 = 8;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_3 = img::make_view_3(width, height, buffer32);
+    auto view_4 = img::make_view_4(width, height, buffer32);
+
+    PROFILE(img::map_rgb(view_rgba, view_3));
+    PROFILE(img::map_rgba(view_3, view_rgba));
+    PROFILE(img::map_rgba(view_rgba, view_4));
+    PROFILE(img::map_rgba(view_4, view_rgba));
+
+    img::destroy_buffer(buffer32);
+}
+
+
+static void map_rgb_gray()
+{
+    auto n_channels32 = 8;
+    auto n_channels8 = 1;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_gray = img::make_view(width, height, buffer8);
+    auto view_3 = img::make_view_3(width, height, buffer32);
+    auto view_1 = img::make_view_1(width, height, buffer32);
+
+    PROFILE(img::map_gray(view_rgba, view_gray));
+    PROFILE(img::map_gray(view_3, view_1));
+    PROFILE(img::map_gray(view_rgba, view_1));
+
+    img::destroy_buffer(buffer32);
 }
 
 
@@ -638,7 +772,12 @@ void run_profile_tests()
     run_test(resize_image, "resize_image");
     run_test(make_view, "make_view");
     run_test(sub_view, "sub_view");
-    run_test(map_gray, "map_gray");
+    run_test(copy, "copy");
+    run_test(fill, "fill");
+    run_test(map_gray_gray, "map_gray_gray");
+    run_test(map_gray_rgba, "map_gray_rgba");
+    run_test(map_rgba, "map_rgba");
+    run_test(map_rgb_gray, "map_rgb_gray");
     run_test(alpha_blend, "alpha_blend");
     run_test(rotate, "rotate");
     run_test(blur, "blur");

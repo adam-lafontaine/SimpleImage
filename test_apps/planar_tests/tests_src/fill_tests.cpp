@@ -101,3 +101,4 @@ void fill_gray_test(img::View const& out)
 
     mb::destroy_buffer(buffer);
 }
+

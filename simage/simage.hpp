@@ -131,7 +131,17 @@ namespace simage
 }
 
 
-/* map */
+/* map_gray */
+
+namespace simage
+{
+	void map_gray(View const& src, ViewGray const& dst);
+
+	void map_gray(ViewYUV const& src, ViewGray const& dst);
+}
+
+
+/* map_rgba */
 
 namespace simage
 {
@@ -142,10 +152,6 @@ namespace simage
 	void map_rgba(ViewBGR const& src, View const& dst);
 
 	void map_rgba(ViewRGB const& src, View const& dst);
-
-	void map_gray(View const& src, ViewGray const& dst);
-
-	void map_gray(ViewYUV const& src, ViewGray const& dst);
 }
 
 
@@ -613,9 +619,7 @@ namespace simage
 
 	void map_gray(View1f32 const& src, View1u8 const& dst);
 
-	void map_gray(ViewYUV const& src, View1f32 const& dst);
-
-	void map_rgba(View1f32 const& src, View const& dst);
+	void map_gray(ViewYUV const& src, View1f32 const& dst);	
 
 	void map_gray(View const& src, View1f32 const& dst);
 
@@ -634,11 +638,13 @@ namespace simage
 {	
 	void map_rgba(View const& src, ViewRGBAf32 const& dst);
 
-	void map_rgba(ViewRGBAf32 const& src, View const& dst);
-	
 	void map_rgb(View const& src, ViewRGBf32 const& dst);
 
-	void map_rgba(ViewRGBf32 const& src, View const& dst);	
+	void map_rgba(ViewRGBAf32 const& src, View const& dst);
+
+	void map_rgba(ViewRGBf32 const& src, View const& dst);
+
+	void map_rgba(View1f32 const& src, View const& dst);
 
 
 	inline void map_rgba(Image const& src, ViewRGBAf32 const& dst)
@@ -704,6 +710,20 @@ namespace simage
 namespace simage
 {
 	void map_bgr_rgb(ViewBGR const& src, ViewRGBf32 const& dst);
+}
+
+
+/* copy */
+
+namespace simage
+{
+	void copy(View4f32 const& src, View4f32 const& dst);
+
+	void copy(View3f32 const& src, View3f32 const& dst);
+
+	void copy(View2f32 const& src, View2f32 const& dst);
+
+	void copy(View1f32 const& src, View1f32 const& dst);
 }
 
 

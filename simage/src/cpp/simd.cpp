@@ -248,6 +248,12 @@ namespace simd
     }
 
 
+    static inline vecf32 sub(vecf32 const& a, vecf32 const& b)
+    {
+        return _mm256_sub_ps(a, b);
+    }
+
+
     static inline vecf32 fmadd(vecf32 const& a, vecf32 const& b, vecf32 const& c)
     {
         return _mm256_fmadd_ps(a, b, c);

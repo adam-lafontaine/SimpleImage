@@ -80,6 +80,58 @@ namespace simage
 }
 
 
+/* alpha_blend simd */
+
+namespace simage
+{
+#ifndef SIMAGE_NO_SIMD
+
+	static inline void alpha_blend_span_u8(Pixel* src, Pixel* cur, Pixel* dst, u32 len)
+	{
+		alpha_blend_span_u8_no_simd(src, cur, dst, len);
+	}
+
+
+	static inline void alpha_blend_span_f32(f32* src, f32* cur, f32* alpha, f32* dst, u32 len)
+	{
+		constexpr auto step = (u32)simd::LEN;
+
+		simd::vecf32 v_val;
+		simd::vecf32 v_alpha;
+		simd::vecf32 v_dst;
+
+		simd::vecf32 v_one = simd::load_f32_broadcast(1.0f);		
+
+		u32 i = 0;
+        for (; i <= (len - step); i += step)
+		{
+			v_val = simd::load_f32(src + i);
+			v_alpha = simd::load_f32(alpha + i);
+			v_dst = simd::mul(v_val, v_alpha);
+
+			v_val = simd::load_f32(cur + i);
+			v_alpha = simd::sub(v_one, v_alpha);
+			v_dst = simd::fmadd(v_val, v_alpha, v_dst);
+
+			simd::store_f32(v_dst, dst + i);
+		}
+
+		i = len - step;
+		v_val = simd::load_f32(src + i);
+		v_alpha = simd::load_f32(alpha + i);
+		v_dst = simd::mul(v_val, v_alpha);
+
+		v_val = simd::load_f32(cur + i);
+		v_alpha = simd::sub(v_one, v_alpha);
+		v_dst = simd::fmadd(v_val, v_alpha, v_dst);
+
+		simd::store_f32(v_dst, dst + i);
+	}
+
+#endif // !SIMAGE_NO_SIMD
+}
+
+
 /* alpha_blend  simd option*/
 
 namespace simage
@@ -112,6 +164,15 @@ namespace simage
 			alpha_blend_u8_no_simd(src, cur, dst);
 			return;
 		}
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto c = row_begin(cur, y);
+			auto d = row_begin(dst, y);
+
+			alpha_blend_span_u8(s, c, d, src.width);
+		}
 	}
 
 
@@ -119,8 +180,16 @@ namespace simage
 	{
 		if (src.width < simd::LEN)
 		{
-			alpha_blend_u8_no_simd(src, cur, dst);
+			alpha_blend_u8_no_simd(src, cur_dst);
 			return;
+		}
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(cur_dst, y);
+
+			alpha_blend_span_u8(s, d, d, src.width);
 		}
 	}
 
@@ -133,6 +202,15 @@ namespace simage
 			return;
 		}
 		
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto c = row_begin(cur, y);
+			auto a = row_begin(alpha, y);
+			auto d = row_begin(dst, y);
+			
+			alpha_blend_span_f32(s, c, a, d, src.width);
+		}
 	}
 
 #endif // SIMAGE_NO_SIMD

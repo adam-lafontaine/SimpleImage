@@ -861,6 +861,41 @@ namespace simage
 
 namespace simage
 {
+	static inline void map_span_yuv_rgb(YUV422u8* src, RGBf32p const& dst, u32 len)
+	{
+		for (u32 i422 = 0; i422 < len / 2; ++i422)
+		{
+			auto yuv = src[i422];
+
+			auto i = 2 * i422;
+			auto rgb = yuv::u8_to_rgb_f32(yuv.y1, yuv.u, yuv.v);
+			dst.R[i] = rgb.red;
+			dst.G[i] = rgb.green;
+			dst.B[i] = rgb.blue;
+
+			++i;
+			rgb = rgb = yuv::u8_to_rgb_f32(yuv.y2, yuv.u, yuv.v);
+			dst.R[i] = rgb.red;
+			dst.G[i] = rgb.green;
+			dst.B[i] = rgb.blue;
+		}
+	}
+
+
+	static inline void map_span_yuv_rgba(YUVf32p const& src, Pixel* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgb = yuv::f32_to_rgb_u8(src.Y[i], src.U[i], src.V[i]);
+
+			dst[i].rgba.red = rgb.red;
+			dst[i].rgba.green = rgb.green;
+			dst[i].rgba.blue = rgb.blue;
+			dst[i].rgba.alpha = 255;
+	}
+	}
+
+
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
 	{
 		assert(verify(src, dst));
@@ -872,117 +907,7 @@ namespace simage
 			auto s422 = (YUV422u8*)row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
 
-			for (u32 x422 = 0; x422 < src.width / 2; ++x422)
-			{
-				auto yuv = s422[x422];
-
-				auto x = 2 * x422;
-				auto rgb = yuv::u8_to_rgb_f32(yuv.y1, yuv.u, yuv.v);
-				d.R[x] = rgb.red;
-				d.G[x] = rgb.green;
-				d.B[x] = rgb.blue;
-
-				++x;
-				rgb = rgb = yuv::u8_to_rgb_f32(yuv.y2, yuv.u, yuv.v);
-				d.R[x] = rgb.red;
-				d.G[x] = rgb.green;
-				d.B[x] = rgb.blue;
-			}
-		}
-	}
-
-/*
-	void mipmap_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)
-	{		
-		static_assert(sizeof(YUV2u8) == 2);
-		assert(verify(src));
-		assert(verify(dst));
-		assert(src.width % 2 == 0);
-		assert(dst.width == src.width / 2);
-		assert(dst.height == src.height / 2);
-
-		constexpr auto avg4 = [](u8 a, u8 b, u8 c, u8 d) 
-		{
-			auto val = 0.25f * ((f32)a + b + c + d);
-			return (u8)(u32)(val + 0.5f);
-		};
-
-		constexpr auto avg2 = [](u8 a, u8 b)
-		{
-			auto val = 0.5f * ((f32)a + b);
-			return (u8)(u32)(val + 0.5f);
-		};
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto src_y1 = y * 2;
-			auto src_y2 = src_y1 + 1;
-
-			auto s1 = (YUV422u8*)row_begin(src, src_y1);
-			auto s2 = (YUV422u8*)row_begin(src, src_y2);
-			auto d = rgb_row_begin(dst, y);
-
-			for (u32 x = 0; x < dst.width; ++x)
-			{
-				auto yuv1 = s1[x];
-				auto yuv2 = s2[x];
-				u8 y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
-				u8 u_avg = avg2(yuv1.u, yuv2.u);
-				u8 v_avg = avg2(yuv1.v, yuv2.v);
-
-				auto rgb = yuv::u8_to_rgb_f32(y_avg, u_avg, v_avg);
-				d.R[x] = rgb.red;
-				d.G[x] = rgb.green;
-				d.B[x] = rgb.blue;
-			}
-		}
-	}*/
-
-
-	void map_yuv_rgb2(ViewYUV const& src, View const& dst)
-	{
-		static_assert(sizeof(YUV2u8) == 2);
-		assert(verify(src));
-		assert(verify(dst));
-		assert(src.width % 2 == 0);
-		assert(dst.width == src.width / 2);
-		assert(dst.height == src.height / 2);
-
-		constexpr auto avg4 = [](u8 a, u8 b, u8 c, u8 d)
-		{
-			auto val = 0.25f * ((f32)a + b + c + d);
-			return (u8)(u32)(val + 0.5f);
-		};
-
-		constexpr auto avg2 = [](u8 a, u8 b)
-		{
-			auto val = 0.5f * ((f32)a + b);
-			return (u8)(u32)(val + 0.5f);
-		};
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto src_y1 = y * 2;
-			auto src_y2 = src_y1 + 1;
-
-			auto s1 = (YUV422u8*)row_begin(src, src_y1);
-			auto s2 = (YUV422u8*)row_begin(src, src_y2);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < dst.width; ++x)
-			{
-				auto yuv1 = s1[x];
-				auto yuv2 = s2[x];
-				u8 y_avg = avg4(yuv1.y1, yuv1.y2, yuv2.y1, yuv2.y2);
-				u8 u_avg = avg2(yuv1.u, yuv2.u);
-				u8 v_avg = avg2(yuv1.v, yuv2.v);
-
-				auto rgba = yuv::u8_to_rgb_u8(y_avg, u_avg, v_avg);
-				d[x].rgba.red = rgba.red;
-				d[x].rgba.green = rgba.green;
-				d[x].rgba.blue = rgba.blue;
-				d[x].rgba.alpha = 255;
-			}
+			map_span_yuv_rgb(s422, d, src.width);
 		}
 	}
 
@@ -996,15 +921,7 @@ namespace simage
 			auto s = yuv_row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto rgb = yuv::f32_to_rgb_u8(s.Y[x], s.U[x], s.V[x]);
-
-				d[x].rgba.red = rgb.red;
-				d[x].rgba.green = rgb.green;
-				d[x].rgba.blue = rgb.blue;
-				d[x].rgba.alpha = 255;
-			}
+			map_span_yuv_rgba(s, d, src.width);
 		}
 	}
 }

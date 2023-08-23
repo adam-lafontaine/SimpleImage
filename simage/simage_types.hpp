@@ -75,7 +75,7 @@ namespace simage
 namespace simage
 {
 	template <typename T, size_t N>
-	class ChannelSubMatrix
+	class ChannelSubMatrix2D
 	{
 	public:
 
@@ -102,13 +102,13 @@ namespace simage
 	
 
 	template <typename T>
-	using View4 = ChannelSubMatrix<T, 4>;
+	using View4 = ChannelSubMatrix2D<T, 4>;
 
 	template <typename T>
-	using View3 = ChannelSubMatrix<T, 3>;
+	using View3 = ChannelSubMatrix2D<T, 3>;
 
 	template <typename T>
-	using View2 = ChannelSubMatrix<T, 2>;
+	using View2 = ChannelSubMatrix2D<T, 2>;
 
 	template <typename T>
 	using View1 = SubMatrixView2D<T>;

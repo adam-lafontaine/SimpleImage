@@ -40,7 +40,7 @@ namespace simage
 
 
     template <typename T, size_t N>
-	static inline u64 row_offset(ChannelSubMatrix<T, N> const& view, u32 y)
+	static inline u64 row_offset(ChannelSubMatrix2D<T, N> const& view, u32 y)
 	{
 		return ((u64)view.y_begin + y) * view.channel_width_ + view.x_begin;
 	}
@@ -133,7 +133,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static std::array<T*, N> view_row_begin(ChannelSubMatrix<T, N> const& view, u32 y)
+	static std::array<T*, N> view_row_begin(ChannelSubMatrix2D<T, N> const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
@@ -152,7 +152,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static T* channel_row_begin(ChannelSubMatrix<T, N> const& view, u32 y, u32 ch)
+	static T* channel_row_begin(ChannelSubMatrix2D<T, N> const& view, u32 y, u32 ch)
 	{
 		assert(verify(view));
 

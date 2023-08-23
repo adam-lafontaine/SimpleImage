@@ -26,7 +26,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static bool verify(ChannelSubMatrix<T,N> const& view)
+	static bool verify(ChannelSubMatrix2D<T,N> const& view)
 	{
 		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
 	}

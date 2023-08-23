@@ -39,9 +39,9 @@ namespace simage
 
 
     template <typename T, size_t N>
-	static ChannelSubMatrix<T, N> do_sub_view(ChannelSubMatrix<T, N> const& view, Range2Du32 const& range)
+	static ChannelSubMatrix2D<T, N> do_sub_view(ChannelSubMatrix2D<T, N> const& view, Range2Du32 const& range)
 	{
-		ChannelSubMatrix<T, N> sub_view;
+		ChannelSubMatrix2D<T, N> sub_view;
 
 		sub_view.channel_width_ = view.channel_width_;
 		sub_view.x_begin = view.x_begin + range.x_begin;

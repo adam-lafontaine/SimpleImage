@@ -12,23 +12,48 @@ namespace simage
 
 
 	template <typename T>
-	static bool verify(SubMatrixView2D<T> const& view)
+	static bool verify(MatrixView2D<T> const& image)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data_;
-	}	
+		return image.width && image.height && image.data;
+	}
 
 
 	template <typename T>
-	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
+	static bool verify(SubMatrixView2D<T> const& view)
 	{
-		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
+		return 
+			view.matrix_width && 
+			view.width && 
+			view.height && 
+			view.matrix_data_ &&
+			(view.x_end - view.x_begin) == view.width &&
+			(view.y_end - view.y_begin) == view.height;
+	}
+
+
+	template <typename T, size_t N>
+	static bool verify(ChannelMatrix2D<T,N> const& view)
+	{
+		return view.width && view.height && view.channel_data[0];
 	}
 
 
 	template <typename T, size_t N>
 	static bool verify(ChannelSubMatrix2D<T,N> const& view)
 	{
-		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
+		return 
+			view.channel_width_ && 
+			view.width && view.height && 
+			view.channel_data_[0] &&
+			(view.x_end - view.x_begin) == view.width &&
+			(view.y_end - view.y_begin) == view.height;
+	}
+
+
+	template <typename T>
+	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
+	{
+		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
 	}
 
 

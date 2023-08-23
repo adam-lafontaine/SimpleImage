@@ -12,7 +12,7 @@ namespace simage
 
 
 	template <typename T>
-	static bool verify(SubMatrix2D<T> const& view)
+	static bool verify(SubMatrixView2D<T> const& view)
 	{
 		return view.matrix_width && view.width && view.height && view.matrix_data_;
 	}	

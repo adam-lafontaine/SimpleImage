@@ -10,21 +10,21 @@ namespace simage
 
 
 	template <typename T>
-	static inline T* row_begin(SubMatrix2D<T> const& view, u32 y)
+	static inline T* row_begin(SubMatrixView2D<T> const& view, u32 y)
 	{
 		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
 
 
 	template <typename T>
-	static inline T* xy_at(SubMatrix2D<T> const& view, u32 x, u32 y)
+	static inline T* xy_at(SubMatrixView2D<T> const& view, u32 x, u32 y)
 	{
 		return row_begin(view, y) + x;
 	}
 
 
     template <typename T>
-	static T* row_offset_begin(SubMatrix2D<T> const& view, u32 y, int y_offset)
+	static T* row_offset_begin(SubMatrixView2D<T> const& view, u32 y, int y_offset)
 	{
 		assert(verify(view));
 

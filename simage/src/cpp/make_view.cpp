@@ -3,9 +3,9 @@
 namespace simage
 {
     template <typename T>
-	static SubMatrix2D<T> do_make_view(Matrix2D<T> const& image)
+	static SubMatrixView2D<T> do_make_view(Matrix2D<T> const& image)
 	{
-		SubMatrix2D<T> view;
+		SubMatrixView2D<T> view;
 
 		view.matrix_data_ = image.data_;
 		view.matrix_width = image.width;

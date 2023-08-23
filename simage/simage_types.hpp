@@ -37,7 +37,7 @@ namespace simage
 
 
 	template <typename T>
-    class SubMatrix2D
+    class SubMatrixView2D
 	{
 	public:
 
@@ -63,10 +63,10 @@ namespace simage
 
 
 	using Image = Matrix2D<Pixel>;
-	using View = SubMatrix2D<Pixel>;
+	using View = SubMatrixView2D<Pixel>;
 
 	using ImageGray = Matrix2D<u8>;
-	using ViewGray = SubMatrix2D<u8>;
+	using ViewGray = SubMatrixView2D<u8>;
 }
 
 
@@ -111,7 +111,7 @@ namespace simage
 	using View2 = ChannelSubMatrix<T, 2>;
 
 	template <typename T>
-	using View1 = SubMatrix2D<T>;
+	using View1 = SubMatrixView2D<T>;
 
 	using View4f32 = View4<f32>;
 	using View3f32 = View3<f32>;
@@ -264,13 +264,13 @@ namespace simage
 
 
 	using ImageYUV = Matrix2D<YUV2u8>;
-	using ViewYUV = SubMatrix2D<YUV2u8>;
+	using ViewYUV = SubMatrixView2D<YUV2u8>;
 
 	using ImageBGR = Matrix2D<BGRu8>;
-	using ViewBGR = SubMatrix2D<BGRu8>;
+	using ViewBGR = SubMatrixView2D<BGRu8>;
 
 	using ImageRGB = Matrix2D<RGBu8>;
-	using ViewRGB = SubMatrix2D<RGBu8>;
+	using ViewRGB = SubMatrixView2D<RGBu8>;
 }
 
 

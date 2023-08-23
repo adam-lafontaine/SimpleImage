@@ -466,12 +466,12 @@ namespace simage
 	
 	
 	template <typename T, typename PATH>
-	inline SubMatrix2D<T> make_view_from_file(PATH img_path_src, Matrix2D<T>& image_dst)
+	inline SubMatrixView2D<T> make_view_from_file(PATH img_path_src, Matrix2D<T>& image_dst)
 	{		
 		if (!read_image_from_file(img_path_src, image_dst))
 		{
 			assert(false);
-			SubMatrix2D<T> view;
+			SubMatrixView2D<T> view;
 			return view;
 		}
 
@@ -480,7 +480,7 @@ namespace simage
 
 
 	template <typename T>
-	inline SubMatrix2D<T> make_view_resized(Matrix2D<T> const& image_src, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	inline SubMatrixView2D<T> make_view_resized(Matrix2D<T> const& image_src, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		Matrix2D<T> image_dst;
 		image_dst.data_ = mb::push_elements(buffer, width * height);
@@ -488,7 +488,7 @@ namespace simage
 		if (!resize_image(image_src, image_dst, width, height))
 		{
 			assert(false);
-			SubMatrix2D<T> view;
+			SubMatrixView2D<T> view;
 			return view;
 		}
 
@@ -497,12 +497,12 @@ namespace simage
 
 
 	template <typename T, typename PATH>
-	inline SubMatrix2D<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	inline SubMatrixView2D<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		if (!read_image_from_file(img_path_src, file_image))
 		{
 			assert(false);
-			SubMatrix2D<T> view;
+			SubMatrixView2D<T> view;
 			return view;
 		}
 

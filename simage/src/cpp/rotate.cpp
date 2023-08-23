@@ -24,7 +24,7 @@ namespace simage
 
 
     template <typename T>
-    static T get_pixel_value(MatrixView<T> const& src, Point2Df32 location)
+    static T get_pixel_value(SubMatrix2D<T> const& src, Point2Df32 location)
     {
         constexpr auto zero = 0.0f;
 		auto const width = (f32)src.width;

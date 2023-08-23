@@ -3,9 +3,9 @@
 namespace simage
 {
     template <typename T>
-	static MatrixView<T> do_sub_view(Matrix2D<T> const& image, Range2Du32 const& range)
+	static SubMatrix2D<T> do_sub_view(Matrix2D<T> const& image, Range2Du32 const& range)
 	{
-		MatrixView<T> sub_view;
+		SubMatrix2D<T> sub_view;
 
 		sub_view.matrix_data_ = image.data_;
 		sub_view.matrix_width = image.width;
@@ -21,9 +21,9 @@ namespace simage
 
 
 	template <typename T>
-	static MatrixView<T> do_sub_view(MatrixView<T> const& view, Range2Du32 const& range)
+	static SubMatrix2D<T> do_sub_view(SubMatrix2D<T> const& view, Range2Du32 const& range)
 	{
-		MatrixView<T> sub_view;
+		SubMatrix2D<T> sub_view;
 
 		sub_view.matrix_data_ = view.matrix_data_;
 		sub_view.matrix_width = view.matrix_width;

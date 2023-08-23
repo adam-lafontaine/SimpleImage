@@ -39,7 +39,7 @@ namespace simage
 
 
 	template <typename T>
-	static bool verify(CameraUSB const& camera, MatrixView<T> const& view)
+	static bool verify(CameraUSB const& camera, SubMatrix2D<T> const& view)
 	{
 		return verify(camera) && verify(view) &&
 			camera.frame_width == view.width &&

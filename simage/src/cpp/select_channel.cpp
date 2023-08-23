@@ -3,7 +3,7 @@
 namespace simage
 {
 	template <typename T, size_t N, typename CH>
-	static View1<T> select_channel(ChannelView<T, N> const& view, CH ch)
+	static View1<T> select_channel(ChannelSubMatrix<T, N> const& view, CH ch)
 	{
 		View1<T> view1{};
 
@@ -136,7 +136,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static std::array<View1<T>, N> split_channels(ChannelView<T, N> const& view)
+	static std::array<View1<T>, N> split_channels(ChannelSubMatrix<T, N> const& view)
 	{
 		std::array<View1<T>, N> arr = { 0 };
 

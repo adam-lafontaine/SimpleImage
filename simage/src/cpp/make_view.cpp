@@ -32,7 +32,7 @@ namespace simage
 
 
     template <typename T, size_t N>
-	static void do_make_view_n(ChannelView<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	static void do_make_view_n(ChannelSubMatrix<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		view.channel_width_ = width;
 		view.width = width;

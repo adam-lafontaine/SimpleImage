@@ -77,7 +77,7 @@ namespace simage
 
 
 	template <typename T, size_t N>
-    static void rotate_n(ChannelView<T, N> const& src, ChannelView<T, N> const& dst, Point2Du32 origin, f32 rad)
+    static void rotate_n(ChannelSubMatrix<T, N> const& src, ChannelSubMatrix<T, N> const& dst, Point2Du32 origin, f32 rad)
 	{
 		auto ch_src = split_channels(src);
 		//auto ch_dst = split_channels(dst);

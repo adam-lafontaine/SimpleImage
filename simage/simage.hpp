@@ -132,7 +132,11 @@ namespace simage
 {
 	void fill(View const& view, Pixel color);
 
+	void fill(SubView const& view, Pixel color);
+
 	void fill(ViewGray const& view, u8 gray);
+
+	void fill(SubViewGray const& view, u8 gray);
 }
 
 
@@ -777,7 +781,16 @@ namespace simage
 
 	void fill(View1f32 const& view, f32 gray);
 
-	void fill(View1f32 const& view, u8 gray);	
+	void fill(View1f32 const& view, u8 gray);
+
+
+	void fill(SubView4f32 const& view, Pixel color);
+
+	void fill(SubView3f32 const& view, Pixel color);
+
+	void fill(SubView1f32 const& view, f32 gray);
+
+	void fill(SubView1f32 const& view, u8 gray);
 }
 
 

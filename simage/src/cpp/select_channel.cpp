@@ -130,11 +130,109 @@ namespace simage
 	}
 
 
-	ViewRGBf32 select_rgb(ViewRGBAf32 const& view)
+	SubView1f32 select_channel(SubViewRGBAf32 const& view, RGBA channel)
 	{
 		assert(verify(view));
 
-		ViewRGBf32 rgb;
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	SubView1f32 select_channel(SubViewRGBf32 const& view, RGB channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	SubView1f32 select_channel(SubViewHSVf32 const& view, HSV channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	SubView1f32 select_channel(SubViewLCHf32 const& view, LCH channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	SubView1f32 select_channel(SubViewYUVf32 const& view, YUV channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	SubView1f32 select_channel(SubView2f32 const& view, GA channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	SubView1f32 select_channel(SubView2f32 const& view, XY channel)
+	{
+		assert(verify(view));
+
+		auto ch = id_cast(channel);
+
+		auto view1 = select_channel(view, ch);
+
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	SubViewRGBf32 select_rgb(SubViewRGBAf32 const& view)
+	{
+		assert(verify(view));
+
+		SubViewRGBf32 rgb;
 
 		rgb.channel_width_ = view.channel_width_;
 		rgb.width = view.width;

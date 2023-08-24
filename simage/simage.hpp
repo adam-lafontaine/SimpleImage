@@ -78,24 +78,39 @@ namespace simage
 
 namespace simage
 {
-	View sub_view(Image const& image, Range2Du32 const& range);
+	SubView sub_view(Image const& image, Range2Du32 const& range);
 
-	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
+	SubView sub_view(View const& view, Range2Du32 const& range);
 
-	View sub_view(View const& view, Range2Du32 const& range);
-
-	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
+	SubView sub_view(SubView const& view, Range2Du32 const& range);	
 
 
-	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range);
+	SubViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
 
-	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
+	SubViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
 
-	ViewBGR sub_view(ViewBGR const& camera_src, Range2Du32 const& range);
+	SubViewGray sub_view(SubViewGray const& view, Range2Du32 const& range);	
 
-	ViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range);
 
-	ViewRGB sub_view(ViewRGB const& camera_src, Range2Du32 const& range);
+	SubViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range);
+
+	SubViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range);
+
+	SubViewYUV sub_view(SubViewYUV const& view, Range2Du32 const& range);
+
+
+	SubViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
+
+	SubViewBGR sub_view(ViewBGR const& view, Range2Du32 const& range);
+
+	SubViewBGR sub_view(SubViewBGR const& view, Range2Du32 const& range);
+
+
+	SubViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range);
+
+	SubViewRGB sub_view(ViewRGB const& view, Range2Du32 const& range);
+
+	SubViewRGB sub_view(SubViewRGB const& view, Range2Du32 const& range);
 }
 
 
@@ -578,13 +593,22 @@ namespace simage
 
 namespace simage
 {
-	View4f32 sub_view(View4f32 const& view, Range2Du32 const& range);
+	SubView4f32 sub_view(View4f32 const& view, Range2Du32 const& range);
 
-	View3f32 sub_view(View3f32 const& view, Range2Du32 const& range);
+	SubView3f32 sub_view(View3f32 const& view, Range2Du32 const& range);
 
-	View2f32 sub_view(View2f32 const& view, Range2Du32 const& range);
+	SubView2f32 sub_view(View2f32 const& view, Range2Du32 const& range);
 
-	View1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
+	SubView1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
+
+
+	SubView4f32 sub_view(SubView4f32 const& view, Range2Du32 const& range);
+
+	SubView3f32 sub_view(SubView3f32 const& view, Range2Du32 const& range);
+
+	SubView2f32 sub_view(View2f32 const& view, Range2Du32 const& range);
+
+	SubView1f32 sub_view(SubView1f32 const& view, Range2Du32 const& range);
 }
 
 

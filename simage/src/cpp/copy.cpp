@@ -113,14 +113,29 @@ namespace simage
 
 
 	template <typename T>
-	static void copy_1(View1<T> const& src, View1<T> const& dst)
+	static inline void copy_view_1(View1<T> const& src, View1<T> const& dst)
 	{
-		if (src.width < simd::LEN)
+		auto len = src.width * src.height;
+
+		if (len < simd::LEN)
 		{
-			copy_1_no_simd(src, dst);
+			copy_view_1_no_simd(src, dst);
 			return;
 		}
 
+		copy_span(src.data, dst.data, len);		
+	}
+
+
+	template <class ViewSRC, class ViewDST>
+	static inline void copy_sub_view_1(ViewSRC const& src, ViewDST const& dst)
+	{
+		if (src.width < simd::LEN)
+		{
+			copy_sub_view_1_no_simd(src, dst);
+			return;
+		}
+		
 		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);

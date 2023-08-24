@@ -147,6 +147,20 @@ namespace simage
 	void copy(View const& src, View const& dst);
 
 	void copy(ViewGray const& src, ViewGray const& dst);
+
+
+	void copy(SubView const& src, SubView const& dst);
+
+	void copy(SubView const& src, View const& dst);
+
+	void copy(View const& src, SubView const& dst);
+
+
+	void copy(SubViewGray const& src, SubViewGray const& dst);
+
+	void copy(SubViewGray const& src, ViewGray const& dst);
+
+	void copy(ViewGray const& src, SubViewGray const& dst);
 }
 
 
@@ -768,6 +782,34 @@ namespace simage
 	void copy(View2f32 const& src, View2f32 const& dst);
 
 	void copy(View1f32 const& src, View1f32 const& dst);
+
+
+	void copy(SubView4f32 const& src, SubView4f32 const& dst);
+
+	void copy(SubView4f32 const& src, View4f32 const& dst);
+
+	void copy(View4f32 const& src, SubView4f32 const& dst);
+
+
+	void copy(SubView3f32 const& src, SubView3f32 const& dst);
+
+	void copy(SubView3f32 const& src, View3f32 const& dst);
+
+	void copy(View3f32 const& src, SubView3f32 const& dst);
+
+
+	void copy(SubView2f32 const& src, SubView2f32 const& dst);
+
+	void copy(SubView2f32 const& src, View2f32 const& dst);
+
+	void copy(View2f32 const& src, SubView2f32 const& dst);
+
+
+	void copy(SubView1f32 const& src, SubView1f32 const& dst);
+
+	void copy(SubView1f32 const& src, View1f32 const& dst);
+
+	void copy(View1f32 const& src, SubView1f32 const& dst);
 }
 
 

@@ -3,17 +3,13 @@
 namespace simage
 {
     template <typename T>
-	static SubMatrixView2D<T> do_make_view(Matrix2D<T> const& image)
+	static MatrixView2D<T> do_make_view(Matrix2D<T> const& image)
 	{
-		SubMatrixView2D<T> view;
+		MatrixView2D<T> view;
 
-		view.matrix_data_ = image.data_;
-		view.matrix_width = image.width;
-
+		view.data = image.data_;
 		view.width = image.width;
 		view.height = image.height;
-
-		view.range = make_range(image.width, image.height);
 
 		return view;
 	}
@@ -22,17 +18,14 @@ namespace simage
 	template <typename T>
 	static void do_make_view_1(View1<T>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
-		view.matrix_data_ = mb::push_elements(buffer, width * height);
-		view.matrix_width = width;		
+		view.data = mb::push_elements(buffer, width * height);
 		view.width = width;
 		view.height = height;
-
-		view.range = make_range(width, height);
 	}
 
 
     template <typename T, size_t N>
-	static void do_make_view_n(ChannelSubMatrix2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	static void do_make_view_n(ChannelMatrix2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		view.channel_width_ = width;
 		view.width = width;

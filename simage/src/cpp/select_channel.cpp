@@ -3,9 +3,23 @@
 namespace simage
 {
 	template <typename T, size_t N, typename CH>
-	static View1<T> select_channel(ChannelSubMatrix2D<T, N> const& view, CH ch)
+	static View1<T> select_channel(ChannelMatrix2D<T, N> const& view, CH ch)
 	{
 		View1<T> view1{};
+		
+		view1.width = view.width;
+		view1.height = view.height;
+
+		view1.data = view.channel_data_[id_cast(ch)];
+
+		return view1;
+	}
+
+
+	template <typename T, size_t N, typename CH>
+	static SubView1<T> select_channel(ChannelSubMatrix2D<T, N> const& view, CH ch)
+	{
+		SubView1<T> view1{};
 
 		view1.matrix_width = view.channel_width_;
 		view1.range = view.range;

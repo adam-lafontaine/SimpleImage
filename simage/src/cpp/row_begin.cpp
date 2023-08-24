@@ -10,9 +10,23 @@ namespace simage
 
 
 	template <typename T>
+	static inline T* row_begin(MatrixView2D<T> const& image, u32 y)
+	{
+		return image.data + (u64)(y * image.width);
+	}
+
+
+	template <typename T>
 	static inline T* row_begin(SubMatrixView2D<T> const& view, u32 y)
 	{
 		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
+	}
+
+
+	template <typename T>
+	static inline T* xy_at(MatrixView2D<T> const& view, u32 x, u32 y)
+	{
+		return row_begin(view, y) + x;
 	}
 
 
@@ -23,7 +37,7 @@ namespace simage
 	}
 
 
-    template <typename T>
+    /*template <typename T>
 	static T* row_offset_begin(SubMatrixView2D<T> const& view, u32 y, int y_offset)
 	{
 		assert(verify(view));
@@ -36,17 +50,17 @@ namespace simage
 		assert(ptr);
 
 		return ptr;
-	}
+	}*/
 
 
-    template <typename T, size_t N>
+	template <typename T, size_t N>
 	static inline u64 row_offset(ChannelSubMatrix2D<T, N> const& view, u32 y)
 	{
 		return ((u64)view.y_begin + y) * view.channel_width_ + view.x_begin;
 	}
 
 
-	static RGBf32p rgb_row_begin(ViewRGBf32 const& view, u32 y)
+	static RGBf32p rgb_row_begin(SubViewRGBf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
@@ -63,7 +77,7 @@ namespace simage
 	}
 
 
-	static RGBAf32p rgba_row_begin(ViewRGBAf32 const& view, u32 y)
+	static RGBAf32p rgba_row_begin(SubViewRGBAf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
@@ -81,7 +95,7 @@ namespace simage
 	}
 
 
-	static HSVf32p hsv_row_begin(ViewHSVf32 const& view, u32 y)
+	static HSVf32p hsv_row_begin(SubViewHSVf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
@@ -98,7 +112,7 @@ namespace simage
 	}
 
 
-	static YUVf32p yuv_row_begin(ViewYUVf32 const& view, u32 y)
+	static YUVf32p yuv_row_begin(SubViewYUVf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
@@ -115,7 +129,7 @@ namespace simage
 	}
 
 
-	static LCHf32p lch_row_begin(ViewLCHf32 const& view, u32 y)
+	static LCHf32p lch_row_begin(SubViewLCHf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);

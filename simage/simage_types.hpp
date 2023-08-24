@@ -314,13 +314,16 @@ namespace simage
 
 
 	using ImageYUV = Matrix2D<YUV2u8>;
-	using ViewYUV = SubMatrixView2D<YUV2u8>;
+	using ViewYUV = MatrixView2D<YUV2u8>;
+	using SubViewYUV = SubMatrixView2D<YUV2u8>;
 
 	using ImageBGR = Matrix2D<BGRu8>;
-	using ViewBGR = SubMatrixView2D<BGRu8>;
+	using ViewBGR = MatrixView2D<BGRu8>;
+	using SubViewBGR = SubMatrixView2D<BGRu8>;
 
 	using ImageRGB = Matrix2D<RGBu8>;
-	using ViewRGB = SubMatrixView2D<RGBu8>;
+	using ViewRGB = MatrixView2D<RGBu8>;
+	using SubViewRGB = SubMatrixView2D<RGBu8>;
 }
 
 

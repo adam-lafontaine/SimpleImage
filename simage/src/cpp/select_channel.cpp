@@ -16,7 +16,7 @@ namespace simage
 	}
 
 
-	template <typename T, size_t N, typename CH>
+	/*template <typename T, size_t N, typename CH>
 	static SubView1<T> select_channel(ChannelSubMatrix2D<T, N> const& view, CH ch)
 	{
 		SubView1<T> view1{};
@@ -29,7 +29,7 @@ namespace simage
 		view1.matrix_data_ = view.channel_data_[id_cast(ch)];
 
 		return view1;
-	}
+	}*/
 
 
 	View1f32 select_channel(ViewRGBAf32 const& view, RGBA channel)
@@ -130,7 +130,24 @@ namespace simage
 	}
 
 
-	SubView1f32 select_channel(SubViewRGBAf32 const& view, RGBA channel)
+	ViewRGBf32 select_rgb(ViewRGBAf32 const& view)
+	{
+		assert(verify(view));
+
+		ViewRGBf32 rgb;
+		
+		rgb.width = view.width;
+		rgb.height = view.height;
+
+		rgb.channel_data[id_cast(RGB::R)] = view.channel_data[id_cast(RGBA::R)];
+		rgb.channel_data[id_cast(RGB::G)] = view.channel_data[id_cast(RGBA::G)];
+		rgb.channel_data[id_cast(RGB::B)] = view.channel_data[id_cast(RGBA::B)];
+
+		return rgb;
+	}
+
+
+	/*SubView1f32 select_channel(SubViewRGBAf32 const& view, RGBA channel)
 	{
 		assert(verify(view));
 
@@ -258,5 +275,5 @@ namespace simage
 		}
 
 		return arr;
-	}
+	}*/
 }

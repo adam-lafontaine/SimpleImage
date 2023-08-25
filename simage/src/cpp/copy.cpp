@@ -16,38 +16,8 @@ namespace simage
 	}
 
 
-	template <typename T>
-	static inline void copy_sub_view_1_no_simd(SubView1<T> const& src, SubView1<T> const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 i = 0; i < src.width; ++i)
-			{
-				d[i] = s[i];
-			}
-		}
-	}
-
-
-	template <typename T>
-	static inline void copy_sub_view_1_no_simd(View1<T> const& src, SubView1<T> const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 i = 0; i < src.width; ++i)
-			{
-				d[i] = s[i];
-			}
-		}
-	}
-
-
-	template <typename T>
-	static inline void copy_sub_view_1_no_simd(SubView1<T> const& src, View1<T> const& dst)
+	template <class ViewSRC, class ViewDST>
+	static inline void copy_sub_view_1_no_simd(ViewSRC const& src, ViewDST const& dst)
 	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
@@ -159,13 +129,13 @@ namespace simage
 	}
 
 
-	template <typename T, size_t N>
+	/*template <typename T, size_t N>
 	static inline void copy_sub_view_n(ChannelSubMatrix2D<T, N> const& src, ChannelSubMatrix2D<T, N> const& dst)
 	{
 		auto const ch_func = [&](u32 ch){ copy_sub_view_1(select_channel(src, ch), select_channel(dst, ch)); };
 
 		process_range(0, N, ch_func);
-	}
+	}*/
 
 
 	template <typename T, size_t N>
@@ -177,13 +147,13 @@ namespace simage
 	}
 
 
-	template <typename T, size_t N>
+	/*template <typename T, size_t N>
 	static inline void copy_sub_view_n(ChannelSubMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst)
 	{
 		auto const ch_func = [&](u32 ch){ copy_sub_view_1(select_channel(src, ch), select_channel(dst, ch)); };
 
 		process_range(0, N, ch_func);
-	}
+	}*/
 }
 
 
@@ -302,7 +272,7 @@ namespace simage
 
 namespace simage
 {
-	void copy(SubView4f32 const& src, SubView4f32 const& dst)
+	/*void copy(SubView4f32 const& src, SubView4f32 const& dst)
 	{
 		assert(verify(src, dst));
 
@@ -395,5 +365,5 @@ namespace simage
 		assert(verify(src, dst));
 
 		copy_sub_view_1(src, dst);
-	}
+	}*/
 }

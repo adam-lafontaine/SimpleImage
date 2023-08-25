@@ -38,7 +38,7 @@ namespace simage
 	}
 
 
-	template <typename T, size_t N>
+	/*template <typename T, size_t N>
 	static bool verify(ChannelSubMatrix2D<T,N> const& view)
 	{
 		return 
@@ -47,7 +47,7 @@ namespace simage
 			view.channel_data_[0] &&
 			(view.x_end - view.x_begin) == view.width &&
 			(view.y_end - view.y_begin) == view.height;
-	}
+	}*/
 
 
 	template <typename T>

@@ -170,6 +170,10 @@ namespace simage
 {
 	void map_gray(View const& src, ViewGray const& dst);
 
+	void map_gray(SubView const& src, ViewGray const& dst);
+
+	void map_gray(SubView const& src, ViewGray const& dst);
+
 	void map_gray(ViewYUV const& src, ViewGray const& dst);
 }
 
@@ -609,7 +613,7 @@ namespace simage
 
 /* sub_view */
 
-namespace simage
+/*namespace simage
 {
 	SubView4f32 sub_view(View4f32 const& view, Range2Du32 const& range);
 
@@ -627,7 +631,7 @@ namespace simage
 	SubView2f32 sub_view(SubView2f32 const& view, Range2Du32 const& range);
 
 	SubView1f32 sub_view(SubView1f32 const& view, Range2Du32 const& range);
-}
+}*/
 
 
 /* select_channel */
@@ -651,7 +655,7 @@ namespace simage
 	ViewRGBf32 select_rgb(ViewRGBAf32 const& view);
 
 
-	SubView1f32 select_channel(SubViewRGBAf32 const& view, RGBA channel);
+	/*SubView1f32 select_channel(SubViewRGBAf32 const& view, RGBA channel);
 
 	SubView1f32 select_channel(SubViewRGBf32 const& view, RGB channel);
 
@@ -665,7 +669,7 @@ namespace simage
 
 	SubView1f32 select_channel(SubView2f32 const& view, XY channel);
 
-	SubViewRGBf32 select_rgb(SubViewRGBAf32 const& view);
+	SubViewRGBf32 select_rgb(SubViewRGBAf32 const& view);*/
 }
 
 
@@ -675,10 +679,18 @@ namespace simage
 {
 	void map_gray(View1u8 const& src, View1f32 const& dst);
 
+	void map_gray(SubView1u8 const& src, View1f32 const& dst);
+
 	void map_gray(View1f32 const& src, View1u8 const& dst);
+	
+	void map_gray(View1f32 const& src, SubView1u8 const& dst);
 
-	void map_gray(ViewYUV const& src, View1f32 const& dst);	
+	void map_gray(ViewYUV const& src, View1f32 const& dst);
+}
 
+
+namespace simage
+{
 	void map_gray(View const& src, View1f32 const& dst);
 
 	void map_gray(ViewRGBf32 const& src, View1f32 const& dst);
@@ -784,7 +796,7 @@ namespace simage
 	void copy(View1f32 const& src, View1f32 const& dst);
 
 
-	void copy(SubView4f32 const& src, SubView4f32 const& dst);
+	/*void copy(SubView4f32 const& src, SubView4f32 const& dst);
 
 	void copy(SubView4f32 const& src, View4f32 const& dst);
 
@@ -809,7 +821,7 @@ namespace simage
 
 	void copy(SubView1f32 const& src, View1f32 const& dst);
 
-	void copy(View1f32 const& src, SubView1f32 const& dst);
+	void copy(View1f32 const& src, SubView1f32 const& dst);*/
 }
 
 
@@ -826,13 +838,13 @@ namespace simage
 	void fill(View1f32 const& view, u8 gray);
 
 
-	void fill(SubView4f32 const& view, Pixel color);
+	/*void fill(SubView4f32 const& view, Pixel color);
 
 	void fill(SubView3f32 const& view, Pixel color);
 
 	void fill(SubView1f32 const& view, f32 gray);
 
-	void fill(SubView1f32 const& view, u8 gray);
+	void fill(SubView1f32 const& view, u8 gray);*/
 }
 
 

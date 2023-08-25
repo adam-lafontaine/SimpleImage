@@ -98,7 +98,39 @@ namespace simage
 	};
 
 
-	template <typename T, size_t N>
+	template <typename T>
+	using View4 = ChannelMatrix2D<T, 4>;
+
+	template <typename T>
+	using View3 = ChannelMatrix2D<T, 3>;
+
+	template <typename T>
+	using View2 = ChannelMatrix2D<T, 2>;
+
+	template <typename T>
+	using View1 = MatrixView2D<T>;
+
+	using View1u8 = ViewGray;
+
+	template <typename T>
+	using SubView1 = SubMatrixView2D<T>;
+	
+	using SubView1u8 = SubViewGray;
+
+
+	using View4f32 = View4<f32>;
+	using View3f32 = View3<f32>;
+	using View2f32 = View2<f32>;
+	using View1f32 = View1<f32>;	
+
+	using ViewRGBAf32 = View4f32;
+	using ViewRGBf32 = View3f32;
+	using ViewHSVf32 = View3f32;
+	using ViewYUVf32 = View3f32;
+	using ViewLCHf32 = View3f32;
+
+
+	/*template <typename T, size_t N>
 	class ChannelSubMatrix2D
 	{
 	public:
@@ -123,35 +155,10 @@ namespace simage
 			};
 		};
 	};
-	
-
-	template <typename T>
-	using View4 = ChannelMatrix2D<T, 4>;
-
-	template <typename T>
-	using View3 = ChannelMatrix2D<T, 3>;
-
-	template <typename T>
-	using View2 = ChannelMatrix2D<T, 2>;
-
-	template <typename T>
-	using View1 = MatrixView2D<T>;
-
-	using View4f32 = View4<f32>;
-	using View3f32 = View3<f32>;
-	using View2f32 = View2<f32>;
-	using View1f32 = View1<f32>;
-
-	using View1u8 = ViewGray;
-
-	using ViewRGBAf32 = View4f32;
-	using ViewRGBf32 = View3f32;
-	using ViewHSVf32 = View3f32;
-	using ViewYUVf32 = View3f32;
-	using ViewLCHf32 = View3f32;
+	*/
 
 
-	template <typename T>
+	/*template <typename T>
 	using SubView4 = ChannelSubMatrix2D<T, 4>;
 
 	template <typename T>
@@ -160,21 +167,18 @@ namespace simage
 	template <typename T>
 	using SubView2 = ChannelSubMatrix2D<T, 2>;
 
-	template <typename T>
-	using SubView1 = SubMatrixView2D<T>;
+	
 
 	using SubView4f32 = SubView4<f32>;
 	using SubView3f32 = SubView3<f32>;
 	using SubView2f32 = SubView2<f32>;
-	using SubView1f32 = SubView1<f32>;
-
-	using SubView1u8 = SubViewGray;
+	using SubView1f32 = SubView1<f32>;	
 
 	using SubViewRGBAf32 = SubView4f32;
 	using SubViewRGBf32 = SubView3f32;
 	using SubViewHSVf32 = SubView3f32;
 	using SubViewYUVf32 = SubView3f32;
-	using SubViewLCHf32 = SubView3f32;
+	using SubViewLCHf32 = SubView3f32;*/
 }
 
 

@@ -206,7 +206,7 @@ namespace simage
 	}
 
 
-	void fill(SubView4f32 const& view, Pixel color)
+	/*void fill(SubView4f32 const& view, Pixel color)
 	{
 		assert(verify(view));
 
@@ -254,5 +254,5 @@ namespace simage
 		assert(verify(view));
 
 		fill_sub_view_channel(view, cs::to_channel_f32(gray));
-	}
+	}*/
 }

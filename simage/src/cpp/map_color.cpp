@@ -129,6 +129,58 @@ namespace simage
 }
 
 
+/* lch */
+
+namespace simage
+{
+    static inline void map_span_rgb_lch(Pixel* src, LCHf32p const& dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgba = src[i].rgba;
+			auto lch = lch::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+			dst.L[i] = lch.light;
+			dst.C[i] = lch.chroma;
+			dst.H[i] = lch.hue;
+		}
+	}
+
+
+	static inline void map_span_lch_rgba(LCHf32p const& src, Pixel* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgb = lch::f32_to_rgb_u8(src.L[i], src.C[i], src.H[i]);
+            dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
+		}
+	}
+
+
+	static inline void map_span_rgb_lch(RGBf32p const& src, LCHf32p const& dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto lch = lch::f32_from_rgb_f32(src.R[i], src.G[i], src.B[i]);
+			dst.L[i] = lch.light;
+			dst.C[i] = lch.chroma;
+			dst.H[i] = lch.hue;
+		}
+	}
+
+
+	static inline void map_span_lch_rgb(LCHf32p const& src, RGBf32p const& dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgb = lch::f32_to_rgb_f32(src.L[i], src.C[i], src.H[i]);
+			dst.R[i] = rgb.red;
+			dst.G[i] = rgb.green;
+			dst.B[i] = rgb.blue;
+		}
+	}
+}
+
+
 /* map_yuv */
 
 namespace simage
@@ -215,5 +267,50 @@ namespace simage
         u32 len = src.width * src.height;
 
         map_span_hsv_rgb(hsv_row_begin(src, 0), rgb_row_begin(dst, 0), len);
+    }
+}
+
+
+/* map_lch */
+
+namespace simage
+{
+	void map_rgb_lch(View const& src, ViewLCHf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb_lch(src.data, lch_row_begin(dst, 0), len);
+    }
+
+
+	void map_lch_rgba(ViewLCHf32 const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_lch_rgba(lch_row_begin(src, 0), dst.data, len);
+    }
+
+
+	void map_rgb_lch(ViewRGBf32 const& src, ViewLCHf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb_lch(rgb_row_begin(src, 0), lch_row_begin(dst, 0), len);
+    }
+
+
+	void map_lch_rgb(ViewLCHf32 const& src, ViewRGBf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_lch_rgb(lch_row_begin(src, 0), rgb_row_begin(dst, 0), len);
     }
 }

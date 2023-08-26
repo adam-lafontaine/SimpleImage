@@ -844,17 +844,19 @@ namespace simage
 }
 
 
+/* transform */
+
+namespace simage
+{
+	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func32);
+}
+
+
 /* binarize */
 
 namespace simage
 {
 	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> const& func32);
-
-	void binarize(View2f32 const& src, View1f32 const& dst, std::function<bool(f32, f32)> const& func32);
-
-	void binarize(View3f32 const& src, View1f32 const& dst, std::function<bool(f32, f32, f32)> const& func32);
-
-	void binarize(View4f32 const& src, View1f32 const& dst, std::function<bool(f32, f32, f32, f32)> const& func32);
 }
 
 

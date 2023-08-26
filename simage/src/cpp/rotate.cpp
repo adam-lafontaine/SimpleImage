@@ -24,7 +24,7 @@ namespace simage
 
 
     template <typename T>
-    static T get_pixel_value(SubMatrixView2D<T> const& src, Point2Df32 location)
+    static T get_pixel_value(MatrixView2D<T> const& src, Point2Df32 location)
     {
         constexpr auto zero = 0.0f;
 		auto const width = (f32)src.width;
@@ -77,8 +77,10 @@ namespace simage
 
 
 	template <typename T, size_t N>
-    static void rotate_n(ChannelSubMatrix2D<T, N> const& src, ChannelSubMatrix2D<T, N> const& dst, Point2Du32 origin, f32 rad)
+    static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 origin, f32 rad)
 	{
+#ifdef SIMAGE_NO_PARALLEL
+
 		auto ch_src = split_channels(src);
 		//auto ch_dst = split_channels(dst);
 
@@ -96,6 +98,17 @@ namespace simage
 				}				
 			}
 		}
+
+#else
+
+		auto const channel_func = [&](u32 ch)
+		{
+			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
+		};
+
+		process_range(0, N, channel_func);
+
+#endif
 	}
 }
 
@@ -128,84 +141,24 @@ namespace simage
 	void rotate(View4f32 const& src, View4f32 const& dst, Point2Du32 origin, f32 rad)
 	{
 		assert(verify(src, dst));
-
-#ifdef SIMAGE_NO_PARALLEL
-
+		
 		rotate_n(src, dst, origin, rad);
-
-#else
-
-		auto const channel_func = [&](u32 ch)
-		{
-			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
-		};
-
-		std::array<std::function<void()>, 4> f_list
-		{
-			[&](){ channel_func(0); },
-			[&](){ channel_func(1); },
-			[&](){ channel_func(2); },
-			[&](){ channel_func(3); },
-		};
-
-    	execute(f_list);
-
-#endif
 	}
 
 
 	void rotate(View3f32 const& src, View3f32 const& dst, Point2Du32 origin, f32 rad)
 	{
 		assert(verify(src, dst));
-
-#ifdef SIMAGE_NO_PARALLEL
-
+		
 		rotate_n(src, dst, origin, rad);
-
-#else
-
-		auto const channel_func = [&](u32 ch)
-		{
-			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
-		};
-
-		std::array<std::function<void()>, 3> f_list
-		{
-			[&](){ channel_func(0); },
-			[&](){ channel_func(1); },
-			[&](){ channel_func(2); },
-		};
-
-    	execute(f_list);
-
-#endif
 	}
 
 
 	void rotate(View2f32 const& src, View2f32 const& dst, Point2Du32 origin, f32 rad)
 	{
 		assert(verify(src, dst));
-
-#ifdef SIMAGE_NO_PARALLEL
-
+		
 		rotate_n(src, dst, origin, rad);
-
-#else
-
-		auto const channel_func = [&](u32 ch)
-		{
-			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
-		};
-
-		std::array<std::function<void()>, 2> f_list
-		{
-			[&](){ channel_func(0); },
-			[&](){ channel_func(1); },
-		};
-
-    	execute(f_list);
-
-#endif
 	}
 
 

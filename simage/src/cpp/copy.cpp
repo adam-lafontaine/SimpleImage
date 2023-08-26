@@ -138,13 +138,13 @@ namespace simage
 	}*/
 
 
-	template <typename T, size_t N>
+	/*template <typename T, size_t N>
 	static inline void copy_sub_view_n(ChannelMatrix2D<T, N> const& src, ChannelSubMatrix2D<T, N> const& dst)
 	{
 		auto const ch_func = [&](u32 ch){ copy_sub_view_1(select_channel(src, ch), select_channel(dst, ch)); };
 
 		process_range(0, N, ch_func);
-	}
+	}*/
 
 
 	/*template <typename T, size_t N>

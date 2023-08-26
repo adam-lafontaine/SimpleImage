@@ -182,11 +182,21 @@ namespace simage
 {
 	void map_rgba(ViewGray const& src, View const& dst);
 
-	void map_rgba(ViewGray const& src, SubView const& dst);	
+	void map_rgba(ViewGray const& src, SubView const& dst);
+
 
 	void map_rgba(ViewBGR const& src, View const& dst);
 
-	void map_rgba(ViewRGB const& src, View const& dst);
+	void map_rgba(SubViewBGR const& src, View const& dst);
+
+	void map_rgba(SubViewBGR const& src, SubView const& dst);
+
+
+	void map_rgba(ViewRGB const& src, View const& dst);	
+
+	void map_rgba(SubViewRGB const& src, View const& dst);
+
+	void map_rgba(SubViewRGB const& src, SubView const& dst);
 }
 
 
@@ -579,8 +589,8 @@ namespace simage
 		bool is_open;
 	};
 	
-	using rgb_callback = std::function<void(View const&)>;
-	using gray_callback = std::function<void(ViewGray const&)>;
+	using rgb_callback = std::function<void(SubView const&)>;
+	using gray_callback = std::function<void(SubViewGray const&)>;
 	using bool_f = std::function<bool()>;
 
 

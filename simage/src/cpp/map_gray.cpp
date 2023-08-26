@@ -209,6 +209,16 @@ namespace simage
 	}
 
 
+	static inline void map_span_rgb_to_gray(Pixel* src, f32* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgba = src[i].rgba;
+			dst[i] = gray::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+		}
+	}
+
+
     static inline void map_span_rgb_to_gray(Pixel* src, Pixel* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
@@ -248,6 +258,18 @@ namespace simage
 	{
 		map_span_rgb_to_gray(src.R, src.G, src.B, dst, len);
 	}
+
+
+	static inline void map_span_rgb_to_gray(RGBf32p const& src, u8* dst, u32 len)
+	{
+		map_span_rgb_to_gray(src.R, src.G, src.B, dst, len);
+	}
+
+
+	static inline void map_span_rgb_to_gray(RGBAf32p const& src, u8* dst, u32 len)
+	{
+		map_span_rgb_to_gray(src.R, src.G, src.B, dst, len);
+	}
 }
 
 
@@ -262,27 +284,62 @@ namespace simage
     }
 
 
-    template <size_t N, class TDST>
-    static inline void map_view_rgb_to_gray(ChannelMatrix2D<f32, N> const& src, View1<TDST> const& dst)
+    template <class TDST>
+    static inline void map_view_rgb_to_gray(ViewRGBf32 const& src, View1<TDST> const& dst)
     {
         u32 len = src.width * src.height;
 
-        map_span_rgb_to_gray(row_begin(src, 0), dst.data, len);
+        map_span_rgb_to_gray(rgb_row_begin(src, 0), dst.data, len);
     }
 
 
+	template <class TDST>
+	static inline void map_view_rgb_to_gray(ViewRGBAf32 const& src, View1<TDST> const& dst)
+	{
+		u32 len = src.width * src.height;
 
-    template <class ViewSRC, class ViewDST>
-    static inline void map_sub_view_rgb_to_gray(ViewSRC const& src, ViewDST const& dst)
-    {
-        for (u32 y = 0; y < src.height; ++y)
+		map_span_rgb_to_gray(rgba_row_begin(src, 0), dst.data, len);
+	}
+
+
+
+	template <class ViewSRC, class ViewDST>
+	static inline void map_sub_view_rgb_to_gray(ViewSRC const& src, ViewDST const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto d = row_begin(dst, y);
-			auto s = row_begin(src, y);			
+			auto s = row_begin(src, y);
 
 			map_span_rgb_to_gray(s, d, src.width);
 		}
-    }
+	}
+
+
+	template <class TDST>
+	static inline void map_sub_view_rgb_to_gray(ViewRGBf32 const& src, SubView1<TDST> const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto s = rgb_row_begin(src, y);
+
+			map_span_rgb_to_gray(s, d, src.width);
+		}
+	}
+
+
+	template <class TDST>
+	static inline void map_sub_view_rgb_to_gray(ViewRGBAf32 const& src, SubView1<TDST> const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto s = rgba_row_begin(src, y);
+
+			map_span_rgb_to_gray(s, d, src.width);
+		}
+	}
 }
 
 

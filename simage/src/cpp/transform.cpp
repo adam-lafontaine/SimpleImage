@@ -9,7 +9,7 @@ namespace simage
 
 		for (u32 i = 0; i < len; ++i)
 		{
-			dst[i] = func(src[i]);
+			dst.data[i] = func(src.data[i]);
 		}
 	}
 

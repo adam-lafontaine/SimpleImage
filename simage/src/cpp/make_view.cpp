@@ -27,15 +27,12 @@ namespace simage
     template <typename T, size_t N>
 	static void do_make_view_n(ChannelMatrix2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
-		view.channel_width_ = width;
 		view.width = width;
 		view.height = height;
 
-		view.range = make_range(width, height);
-
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			view.channel_data_[ch] = mb::push_elements(buffer, width * height);
+			view.channel_data[ch] = mb::push_elements(buffer, width * height);
 		}
 	}
 }

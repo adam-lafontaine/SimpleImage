@@ -54,7 +54,7 @@ namespace simage
 	}
 
 
-	template <typename T, size_t N>
+	/*template <typename T, size_t N>
 	static ChannelSubMatrix2D<T, N> do_sub_view(ChannelMatrix2D<T, N> const& view, Range2Du32 const& range)
 	{
 		ChannelSubMatrix2D<T, N> sub_view;
@@ -94,7 +94,7 @@ namespace simage
 		}
 
 		return sub_view;
-	}
+	}*/
 }
 
 
@@ -284,7 +284,7 @@ namespace simage
 
 
 /* sub_view */
-
+/*
 namespace simage
 {
 	SubView4f32 sub_view(View4f32 const& view, Range2Du32 const& range)
@@ -382,5 +382,5 @@ namespace simage
 		return sub_view;
 	}
 }
-
+*/
 

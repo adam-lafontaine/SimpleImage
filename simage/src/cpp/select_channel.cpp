@@ -10,7 +10,7 @@ namespace simage
 		view1.width = view.width;
 		view1.height = view.height;
 
-		view1.data = view.channel_data_[id_cast(ch)];
+		view1.data = view.channel_data[id_cast(ch)];
 
 		return view1;
 	}

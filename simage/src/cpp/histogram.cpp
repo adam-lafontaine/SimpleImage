@@ -21,9 +21,9 @@ namespace hist
 
 			std::array<u8, 256> lut = {};
 
-            for (u32 i = 0; i < 256; ++i)
+            for (u32 i = 0; i < 256u; ++i)
             {
-                lut[i] = (i * N) >> 8;
+                lut[i] = (i * (u32)N) >> 8;
             }
 
             return lut;

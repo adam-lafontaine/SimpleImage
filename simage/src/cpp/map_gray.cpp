@@ -304,14 +304,6 @@ namespace simage
     }
 
 
-	void map_gray(SubView const& src, ViewGray const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-    }
-
-
 	void map_gray(ViewYUV const& src, ViewGray const& dst)
 	{
 		assert(verify(src, dst));

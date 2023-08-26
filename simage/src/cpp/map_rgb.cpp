@@ -1,0 +1,289 @@
+/* gray to rgb */
+
+namespace simage
+{
+    static inline void map_span_gray_rgb(u8* src, Pixel* dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            dst[i] = to_pixel(src[i], src[i], src[i]);
+        }
+    }
+
+
+    static inline void map_span_gray_rgb(f32* src, Pixel* dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto gray = cs::to_channel_u8(src[i]);
+            dst[i] = to_pixel(gray, gray, gray);
+        }
+    }
+
+
+    template <typename RGB>
+    static inline void map_span_rgb(RGB* src, Pixel* dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto rgb = src[i];
+            dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
+        }
+    }
+
+
+    static inline void map_span_rgb(Pixel* src, RGBf32p const& dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto rgba = src[i].rgba;
+            dst.R[i] =  cs::to_channel_f32(rgba.red);
+            dst.G[i] =  cs::to_channel_f32(rgba.green);
+            dst.B[i] =  cs::to_channel_f32(rgba.blue);
+        }
+    }
+
+
+    static inline void map_span_rgb(Pixel* src, RGBAf32p const& dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto rgba = src[i].rgba;
+            dst.R[i] =  cs::to_channel_f32(rgba.red);
+            dst.G[i] =  cs::to_channel_f32(rgba.green);
+            dst.B[i] =  cs::to_channel_f32(rgba.blue);
+            dst.A[i] = cs::to_channel_f32(rgba.alpha);
+        }
+    }
+
+
+    static inline void map_span_rgb(RGBf32p const& src, Pixel* dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto red = cs::to_channel_u8(src.R[i]);
+            auto green = cs::to_channel_u8(src.G[i]);
+            auto blue = cs::to_channel_u8(src.B[i]);
+
+            dst[i] = to_pixel(red, green, blue);
+        }
+    }
+
+
+    static inline void map_span_rgb(RGBAf32p const& src, Pixel* dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto red = cs::to_channel_u8(src.R[i]);
+            auto green = cs::to_channel_u8(src.G[i]);
+            auto blue = cs::to_channel_u8(src.B[i]);
+            auto alpha = cs::to_channel_u8(src.A[i]);
+
+            dst[i] = to_pixel(red, green, blue, alpha);
+        }
+    }
+}
+
+
+/* map_rgba */
+
+namespace simage
+{
+	void map_rgba(ViewGray const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_gray_rgb(src.data, dst.data, len);
+    }
+
+
+    void map_rgba(ViewGray const& src, SubView const& dst)
+    {
+        assert(verify(src, dst));
+
+        for (u32 y = 0; y < src.width; ++y)
+        {
+            auto s = row_begin(src, y);
+            auto d = row_begin(dst, y);
+
+            map_span_gray_rgb(s, d, src.width);
+        }
+    }
+    
+
+	void map_rgba(ViewBGR const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb(src.data, dst.data, len);
+    }
+
+
+	void map_rgba(ViewRGB const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb(src.data, dst.data, len);
+    }
+}
+
+
+namespace simage
+{
+    void map_rgba(View const& src, ViewRGBAf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb(src.data, rgba_row_begin(dst, 0), len);
+    }
+
+
+	void map_rgb(View const& src, ViewRGBf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb(src.data, rgb_row_begin(dst, 0), len);
+    }
+
+
+	void map_rgba(ViewRGBAf32 const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb(rgba_row_begin(src, 0), dst.data, len);
+    }
+
+
+	void map_rgba(ViewRGBf32 const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb(rgb_row_begin(src, 0), dst.data, len);
+    }
+
+
+	void map_rgba(View1f32 const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_gray_rgb(src.data, dst.data, len);
+    }
+
+
+	void map_rgba(SubView const& src, ViewRGBAf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        for (u32 y = 0; y < src.width; ++y)
+        {
+            auto s = row_begin(src, y);
+            auto d = rgba_row_begin(dst, y);
+
+            map_span_rgb(s, d, src.width);
+        }
+    }
+
+
+	void map_rgb(SubView const& src, ViewRGBf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        for (u32 y = 0; y < src.width; ++y)
+        {
+            auto s = row_begin(src, y);
+            auto d = rgb_row_begin(dst, y);
+
+            map_span_rgb(s, d, src.width);
+        }
+    }
+
+
+	void map_rgba(ViewRGBAf32 const& src, SubView const& dst)
+    {
+        assert(verify(src, dst));
+
+        for (u32 y = 0; y < src.width; ++y)
+        {
+            auto s = rgba_row_begin(src, y);
+            auto d = row_begin(dst, y);
+
+            map_span_rgb(s, d, src.width);
+        }
+    }
+
+
+	void map_rgba(ViewRGBf32 const& src, SubView const& dst)
+    {
+        assert(verify(src, dst));
+
+        for (u32 y = 0; y < src.width; ++y)
+        {
+            auto s = rgb_row_begin(src, y);
+            auto d = row_begin(dst, y);
+
+            map_span_rgb(s, d, src.width);
+        }
+    }
+
+
+	void map_rgba(View1f32 const& src, SubView const& dst)
+    {
+        assert(verify(src, dst));
+
+        for (u32 y = 0; y < src.width; ++y)
+        {
+            auto s = row_begin(src, y);
+            auto d = row_begin(dst, y);
+
+            map_span_rgb(s, d, src.width);
+        }
+    }
+}
+
+
+namespace simage
+{
+
+
+    static inline void map_span_yuv_rgb(YUV422u8* src, Pixel* dst, u32 len)
+    {
+        for (u32 i422 = 0; i422 < len / 2; ++i422)
+		{
+			auto yuv = src[i422];
+
+			auto i = 2 * i422;
+			auto rgb = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
+            dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
+
+			++i;
+			rgb = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
+			dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
+		}
+    }
+
+
+    void map_yuv_rgba(ViewYUV const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_yuv_rgb((YUV422u8*)src.data, dst.data, len);
+    }
+}

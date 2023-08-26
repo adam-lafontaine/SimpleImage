@@ -172,8 +172,6 @@ namespace simage
 
 	void map_gray(SubView const& src, ViewGray const& dst);
 
-	void map_gray(SubView const& src, ViewGray const& dst);
-
 	void map_gray(ViewYUV const& src, ViewGray const& dst);
 }
 
@@ -183,6 +181,8 @@ namespace simage
 namespace simage
 {
 	void map_rgba(ViewGray const& src, View const& dst);
+
+	void map_rgba(ViewGray const& src, SubView const& dst);
 
 	void map_rgba(ViewYUV const& src, View const& dst);
 
@@ -693,7 +693,13 @@ namespace simage
 {
 	void map_gray(View const& src, View1f32 const& dst);
 
+	void map_gray(SubView const& src, View1f32 const& dst);
+
 	void map_gray(ViewRGBf32 const& src, View1f32 const& dst);
+
+	void map_gray(ViewRGBf32 const& src, View1u8 const& dst);
+
+	void map_gray(ViewRGBf32 const& src, SubView1u8 const& dst);
 
 	inline void map_gray(ImageGray const& src, View1f32 const& dst)
 	{

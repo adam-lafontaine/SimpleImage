@@ -213,6 +213,11 @@ namespace simage
 	void for_each_pixel(View const& view, std::function<void(Pixel&)> const& func);
 
 	void for_each_pixel(ViewGray const& view, std::function<void(u8&)> const& func);
+
+
+	void for_each_pixel(SubView const& view, std::function<void(Pixel&)> const& func);
+
+	void for_each_pixel(SubViewGray const& view, std::function<void(u8&)> const& func);
 }
 
 
@@ -828,6 +833,14 @@ namespace simage
 	void fill(View1f32 const& view, f32 gray);
 
 	void fill(View1f32 const& view, u8 gray);
+}
+
+
+/* for_each_pixel */
+
+namespace simage
+{
+	void for_each_pixel(View1f32 const& view, std::function<void(f32&)> const& func);
 }
 
 

@@ -124,17 +124,17 @@ namespace simage
     }
 
 
-	void map_rgba(ViewGray const& src, View const& dst)
+    template <typename T>
+    static inline void map_view_gray_rgb(View1<T> const& src, View const& dst)
     {
-        assert(verify(src, dst));
-
         u32 len = src.width * src.height;
 
         map_span_gray_rgb(src.data, dst.data, len);
     }
 
 
-    void map_rgba(ViewGray const& src, SubView const& dst)
+    template <class ViewSRC>
+    static inline void map_sub_view_gray_rgb(ViewSRC const& src, SubView const& dst)
     {
         assert(verify(src, dst));
 
@@ -145,6 +145,30 @@ namespace simage
 
             map_span_gray_rgb(s, d, src.width);
         }
+    }
+
+
+	void map_rgba(ViewGray const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_view_gray_rgb(src, dst);
+    }
+
+
+    void map_rgba(ViewGray const& src, SubView const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_sub_view_gray_rgb(src, dst);
+    }
+
+
+    void map_rgba(SubViewGray const& src, SubView const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_sub_view_gray_rgb(src, dst);
     }
     
 
@@ -299,9 +323,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_gray_rgb(src.data, dst.data, len);
+        map_view_gray_rgb(src, dst);
     }
 
 
@@ -309,13 +331,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.width; ++y)
-        {
-            auto s = row_begin(src, y);
-            auto d = row_begin(dst, y);
-
-            map_span_gray_rgb(s, d, src.width);
-        }
+        map_sub_view_gray_rgb(src, dst);
     }
 
 

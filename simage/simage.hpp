@@ -184,6 +184,8 @@ namespace simage
 
 	void map_rgba(ViewGray const& src, SubView const& dst);
 
+	void map_rgba(SubViewGray const& src, SubView const& dst);
+
 
 	void map_rgba(ViewBGR const& src, View const& dst);
 
@@ -522,12 +524,12 @@ namespace simage
 	
 	
 	template <typename T, typename PATH>
-	inline SubMatrixView2D<T> make_view_from_file(PATH img_path_src, Matrix2D<T>& image_dst)
+	inline MatrixView2D<T> make_view_from_file(PATH img_path_src, Matrix2D<T>& image_dst)
 	{		
 		if (!read_image_from_file(img_path_src, image_dst))
 		{
 			assert(false);
-			SubMatrixView2D<T> view;
+			MatrixView2D<T> view;
 			return view;
 		}
 
@@ -536,7 +538,7 @@ namespace simage
 
 
 	template <typename T>
-	inline SubMatrixView2D<T> make_view_resized(Matrix2D<T> const& image_src, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	inline MatrixView2D<T> make_view_resized(Matrix2D<T> const& image_src, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		Matrix2D<T> image_dst;
 		image_dst.data_ = mb::push_elements(buffer, width * height);
@@ -544,7 +546,8 @@ namespace simage
 		if (!resize_image(image_src, image_dst, width, height))
 		{
 			assert(false);
-			SubMatrixView2D<T> view;
+			mb::pop_elements(buffer, width * height);
+			MatrixView2D<T> view;
 			return view;
 		}
 
@@ -553,12 +556,12 @@ namespace simage
 
 
 	template <typename T, typename PATH>
-	inline SubMatrixView2D<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	inline MatrixView2D<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		if (!read_image_from_file(img_path_src, file_image))
 		{
 			assert(false);
-			SubMatrixView2D<T> view;
+			MatrixView2D<T> view;
 			return view;
 		}
 
@@ -733,22 +736,25 @@ namespace simage
 {	
 	void map_rgba(View const& src, ViewRGBAf32 const& dst);
 
-	void map_rgb(View const& src, ViewRGBf32 const& dst);
-
-	void map_rgba(ViewRGBAf32 const& src, View const& dst);
-
-	void map_rgba(ViewRGBf32 const& src, View const& dst);
-
-	void map_rgba(View1f32 const& src, View const& dst);
-
-
 	void map_rgba(SubView const& src, ViewRGBAf32 const& dst);
+
+
+	void map_rgb(View const& src, ViewRGBf32 const& dst);
 
 	void map_rgb(SubView const& src, ViewRGBf32 const& dst);
 
+
+	void map_rgba(ViewRGBAf32 const& src, View const& dst);
+
 	void map_rgba(ViewRGBAf32 const& src, SubView const& dst);
 
+
+	void map_rgba(ViewRGBf32 const& src, View const& dst);
+
 	void map_rgba(ViewRGBf32 const& src, SubView const& dst);
+
+
+	void map_rgba(View1f32 const& src, View const& dst);
 
 	void map_rgba(View1f32 const& src, SubView const& dst);
 

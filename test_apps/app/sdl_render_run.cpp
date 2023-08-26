@@ -29,9 +29,7 @@ static void assign_screen_buffer(ScreenMemory const& screen, app::AppState& stat
         auto& app_screen = state.screen_buffer[i];
         app_screen.width = screen.image_width;
         app_screen.height = screen.image_height;
-        app_screen.matrix_width = screen.image_width;
-        app_screen.matrix_data_ = (img::Pixel*)screen.image_buffer[i];
-        app_screen.range = make_range(app_screen);
+        app_screen.data = (img::Pixel*)screen.image_buffer[i];
     }
 }
 

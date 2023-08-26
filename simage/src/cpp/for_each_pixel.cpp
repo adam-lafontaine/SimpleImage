@@ -3,7 +3,7 @@
 namespace simage
 {
 	template <typename T>
-	static void do_for_each_pixel(View1<T> const& view, std::function<void(T&)> const& func)
+	static void for_each_pixel_view(View1<T> const& view, std::function<void(T&)> const& func)
 	{
 		auto len = view.width * view.height;
 
@@ -15,7 +15,7 @@ namespace simage
 
 
 	template <typename T>
-	static void do_for_each_pixel(SubView1<T> const& view, std::function<void(T&)> const& func)
+	static void for_each_pixel_sub_view(SubView1<T> const& view, std::function<void(T&)> const& func)
 	{
 		for (u32 y = 0; y < view.height; ++y)
 		{
@@ -25,14 +25,17 @@ namespace simage
 				func(s[x]);
 			}
 		}
-	}
+	}	
+}
 
 
+namespace simage
+{
 	void for_each_pixel(View const& view, std::function<void(Pixel&)> const& func)
 	{
 		assert(verify(view));
 
-		do_for_each_pixel(view, func);
+		for_each_pixel_view(view, func);
 	}
 
 
@@ -40,7 +43,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		do_for_each_pixel(view, func);
+		for_each_pixel_view(view, func);
 	}
 
 
@@ -48,7 +51,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		do_for_each_pixel(view, func);
+		for_each_pixel_sub_view(view, func);
 	}
 
 
@@ -56,7 +59,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		do_for_each_pixel(view, func);
+		for_each_pixel_sub_view(view, func);
 	}
 
 
@@ -64,6 +67,6 @@ namespace simage
 	{
 		assert(verify(view));
 
-		do_for_each_pixel(view, func);
+		for_each_pixel_view(view, func);
 	}
 }

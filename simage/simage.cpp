@@ -46,7 +46,7 @@ static inline u8 hypot_to_u8(f32 a, f32 b)
 #include "src/cpp/map_color.cpp"
 #include "src/cpp/alpha_blend.cpp"
 #include "src/cpp/for_each_pixel.cpp"
-#include "src/cpp/binarize.cpp"
+#include "src/cpp/transform.cpp"
 #include "src/cpp/centroid.cpp"
 #include "src/cpp/skeleton.cpp"
 #include "src/cpp/histogram.cpp"

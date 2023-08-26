@@ -2,8 +2,20 @@
 
 namespace simage
 {
-	template <class IMG_S, class IMG_D, class FUNC>	
-	static void do_transform_view(IMG_S const& src, IMG_D const& dst, FUNC const& func)
+	template <typename TSRC, typename TDST, class FUNC>	
+	static void transform_view(View1<TSRC> const& src, View1<TDST> const& dst, FUNC const& func)
+	{
+		u32 len = src.width * src.height;
+
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = func(src[i]);
+		}
+	}
+
+
+	template <typename TSRC, typename TDST, class FUNC>	
+	static void transform_sub_view(View1<TSRC> const& src, View1<TDST> const& dst, FUNC const& func)
 	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
@@ -16,80 +28,55 @@ namespace simage
 			}
 		}
 	}
+}
 
 
-	template <class IMG_S, class IMG_D, class FUNC>	
-	static void do_transform_sub_view(IMG_S const& src, IMG_D const& dst, FUNC const& func)
+/* binarize span */
+
+namespace simage
+{
+	template <typename TSRC, class FUNC>
+    static inline void binarize_span_1(TSRC* src, u8* dst, u32 len, FUNC const& bool_func32)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            dst[i] = bool_func32(src[i]) * 255;
+        }
+    }
+
+
+    template <typename TSRC, class FUNC>
+    static inline void binarize_span_1(TSRC* src, f32* dst, u32 len, FUNC const& bool_func32)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            dst[i] = bool_func32(src[i]) * 1.0f;
+        }
+    }
+}
+
+
+/* threshold span*/
+
+namespace simage
+{
+	template <typename T>
+	static inline void threshold_span(T* src, T* dst, u32 len, T min)
 	{
-		for (u32 y = 0; y < src.height; ++y)
+		for (u32 i = 0; i < len; ++i)
 		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func(s[x]);
-			}
+			dst[i] = (src[i] >= min) * src[i];
 		}
 	}
 
 
-	void transform(View const& src, View const& dst, pixel_to_pixel_f const& func)
+	template <typename T>
+	static inline void threshold_span(T* src, T* dst, u32 len, T min, T max)
 	{
-		assert(verify(src, dst));
-
-		do_transform(src, dst, func);
-	}
-
-
-	void transform(ViewGray const& src, ViewGray const& dst, u8_to_u8_f const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform(src, dst, func);
-	}
-
-
-	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform(src, dst, func);
-	}
-
-
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min)
-	{
-		assert(verify(src, dst));
-
-		return do_transform(src, dst, [&](u8 p){ return p >= min ? p : 0; });
-	}
-
-
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max)
-	{
-		assert(verify(src, dst));
-
-		auto mn = std::min(min, max);
-		auto mx = std::max(min, max);
-
-		return do_transform(src, dst, [&](u8 p){ return p >= mn && p <= mx ? p : 0; });
-	}
-
-
-	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform(src, dst, [&](Pixel p){ return func(p) ? 255 : 0; });
-	}
-
-
-	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func)
-	{
-		assert(verify(src, dst));
-
-		do_transform(src, dst, [&](u8 p){ return func(p) ? 255 : 0; });
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = (src[i] >= min && src[i] <= max) * src[i];
+		}
 	}
 }
 
@@ -98,57 +85,98 @@ namespace simage
 
 namespace simage
 {
+	void transform(View const& src, View const& dst, pixel_to_pixel_f const& func)
+	{
+		assert(verify(src, dst));
+
+		transform_view(src, dst, func);
+	}
+
+
+	void transform(ViewGray const& src, ViewGray const& dst, u8_to_u8_f const& func)
+	{
+		assert(verify(src, dst));
+
+		transform_view(src, dst, func);
+	}
+
+
+	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func)
+	{
+		assert(verify(src, dst));
+
+		transform_view(src, dst, func);
+	}
+
+
 	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func32)
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func32(s[x]);
-			}
-		}
+		transform_view(src, dst, func32);
 	}
+	
+}
 
 
-	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func32)
+/* binarize */
+
+namespace simage
+{
+	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func)
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s0 = channel_row_begin(src, y, 0);
-			auto s1 = channel_row_begin(src, y, 1);
-			auto d = row_begin(dst, y);
+		u32 len = src.width * src.height;
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func32(s0[x], s1[x]);
-			}
-		}
+		binarize_span_1(src.data, dst.data, len, func);
 	}
 
 
-	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func32)
+	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func)
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s0 = channel_row_begin(src, y, 0);
-			auto s1 = channel_row_begin(src, y, 1);
-			auto s2 = channel_row_begin(src, y, 2);
-			auto d = row_begin(dst, y);
+		u32 len = src.width * src.height;
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func32(s0[x], s1[x], s2[x]);
-			}
-		}
+		binarize_span_1(src.data, dst.data, len, func);
+	}
+
+
+	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> const& func32)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        binarize_span_1(src.data, dst.data, len, func32);
+    }
+}
+
+
+/* threshold */
+
+namespace simage
+{
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min)
+	{
+		assert(verify(src, dst));
+
+		u32 len = src.width * src.height;
+
+		threshold_span(src.data, dst.data, len, min);
+	}
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max)
+	{
+		assert(verify(src, dst));
+
+		auto [mn, mx] = std::minmax(min, max);
+
+		u32 len = src.width * src.height;
+
+		threshold_span(src.data, dst.data, len, mn, mx);
 	}
 
 
@@ -156,16 +184,9 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
+        u32 len = src.width * src.height;
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x] >= min32 ? s[x] : 0.0f;
-			}
-		}
+		threshold_span(src.data, dst.data, len, min32);
 	}
 
 
@@ -173,30 +194,8 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
+        u32 len = src.width * src.height;
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x] >= min32 && s[x] <= max32 ? s[x] : 0.0f;
-			}
-		}
-	}
-
-
-	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> func32)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func32(s[x]) ? 1.0f : 0.0f;
-			}
-		}
+		threshold_span(src.data, dst.data, len, min32, max32);
 	}
 }

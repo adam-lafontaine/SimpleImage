@@ -243,14 +243,14 @@ namespace simage
 	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func);
 
 
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min);
-
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max);
-
-
 	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func);
 
 	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func);
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min);
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max);
 
 }
 
@@ -861,14 +861,10 @@ namespace simage
 /* threshold */
 
 namespace simage
-{
-	
+{	
 	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32);
 
-	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32, f32 max32);
-
-
-	
+	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32, f32 max32);	
 }
 
 

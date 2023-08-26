@@ -737,8 +737,9 @@ namespace simage
 			dst[i].rgba.green = rgb.green;
 			dst[i].rgba.blue = rgb.blue;
 			dst[i].rgba.alpha = 255;
+		}
 	}
-	}
+	
 
 
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst)

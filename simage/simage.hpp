@@ -182,13 +182,17 @@ namespace simage
 {
 	void map_rgba(ViewGray const& src, View const& dst);
 
-	void map_rgba(ViewGray const& src, SubView const& dst);
-
-	void map_rgba(ViewYUV const& src, View const& dst);
+	void map_rgba(ViewGray const& src, SubView const& dst);	
 
 	void map_rgba(ViewBGR const& src, View const& dst);
 
 	void map_rgba(ViewRGB const& src, View const& dst);
+}
+
+
+namespace simage
+{
+	void map_yuv_rgba(ViewYUV const& src, View const& dst);
 }
 
 
@@ -723,6 +727,22 @@ namespace simage
 	void map_rgba(View1f32 const& src, View const& dst);
 
 
+	void map_rgba(SubView const& src, ViewRGBAf32 const& dst);
+
+	void map_rgb(SubView const& src, ViewRGBf32 const& dst);
+
+	void map_rgba(ViewRGBAf32 const& src, SubView const& dst);
+
+	void map_rgba(ViewRGBf32 const& src, SubView const& dst);
+
+	void map_rgba(View1f32 const& src, SubView const& dst);
+
+
+	void map_rgb(ViewBGR const& src, ViewRGBf32 const& dst);
+
+	void map_rgb(ViewRGB const& src, ViewRGBf32 const& dst);
+
+
 	inline void map_rgba(Image const& src, ViewRGBAf32 const& dst)
 	{
 		map_rgba(make_view(src), dst);
@@ -739,6 +759,24 @@ namespace simage
 	{
 		map_rgba(src, make_view(dst));
 	}
+}
+
+
+/* map_bgr */
+
+namespace simage
+{
+	void map_bgr_rgb(ViewBGR const& src, ViewRGBf32 const& dst);
+}
+
+
+/* map_yuv */
+
+namespace simage
+{
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
+
+	void map_yuv_rgba(ViewYUVf32 const& src, View const& dst);
 }
 
 
@@ -771,24 +809,6 @@ namespace simage
 }
 
 
-/* map_yuv */
-
-namespace simage
-{
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
-
-	void map_yuv_rgba(ViewYUVf32 const& src, View const& dst);
-}
-
-
-/* map_bgr */
-
-namespace simage
-{
-	void map_bgr_rgb(ViewBGR const& src, ViewRGBf32 const& dst);
-}
-
-
 /* copy */
 
 namespace simage
@@ -800,34 +820,6 @@ namespace simage
 	void copy(View2f32 const& src, View2f32 const& dst);
 
 	void copy(View1f32 const& src, View1f32 const& dst);
-
-
-	/*void copy(SubView4f32 const& src, SubView4f32 const& dst);
-
-	void copy(SubView4f32 const& src, View4f32 const& dst);
-
-	void copy(View4f32 const& src, SubView4f32 const& dst);
-
-
-	void copy(SubView3f32 const& src, SubView3f32 const& dst);
-
-	void copy(SubView3f32 const& src, View3f32 const& dst);
-
-	void copy(View3f32 const& src, SubView3f32 const& dst);
-
-
-	void copy(SubView2f32 const& src, SubView2f32 const& dst);
-
-	void copy(SubView2f32 const& src, View2f32 const& dst);
-
-	void copy(View2f32 const& src, SubView2f32 const& dst);
-
-
-	void copy(SubView1f32 const& src, SubView1f32 const& dst);
-
-	void copy(SubView1f32 const& src, View1f32 const& dst);
-
-	void copy(View1f32 const& src, SubView1f32 const& dst);*/
 }
 
 
@@ -842,15 +834,6 @@ namespace simage
 	void fill(View1f32 const& view, f32 gray);
 
 	void fill(View1f32 const& view, u8 gray);
-
-
-	/*void fill(SubView4f32 const& view, Pixel color);
-
-	void fill(SubView3f32 const& view, Pixel color);
-
-	void fill(SubView1f32 const& view, f32 gray);
-
-	void fill(SubView1f32 const& view, u8 gray);*/
 }
 
 

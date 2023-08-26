@@ -43,6 +43,7 @@ static inline u8 hypot_to_u8(f32 a, f32 b)
 #include "src/cpp/copy.cpp"
 #include "src/cpp/map_gray.cpp"
 #include "src/cpp/map_rgb.cpp"
+#include "src/cpp/map_color.cpp"
 //#include "src/cpp/map_channels.cpp"
 #include "src/cpp/alpha_blend.cpp"
 #include "src/cpp/for_each_pixel.cpp"

@@ -21,17 +21,6 @@ namespace simage
     }
 
 
-    template <typename RGB>
-    static inline void map_span_rgb(RGB* src, Pixel* dst, u32 len)
-    {
-        for (u32 i = 0; i < len; ++i)
-        {
-            auto rgb = src[i];
-            dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
-        }
-    }
-
-
     static inline void map_span_rgb(Pixel* src, RGBf32p const& dst, u32 len)
     {
         for (u32 i = 0; i < len; ++i)
@@ -53,6 +42,30 @@ namespace simage
             dst.G[i] =  cs::to_channel_f32(rgba.green);
             dst.B[i] =  cs::to_channel_f32(rgba.blue);
             dst.A[i] = cs::to_channel_f32(rgba.alpha);
+        }
+    }
+
+
+    template <typename RGB>
+    static inline void map_span_rgb(RGB* src, Pixel* dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto rgb = src[i];
+            dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
+        }
+    }
+
+
+    template <typename RGB>
+    static inline void map_span_rgb(RGB* src, RGBf32p dst, u32 len)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            auto rgb = src[i];
+            dst.R[i] =  cs::to_channel_f32(rgba.red);
+            dst.G[i] =  cs::to_channel_f32(rgba.green);
+            dst.B[i] =  cs::to_channel_f32(rgba.blue);
         }
     }
 
@@ -254,36 +267,24 @@ namespace simage
             map_span_rgb(s, d, src.width);
         }
     }
-}
 
 
-namespace simage
-{
-
-
-    static inline void map_span_yuv_rgb(YUV422u8* src, Pixel* dst, u32 len)
-    {
-        for (u32 i422 = 0; i422 < len / 2; ++i422)
-		{
-			auto yuv = src[i422];
-
-			auto i = 2 * i422;
-			auto rgb = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
-            dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
-
-			++i;
-			rgb = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
-			dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
-		}
-    }
-
-
-    void map_yuv_rgba(ViewYUV const& src, View const& dst)
+    void map_rgb(ViewBGR const& src, ViewRGBf32 const& dst)
     {
         assert(verify(src, dst));
 
         u32 len = src.width * src.height;
 
-        map_span_yuv_rgb((YUV422u8*)src.data, dst.data, len);
+        map_span_rgb(src.data, rgb_row_begin(dst, 0), len);
+    }
+
+
+    void map_rgb(ViewRGB const& src, ViewRGBf32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        u32 len = src.width * src.height;
+
+        map_span_rgb(src.data, rgb_row_begin(dst, 0), len);
     }
 }

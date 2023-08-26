@@ -35,6 +35,8 @@ namespace simage
 	}
 }
 
+#if 0
+
 
 /* alpha_blend no_simd */
 
@@ -219,6 +221,8 @@ namespace simage
 #endif // SIMAGE_NO_SIMD
 }
 
+#endif
+
 
 /* alpha blend */
 
@@ -229,7 +233,9 @@ namespace simage
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
-		alpha_blend_u8(src, cur, dst);
+		u32 len = src.width * src.height;
+
+		alpha_blend_span_u8_no_simd(src.data, cur.data, dst.data, len);
 	}
 
 
@@ -237,7 +243,9 @@ namespace simage
 	{
 		assert(verify(src, cur_dst));
 
-		alpha_blend_u8(src, cur_dst);
+		u32 len = src.width * src.height;
+
+		alpha_blend_span_u8_no_simd(src.data, cur_dst.data, cur_dst.data, len);
 	}
 }
 
@@ -252,25 +260,23 @@ namespace simage
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
-		auto const alpha_ch = select_channel(src, RGBA::A);
+		auto const alpha = select_channel(src, RGBA::A).data;
 		auto const src_rgb = select_rgb(src);
 
-		auto const channel_func = [&](RGB ch)
-		{
-			auto s_ch = select_channel(src_rgb, ch);
-			auto c_ch = select_channel(cur, ch);
-			auto d_ch = select_channel(dst, ch);
+		u32 len = src.width * src.height;
 
-			alpha_blend_f32(s_ch, c_ch, alpha_ch, d_ch);
+		RGB ch_rgb[3] = { RGB::R, RGB::G, RGB::B };
+
+		auto const ch_func = [&](u32 ch_id)
+		{
+			auto ch = ch_rgb[ch_id];
+			auto s = select_channel(src_rgb, ch).data;
+			auto c = select_channel(cur, ch).data;
+			auto d = select_channel(dst, ch).data;
+
+			alpha_blend_span_f32_no_simd(s, c, d, alpha, len);
 		};
 
-		std::array<std::function<void()>, 3> f_list
-		{
-			[&](){ channel_func(RGB::R); },
-			[&](){ channel_func(RGB::G); },
-			[&](){ channel_func(RGB::B); },
-		};
-
-    	execute(f_list);
+		process_range(0, 3, ch_func);
 	}
 }

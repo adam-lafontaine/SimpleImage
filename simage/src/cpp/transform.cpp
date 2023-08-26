@@ -3,7 +3,23 @@
 namespace simage
 {
 	template <class IMG_S, class IMG_D, class FUNC>	
-	static void do_transform(IMG_S const& src, IMG_D const& dst, FUNC const& func)
+	static void do_transform_view(IMG_S const& src, IMG_D const& dst, FUNC const& func)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				d[x] = func(s[x]);
+			}
+		}
+	}
+
+
+	template <class IMG_S, class IMG_D, class FUNC>	
+	static void do_transform_sub_view(IMG_S const& src, IMG_D const& dst, FUNC const& func)
 	{
 		for (u32 y = 0; y < src.height; ++y)
 		{

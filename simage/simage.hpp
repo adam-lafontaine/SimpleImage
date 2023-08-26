@@ -844,29 +844,31 @@ namespace simage
 }
 
 
-/* transform */
+/* binarize */
 
 namespace simage
 {
-	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func32);
+	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> const& func32);
 
-	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func32);
+	void binarize(View2f32 const& src, View1f32 const& dst, std::function<bool(f32, f32)> const& func32);
 
-	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func32);
+	void binarize(View3f32 const& src, View1f32 const& dst, std::function<bool(f32, f32, f32)> const& func32);
 
+	void binarize(View4f32 const& src, View1f32 const& dst, std::function<bool(f32, f32, f32, f32)> const& func32);
+}
+
+
+/* threshold */
+
+namespace simage
+{
 	
-	inline void transform_gray(ViewRGBf32 const& src, View1f32 const& dst)
-	{
-		return transform(src, dst, [](f32 red, f32 green, f32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
-	}
-
-
 	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32);
 
 	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32, f32 max32);
 
 
-	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> func32);
+	
 }
 
 

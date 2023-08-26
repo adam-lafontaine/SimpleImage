@@ -146,7 +146,7 @@ namespace simage
 	}
 
 
-	/*template <typename T, size_t N>
+	template <typename T, size_t N>
 	static std::array<T*, N> view_row_begin(ChannelMatrix2D<T, N> const& view, u32 y)
 	{
 		assert(verify(view));
@@ -162,7 +162,7 @@ namespace simage
 		}
 
 		return rows;
-	}*/
+	}
 
 
 	template <typename T, size_t N>

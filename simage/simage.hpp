@@ -312,6 +312,8 @@ namespace hist
 {
 	constexpr u32 MAX_HIST_BINS = 256;
 
+	constexpr u32 N_BINS = MAX_HIST_BINS;
+
 
 	class HistRGBf32
 	{
@@ -397,8 +399,6 @@ namespace hist
 
 			f32 list[12][MAX_HIST_BINS] = { 0 };
 		};
-
-		u32 n_bins = MAX_HIST_BINS;
 	};
 
 

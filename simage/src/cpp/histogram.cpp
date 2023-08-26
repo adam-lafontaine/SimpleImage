@@ -4,10 +4,64 @@ namespace simage
 {
 namespace hist
 {	
-
-	inline constexpr u8 to_hist_bin_u8(u8 val, u32 n_bins)
+	/*inline constexpr u8 to_hist_bin_u8(u8 val, u32 n_bins)
 	{
-		return val * n_bins / 256;
+		//return val * n_bins / 256;
+		return (val * n_bins) >> 8;
+	}*/
+
+
+	namespace lut
+    {
+		template <size_t N>
+		static constexpr std::array<u8, 256> make_hist_bins()
+		{
+			static_assert(N <= MAX_HIST_BINS);
+			static_assert(MAX_HIST_BINS % N == 0);
+
+			std::array<u8, 256> lut = {};
+
+            for (u32 i = 0; i < 256; ++i)
+            {
+                lut[i] = (i * N) >> 8;
+            }
+
+            return lut;
+		}
+		
+
+        static constexpr auto hist_bins_2 = make_hist_bins<2>();
+		static constexpr auto hist_bins_4 = make_hist_bins<4>();
+		static constexpr auto hist_bins_8 = make_hist_bins<8>();
+		static constexpr auto hist_bins_16 = make_hist_bins<16>();
+		static constexpr auto hist_bins_32 = make_hist_bins<32>();
+		static constexpr auto hist_bins_64 = make_hist_bins<64>();
+		static constexpr auto hist_bins_128 = make_hist_bins<128>();
+		static constexpr auto hist_bins_256 = make_hist_bins<256>();
+    }
+
+
+	static inline constexpr u8 to_hist_bin_u8(u8 val)
+	{
+		return lut::hist_bins_256[val];
+	}
+
+
+	static inline constexpr u8 to_hist_bin_u8(u8 val, u32 n_bins)
+	{
+		switch (n_bins)
+		{
+		case 2: return lut::hist_bins_2[val];
+		case 4: return lut::hist_bins_4[val];
+		case 8: return lut::hist_bins_8[val];
+		case 16: return lut::hist_bins_16[val];
+		case 32: return lut::hist_bins_32[val];
+		case 64: return lut::hist_bins_64[val];
+		case 128: return lut::hist_bins_128[val];
+		case 256: return lut::hist_bins_256[val];
+
+		default: return 0;
+		}
 	}
 
 
@@ -70,7 +124,6 @@ namespace hist
 		auto& h_hsv = dst.hsv;
 		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
-		auto n_bins = dst.n_bins;
 
 		f32 total = 0.0f;
 
@@ -80,30 +133,32 @@ namespace hist
 			auto lch = lch::u8_from_rgb_u8(red, green, blue);
 			auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
 
-			h_rgb.R[to_hist_bin_u8(red, n_bins)]++;
-			h_rgb.G[to_hist_bin_u8(green, n_bins)]++;
-			h_rgb.B[to_hist_bin_u8(blue, n_bins)]++;
+			h_rgb.R[to_hist_bin_u8(red)]++;
+			h_rgb.G[to_hist_bin_u8(green)]++;
+			h_rgb.B[to_hist_bin_u8(blue)]++;
 
 			if (hsv.sat)
 			{
-				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.H[to_hist_bin_u8(hsv.hue)]++;
 			}
 
-			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
-			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+			h_hsv.S[to_hist_bin_u8(hsv.sat)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val)]++;
 
-			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
-			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
-			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
+			h_lch.L[to_hist_bin_u8(lch.light)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue)]++;
 
-			h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
-			h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
-			h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+			h_yuv.Y[to_hist_bin_u8(yuv.y)]++;
+			h_yuv.U[to_hist_bin_u8(yuv.u)]++;
+			h_yuv.V[to_hist_bin_u8(yuv.v)]++;
 
 			total++;
 		};
 
 		for_each_rgb(src, update_bins);
+
+		u32 n_bins = MAX_HIST_BINS;
 
 		for (u32 i = 0; i < 12; ++i)
 		{
@@ -121,7 +176,6 @@ namespace hist
 		auto& h_hsv = dst.hsv;
 		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
-		auto n_bins = dst.n_bins;
 
 		auto const update_bins = [&](u8 yuv_y, u8 yuv_u, u8 yuv_v)
 		{
@@ -129,30 +183,32 @@ namespace hist
 			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 			auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
-			h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
-			h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
-			h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
+			h_rgb.R[to_hist_bin_u8(rgba.red)]++;
+			h_rgb.G[to_hist_bin_u8(rgba.green)]++;
+			h_rgb.B[to_hist_bin_u8(rgba.blue)]++;
 
 			if (hsv.sat)
 			{
-				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.H[to_hist_bin_u8(hsv.hue)]++;
 			}
 
-			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
-			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+			h_hsv.S[to_hist_bin_u8(hsv.sat)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val)]++;
 
-			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
-			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
-			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
+			h_lch.L[to_hist_bin_u8(lch.light)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue)]++;
 
-			h_yuv.Y[to_hist_bin_u8(yuv_y, n_bins)]++;
-			h_yuv.U[to_hist_bin_u8(yuv_u, n_bins)]++;
-			h_yuv.V[to_hist_bin_u8(yuv_v, n_bins)]++;
+			h_yuv.Y[to_hist_bin_u8(yuv_y)]++;
+			h_yuv.U[to_hist_bin_u8(yuv_u)]++;
+			h_yuv.V[to_hist_bin_u8(yuv_v)]++;
 		};
 
 		f32 total = 0.0f;
 
 		for_each_yuv(src, update_bins);
+
+		u32 n_bins = MAX_HIST_BINS;
 
 		for (u32 i = 0; i < 12; ++i)
 		{
@@ -170,7 +226,6 @@ namespace hist
 		auto& h_hsv = dst.hsv;
 		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
-		auto n_bins = dst.n_bins;
 
 		f32 total = 0.0f;
 
@@ -180,30 +235,32 @@ namespace hist
 			auto lch = lch::u8_from_rgb_u8(red, green, blue);
 			auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
 
-			h_rgb.R[to_hist_bin_u8(red, n_bins)]++;
-			h_rgb.G[to_hist_bin_u8(green, n_bins)]++;
-			h_rgb.B[to_hist_bin_u8(blue, n_bins)]++;
+			h_rgb.R[to_hist_bin_u8(red)]++;
+			h_rgb.G[to_hist_bin_u8(green)]++;
+			h_rgb.B[to_hist_bin_u8(blue)]++;
 
 			if (hsv.sat)
 			{
-				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
+				h_hsv.H[to_hist_bin_u8(hsv.hue)]++;
 			}
 
-			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
-			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
+			h_hsv.S[to_hist_bin_u8(hsv.sat)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val)]++;
 
-			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
-			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
-			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
+			h_lch.L[to_hist_bin_u8(lch.light)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue)]++;
 
-			h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
-			h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
-			h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
+			h_yuv.Y[to_hist_bin_u8(yuv.y)]++;
+			h_yuv.U[to_hist_bin_u8(yuv.u)]++;
+			h_yuv.V[to_hist_bin_u8(yuv.v)]++;
 
 			total++;
 		};
 
 		for_each_bgr(src, update_bins);
+
+		u32 n_bins = MAX_HIST_BINS;
 
 		for (u32 i = 0; i < 12; ++i)
 		{
@@ -218,8 +275,8 @@ namespace hist
 	void make_histograms(View const& src, Histogram12f32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
-		assert(dst.n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % dst.n_bins == 0);
+		static_assert(N_BINS <= MAX_HIST_BINS);
+		static_assert(MAX_HIST_BINS % N_BINS == 0);
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };
@@ -233,8 +290,8 @@ namespace hist
 	void make_histograms(ViewYUV const& src, Histogram12f32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
-		assert(dst.n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % dst.n_bins == 0);
+		static_assert(N_BINS <= MAX_HIST_BINS);
+		static_assert(MAX_HIST_BINS % N_BINS == 0);
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };
@@ -248,8 +305,8 @@ namespace hist
 	void make_histograms(ViewBGR const& src, Histogram12f32& dst)
 	{
 		static_assert(MAX_HIST_BINS == 256);
-		assert(dst.n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % dst.n_bins == 0);
+		static_assert(N_BINS <= MAX_HIST_BINS);
+		static_assert(MAX_HIST_BINS % N_BINS == 0);
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };

@@ -290,8 +290,8 @@ namespace simage
 
 		u32 w = 0;
 
-		u32 v = w / k_width;
-		u32 u = w - (v * k_width);
+		u32 v = 0;
+		u32 u = 0;
 
 		auto kw = kernel[w];
 		auto s = row_begin(src, ry + v);

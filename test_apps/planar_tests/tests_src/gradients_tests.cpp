@@ -48,7 +48,7 @@ void gradients_xy_tests(img::View const& out)
 
     img::gradients_xy(src, dst);
 
-    auto to_abs = [](f32 p) { return p < 0.0f ? p * -1.0f : p; };
+    auto to_abs = [](f32& p) { p = p < 0.0f ? p * -1.0f : p; };
 
     img::for_each_pixel(grad_x, to_abs);
     img::for_each_pixel(grad_y, to_abs);

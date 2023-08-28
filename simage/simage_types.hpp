@@ -114,7 +114,7 @@ namespace simage
 
 	template <typename T>
 	using SubView1 = SubMatrixView2D<T>;
-	
+
 	using SubView1u8 = SubViewGray;
 
 
@@ -128,6 +128,8 @@ namespace simage
 	using ViewHSVf32 = View3f32;
 	using ViewYUVf32 = View3f32;
 	using ViewLCHf32 = View3f32;
+
+	using SubView1f32 = SubView1<f32>;
 
 
 	/*template <typename T, size_t N>

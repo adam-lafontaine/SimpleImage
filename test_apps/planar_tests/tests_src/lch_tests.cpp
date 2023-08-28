@@ -51,22 +51,9 @@ void lch_draw_test(img::View const& out)
     auto view_C = img::select_channel(lch, img::LCH::C);
     auto view_H = img::select_channel(lch, img::LCH::H);
 
-    auto r = make_range(width, height);
-    for (u32 x = 0; x < width; ++x)
-    {
-        r.x_begin = x;
-        r.x_end = x + 1;
-        img::fill(img::sub_view(view_H, r), (f32)x / width);
-    }
+    img::for_each_xy(view_H, [width](u32 x, u32 y) { return (f32)x / width; });
 
-    r = make_range(width, height);
-    for (u32 y = 0; y < height; ++y)
-    {
-        r.y_begin = y;
-        r.y_end = y + 1;
-
-        img::fill(img::sub_view(view_C, r), (f32)y / height);
-    }
+    img::for_each_xy(view_C, [height](u32 x, u32 y) { return (f32)y / height; });
 
     img::fill(view_L, 1.0f);
 

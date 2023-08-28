@@ -230,6 +230,16 @@ namespace simage
 	void for_each_pixel(SubView const& view, std::function<void(Pixel&)> const& func);
 
 	void for_each_pixel(SubViewGray const& view, std::function<void(u8&)> const& func);
+
+
+	void for_each_xy(View const& view, std::function<Pixel(u32 x, u32 y)> const& func);
+
+	void for_each_xy(SubView const& view, std::function<Pixel(u32 x, u32 y)> const& func);
+
+
+	void for_each_xy(ViewGray const& view, std::function<u8(u32 x, u32 y)> const& func);
+
+	void for_each_xy(SubViewGray const& view, std::function<u8(u32 x, u32 y)> const& func);
 }
 
 
@@ -630,6 +640,31 @@ namespace simage
 	View3f32 make_view_3(u32 width, u32 height, Buffer32& buffer);
 
 	View4f32 make_view_4(u32 width, u32 height, Buffer32& buffer);
+	
+
+	inline View1f32 make_view_1(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_1(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+	
+
+	inline View2f32 make_view_2(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_2(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+	
+
+	inline View3f32 make_view_3(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_3(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+	
+
+	inline View4f32 make_view_4(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_4(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+
 }
 
 
@@ -857,6 +892,8 @@ namespace simage
 namespace simage
 {
 	void for_each_pixel(View1f32 const& view, std::function<void(f32&)> const& func);
+
+	void for_each_xy(View1f32 const& view, std::function<f32(u32 x, u32 y)> const& func);
 }
 
 

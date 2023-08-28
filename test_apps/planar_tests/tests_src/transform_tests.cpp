@@ -30,30 +30,6 @@ void transform_test(img::View const& out)
 }
 
 
-void transform_gray_test(img::View const& out)
-{
-    auto const width = out.width;
-    auto const height = out.height;
-
-    auto buffer = img::create_buffer32(width * height * 5);
-
-    img::Image image;
-    auto view = img::make_view_resized_from_file(CORVETTE_PATH, image, width, height, buffer);
-
-    auto src = img::make_view_3(width, height, buffer);
-    auto dst = img::make_view_1(width, height, buffer);
-
-    img::map_rgb(view, src);
-
-    img::transform_gray(src, dst);
-
-    img::map_rgba(dst, out);
-    
-    img::destroy_buffer(buffer);
-    img::destroy_image(image);
-}
-
-
 void threshold_test(img::View const& out)
 {
     auto const width = out.width;

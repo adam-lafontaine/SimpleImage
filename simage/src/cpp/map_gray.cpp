@@ -209,6 +209,26 @@ namespace simage
 	}
 
 
+	static inline void map_span_rgb_to_gray(BGRu8* src, u8* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto bgr = src[i];
+			dst[i] = gray::u8_from_rgb_u8(bgr.red, bgr.green, bgr.blue);
+		}
+	}
+
+
+	static inline void map_span_rgb_to_gray(RGBu8* src, u8* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgb = src[i];
+			dst[i] = gray::u8_from_rgb_u8(rgb.red, rgb.green, rgb.blue);
+		}
+	}
+
+
 	static inline void map_span_rgb_to_gray(Pixel* src, f32* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
@@ -359,6 +379,86 @@ namespace simage
 
         map_sub_view_rgb_to_gray(src, dst);
     }
+
+
+	void map_gray(View const& src, SubViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+	}
+
+
+	void map_gray(SubView const& src, SubViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+	}
+
+
+	void map_gray(ViewBGR const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_view_rgb_to_gray(src, dst);
+	}
+
+
+    void map_gray(SubViewBGR const& src, ViewGray const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+    }
+
+
+	void map_gray(ViewBGR const& src, SubViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+	}
+
+
+	void map_gray(SubViewBGR const& src, SubViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+	}
+
+
+	void map_gray(ViewRGB const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_view_rgb_to_gray(src, dst);
+	}
+
+
+    void map_gray(SubViewRGB const& src, ViewGray const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+    }
+
+
+	void map_gray(ViewRGB const& src, SubViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+	}
+
+
+	void map_gray(SubViewRGB const& src, SubViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_sub_view_rgb_to_gray(src, dst);
+	}
 
 
 	void map_gray(ViewYUV const& src, ViewGray const& dst)

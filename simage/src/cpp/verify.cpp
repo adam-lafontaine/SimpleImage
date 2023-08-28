@@ -89,6 +89,25 @@ namespace simage
 
 #endif // SIMAGE_NO_CUDA
 
+#ifndef SIMAGE_NO_USB_CAMERA
+
+	static bool verify(CameraUSB const& camera)
+	{
+		return camera.frame_width && camera.frame_height && camera.max_fps && camera.device_id >= 0;
+	}
+
+
+	template <typename T>
+	static bool verify(CameraUSB const& camera, MatrixView2D<T> const& view)
+	{
+		return verify(camera) && verify(view) &&
+			camera.frame_width == view.width &&
+			camera.frame_height == view.height;
+	}
+
+
+#endif // SIMAGE_NO_USB_CAMERA
+
 
 	template <class IMG_A, class IMG_B>
 	static bool verify(IMG_A const& lhs, IMG_B const& rhs)

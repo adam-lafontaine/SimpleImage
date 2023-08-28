@@ -172,6 +172,29 @@ namespace simage
 
 	void map_gray(SubView const& src, ViewGray const& dst);
 
+	void map_gray(View const& src, SubViewGray const& dst);
+
+	void map_gray(SubView const& src, SubViewGray const& dst);
+
+
+	void map_gray(ViewBGR const& src, ViewGray const& dst);
+
+	void map_gray(SubViewBGR const& src, ViewGray const& dst);
+
+	void map_gray(ViewBGR const& src, SubViewGray const& dst);
+
+	void map_gray(SubViewBGR const& src, SubViewGray const& dst);
+
+
+	void map_gray(ViewRGB const& src, ViewGray const& dst);
+
+	void map_gray(SubViewRGB const& src, ViewGray const& dst);
+
+	void map_gray(ViewRGB const& src, SubViewGray const& dst);
+
+	void map_gray(SubViewRGB const& src, SubViewGray const& dst);
+
+
 	void map_gray(ViewYUV const& src, ViewGray const& dst);
 }
 
@@ -595,15 +618,13 @@ namespace simage
 		u32 frame_height = 0;
 		u32 max_fps = 0;
 
-		Image frame_image;
-
-		Range2Du32 roi;
+		Image cb_image;
 
 		bool is_open;
 	};
 	
-	using rgb_callback = std::function<void(SubView const&)>;
-	using gray_callback = std::function<void(SubViewGray const&)>;
+	using view_callback = std::function<void(View const&)>;
+	using view_gray_callback = std::function<void(ViewGray const&)>;
 	using bool_f = std::function<bool()>;
 
 
@@ -611,19 +632,43 @@ namespace simage
 
 	void close_camera(CameraUSB& camera);
 
+
 	bool grab_rgb(CameraUSB const& camera, View const& dst);
 
-	bool grab_rgb(CameraUSB const& camera, rgb_callback const& grab_cb);
+	bool grab_rgb(CameraUSB const& camera, SubView const& dst);
 
-	bool grab_rgb_continuous(CameraUSB const& camera, rgb_callback const& grab_cb, bool_f const& grab_condition);
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, View const& dst);
+
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, SubView const& dst);
+
+
+	bool grab_rgb(CameraUSB const& camera, view_callback const& grab_cb);
+
+	bool grab_rgb_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition);
+
+
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, view_callback const& grab_cb);
+
+	bool grab_rgb_continuous(CameraUSB const& camera, Range2Du32 const& roi, view_callback const& grab_cb, bool_f const& grab_condition);
+
 	
 	bool grab_gray(CameraUSB const& camera, ViewGray const& dst);
 
-	bool grab_gray(CameraUSB const& camera, gray_callback const& grab_cb);
+	bool grab_gray(CameraUSB const& camera, SubViewGray const& dst);
 
-	bool grab_gray_continuous(CameraUSB const& camera, gray_callback const& grab_cb, bool_f const& grab_condition);
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, ViewGray const& dst);
 
-	void set_roi(CameraUSB& camera, Range2Du32 roi);
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, SubViewGray const& dst);
+
+
+	bool grab_gray(CameraUSB const& camera, view_gray_callback const& grab_cb);
+
+	bool grab_gray_continuous(CameraUSB const& camera, view_gray_callback const& grab_cb, bool_f const& grab_condition);
+
+
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, view_gray_callback const& grab_cb);
+
+	bool grab_gray_continuous(CameraUSB const& camera, Range2Du32 const& roi, view_gray_callback const& grab_cb, bool_f const& grab_condition);
 
 #endif // !SIMAGE_NO_USB_CAMERA
 }

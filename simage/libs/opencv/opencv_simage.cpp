@@ -17,37 +17,12 @@ class DeviceCV
 public:
 	cv::VideoCapture capture;
 	cv::Mat bgr_frame;
-	img::ImageBGR bgr_image;
 
-	img::ImageGray gray_image;
+	img::ImageBGR bgr_image;
 };
 
 
 static DeviceCV g_devices[N_CAMERAS];
-
-
-/* verify */
-
-#ifndef NDEBUG
-
-namespace simage
-{
-	static bool verify(CameraUSB const& camera)
-	{
-		return camera.frame_width && camera.frame_height && camera.max_fps && camera.device_id >= 0;
-	}
-
-
-	template <typename T>
-	static bool verify(CameraUSB const& camera, SubMatrix2D<T> const& view)
-	{
-		return verify(camera) && verify(view) &&
-			camera.frame_width == view.width &&
-			camera.frame_height == view.height;
-	}
-}
-
-#endif
 
 
 static void close_all_cameras()
@@ -83,30 +58,6 @@ static bool grab_and_convert_frame_bgr(DeviceCV& device)
 }
 
 
-static bool grab_and_convert_frame_gray(DeviceCV& device)
-{
-	if (!grab_and_convert_frame_bgr(device))
-	{
-		return false;
-	}
-
-	auto const to_gray = [&](u32 i) 
-	{
-		auto src = device.bgr_image.data_[i];
-		auto& dst = device.gray_image.data_[i];
-		auto gray = 0.299f * src.red + 0.587f * src.green + 0.114f * src.blue;
-		dst = (u8)(gray + 0.5f);
-	};
-
-	auto n_pixels = device.bgr_image.width * device.bgr_image.height;
-
-	process_range(0, n_pixels, to_gray);
-
-	return true;
-}
-
-
-
 namespace simage
 {
 	static bool camera_is_initialized(CameraUSB const& camera)
@@ -137,13 +88,7 @@ namespace simage
 		camera.frame_height = (u32)cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 		camera.max_fps = (u32)cap.get(cv::CAP_PROP_FPS);
 
-		if (!create_image(camera.frame_image, camera.frame_width, camera.frame_height))
-		{
-			cap.release();
-			return false;
-		}
-
-		if (!create_image(device.gray_image, camera.frame_width, camera.frame_height))
+		if (!create_image(camera.cb_image, camera.frame_width, camera.frame_height))
 		{
 			cap.release();
 			return false;
@@ -153,9 +98,6 @@ namespace simage
 		device.bgr_image.width = camera.frame_width;
 		device.bgr_image.height = camera.frame_height;
 		device.bgr_image.data_ = (BGRu8*)(12345);
-
-		auto roi = make_range(camera.frame_width, camera.frame_height);
-		set_roi(camera, roi);
 
 		camera.is_open = true;
 
@@ -176,10 +118,7 @@ namespace simage
 			return;
 		}
 		
-		destroy_image(camera.frame_image);
-
-		auto& device = g_devices[camera.device_id];
-		destroy_image(device.gray_image);
+		destroy_image(camera.cb_image);
 
 		close_all_cameras();
 	}
@@ -201,15 +140,24 @@ namespace simage
 			return false;
 		}
 
-		auto device_view = sub_view(device.bgr_image, camera.roi);
+		if (camera.frame_width == dst.width && camera.frame_height == dst.height)
+		{
+			map_rgba(img::make_view(device.bgr_image), dst);
+		}
+		else
+		{
+			auto width = std::min(camera.frame_width, dst.width);
+			auto height = std::min(camera.frame_height, dst.height);
+			auto r = make_range(width, height);
 
-		map_rgba(device_view, dst);
+			map_rgba(img::sub_view(device.bgr_image, r), img::sub_view(dst, r));
+		}
 
 		return true;
 	}
 
 
-	bool grab_rgb(CameraUSB const& camera, rgb_callback const& grab_cb)
+	bool grab_rgb(CameraUSB const& camera, SubView const& dst)
 	{
 		assert(verify(camera));
 
@@ -225,17 +173,17 @@ namespace simage
 			return false;
 		}
 
-		auto device_view = sub_view(device.bgr_image, camera.roi);
-		auto camera_view = sub_view(camera.frame_image, camera.roi);
+		auto width = std::min(camera.frame_width, dst.width);
+		auto height = std::min(camera.frame_height, dst.height);
+		auto r = make_range(width, height);
 
-		map_rgba(device_view, camera_view);
-		grab_cb(camera_view);
+		map_rgba(img::sub_view(device.bgr_image, r), img::sub_view(dst, r));
 
-        return true;
+		return true;
 	}
 
 
-	bool grab_rgb_continuous(CameraUSB const& camera, rgb_callback const& grab_cb, bool_f const& grab_condition)
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, View const& dst)
 	{
 		assert(verify(camera));
 
@@ -246,20 +194,140 @@ namespace simage
 
 		auto& device = g_devices[camera.device_id];
 
-		auto device_view = sub_view(device.bgr_image, camera.roi);
-		auto camera_view = sub_view(camera.frame_image, camera.roi);
+		if (!grab_and_convert_frame_bgr(device))
+		{
+			return false;
+		}
+
+		auto device_view = sub_view(device.bgr_image, roi);
+
+		auto width = std::min(device_view.width, dst.width);
+		auto height = std::min(device_view.height, dst.height);
+		auto r = make_range(width, height);
+
+		map_rgba(img::sub_view(device_view, r), img::sub_view(dst, r));
+
+		return true;
+	}
+
+
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, SubView const& dst)
+	{
+		assert(verify(camera));
+
+		if (!camera_is_initialized(camera))
+		{
+			return false;
+		}
+
+		auto& device = g_devices[camera.device_id];
+
+		if (!grab_and_convert_frame_bgr(device))
+		{
+			return false;
+		}
+
+		auto device_view = sub_view(device.bgr_image, roi);
+
+		auto width = std::min(device_view.width, dst.width);
+		auto height = std::min(device_view.height, dst.height);
+		auto r = make_range(width, height);
+
+		map_rgba(img::sub_view(device_view, r), img::sub_view(dst, r));
+
+		return true;
+	}
+
+
+	bool grab_rgb(CameraUSB const& camera, view_callback const& grab_cb)
+	{
+		assert(verify(camera));
+
+		auto view = img::make_view(camera.cb_image);
+
+		if (!grab_rgb(camera, view))
+		{
+			return false;
+		}
+
+		grab_cb(view);
+
+		return true;
+	}
+
+
+	bool grab_rgb_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition)
+	{
+		assert(verify(camera));
+
+		if (!camera_is_initialized(camera))
+		{
+			return false;
+		}
+
+		auto& device = g_devices[camera.device_id];
+
+		auto camera_view = img::make_view(camera.cb_image);
 
 		while (grab_condition())
 		{
 			if (grab_and_convert_frame_bgr(device))
 			{
-				device_view = sub_view(device.bgr_image, camera.roi);
-				map_rgba(device_view, camera_view);
+				map_rgba(img::make_view(device.bgr_image), camera_view);
 				grab_cb(camera_view);
 			}
 		}
 
-		return false;
+		return true;
+	}
+
+
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, view_callback const& grab_cb)
+	{
+		assert(verify(camera));
+
+		img::View camera_view{};
+		camera_view.data = camera.cb_image.data_;
+		camera_view.width = roi.x_end - roi.x_begin;
+		camera_view.height = roi.y_end - roi.y_end;
+
+		if (!grab_rgb(camera, roi, camera_view))
+		{
+			return false;
+		}
+
+		grab_cb(camera_view);
+
+		return true;
+	}
+
+
+	bool grab_rgb_continuous(CameraUSB const& camera, Range2Du32 const& roi, view_callback const& grab_cb, bool_f const& grab_condition)
+	{
+		assert(verify(camera));
+
+		if (!camera_is_initialized(camera))
+		{
+			return false;
+		}
+
+		auto& device = g_devices[camera.device_id];
+
+		img::View camera_view{};
+		camera_view.data = camera.cb_image.data_;
+		camera_view.width = roi.x_end - roi.x_begin;
+		camera_view.height = roi.y_end - roi.y_end;
+
+		while (grab_condition())
+		{
+			if (grab_and_convert_frame_bgr(device))
+			{
+				map_rgba(sub_view(device.bgr_image, roi), camera_view);
+				grab_cb(camera_view);
+			}
+		}
+
+		return true;
 	}
 
 
@@ -274,20 +342,29 @@ namespace simage
 
 		auto& device = g_devices[camera.device_id];
 
-		if (!grab_and_convert_frame_gray(device))
+		if (!grab_and_convert_frame_bgr(device))
 		{
 			return false;
 		}
 
-		auto device_view = sub_view(device.gray_image, camera.roi);
+		if (camera.frame_width == dst.width && camera.frame_height == dst.height)
+		{
+			map_gray(img::make_view(device.bgr_image), dst);
+		}
+		else
+		{
+			auto width = std::min(camera.frame_width, dst.width);
+			auto height = std::min(camera.frame_height, dst.height);
+			auto r = make_range(width, height);
 
-		copy(device_view, dst);
+			map_gray(img::sub_view(device.bgr_image, r), img::sub_view(dst, r));
+		}
 
 		return true;
 	}
 
 
-	bool grab_gray(CameraUSB const& camera, gray_callback const& grab_cb)
+	bool grab_gray(CameraUSB const& camera, SubViewGray const& dst)
 	{
 		assert(verify(camera));
 
@@ -298,20 +375,22 @@ namespace simage
 
 		auto& device = g_devices[camera.device_id];
 
-		if (!grab_and_convert_frame_gray(device))
+		if (!grab_and_convert_frame_bgr(device))
 		{
 			return false;
 		}
 
-		auto device_view = sub_view(device.gray_image, camera.roi);
+		auto width = std::min(camera.frame_width, dst.width);
+		auto height = std::min(camera.frame_height, dst.height);
+		auto r = make_range(width, height);
 
-		grab_cb(device_view);
+		map_gray(img::sub_view(device.bgr_image, r), img::sub_view(dst, r));
 
 		return true;
 	}
 
 
-	bool grab_gray_continuous(CameraUSB const& camera, gray_callback const& grab_cb, bool_f const& grab_condition)
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, ViewGray const& dst)
 	{
 		assert(verify(camera));
 
@@ -322,13 +401,93 @@ namespace simage
 
 		auto& device = g_devices[camera.device_id];
 
-		auto device_view = sub_view(device.gray_image, camera.roi);
+		if (!grab_and_convert_frame_bgr(device))
+		{
+			return false;
+		}
+
+		auto device_view = sub_view(device.bgr_image, roi);
+
+		auto width = std::min(device_view.width, dst.width);
+		auto height = std::min(device_view.height, dst.height);
+		auto r = make_range(width, height);
+
+		map_gray(img::sub_view(device_view, r), img::sub_view(dst, r));
+
+		return true;
+	}
+
+
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, SubViewGray const& dst)
+	{
+		assert(verify(camera));
+
+		if (!camera_is_initialized(camera))
+		{
+			return false;
+		}
+
+		auto& device = g_devices[camera.device_id];
+
+		if (!grab_and_convert_frame_bgr(device))
+		{
+			return false;
+		}
+
+		auto device_view = sub_view(device.bgr_image, roi);
+
+		auto width = std::min(device_view.width, dst.width);
+		auto height = std::min(device_view.height, dst.height);
+		auto r = make_range(width, height);
+
+		map_gray(img::sub_view(device_view, r), img::sub_view(dst, r));
+
+		return true;
+	}
+
+
+	bool grab_gray(CameraUSB const& camera, view_gray_callback const& grab_cb)
+	{
+		assert(verify(camera));
+
+		img::ViewGray camera_view{};
+		camera_view.data = (u8*)camera.cb_image.data_;
+		camera_view.width = camera.frame_width;
+		camera_view.height = camera.frame_height;
+
+		if (!grab_gray(camera, camera_view))
+		{
+			return false;
+		}
+
+		grab_cb(camera_view);
+
+		return true;
+	}
+
+
+	bool grab_gray_continuous(CameraUSB const& camera, view_gray_callback const& grab_cb, bool_f const& grab_condition)
+	{
+		assert(verify(camera));
+
+		if (!camera_is_initialized(camera))
+		{
+			return false;
+		}
+
+		auto& device = g_devices[camera.device_id];
+
+		img::ViewGray camera_view{};
+		camera_view.data = (u8*)camera.cb_image.data_;
+		camera_view.width = camera.frame_width;
+		camera_view.height = camera.frame_height;
 
 		while (grab_condition())
 		{
-			if (grab_and_convert_frame_gray(device))
+			if (grab_and_convert_frame_bgr(device))
 			{
-				grab_cb(device_view);
+				map_gray(img::make_view(device.bgr_image), camera_view);
+				grab_cb(camera_view);
 			}
 		}
 
@@ -336,14 +495,54 @@ namespace simage
 	}
 
 
-	void set_roi(CameraUSB& camera, Range2Du32 roi)
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, view_gray_callback const& grab_cb)
 	{
-		if (roi.x_end <= camera.frame_image.width &&
-			roi.x_begin < roi.x_end &&
-			roi.y_end <= camera.frame_height &&
-			roi.y_begin < roi.y_end)
+		assert(verify(camera));
+
+		img::ViewGray camera_view{};
+		camera_view.data = (u8*)camera.cb_image.data_;
+		camera_view.width = roi.x_end - roi.x_begin;
+		camera_view.height = roi.y_end - roi.y_end;
+
+		if (!grab_gray(camera, roi, camera_view))
 		{
-			camera.roi = roi;
+			return false;
 		}
+
+		grab_cb(camera_view);
+
+		return true;
+
+
+		return true;
+	}
+
+
+	bool grab_gray_continuous(CameraUSB const& camera, Range2Du32 const& roi, view_gray_callback const& grab_cb, bool_f const& grab_condition)
+	{
+		assert(verify(camera));
+
+		if (!camera_is_initialized(camera))
+		{
+			return false;
+		}
+
+		auto& device = g_devices[camera.device_id];
+
+		img::ViewGray camera_view{};
+		camera_view.data = (u8*)camera.cb_image.data_;
+		camera_view.width = roi.x_end - roi.x_begin;
+		camera_view.height = roi.y_end - roi.y_end;
+
+		while (grab_condition())
+		{
+			if (grab_and_convert_frame_bgr(device))
+			{
+				map_gray(sub_view(device.bgr_image, roi), camera_view);
+				grab_cb(camera_view);
+			}
+		}
+
+		return true;
 	}
 }

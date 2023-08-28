@@ -280,6 +280,18 @@ namespace simage
 
 		return sub_view;
 	}
+
+
+	SubView1f32 sub_view(View1f32 const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
 }
 
 

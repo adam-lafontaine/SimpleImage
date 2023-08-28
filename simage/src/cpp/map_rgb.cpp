@@ -133,8 +133,8 @@ namespace simage
     }
 
 
-    template <class ViewSRC>
-    static inline void map_sub_view_gray_rgb(ViewSRC const& src, SubView const& dst)
+    template <class ViewSRC, class ViewDST>
+    static inline void map_sub_view_gray_rgb(ViewSRC const& src, ViewDST const& dst)
     {
         assert(verify(src, dst));
 
@@ -327,7 +327,23 @@ namespace simage
     }
 
 
+	void map_rgba(SubView1f32 const& src, View const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_sub_view_gray_rgb(src, dst);
+    }
+
+
 	void map_rgba(View1f32 const& src, SubView const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_sub_view_gray_rgb(src, dst);
+    }
+
+
+	void map_rgba(SubView1f32 const& src, SubView const& dst)
     {
         assert(verify(src, dst));
 

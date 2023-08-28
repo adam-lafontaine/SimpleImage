@@ -405,6 +405,14 @@ namespace simage
     }
 
 
+	void map_gray(SubView1f32 const& src, SubView1u8 const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_sub_view_gray_1(src, dst);
+    }
+
+
     void map_gray(ViewYUV const& src, View1f32 const& dst)
     {
         assert(verify(src, dst));

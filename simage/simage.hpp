@@ -620,7 +620,7 @@ namespace simage
 
 		Image cb_image;
 
-		bool is_open;
+		bool is_open = false;
 	};
 	
 	using view_callback = std::function<void(View const&)>;

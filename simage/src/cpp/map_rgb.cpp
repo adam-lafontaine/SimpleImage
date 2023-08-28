@@ -114,7 +114,7 @@ namespace simage
     template <class ViewSRC, class ViewDST>
     static inline void map_sub_view_rgb(ViewSRC const& src, ViewDST const& dst)
     {
-        for (u32 y = 0; y < src.width; ++y)
+        for (u32 y = 0; y < src.height; ++y)
         {
             auto s = row_begin(src, y);
             auto d = row_begin(dst, y);
@@ -138,7 +138,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.width; ++y)
+        for (u32 y = 0; y < src.height; ++y)
         {
             auto s = row_begin(src, y);
             auto d = row_begin(dst, y);
@@ -237,7 +237,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.width; ++y)
+        for (u32 y = 0; y < src.height; ++y)
         {
             auto s = row_begin(src, y);
             auto d = rgba_row_begin(dst, y);
@@ -261,7 +261,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.width; ++y)
+        for (u32 y = 0; y < src.height; ++y)
         {
             auto s = row_begin(src, y);
             auto d = rgb_row_begin(dst, y);
@@ -285,7 +285,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.width; ++y)
+        for (u32 y = 0; y < src.height; ++y)
         {
             auto s = rgba_row_begin(src, y);
             auto d = row_begin(dst, y);
@@ -299,7 +299,7 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        for (u32 y = 0; y < src.width; ++y)
+        for (u32 y = 0; y < src.height; ++y)
         {
             auto s = rgb_row_begin(src, y);
             auto d = row_begin(dst, y);

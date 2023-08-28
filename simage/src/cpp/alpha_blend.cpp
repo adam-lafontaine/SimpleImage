@@ -260,8 +260,8 @@ namespace simage
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
-		auto const alpha = select_channel(src, RGBA::A).data;
-		auto const src_rgb = select_rgb(src);
+		auto alpha = select_channel(src, RGBA::A).data;
+		auto src_rgb = select_rgb(src);
 
 		u32 len = src.width * src.height;
 
@@ -274,7 +274,7 @@ namespace simage
 			auto c = select_channel(cur, ch).data;
 			auto d = select_channel(dst, ch).data;
 
-			alpha_blend_span_f32_no_simd(s, c, d, alpha, len);
+			alpha_blend_span_f32_no_simd(s, c, alpha, d, len);
 		};
 
 		process_range(0, 3, ch_func);

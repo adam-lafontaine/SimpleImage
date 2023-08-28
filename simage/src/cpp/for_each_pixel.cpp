@@ -86,8 +86,8 @@ namespace simage
 
 		for (u32 i = 0; i < len; ++i)
 		{
-			y = len / view.width;
-			x = len - (view.width * y);
+			y = i / view.width;
+			x = i - (view.width * y);
 
 			view.data[i] = func(x, y);
 		}

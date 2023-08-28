@@ -63,7 +63,7 @@ void fill_rgb_test(img::View const& out)
 
     auto red_3 = img::make_view_3(left, buffer);
     auto green_3 = img::make_view_3(mid, buffer);
-    auto blue_3 = img::make_view_3(left, buffer);
+    auto blue_3 = img::make_view_3(right, buffer);
 
     img::fill(red_3, red);
     img::fill(green_3, green);
@@ -71,7 +71,7 @@ void fill_rgb_test(img::View const& out)
 
     img::map_rgba(red_3, img::sub_view(out, left));
     img::map_rgba(green_3, img::sub_view(out, mid));
-    img::map_rgba(blue_3, img::sub_view(out, left));
+    img::map_rgba(blue_3, img::sub_view(out, right));
 
     mb::destroy_buffer(buffer);
 }

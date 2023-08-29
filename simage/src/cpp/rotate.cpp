@@ -24,7 +24,7 @@ namespace simage
 
 
     template <typename T>
-    static T get_pixel_value(MatrixView2D<T> const& src, Point2Df32 location)
+    static T get_pixel_value(View1<T> const& src, Point2Df32 location)
     {
         constexpr auto zero = 0.0f;
 		constexpr auto black = (T)0;
@@ -83,12 +83,34 @@ namespace simage
 	}
 
 
-	template <typename T, size_t N>
+	/*template <typename T, size_t N>
     static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 origin, f32 rad)
 	{
 		for (u32 ch = 0; ch < N; ++ch)
 		{
 			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
+		}
+	}*/
+
+
+	template <typename T, size_t N>
+	static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 origin, f32 rad)
+	{
+		auto ch_src = split_channels(src);
+
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = view_row_begin(dst, y);
+
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src(x, y, origin, rad);
+
+				for (u32 ch = 0; ch < (u32)N; ++ch)
+				{
+					d[ch][x] = get_pixel_value(ch_src[ch], src_pt);
+				}
+			}
 		}
 	}
 }

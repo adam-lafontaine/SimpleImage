@@ -129,13 +129,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = row_offset(view, y);
+		auto offset = y * view.width;
 
 		std::array<T*, N> rows = { 0 };
 
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			rows[ch] = view.channel_data_[ch] + offset;
+			rows[ch] = view.channel_data[ch] + offset;
 		}
 
 		return rows;
@@ -146,10 +146,22 @@ namespace simage
 	static T* channel_row_begin(ChannelMatrix2D<T, N> const& view, u32 y, u32 ch)
 	{
 		assert(verify(view));
-
 		assert(y < view.height);
 
 		auto offset = y * view.width;
+
+		return view.channel_data[ch] + offset;
+	}
+
+
+	template <typename T, size_t N>
+	static T* channel_xy_at(ChannelMatrix2D<T, N> const& view, u32 x, u32 y, u32 ch)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+		assert(x < view.width);
+
+		auto offset = y * view.width + x;
 
 		return view.channel_data[ch] + offset;
 	}

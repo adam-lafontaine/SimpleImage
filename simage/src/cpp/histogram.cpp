@@ -4,13 +4,6 @@ namespace simage
 {
 namespace hist
 {	
-	/*inline constexpr u8 to_hist_bin_u8(u8 val, u32 n_bins)
-	{
-		//return val * n_bins / 256;
-		return (val * n_bins) >> 8;
-	}*/
-
-
 	namespace lut
     {
 		template <size_t N>
@@ -37,14 +30,7 @@ namespace hist
 		static constexpr auto hist_bins_32 = make_hist_bins<32>();
 		static constexpr auto hist_bins_64 = make_hist_bins<64>();
 		static constexpr auto hist_bins_128 = make_hist_bins<128>();
-		static constexpr auto hist_bins_256 = make_hist_bins<256>();
     }
-
-
-	static inline constexpr u8 to_hist_bin_u8(u8 val)
-	{
-		return lut::hist_bins_256[val];
-	}
 
 
 	static inline constexpr u8 to_hist_bin_u8(u8 val, u32 n_bins)
@@ -58,7 +44,7 @@ namespace hist
 		case 32: return lut::hist_bins_32[val];
 		case 64: return lut::hist_bins_64[val];
 		case 128: return lut::hist_bins_128[val];
-		case 256: return lut::hist_bins_256[val];
+		case 256: return val;
 
 		default: return 0;
 		}
@@ -118,7 +104,7 @@ namespace hist
 	}
 
 
-	static void make_histograms_from_rgb(View const& src, Histogram12f32& dst)
+	static void make_histograms_from_rgb(View const& src, Histogram12f32& dst, u32 n_bins)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
@@ -133,32 +119,30 @@ namespace hist
 			auto lch = lch::u8_from_rgb_u8(red, green, blue);
 			auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
 
-			h_rgb.R[to_hist_bin_u8(red)]++;
-			h_rgb.G[to_hist_bin_u8(green)]++;
-			h_rgb.B[to_hist_bin_u8(blue)]++;
+			h_rgb.R[to_hist_bin_u8(red, n_bins)]++;
+			h_rgb.G[to_hist_bin_u8(green, n_bins)]++;
+			h_rgb.B[to_hist_bin_u8(blue, n_bins)]++;
 
 			if (hsv.sat)
 			{
-				h_hsv.H[to_hist_bin_u8(hsv.hue)]++;
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
 			}
 
-			h_hsv.S[to_hist_bin_u8(hsv.sat)]++;
-			h_hsv.V[to_hist_bin_u8(hsv.val)]++;
+			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
 
-			h_lch.L[to_hist_bin_u8(lch.light)]++;
-			h_lch.C[to_hist_bin_u8(lch.chroma)]++;
-			h_lch.H[to_hist_bin_u8(lch.hue)]++;
+			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
 
-			h_yuv.Y[to_hist_bin_u8(yuv.y)]++;
-			h_yuv.U[to_hist_bin_u8(yuv.u)]++;
-			h_yuv.V[to_hist_bin_u8(yuv.v)]++;
+			h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
+			h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+			h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
 
 			total++;
 		};
 
 		for_each_rgb(src, update_bins);
-
-		u32 n_bins = MAX_HIST_BINS;
 
 		for (u32 i = 0; i < 12; ++i)
 		{
@@ -170,7 +154,7 @@ namespace hist
 	}
 
 
-	static void make_histograms_from_yuv(ViewYUV const& src, Histogram12f32& dst)
+	static void make_histograms_from_yuv(ViewYUV const& src, Histogram12f32& dst, u32 n_bins)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
@@ -183,32 +167,30 @@ namespace hist
 			auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 			auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
 
-			h_rgb.R[to_hist_bin_u8(rgba.red)]++;
-			h_rgb.G[to_hist_bin_u8(rgba.green)]++;
-			h_rgb.B[to_hist_bin_u8(rgba.blue)]++;
+			h_rgb.R[to_hist_bin_u8(rgba.red, n_bins)]++;
+			h_rgb.G[to_hist_bin_u8(rgba.green, n_bins)]++;
+			h_rgb.B[to_hist_bin_u8(rgba.blue, n_bins)]++;
 
 			if (hsv.sat)
 			{
-				h_hsv.H[to_hist_bin_u8(hsv.hue)]++;
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
 			}
 
-			h_hsv.S[to_hist_bin_u8(hsv.sat)]++;
-			h_hsv.V[to_hist_bin_u8(hsv.val)]++;
+			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
 
-			h_lch.L[to_hist_bin_u8(lch.light)]++;
-			h_lch.C[to_hist_bin_u8(lch.chroma)]++;
-			h_lch.H[to_hist_bin_u8(lch.hue)]++;
+			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
 
-			h_yuv.Y[to_hist_bin_u8(yuv_y)]++;
-			h_yuv.U[to_hist_bin_u8(yuv_u)]++;
-			h_yuv.V[to_hist_bin_u8(yuv_v)]++;
+			h_yuv.Y[to_hist_bin_u8(yuv_y, n_bins)]++;
+			h_yuv.U[to_hist_bin_u8(yuv_u, n_bins)]++;
+			h_yuv.V[to_hist_bin_u8(yuv_v, n_bins)]++;
 		};
 
 		f32 total = 0.0f;
 
 		for_each_yuv(src, update_bins);
-
-		u32 n_bins = MAX_HIST_BINS;
 
 		for (u32 i = 0; i < 12; ++i)
 		{
@@ -220,7 +202,7 @@ namespace hist
 	}
 
 
-	static void make_histograms_from_bgr(ViewBGR const& src, Histogram12f32& dst)
+	static void make_histograms_from_bgr(ViewBGR const& src, Histogram12f32& dst, u32 n_bins)
 	{
 		auto& h_rgb = dst.rgb;
 		auto& h_hsv = dst.hsv;
@@ -235,32 +217,30 @@ namespace hist
 			auto lch = lch::u8_from_rgb_u8(red, green, blue);
 			auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
 
-			h_rgb.R[to_hist_bin_u8(red)]++;
-			h_rgb.G[to_hist_bin_u8(green)]++;
-			h_rgb.B[to_hist_bin_u8(blue)]++;
+			h_rgb.R[to_hist_bin_u8(red, n_bins)]++;
+			h_rgb.G[to_hist_bin_u8(green, n_bins)]++;
+			h_rgb.B[to_hist_bin_u8(blue, n_bins)]++;
 
 			if (hsv.sat)
 			{
-				h_hsv.H[to_hist_bin_u8(hsv.hue)]++;
+				h_hsv.H[to_hist_bin_u8(hsv.hue, n_bins)]++;
 			}
 
-			h_hsv.S[to_hist_bin_u8(hsv.sat)]++;
-			h_hsv.V[to_hist_bin_u8(hsv.val)]++;
+			h_hsv.S[to_hist_bin_u8(hsv.sat, n_bins)]++;
+			h_hsv.V[to_hist_bin_u8(hsv.val, n_bins)]++;
 
-			h_lch.L[to_hist_bin_u8(lch.light)]++;
-			h_lch.C[to_hist_bin_u8(lch.chroma)]++;
-			h_lch.H[to_hist_bin_u8(lch.hue)]++;
+			h_lch.L[to_hist_bin_u8(lch.light, n_bins)]++;
+			h_lch.C[to_hist_bin_u8(lch.chroma, n_bins)]++;
+			h_lch.H[to_hist_bin_u8(lch.hue, n_bins)]++;
 
-			h_yuv.Y[to_hist_bin_u8(yuv.y)]++;
-			h_yuv.U[to_hist_bin_u8(yuv.u)]++;
-			h_yuv.V[to_hist_bin_u8(yuv.v)]++;
+			h_yuv.Y[to_hist_bin_u8(yuv.y, n_bins)]++;
+			h_yuv.U[to_hist_bin_u8(yuv.u, n_bins)]++;
+			h_yuv.V[to_hist_bin_u8(yuv.v, n_bins)]++;
 
 			total++;
 		};
 
 		for_each_bgr(src, update_bins);
-
-		u32 n_bins = MAX_HIST_BINS;
 
 		for (u32 i = 0; i < 12; ++i)
 		{
@@ -272,48 +252,48 @@ namespace hist
 	}
 	
 	
-	void make_histograms(View const& src, Histogram12f32& dst)
+	void make_histograms(View const& src, Histogram12f32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
-		static_assert(N_BINS <= MAX_HIST_BINS);
-		static_assert(MAX_HIST_BINS % N_BINS == 0);
+		assert(n_bins <= MAX_HIST_BINS);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };
 		dst.lch = { 0 };
 		dst.yuv = { 0 };
 
-		make_histograms_from_rgb(src, dst);
+		make_histograms_from_rgb(src, dst, n_bins);
 	}
 
 
-	void make_histograms(ViewYUV const& src, Histogram12f32& dst)
+	void make_histograms(ViewYUV const& src, Histogram12f32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
-		static_assert(N_BINS <= MAX_HIST_BINS);
-		static_assert(MAX_HIST_BINS % N_BINS == 0);
+		assert(n_bins <= MAX_HIST_BINS);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };
 		dst.lch = { 0 };
 		dst.yuv = { 0 };
 
-		make_histograms_from_yuv(src, dst);
+		make_histograms_from_yuv(src, dst, n_bins);
 	}
 
 
-	void make_histograms(ViewBGR const& src, Histogram12f32& dst)
+	void make_histograms(ViewBGR const& src, Histogram12f32& dst, u32 n_bins)
 	{
 		static_assert(MAX_HIST_BINS == 256);
-		static_assert(N_BINS <= MAX_HIST_BINS);
-		static_assert(MAX_HIST_BINS % N_BINS == 0);
+		assert(n_bins <= MAX_HIST_BINS);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst.rgb = { 0 };
 		dst.hsv = { 0 };
 		dst.lch = { 0 };
 		dst.yuv = { 0 };
 
-		make_histograms_from_bgr(src, dst);
+		make_histograms_from_bgr(src, dst, n_bins);
 	}
 
 
@@ -321,7 +301,7 @@ namespace hist
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % n_bins == 0);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst = { 0 };
 		f32 total = 0.0f;
@@ -350,7 +330,7 @@ namespace hist
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % n_bins == 0);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst = { 0 };
 		f32 total = 0.0f;
@@ -385,7 +365,7 @@ namespace hist
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % n_bins == 0);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst = { 0 };
 		f32 total = 0.0f;
@@ -416,7 +396,7 @@ namespace hist
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % n_bins == 0);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst = { 0 };
 
@@ -446,7 +426,7 @@ namespace hist
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % n_bins == 0);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst = { 0 };
 
@@ -478,7 +458,7 @@ namespace hist
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % n_bins == 0);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst = { 0 };
 
@@ -515,7 +495,7 @@ namespace hist
 	{
 		static_assert(MAX_HIST_BINS == 256);
 		assert(n_bins <= MAX_HIST_BINS);
-		assert(MAX_HIST_BINS % n_bins == 0);
+		assert(to_hist_bin_u8(n_bins - 1, n_bins) != 0);
 
 		dst = { 0 };
 

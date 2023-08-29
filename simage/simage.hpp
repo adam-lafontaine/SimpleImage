@@ -361,8 +361,6 @@ namespace hist
 {
 	constexpr u32 MAX_HIST_BINS = 256;
 
-	constexpr u32 N_BINS = MAX_HIST_BINS;
-
 
 	class HistRGBf32
 	{
@@ -451,11 +449,11 @@ namespace hist
 	};
 
 
-	void make_histograms(View const& src, Histogram12f32& dst);
+	void make_histograms(View const& src, Histogram12f32& dst, u32 n_bins);
 
-	void make_histograms(ViewYUV const& src, Histogram12f32& dst);
+	void make_histograms(ViewYUV const& src, Histogram12f32& dst, u32 n_bins);
 
-	void make_histograms(ViewBGR const& src, Histogram12f32& dst);
+	void make_histograms(ViewBGR const& src, Histogram12f32& dst, u32 n_bins);
 
 
 	void make_histograms(View const& src, HistRGBf32& dst, u32 n_bins);

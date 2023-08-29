@@ -79,36 +79,12 @@ namespace simage
 	template <typename T, size_t N>
     static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 origin, f32 rad)
 	{
-#ifdef SIMAGE_NO_PARALLEL
-
-		auto ch_src = split_channels(src);
-		//auto ch_dst = split_channels(dst);
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = view_row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto src_pt = find_rotation_src({ x, y }, origin, rad);
-
-				for (u32 ch = 0; ch < (u32)N; ++ch)
-				{
-					d[ch][x] = get_pixel_value(ch_src[ch], src_pt);
-				}				
-			}
-		}
-
-#else
-
 		auto const channel_func = [&](u32 ch)
 		{
 			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
 		};
 
 		process_range(0, N, channel_func);
-
-#endif
 	}
 }
 

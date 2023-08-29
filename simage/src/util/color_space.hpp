@@ -38,19 +38,17 @@ namespace color_space
 {
     inline constexpr f32 clamp(f32 value)
     {
-        if (value < 0.0f)
+        if (value > 1.0f)
         {
-            value = 0.0f;
-        }
-        else if (value > 1.0f)
-        {
-            value = 1.0f;
+            return 1.0f;
         }
 
+        if (value < 0.0f)
+        {
+            return 0.0f;
+        }        
+
         return value;
-        
-        // slower
-        //return (value >= 0 && value <= 1) * value + 1.0f * (value > 1);
     }
 
 

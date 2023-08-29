@@ -6,7 +6,11 @@ namespace simage
     {
         for (u32 i = 0; i < len; ++i)
         {
-            dst[i] = to_pixel(src[i], src[i], src[i]);
+            auto& rgba = dst[i].rgba;
+            rgba.red = src[i];
+            rgba.green = src[i];
+            rgba.blue = src[i];
+            rgba.alpha = 255;
         }
     }
 
@@ -16,7 +20,11 @@ namespace simage
         for (u32 i = 0; i < len; ++i)
         {
             auto gray = cs::to_channel_u8(src[i]);
-            dst[i] = to_pixel(gray, gray, gray);
+            auto& rgba = dst[i].rgba;
+            rgba.red = gray;
+            rgba.green = gray;
+            rgba.blue = gray;
+            rgba.alpha = 255;
         }
     }
 
@@ -52,7 +60,11 @@ namespace simage
         for (u32 i = 0; i < len; ++i)
         {
             auto rgb = src[i];
-            dst[i] = to_pixel(rgb.red, rgb.green, rgb.blue);
+            auto& rgba = dst[i].rgba;
+            rgba.red = rgb.red;
+            rgba.green = rgb.green;
+            rgba.blue = rgb.blue;
+            rgba.alpha = 255;
         }
     }
 
@@ -74,11 +86,11 @@ namespace simage
     {
         for (u32 i = 0; i < len; ++i)
         {
-            auto red = cs::to_channel_u8(src.R[i]);
-            auto green = cs::to_channel_u8(src.G[i]);
-            auto blue = cs::to_channel_u8(src.B[i]);
-
-            dst[i] = to_pixel(red, green, blue);
+            auto& rgba = dst[i].rgba;
+            rgba.red = cs::to_channel_u8(src.R[i]);
+            rgba.green = cs::to_channel_u8(src.G[i]);
+            rgba.blue = cs::to_channel_u8(src.B[i]);
+            rgba.alpha = 255;
         }
     }
 
@@ -86,13 +98,12 @@ namespace simage
     static inline void map_span_rgb(RGBAf32p const& src, Pixel* dst, u32 len)
     {
         for (u32 i = 0; i < len; ++i)
-        {
-            auto red = cs::to_channel_u8(src.R[i]);
-            auto green = cs::to_channel_u8(src.G[i]);
-            auto blue = cs::to_channel_u8(src.B[i]);
-            auto alpha = cs::to_channel_u8(src.A[i]);
-
-            dst[i] = to_pixel(red, green, blue, alpha);
+        {            
+            auto& rgba = dst[i].rgba;
+            rgba.red = cs::to_channel_u8(src.R[i]);
+            rgba.green = cs::to_channel_u8(src.G[i]);
+            rgba.blue = cs::to_channel_u8(src.B[i]);
+            rgba.alpha = cs::to_channel_u8(src.A[i]);
         }
     }
 }

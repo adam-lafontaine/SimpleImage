@@ -238,6 +238,10 @@ namespace simage
 	void alpha_blend(View const& src, View const& cur, View const& dst);
 
 	void alpha_blend(View const& src, View const& cur_dst);
+
+	void alpha_blend(View const& src, u8 alpha, View const& cur, View const& dst);
+
+	void alpha_blend(View const& src, u8 alpha, View const& cur_dst);
 }
 
 

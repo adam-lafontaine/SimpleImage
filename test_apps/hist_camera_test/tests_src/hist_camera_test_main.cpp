@@ -5,7 +5,7 @@
 
 
 constexpr auto APP_TITLE = "USB Camera Histogram Test App";
-constexpr auto APP_VERSION = "1.0";
+constexpr auto APP_VERSION = "1.1";
 
 
 bool init_histogram_memory(u32 width, u32 height);
@@ -17,7 +17,11 @@ static void process_camera_frame(img::View const& src, app::AppState& state)
 {
 	auto id = !state.read_index;
 
-    generate_histograms(src, state.screen_buffer[id]);
+	auto out_view = state.screen_buffer[id];
+
+    generate_histograms(src, out_view);
+	
+	img::alpha_blend(src, 128, out_view);
 
     state.read_index = id;
 

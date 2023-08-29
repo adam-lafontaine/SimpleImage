@@ -5,7 +5,7 @@
 constexpr u32 WIDTH = 2000;
 constexpr u32 HEIGHT = 2000;
 
-constexpr u32 N_TEST_RUNS = 5;
+constexpr u32 N_TEST_RUNS = 20;
 
 
 typedef void (*TestFunc)();

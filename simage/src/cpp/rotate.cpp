@@ -2,10 +2,10 @@
 
 namespace simage
 {
-    static Point2Df32 find_rotation_src(Point2Du32 const& pt, Point2Du32 const& origin, f32 theta_rotate)
+    static Point2Df32 find_rotation_src(u32 x, u32 y, Point2Du32 const& origin, f32 theta_rotate)
 	{
-		auto const dx_dst = (f32)pt.x - (f32)origin.x;
-		auto const dy_dst = (f32)pt.y - (f32)origin.y;
+		auto const dx_dst = (f32)x - (f32)origin.x;
+		auto const dy_dst = (f32)y - (f32)origin.y;
 
 		auto const radius = std::hypotf(dx_dst, dy_dst);
 
@@ -27,6 +27,8 @@ namespace simage
     static T get_pixel_value(MatrixView2D<T> const& src, Point2Df32 location)
     {
         constexpr auto zero = 0.0f;
+		constexpr auto black = (T)0;
+
 		auto const width = (f32)src.width;
 		auto const height = (f32)src.height;
 
@@ -35,7 +37,7 @@ namespace simage
 
 		if (x < zero || x >= width || y < zero || y >= height)
 		{
-			return 0;
+			return black;
 		}
 
 		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
@@ -45,6 +47,8 @@ namespace simage
 	static Pixel get_pixel_value(View const& src, Point2Df32 location)
 	{
 		constexpr auto zero = 0.0f;
+		constexpr auto black = to_pixel(0, 0, 0);
+
 		auto const width = (f32)src.width;
 		auto const height = (f32)src.height;
 
@@ -53,7 +57,7 @@ namespace simage
 
 		if (x < zero || x >= width || y < zero || y >= height)
 		{
-			return to_pixel(0, 0, 0);
+			return black;
 		}
 
 		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
@@ -63,15 +67,18 @@ namespace simage
     template <typename T>
     static void rotate_1(View1<T> const& src, View1<T> const& dst, Point2Du32 origin, f32 rad)
 	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = row_begin(dst, y);
+		u32 len = src.width * src.height;
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto src_pt = find_rotation_src({ x, y }, origin, rad);
-				d[x] = get_pixel_value(src, src_pt);
-			}
+		u32 y = 0;
+		u32 x = 0;
+
+		for (u32 i = 0; i < len; ++i)
+		{
+			y = i / src.width;
+			x = i - y * src.width;
+
+			auto src_pt = find_rotation_src(x, y, origin, rad);
+			dst.data[i] = get_pixel_value(src, src_pt);
 		}
 	}
 
@@ -79,12 +86,10 @@ namespace simage
 	template <typename T, size_t N>
     static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 origin, f32 rad)
 	{
-		auto const channel_func = [&](u32 ch)
+		for (u32 ch = 0; ch < N; ++ch)
 		{
 			rotate_1(select_channel(src, ch), select_channel(dst, ch), origin, rad);
-		};
-
-		process_range(0, N, channel_func);
+		}
 	}
 }
 

@@ -162,9 +162,6 @@ static void sub_view()
     auto v3 = PROFILE(img::sub_view(view_rgba, range));
     auto v4 = PROFILE(img::sub_view(view_gray, range));
     auto v5 = PROFILE(img::sub_view(view_1, range));
-    auto v6 = PROFILE(img::sub_view(view_2, range));
-    auto v7 = PROFILE(img::sub_view(view_3, range));
-    auto v8 = PROFILE(img::sub_view(view_4, range));
 
     img::destroy_image(rgba);
     img::destroy_image(gray);

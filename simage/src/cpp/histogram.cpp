@@ -49,48 +49,6 @@ namespace hist
 		default: return 0;
 		}
 	}
-
-
-	/*static void for_each_rgb(View const& src, std::function<void(u8, u8, u8)> const& rgb_func)
-	{
-		u32 len = src.width * src.height;
-
-		for (u32 i = 0; i < len; ++i)
-		{
-			auto rgba = src.data[i].rgba;
-
-			rgb_func(rgba.red, rgba.green, rgba.blue);
-		}
-	}
-
-
-	static void for_each_yuv(ViewYUV const& src, std::function<void(u8, u8, u8)> const& yuv_func)
-	{		
-		u32 len = src.width * src.height;
-
-		auto src422 = (YUV422u8*)src.data;
-
-        for (u32 i422 = 0; i422 < len / 2; ++i422)
-		{
-			auto yuv = src422[i422];
-
-			yuv_func(yuv.y1, yuv.u, yuv.v);
-			yuv_func(yuv.y2, yuv.u, yuv.v);
-		}
-	}
-
-
-	static void for_each_bgr(ViewBGR const& src, std::function<void(u8, u8, u8)> const& rgb_func)
-	{
-		u32 len = src.width * src.height;
-
-		for (u32 i = 0; i < len; ++i)
-		{
-			auto bgr = src.data[i];
-
-			rgb_func(bgr.red, bgr.green, bgr.blue);
-		}
-	}*/
 	
 
 	static void update_counts(u8 red, u8 green, u8 blue, HistRGBf32& dst, u32 n_bins)

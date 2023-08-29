@@ -38,18 +38,6 @@ namespace simage
 	}
 
 
-	/*template <typename T, size_t N>
-	static bool verify(ChannelSubMatrix2D<T,N> const& view)
-	{
-		return 
-			view.channel_width_ && 
-			view.width && view.height && 
-			view.channel_data_[0] &&
-			(view.x_end - view.x_begin) == view.width &&
-			(view.y_end - view.y_begin) == view.height;
-	}*/
-
-
 	template <typename T>
 	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
 	{

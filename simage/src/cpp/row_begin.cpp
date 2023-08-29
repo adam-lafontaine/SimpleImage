@@ -37,29 +37,6 @@ namespace simage
 	}
 
 
-    /*template <typename T>
-	static T* row_offset_begin(SubMatrixView2D<T> const& view, u32 y, int y_offset)
-	{
-		assert(verify(view));
-
-		int y_eff = y + y_offset;
-
-		auto offset = (view.y_begin + y_eff) * view.matrix_width + view.x_begin;
-
-		auto ptr = view.matrix_data_ + (u64)(offset);
-		assert(ptr);
-
-		return ptr;
-	}*/
-
-
-	/*template <typename T, size_t N>
-	static inline u64 row_offset(ChannelMatrix2D<T, N> const& view, u32 y)
-	{
-		return ((u64)view.y_begin + y) * view.channel_width_ + view.x_begin;
-	}*/
-
-
 	static RGBf32p rgb_row_begin(ViewRGBf32 const& view, u32 y)
 	{
 		assert(verify(view));

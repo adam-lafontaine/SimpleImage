@@ -1,5 +1,4 @@
 #include "../../simage.hpp"
-#include "../../src/util/execute.hpp"
 #include "../../src/util/color_space.hpp"
 
 #define LIBUVC_IMPLEMENTATION 1
@@ -17,30 +16,6 @@ namespace img = simage;
 
 constexpr u8 EXPOSURE_MODE_AUTO = 2;
 constexpr u8 EXPOSURE_MODE_APERTURE = 8;
-
-
-/* verify */
-
-#ifndef NDEBUG
-
-namespace simage
-{
-	static bool verify(CameraUSB const& camera)
-	{
-		return camera.frame_width && camera.frame_height && camera.max_fps && camera.device_id >= 0;
-	}
-
-
-	template <typename T>
-	static bool verify(CameraUSB const& camera, SubMatrix2D<T> const& view)
-	{
-		return verify(camera) && verify(view) &&
-			camera.frame_width == view.width &&
-			camera.frame_height == view.height;
-	}
-}
-
-#endif
 
 
 typedef uvc::uvc_error_t(convert_rgb_callback_t)(uvc::frame* in, img::Image const& dst);

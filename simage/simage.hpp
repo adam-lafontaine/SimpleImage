@@ -620,8 +620,6 @@ namespace simage
 		u32 frame_height = 0;
 		u32 max_fps = 0;
 
-		Image cb_image;
-
 		bool is_open = false;
 	};
 	
@@ -722,26 +720,6 @@ namespace simage
 	SubView1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
 }
 
-/*namespace simage
-{
-	SubView4f32 sub_view(View4f32 const& view, Range2Du32 const& range);
-
-	SubView3f32 sub_view(View3f32 const& view, Range2Du32 const& range);
-
-	SubView2f32 sub_view(View2f32 const& view, Range2Du32 const& range);
-
-	SubView1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
-
-
-	SubView4f32 sub_view(SubView4f32 const& view, Range2Du32 const& range);
-
-	SubView3f32 sub_view(SubView3f32 const& view, Range2Du32 const& range);
-
-	SubView2f32 sub_view(SubView2f32 const& view, Range2Du32 const& range);
-
-	SubView1f32 sub_view(SubView1f32 const& view, Range2Du32 const& range);
-}*/
-
 
 /* select_channel */
 
@@ -762,23 +740,6 @@ namespace simage
 	View1f32 select_channel(View2f32 const& view, XY channel);
 
 	ViewRGBf32 select_rgb(ViewRGBAf32 const& view);
-
-
-	/*SubView1f32 select_channel(SubViewRGBAf32 const& view, RGBA channel);
-
-	SubView1f32 select_channel(SubViewRGBf32 const& view, RGB channel);
-
-	SubView1f32 select_channel(SubViewHSVf32 const& view, HSV channel);
-
-	SubView1f32 select_channel(SubViewLCHf32 const& view, LCH channel);
-
-	SubView1f32 select_channel(SubViewYUVf32 const& view, YUV channel);
-
-	SubView1f32 select_channel(SubView2f32 const& view, GA channel);
-
-	SubView1f32 select_channel(SubView2f32 const& view, XY channel);
-
-	SubViewRGBf32 select_rgb(SubViewRGBAf32 const& view);*/
 }
 
 

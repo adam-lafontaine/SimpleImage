@@ -330,7 +330,7 @@ namespace simage
 	class DeviceMatrix2D
 	{
 	public:
-		T* data_ = nullptr;
+		T* data = nullptr;
 		u32 width = 0;
 		u32 height = 0;
 	};
@@ -339,6 +339,7 @@ namespace simage
 	using DeviceView = DeviceMatrix2D<Pixel>;
 	using DeviceViewGray = DeviceMatrix2D<u8>;
 	using DeviceViewYUV = DeviceMatrix2D<YUV2u8>;
+	using DeviceViewUVY = DeviceMatrix2D<UVY2u8>;
 	using DeviceViewBGR = DeviceMatrix2D<BGRu8>;
 }
 

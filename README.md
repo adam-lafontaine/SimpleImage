@@ -14,6 +14,13 @@ A simple image processing library written in C++17.
 
 ### View
 
+* Provides access to an image's memory
+* Does not own the memory
+* Its memory can be that of an "Image" or part of a "MemoryBuffer"
+* Memory is guaranteed to be contiguous
+
+### Sub View
+
 * Provides access to all or part of an image
 * Represents an entire image or a rectangular sub-section
 * Does not own the memory
@@ -44,9 +51,12 @@ An interleaved image or view.  It is in the format suitable for interacting with
 
 * `Image`: 4 byte RGBA interleaved image data
 * `View`: A view to 4 byte image data
+* `SubView`: A view into a rectagular sub-section of 4 byte image data
 * `ImageGray`: 1 byte image data
 * `ViewGray`: A view to 1 byte image data
+* `SubViewGray`: A view into a rectagular sub-section of 1 byte image data
 * `View1f32`: Single channel float view
+* `SubView1f32`: A rectagular sub-section of a single channel float view
 * `View2f32`, `View3f32`, `View4f32`: Multi-channel float view
 * `Buffer32`: Allocates data for 4 byte pixel or float channel data
 * `Buffer8`: Allocates data for 1 byte pixel data
@@ -134,8 +144,6 @@ auto buffer = img::create_buffer32(n_pixels);
 img::Image image;
 auto src = img::make_view_resized_from_file("file_path", image, width, height, buffer);
 auto dst = img::make_view(width, height, buffer);
-
-img::blur(src, dst);
 
 // ...
 
@@ -346,7 +354,7 @@ auto buffer = img::create_buffer32(width * height * 3);
 
 auto hsv = img::make_view_3(width, height, buffer);
 
-img::map_rgb_hsv(view, hsv); // supports HSV, YUV, LCH
+img::map_rgb_hsv(view, hsv); // supports HSV, YUV, LCH, grayscale
 
 // ...
 
@@ -510,7 +518,6 @@ Other functions
 ```cpp
 grab_gray()
 grab_gray_continuous()
-set_roi()
 ```
 
 **See `/test_apps/usb_camera_tests/`**

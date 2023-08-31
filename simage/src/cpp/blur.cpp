@@ -159,14 +159,6 @@ namespace simage
 
 namespace simage
 {
-    void blur(View const& src, View const& dst)
-    {
-        assert(verify(src, dst));
-
-		blur_view_1(src, dst);
-    }
-
-
     void blur(ViewGray const& src, ViewGray const& dst)
     {
         assert(verify(src, dst));

@@ -92,21 +92,28 @@ namespace simage
 	SubViewGray sub_view(SubViewGray const& view, Range2Du32 const& range);	
 
 
-	SubViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range);
+	SubViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range);
 
 	SubViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range);
 
 	SubViewYUV sub_view(SubViewYUV const& view, Range2Du32 const& range);
 
 
-	SubViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
+	SubViewUVY sub_view(ImageUVY const& image, Range2Du32 const& range);
+
+	SubViewUVY sub_view(ViewUVY const& view, Range2Du32 const& range);
+
+	SubViewUVY sub_view(SubViewUVY const& view, Range2Du32 const& range);
+
+
+	SubViewBGR sub_view(ImageBGR const& image, Range2Du32 const& range);
 
 	SubViewBGR sub_view(ViewBGR const& view, Range2Du32 const& range);
 
 	SubViewBGR sub_view(SubViewBGR const& view, Range2Du32 const& range);
 
 
-	SubViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range);
+	SubViewRGB sub_view(ImageRGB const& image, Range2Du32 const& range);
 
 	SubViewRGB sub_view(ViewRGB const& view, Range2Du32 const& range);
 
@@ -196,6 +203,8 @@ namespace simage
 
 
 	void map_gray(ViewYUV const& src, ViewGray const& dst);
+
+	void map_gray(ViewUVY const& src, ViewGray const& dst);
 }
 
 
@@ -228,6 +237,8 @@ namespace simage
 namespace simage
 {
 	void map_yuv_rgba(ViewYUV const& src, View const& dst);
+
+	void map_yuv_rgba(ViewUVY const& src, View const& dst);
 }
 
 
@@ -733,8 +744,6 @@ namespace simage
 
 	View1f32 select_channel(ViewLCHf32 const& view, LCH channel);
 
-	View1f32 select_channel(ViewYUVf32 const& view, YUV channel);
-
 	View1f32 select_channel(View2f32 const& view, GA channel);
 
 	View1f32 select_channel(View2f32 const& view, XY channel);
@@ -758,6 +767,8 @@ namespace simage
 	void map_gray(SubView1f32 const& src, SubView1u8 const& dst);
 
 	void map_gray(ViewYUV const& src, View1f32 const& dst);
+
+	void map_gray(ViewUVY const& src, View1f32 const& dst);
 }
 
 
@@ -841,12 +852,10 @@ namespace simage
 /* map_yuv */
 
 namespace simage
-{
-	void map_yuv(ViewYUV const& src, ViewYUVf32 const& dst);
-	
+{	
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
 
-	void map_yuv_rgba(ViewYUVf32 const& src, View const& dst);
+	void map_yuv_rgb(ViewUVY const& src, ViewRGBf32 const& dst);
 }
 
 

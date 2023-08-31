@@ -153,7 +153,8 @@ namespace simage
 
 namespace simage
 {
-    static inline void map_span_yuv_to_gray(YUV2u8* src, u8* dst, u32 len)
+	template <typename YUVu8T>
+    static inline void map_span_yuv_to_gray(YUVu8T* src, u8* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -162,7 +163,8 @@ namespace simage
 	}
 
 
-    static inline void map_span_yuv_to_gray(YUV2u8* src, f32* dst, u32 len)
+	template <typename YUVu8T>
+    static inline void map_span_yuv_to_gray(YUVu8T* src, f32* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -467,6 +469,14 @@ namespace simage
 
         map_view_yuv_to_gray(src, dst);
 	}
+
+
+	void map_gray(ViewUVY const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        map_view_yuv_to_gray(src, dst);
+	}
 }
 
 
@@ -514,6 +524,14 @@ namespace simage
 
 
     void map_gray(ViewYUV const& src, View1f32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        map_view_yuv_to_gray(src, dst);
+    }
+
+
+	void map_gray(ViewUVY const& src, View1f32 const& dst)
     {
         assert(verify(src, dst));
 

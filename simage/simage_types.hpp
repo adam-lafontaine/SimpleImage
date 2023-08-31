@@ -27,11 +27,11 @@ namespace simage
 {
     typedef union pixel_t
 	{
-		u8 channels[4] = {};
+		u8 channels[4];
 
 		u32 value;
 
-		RGBAu8 rgba;
+		RGBAu8 rgba = {};
 
 	} Pixel;
 
@@ -126,61 +126,9 @@ namespace simage
 	using ViewRGBAf32 = View4f32;
 	using ViewRGBf32 = View3f32;
 	using ViewHSVf32 = View3f32;
-	using ViewYUVf32 = View3f32;
 	using ViewLCHf32 = View3f32;
 
 	using SubView1f32 = SubView1<f32>;
-
-
-	/*template <typename T, size_t N>
-	class ChannelSubMatrix2D
-	{
-	public:
-
-		u32 channel_width_ = 0;
-
-		T* channel_data_[N] = {};		
-
-		u32 width = 0;
-		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
-	};
-	*/
-
-
-	/*template <typename T>
-	using SubView4 = ChannelSubMatrix2D<T, 4>;
-
-	template <typename T>
-	using SubView3 = ChannelSubMatrix2D<T, 3>;
-
-	template <typename T>
-	using SubView2 = ChannelSubMatrix2D<T, 2>;
-
-	
-
-	using SubView4f32 = SubView4<f32>;
-	using SubView3f32 = SubView3<f32>;
-	using SubView2f32 = SubView2<f32>;
-	using SubView1f32 = SubView1<f32>;	
-
-	using SubViewRGBAf32 = SubView4f32;
-	using SubViewRGBf32 = SubView3f32;
-	using SubViewHSVf32 = SubView3f32;
-	using SubViewYUVf32 = SubView3f32;
-	using SubViewLCHf32 = SubView3f32;*/
 }
 
 
@@ -188,7 +136,25 @@ namespace simage
 
 namespace simage
 {
-	class YUV422u8
+	class YUYVu8
+	{
+	public:		
+		u8 y1;
+		u8 u;		
+		u8 y2;
+		u8 v;
+	};
+
+
+	class YUV2u8
+	{
+	public:		
+		u8 y;
+		u8 uv;
+	};
+
+
+	class UYVYu8
 	{
 	public:
 		u8 u;
@@ -198,7 +164,7 @@ namespace simage
 	};
 
 
-	class YUV2u8
+	class UVY2u8
 	{
 	public:
 		u8 uv;
@@ -249,12 +215,6 @@ namespace simage
 	};
 
 
-	enum class YUV : int
-	{
-		Y = 0, U = 1, V = 2
-	};
-
-
 	enum class GA : int
 	{
 		G = 0, A = 1
@@ -292,12 +252,6 @@ namespace simage
 	};
 
 
-	enum class YUV : int
-	{
-		Y = 2, U = 1, V = 0
-	};
-
-
 	enum class GA : int
 	{
 		G = 1, A = 0
@@ -322,6 +276,10 @@ namespace simage
 	using ImageYUV = Matrix2D<YUV2u8>;
 	using ViewYUV = MatrixView2D<YUV2u8>;
 	using SubViewYUV = SubMatrixView2D<YUV2u8>;
+
+	using ImageUVY = Matrix2D<UVY2u8>;
+	using ViewUVY = MatrixView2D<UVY2u8>;
+	using SubViewUVY = SubMatrixView2D<UVY2u8>;
 
 	using ImageBGR = Matrix2D<BGRu8>;
 	using ViewBGR = MatrixView2D<BGRu8>;

@@ -72,20 +72,6 @@ namespace simage
 	}
 
 
-	View1f32 select_channel(ViewYUVf32 const& view, YUV channel)
-	{
-		assert(verify(view));
-
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
-
-		assert(verify(view1));
-
-		return view1;
-	}
-
-
 	View1f32 select_channel(View2f32 const& view, GA channel)
 	{
 		assert(verify(view));

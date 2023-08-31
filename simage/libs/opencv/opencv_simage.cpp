@@ -64,6 +64,28 @@ static bool grab_and_convert_frame_bgr(DeviceCV& device)
 }
 
 
+template <class ViewSRC, class ViewDST>
+static void write_frame_sub_view_rgba(img::CameraUSB const& camera, ViewSRC const& src, ViewDST const& dst)
+{
+	auto width = std::min(camera.frame_width, dst.width);
+	auto height = std::min(camera.frame_height, dst.height);
+	auto r = make_range(width, height);
+
+	img::map_rgba(img::sub_view(src, r), img::sub_view(dst, r));
+}
+
+
+template <class ViewSRC, class ViewDST>
+static void write_frame_sub_view_gray(img::CameraUSB const& camera, ViewSRC const& src, ViewDST const& dst)
+{
+	auto width = std::min(camera.frame_width, dst.width);
+	auto height = std::min(camera.frame_height, dst.height);
+	auto r = make_range(width, height);
+
+	img::map_gray(img::sub_view(src, r), img::sub_view(dst, r));
+}
+
+
 namespace simage
 {
 	static bool camera_is_initialized(CameraUSB const& camera)
@@ -116,28 +138,6 @@ namespace simage
 		assert(camera.max_fps);
 
 		return true;
-	}
-
-
-	template <class ViewSRC, class ViewDST>
-	static void write_frame_sub_view_rgba(CameraUSB const& camera, ViewSRC const& src, ViewDST const& dst)
-	{
-		auto width = std::min(camera.frame_width, dst.width);
-		auto height = std::min(camera.frame_height, dst.height);
-		auto r = make_range(width, height);
-
-		map_rgba(img::sub_view(src, r), img::sub_view(dst, r));
-	}
-
-
-	template <class ViewSRC, class ViewDST>
-	static void write_frame_sub_view_gray(CameraUSB const& camera, ViewSRC const& src, ViewDST const& dst)
-	{
-		auto width = std::min(camera.frame_width, dst.width);
-		auto height = std::min(camera.frame_height, dst.height);
-		auto r = make_range(width, height);
-
-		map_gray(img::sub_view(src, r), img::sub_view(dst, r));
 	}
 
 

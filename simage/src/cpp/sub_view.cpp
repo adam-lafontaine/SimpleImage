@@ -131,11 +131,11 @@ namespace simage
 	}
 
 
-	SubViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range)
+	SubViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range)
 	{
-		assert(verify(camera_src, range));
+		assert(verify(image, range));
 
-		auto sub_view = do_sub_view(camera_src, range);
+		auto sub_view = do_sub_view(image, range);
 
 		assert(verify(sub_view));
 
@@ -167,11 +167,47 @@ namespace simage
 	}
 
 
-	SubViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range)
+	SubViewUVY sub_view(ImageUVY const& image, Range2Du32 const& range)
 	{
-		assert(verify(camera_src, range));
+		assert(verify(image, range));
 
-		auto sub_view = do_sub_view(camera_src, range);
+		auto sub_view = do_sub_view(image, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	SubViewUVY sub_view(ViewUVY const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	SubViewUVY sub_view(SubViewUVY const& view, Range2Du32 const& range)
+	{
+		assert(verify(view, range));
+
+		auto sub_view = do_sub_view(view, range);
+
+		assert(verify(sub_view));
+
+		return sub_view;
+	}
+
+
+	SubViewBGR sub_view(ImageBGR const& image, Range2Du32 const& range)
+	{
+		assert(verify(image, range));
+
+		auto sub_view = do_sub_view(image, range);
 
 		assert(verify(sub_view));
 
@@ -203,11 +239,11 @@ namespace simage
 	}
 
 
-	SubViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range)
+	SubViewRGB sub_view(ImageRGB const& image, Range2Du32 const& range)
 	{
-		assert(verify(camera_src, range));
+		assert(verify(image, range));
 
-		auto sub_view = do_sub_view(camera_src, range);
+		auto sub_view = do_sub_view(image, range);
 
 		assert(verify(sub_view));
 

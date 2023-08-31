@@ -156,7 +156,7 @@ namespace hist
 	{
 		u32 len = src.width * src.height;
 
-		auto src422 = (YUV422u8*)src.data;
+		auto src422 = (YUYVu8*)src.data;
 
         for (u32 i422 = 0; i422 < len / 2; ++i422)
 		{
@@ -323,7 +323,7 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
-		auto src422 = (YUV422u8*)src.data;
+		auto src422 = (YUYVu8*)src.data;
 
         for (u32 i422 = 0; i422 < len / 2; ++i422)
 		{
@@ -353,7 +353,7 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
-		auto src422 = (YUV422u8*)src.data;
+		auto src422 = (YUYVu8*)src.data;
 
         for (u32 i422 = 0; i422 < len / 2; ++i422)
 		{
@@ -386,7 +386,7 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
-		auto src422 = (YUV422u8*)src.data;
+		auto src422 = (YUYVu8*)src.data;
 
         for (u32 i422 = 0; i422 < len / 2; ++i422)
 		{
@@ -421,7 +421,7 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
-		auto src422 = (YUV422u8*)src.data;
+		auto src422 = (YUYVu8*)src.data;
 
         for (u32 i422 = 0; i422 < len / 2; ++i422)
 		{

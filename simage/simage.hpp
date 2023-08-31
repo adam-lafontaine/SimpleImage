@@ -319,6 +319,8 @@ namespace simage
 
 namespace simage
 {
+    void blur(View const& src, View const& dst);
+
     void blur(ViewGray const& src, ViewGray const& dst);
 }
 

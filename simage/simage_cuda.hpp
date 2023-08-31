@@ -70,7 +70,7 @@ namespace simage
     {
         DeviceMatrix2D<T> view{};
 
-        view.data_ = cuda::push_elements(buffer, width * height);
+        view.data = cuda::push_elements(buffer, width * height);
         view.width = width;
         view.height = height;
 
@@ -90,11 +90,25 @@ namespace simage
 	void copy_to_device(ViewYUV const& host_src, DeviceViewYUV const& device_dst);
 
 
+	void copy_to_device(SubView const& host_src, DeviceView const& device_dst);
+
+    void copy_to_device(SubViewGray const& host_src, DeviceViewGray const& device_dst);
+
+	void copy_to_device(SubViewYUV const& host_src, DeviceViewYUV const& device_dst);
+
+
     void copy_to_host(DeviceView const& device_src, View const& host_dst);
 
     void copy_to_host(DeviceViewGray const& device_src, ViewGray const& host_dst);
 
 	void copy_to_host(DeviceViewYUV const& device_src, ViewYUV const& host_dst);
+
+
+	void copy_to_host(DeviceView const& device_src, SubView const& host_dst);
+
+    void copy_to_host(DeviceViewGray const& device_src, SubViewGray const& host_dst);
+
+	void copy_to_host(DeviceViewYUV const& device_src, SubViewYUV const& host_dst);
 }
 
 

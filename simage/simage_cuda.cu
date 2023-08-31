@@ -18,7 +18,7 @@ using DeviceViewBGR = img::DeviceViewBGR;
 using RGBA = simage::RGBA;
 using RGB = simage::RGB;
 using HSV = simage::HSV;
-using YUV = simage::YUV;
+//using YUV = simage::YUV;
 
 
 class ChannelXY
@@ -47,7 +47,7 @@ namespace simage
     template <typename T>
 	static bool verify(DeviceMatrix2D<T> const& view)
 	{
-		return view.width && view.height && view.data_;
+		return view.width && view.height && view.data;
 	}
 
 

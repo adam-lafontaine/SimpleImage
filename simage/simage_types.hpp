@@ -336,10 +336,13 @@ namespace simage
 	};
 
 
+	template <typename T>
+	using DeviceView1 = DeviceMatrix2D<T>;
+
+
 	using DeviceView = DeviceMatrix2D<Pixel>;
 	using DeviceViewGray = DeviceMatrix2D<u8>;
 	using DeviceViewYUV = DeviceMatrix2D<YUV2u8>;
-	using DeviceViewUVY = DeviceMatrix2D<UVY2u8>;
 	using DeviceViewBGR = DeviceMatrix2D<BGRu8>;
 }
 

@@ -18,7 +18,7 @@ using DeviceViewBGR = img::DeviceViewBGR;
 using RGBA = simage::RGBA;
 using RGB = simage::RGB;
 using HSV = simage::HSV;
-using YUV = simage::YUV;
+//using YUV = simage::YUV;
 
 
 class ChannelXY
@@ -35,32 +35,6 @@ constexpr int THREADS_PER_BLOCK = 512;
 constexpr int calc_thread_blocks(u32 n_threads)
 {
     return (n_threads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-}
-
-
-/* verify */
-
-namespace simage
-{
-#ifndef NDEBUG
-
-    template <typename T>
-	static bool verify(DeviceMatrix2D<T> const& view)
-	{
-		return view.width && view.height && view.data_;
-	}
-
-
-    template <class IMG_A, class IMG_B>
-	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
-	{
-		return
-			verify(lhs) && verify(rhs) &&
-			lhs.width == rhs.width &&
-			lhs.height == rhs.height;
-	}
-
-#endif
 }
 
 
@@ -128,6 +102,37 @@ namespace gpuf
 
 
     
+}
+
+
+namespace simage
+{
+#ifndef NDEBUG
+
+	template <typename T>
+	static bool verify(cuda::DeviceBuffer<T> const& buffer, u32 n_elements)
+	{
+		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
+	}
+
+
+	template <typename T>
+	static bool verify(DeviceMatrix2D<T> const& view)
+	{
+		return view.width && view.height && view.data;
+	}
+
+
+	template <class IMG_A, class IMG_B>
+	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
+	{
+		return
+			verify(lhs) && verify(rhs) &&
+			lhs.width == rhs.width &&
+			lhs.height == rhs.height;
+	}
+
+#endif
 }
 
 

@@ -330,10 +330,14 @@ namespace simage
 	class DeviceMatrix2D
 	{
 	public:
-		T* data_ = nullptr;
+		T* data = nullptr;
 		u32 width = 0;
 		u32 height = 0;
 	};
+
+
+	template <typename T>
+	using DeviceView1 = DeviceMatrix2D<T>;
 
 
 	using DeviceView = DeviceMatrix2D<Pixel>;

@@ -149,3 +149,19 @@ namespace simage
 		return view.channel_data[ch] + offset;
 	}
 }
+
+
+#ifndef SIMAGE_NO_CUDA
+
+/* row_begin */
+
+namespace simage
+{
+    template <typename T>
+    static T* row_begin(DeviceMatrix2D<T> const& view, u32 y)
+    {
+        return view.data + (u64)(y * view.width);
+    }
+}
+
+#endif

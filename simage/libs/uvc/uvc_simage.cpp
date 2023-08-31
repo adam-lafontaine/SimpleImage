@@ -222,8 +222,8 @@ public:
 
     img::Image rgb_frame;
     
-    img::View cb_view;
-	img::ViewGray cb_gray_view;
+    img::View rgba_view;
+	img::ViewGray gray_view;
 
     int device_id = -1;
 
@@ -674,7 +674,7 @@ static bool grab_and_convert_frame_rgba(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_rgba(in_frame, device.cb_view);
+    res = device.convert_rgba(in_frame, device.rgba_view);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_rgb");
@@ -696,7 +696,7 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_gray(in_frame, device.cb_gray_view);
+    res = device.convert_gray(in_frame, device.gray_view);
     if (res != uvc::UVC_SUCCESS)
     {  
         print_uvc_error(res, "device.convert_gray");
@@ -779,10 +779,10 @@ namespace simage
             return fail();
         }
 
-        device.cb_view = make_view(device.rgb_frame);
-        device.cb_gray_view.width = width;
-        device.cb_gray_view.height = height;
-        device.cb_gray_view.data = (u8*)device.rgb_frame.data_;
+        device.rgba_view = make_view(device.rgb_frame);
+        device.gray_view.width = width;
+        device.gray_view.height = height;
+        device.gray_view.data = (u8*)device.rgb_frame.data_;
 
         if (!start_device_single_frame(device))
         {
@@ -831,11 +831,11 @@ namespace simage
 
         if (camera.frame_width == dst.width && camera.frame_height == dst.height)
 		{
-			copy(device.cb_view, dst);
+			copy(device.rgba_view, dst);
 		}
 		else
 		{
-			write_frame_sub_view_rgba(camera, device.cb_view, dst);
+			write_frame_sub_view_rgba(camera, device.rgba_view, dst);
 		}
 
         return true;
@@ -858,7 +858,7 @@ namespace simage
 			return false;
 		}
 
-		write_frame_sub_view_rgba(camera, device.cb_view, dst);
+		write_frame_sub_view_rgba(camera, device.rgba_view, dst);
 
 		return true;
 	}
@@ -880,7 +880,7 @@ namespace simage
 			return false;
 		}
 
-		write_frame_sub_view_rgba(camera, sub_view(device.cb_view, roi), dst);
+		write_frame_sub_view_rgba(camera, sub_view(device.rgba_view, roi), dst);
 
 		return true;
 	}
@@ -902,7 +902,7 @@ namespace simage
 			return false;
 		}
 
-		write_frame_sub_view_rgba(camera, sub_view(device.cb_view, roi), dst);
+		write_frame_sub_view_rgba(camera, sub_view(device.rgba_view, roi), dst);
 
 		return true;
 	}
@@ -914,12 +914,12 @@ namespace simage
 
 		auto& device = g_device_list.devices[camera.device_id];
 
-		if (!grab_rgb(camera, device.cb_view))
+		if (!grab_rgb(camera, device.rgba_view))
 		{
 			return false;
 		}
 
-		grab_cb(device.cb_view);
+		grab_cb(device.rgba_view);
 
 		return true;
 	}
@@ -940,7 +940,7 @@ namespace simage
 		{
 			if (grab_and_convert_frame_rgba(device))
 			{
-				grab_cb(device.cb_view);
+				grab_cb(device.rgba_view);
 			}
 		}
 
@@ -954,12 +954,12 @@ namespace simage
 
 		auto& device = g_device_list.devices[camera.device_id];
 
-		if (!grab_rgb(camera, roi, device.cb_view))
+		if (!grab_rgb(camera, roi, device.rgba_view))
 		{
 			return false;
 		}
 
-		grab_cb(device.cb_view);
+		grab_cb(device.rgba_view);
 
 		return true;
 	}
@@ -980,7 +980,7 @@ namespace simage
 		{
 			if (grab_and_convert_frame_rgba(device))
 			{
-				grab_cb(device.cb_view);
+				grab_cb(device.rgba_view);
 			}
 		}
 
@@ -1006,11 +1006,11 @@ namespace simage
 
 		if (camera.frame_width == dst.width && camera.frame_height == dst.height)
 		{
-			copy(device.cb_gray_view, dst);
+			copy(device.gray_view, dst);
 		}
 		else
 		{
-			write_frame_sub_view_gray(camera, device.cb_gray_view, dst);
+			write_frame_sub_view_gray(camera, device.gray_view, dst);
 		}
 
 		return true;
@@ -1033,7 +1033,7 @@ namespace simage
 			return false;
 		}
 
-		write_frame_sub_view_gray(camera, device.cb_gray_view, dst);
+		write_frame_sub_view_gray(camera, device.gray_view, dst);
 
 		return true;
 	}
@@ -1055,7 +1055,7 @@ namespace simage
 			return false;
 		}
 
-		write_frame_sub_view_gray(camera, sub_view(device.cb_gray_view, roi), dst);
+		write_frame_sub_view_gray(camera, sub_view(device.gray_view, roi), dst);
 
 		return true;
 	}
@@ -1077,7 +1077,7 @@ namespace simage
 			return false;
 		}
 
-		write_frame_sub_view_gray(camera, sub_view(device.cb_gray_view, roi), dst);
+		write_frame_sub_view_gray(camera, sub_view(device.gray_view, roi), dst);
 
 		return true;
 	}
@@ -1089,12 +1089,12 @@ namespace simage
 
 		auto& device = g_device_list.devices[camera.device_id];
 
-		if (!grab_gray(camera, device.cb_gray_view))
+		if (!grab_gray(camera, device.gray_view))
 		{
 			return false;
 		}
 
-		grab_cb(device.cb_gray_view);
+		grab_cb(device.gray_view);
 
 		return true;
 	}
@@ -1115,7 +1115,7 @@ namespace simage
 		{
 			if (grab_and_convert_frame_gray(device))
 			{
-				grab_cb(device.cb_gray_view);
+				grab_cb(device.gray_view);
 			}
 		}
 
@@ -1129,12 +1129,12 @@ namespace simage
 
 		auto& device = g_device_list.devices[camera.device_id];
 
-		if (!grab_gray(camera, roi, device.cb_gray_view))
+		if (!grab_gray(camera, roi, device.gray_view))
 		{
 			return false;
 		}
 
-		grab_cb(device.cb_gray_view);
+		grab_cb(device.gray_view);
 
 		return true;
 
@@ -1158,7 +1158,7 @@ namespace simage
 		{
 			if (grab_and_convert_frame_gray(device))
 			{
-				grab_cb(device.cb_gray_view);
+				grab_cb(device.gray_view);
 			}
 		}
 

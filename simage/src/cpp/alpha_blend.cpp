@@ -259,14 +259,70 @@ namespace simage
 
 namespace simage
 {
+	static void alpha_blend_view(View const& src, View const& cur, View const& dst)
+	{
+		u32 len = src.width * src.height;
+
+		auto s = row_begin(src, 0);
+		auto c = row_begin(cur, 0);
+		auto d = row_begin(dst, 0);
+
+		alpha_blend_span_u8_no_simd(s, c, d, len);
+	}
+
+
+	static void alpha_blend_sub_view(View const& src, View const& cur, View const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto c = row_begin(cur, y);
+			auto d = row_begin(dst, y);
+
+			alpha_blend_span_u8_no_simd(s, c, d, src.width);
+		}
+	}
+
+
+	static void alpha_blend_view(View const& src, u8 alpha, View const& cur, View const& dst)
+	{
+		u32 len = src.width * src.height;
+
+		auto s = row_begin(src, 0);
+		auto c = row_begin(cur, 0);
+		auto d = row_begin(dst, 0);
+
+		alpha_blend_span_u8_no_simd(s, alpha, c, d, len);
+	}
+
+
+	static void alpha_blend_sub_view(View const& src, u8 alpha, View const& cur, View const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto c = row_begin(cur, y);
+			auto d = row_begin(dst, y);
+
+			alpha_blend_span_u8_no_simd(s, alpha, c, d, src.width);
+		}
+	}
+
+
+
 	void alpha_blend(View const& src, View const& cur, View const& dst)
 	{
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
-		u32 len = src.width * src.height;
-
-		alpha_blend_span_u8_no_simd(src.data, cur.data, dst.data, len);
+		if (is_1d(src) && is_1d(cur) && is_1d(dst))
+		{
+			alpha_blend_view(src, cur, dst);
+		}
+		else
+		{
+			alpha_blend_sub_view(src, cur, dst);
+		}
 	}
 
 
@@ -274,9 +330,14 @@ namespace simage
 	{
 		assert(verify(src, cur_dst));
 
-		u32 len = src.width * src.height;
-
-		alpha_blend_span_u8_no_simd(src.data, cur_dst.data, cur_dst.data, len);
+		if (is_1d(src) && is_1d(cur_dst))
+		{
+			alpha_blend_view(src, cur_dst, cur_dst);
+		}
+		else
+		{
+			alpha_blend_sub_view(src, cur_dst, cur_dst);
+		}
 	}
 
 
@@ -285,9 +346,14 @@ namespace simage
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
-		u32 len = src.width * src.height;
-
-		alpha_blend_span_u8_no_simd(src.data, alpha, cur.data, dst.data, len);
+		if (is_1d(src) && is_1d(cur) && is_1d(dst))
+		{
+			alpha_blend_view(src, alpha, cur, dst);
+		}
+		else
+		{
+			alpha_blend_sub_view(src, alpha, cur, dst);
+		}
 	}
 
 
@@ -295,9 +361,14 @@ namespace simage
 	{
 		assert(verify(src, cur_dst));
 
-		u32 len = src.width * src.height;
-
-		alpha_blend_span_u8_no_simd(src.data, alpha, cur_dst.data, cur_dst.data, len);
+		if (is_1d(src) && is_1d(cur_dst))
+		{
+			alpha_blend_view(src, alpha, cur_dst, cur_dst);
+		}
+		else
+		{
+			alpha_blend_sub_view(src, alpha, cur_dst, cur_dst);
+		}
 	}
 }
 
@@ -312,23 +383,20 @@ namespace simage
 		assert(verify(src, dst));
 		assert(verify(src, cur));
 
-		auto alpha = select_channel(src, RGBA::A).data;
+		auto alpha = select_channel(src, RGBA::A);
 		auto src_rgb = select_rgb(src);
 
 		u32 len = src.width * src.height;
 
-		RGB ch_rgb[3] = { RGB::R, RGB::G, RGB::B };
+		auto a = row_begin(alpha, 0);
 
-		auto const ch_func = [&](u32 ch_id)
+		for (u32 ch = 0; ch < 3; ++ch)
 		{
-			auto ch = ch_rgb[ch_id];
-			auto s = select_channel(src_rgb, ch).data;
-			auto c = select_channel(cur, ch).data;
-			auto d = select_channel(dst, ch).data;
+			auto s = row_begin(select_channel(src_rgb, ch), 0);
+			auto c = row_begin(select_channel(cur, ch), 0);
+			auto d = row_begin(select_channel(dst, ch), 0);
 
-			alpha_blend_span_f32_no_simd(s, c, alpha, d, len);
-		};
-
-		process_range(0, 3, ch_func);
+			alpha_blend_span_f32_no_simd(s, c, a, d, len);
+		}
 	}
 }

@@ -12,22 +12,11 @@ namespace simage
 
 
 	template <typename T>
-	static bool verify(MatrixView2D<T> const& image)
+	static bool verify(MatrixView2D<T> const& view)
 	{
-		return image.width && image.height && image.data;
-	}
-
-
-	template <typename T>
-	static bool verify(SubMatrixView2D<T> const& view)
-	{
-		return 
-			view.matrix_width && 
-			view.width && 
-			view.height && 
-			view.matrix_data_ &&
-			(view.x_end - view.x_begin) == view.width &&
-			(view.y_end - view.y_begin) == view.height;
+		return view.width && view.height && 
+			view.matrix_data && view.matrix_width &&
+			view.width <= view.matrix_width;
 	}
 
 

@@ -28,7 +28,7 @@ static inline u8 hypot_to_u8(f32 a, f32 b)
 }
 
 
-void process_range(u32 id_begin, u32 id_end, std::function<void(u32)> const& id_func)
+static void process_range(u32 id_begin, u32 id_end, std::function<void(u32)> const& id_func)
 {
     assert(id_begin <= id_end);
 
@@ -37,6 +37,14 @@ void process_range(u32 id_begin, u32 id_end, std::function<void(u32)> const& id_
         id_func(i);
     }
 }
+
+
+template <typename T>
+static bool is_1d(simage::View1<T> const& view)
+{
+    return view.width == view.matrix_width;
+}
+
 
 #include "src/cpp/verify.cpp"
 #include "src/cpp/channel_pixels.cpp"

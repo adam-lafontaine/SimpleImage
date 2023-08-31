@@ -78,46 +78,33 @@ namespace simage
 
 namespace simage
 {
-	SubView sub_view(Image const& image, Range2Du32 const& range);
+	View sub_view(Image const& image, Range2Du32 const& range);
 
-	SubView sub_view(View const& view, Range2Du32 const& range);
+	View sub_view(View const& view, Range2Du32 const& range);
 
-	SubView sub_view(SubView const& view, Range2Du32 const& range);	
+	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
 
-
-	SubViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
-
-	SubViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
-
-	SubViewGray sub_view(SubViewGray const& view, Range2Du32 const& range);	
+	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
 
 
-	SubViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range);
+	ViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range);
 
-	SubViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range);
-
-	SubViewYUV sub_view(SubViewYUV const& view, Range2Du32 const& range);
+	ViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range);
 
 
-	SubViewUVY sub_view(ImageUVY const& image, Range2Du32 const& range);
+	ViewUVY sub_view(ImageUVY const& image, Range2Du32 const& range);
 
-	SubViewUVY sub_view(ViewUVY const& view, Range2Du32 const& range);
-
-	SubViewUVY sub_view(SubViewUVY const& view, Range2Du32 const& range);
+	ViewUVY sub_view(ViewUVY const& view, Range2Du32 const& range);
 
 
-	SubViewBGR sub_view(ImageBGR const& image, Range2Du32 const& range);
+	ViewBGR sub_view(ImageBGR const& image, Range2Du32 const& range);
 
-	SubViewBGR sub_view(ViewBGR const& view, Range2Du32 const& range);
-
-	SubViewBGR sub_view(SubViewBGR const& view, Range2Du32 const& range);
+	ViewBGR sub_view(ViewBGR const& view, Range2Du32 const& range);
 
 
-	SubViewRGB sub_view(ImageRGB const& image, Range2Du32 const& range);
+	ViewRGB sub_view(ImageRGB const& image, Range2Du32 const& range);
 
-	SubViewRGB sub_view(ViewRGB const& view, Range2Du32 const& range);
-
-	SubViewRGB sub_view(SubViewRGB const& view, Range2Du32 const& range);
+	ViewRGB sub_view(ViewRGB const& view, Range2Du32 const& range);
 }
 
 
@@ -139,11 +126,7 @@ namespace simage
 {
 	void fill(View const& view, Pixel color);
 
-	void fill(SubView const& view, Pixel color);
-
 	void fill(ViewGray const& view, u8 gray);
-
-	void fill(SubViewGray const& view, u8 gray);
 }
 
 
@@ -154,20 +137,6 @@ namespace simage
 	void copy(View const& src, View const& dst);
 
 	void copy(ViewGray const& src, ViewGray const& dst);
-
-
-	void copy(SubView const& src, SubView const& dst);
-
-	void copy(SubView const& src, View const& dst);
-
-	void copy(View const& src, SubView const& dst);
-
-
-	void copy(SubViewGray const& src, SubViewGray const& dst);
-
-	void copy(SubViewGray const& src, ViewGray const& dst);
-
-	void copy(ViewGray const& src, SubViewGray const& dst);
 }
 
 
@@ -177,30 +146,9 @@ namespace simage
 {
 	void map_gray(View const& src, ViewGray const& dst);
 
-	void map_gray(SubView const& src, ViewGray const& dst);
-
-	void map_gray(View const& src, SubViewGray const& dst);
-
-	void map_gray(SubView const& src, SubViewGray const& dst);
-
-
 	void map_gray(ViewBGR const& src, ViewGray const& dst);
 
-	void map_gray(SubViewBGR const& src, ViewGray const& dst);
-
-	void map_gray(ViewBGR const& src, SubViewGray const& dst);
-
-	void map_gray(SubViewBGR const& src, SubViewGray const& dst);
-
-
 	void map_gray(ViewRGB const& src, ViewGray const& dst);
-
-	void map_gray(SubViewRGB const& src, ViewGray const& dst);
-
-	void map_gray(ViewRGB const& src, SubViewGray const& dst);
-
-	void map_gray(SubViewRGB const& src, SubViewGray const& dst);
-
 
 	void map_gray(ViewYUV const& src, ViewGray const& dst);
 
@@ -214,23 +162,10 @@ namespace simage
 {
 	void map_rgba(ViewGray const& src, View const& dst);
 
-	void map_rgba(ViewGray const& src, SubView const& dst);
-
-	void map_rgba(SubViewGray const& src, SubView const& dst);
-
-
 	void map_rgba(ViewBGR const& src, View const& dst);
-
-	void map_rgba(SubViewBGR const& src, View const& dst);
-
-	void map_rgba(SubViewBGR const& src, SubView const& dst);
-
 
 	void map_rgba(ViewRGB const& src, View const& dst);	
 
-	void map_rgba(SubViewRGB const& src, View const& dst);
-
-	void map_rgba(SubViewRGB const& src, SubView const& dst);
 }
 
 
@@ -265,19 +200,9 @@ namespace simage
 	void for_each_pixel(ViewGray const& view, std::function<void(u8&)> const& func);
 
 
-	void for_each_pixel(SubView const& view, std::function<void(Pixel&)> const& func);
-
-	void for_each_pixel(SubViewGray const& view, std::function<void(u8&)> const& func);
-
-
 	void for_each_xy(View const& view, std::function<Pixel(u32 x, u32 y)> const& func);
 
-	void for_each_xy(SubView const& view, std::function<Pixel(u32 x, u32 y)> const& func);
-
-
 	void for_each_xy(ViewGray const& view, std::function<u8(u32 x, u32 y)> const& func);
-
-	void for_each_xy(SubViewGray const& view, std::function<u8(u32 x, u32 y)> const& func);
 }
 
 
@@ -646,11 +571,7 @@ namespace simage
 
 	bool grab_rgb(CameraUSB const& camera, View const& dst);
 
-	bool grab_rgb(CameraUSB const& camera, SubView const& dst);
-
 	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, View const& dst);
-
-	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, SubView const& dst);
 
 
 	bool grab_rgb(CameraUSB const& camera, view_callback const& grab_cb);
@@ -665,11 +586,7 @@ namespace simage
 	
 	bool grab_gray(CameraUSB const& camera, ViewGray const& dst);
 
-	bool grab_gray(CameraUSB const& camera, SubViewGray const& dst);
-
 	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, ViewGray const& dst);
-
-	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, SubViewGray const& dst);
 
 
 	bool grab_gray(CameraUSB const& camera, view_gray_callback const& grab_cb);
@@ -724,14 +641,6 @@ namespace simage
 }
 
 
-/* sub_view */
-
-namespace simage
-{
-	SubView1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
-}
-
-
 /* select_channel */
 
 namespace simage
@@ -758,13 +667,7 @@ namespace simage
 {
 	void map_gray(View1u8 const& src, View1f32 const& dst);
 
-	void map_gray(SubView1u8 const& src, View1f32 const& dst);
-
 	void map_gray(View1f32 const& src, View1u8 const& dst);
-	
-	void map_gray(View1f32 const& src, SubView1u8 const& dst);
-
-	void map_gray(SubView1f32 const& src, SubView1u8 const& dst);
 
 	void map_gray(ViewYUV const& src, View1f32 const& dst);
 
@@ -776,13 +679,9 @@ namespace simage
 {
 	void map_gray(View const& src, View1f32 const& dst);
 
-	void map_gray(SubView const& src, View1f32 const& dst);
-
 	void map_gray(ViewRGBf32 const& src, View1f32 const& dst);
 
 	void map_gray(ViewRGBf32 const& src, View1u8 const& dst);
-
-	void map_gray(ViewRGBf32 const& src, SubView1u8 const& dst);
 
 
 	inline void map_gray(ImageGray const& src, View1f32 const& dst)
@@ -798,31 +697,14 @@ namespace simage
 {	
 	void map_rgba(View const& src, ViewRGBAf32 const& dst);
 
-	void map_rgba(SubView const& src, ViewRGBAf32 const& dst);
-
-
 	void map_rgb(View const& src, ViewRGBf32 const& dst);
-
-	void map_rgb(SubView const& src, ViewRGBf32 const& dst);
-
 
 	void map_rgba(ViewRGBAf32 const& src, View const& dst);
 
-	void map_rgba(ViewRGBAf32 const& src, SubView const& dst);
-
-
 	void map_rgba(ViewRGBf32 const& src, View const& dst);
-
-	void map_rgba(ViewRGBf32 const& src, SubView const& dst);
 
 
 	void map_rgba(View1f32 const& src, View const& dst);
-
-	void map_rgba(SubView1f32 const& src, View const& dst);
-
-	void map_rgba(View1f32 const& src, SubView const& dst);
-
-	void map_rgba(SubView1f32 const& src, SubView const& dst);
 
 
 	void map_rgb(ViewBGR const& src, ViewRGBf32 const& dst);

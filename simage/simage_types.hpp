@@ -37,21 +37,11 @@ namespace simage
 
 
 	template <typename T>
-	class MatrixView2D
-	{
-	public:
-		T* data = nullptr;
-		u32 width = 0;
-		u32 height = 0;
-	};
-
-
-	template <typename T>
-    class SubMatrixView2D
+    class MatrixView2D
 	{
 	public:
 
-		T* matrix_data_ = 0;
+		T* matrix_data = 0;
 		u32 matrix_width = 0;
 
 		u32 width = 0;
@@ -74,11 +64,9 @@ namespace simage
 
 	using Image = Matrix2D<Pixel>;
 	using View = MatrixView2D<Pixel>;
-	using SubView = SubMatrixView2D<Pixel>;
 
 	using ImageGray = Matrix2D<u8>;
 	using ViewGray = MatrixView2D<u8>;
-	using SubViewGray = SubMatrixView2D<u8>;
 }
 
 
@@ -112,11 +100,6 @@ namespace simage
 
 	using View1u8 = ViewGray;
 
-	template <typename T>
-	using SubView1 = SubMatrixView2D<T>;
-
-	using SubView1u8 = SubViewGray;
-
 
 	using View4f32 = View4<f32>;
 	using View3f32 = View3<f32>;
@@ -127,8 +110,6 @@ namespace simage
 	using ViewRGBf32 = View3f32;
 	using ViewHSVf32 = View3f32;
 	using ViewLCHf32 = View3f32;
-
-	using SubView1f32 = SubView1<f32>;
 }
 
 
@@ -275,19 +256,15 @@ namespace simage
 
 	using ImageYUV = Matrix2D<YUV2u8>;
 	using ViewYUV = MatrixView2D<YUV2u8>;
-	using SubViewYUV = SubMatrixView2D<YUV2u8>;
 
 	using ImageUVY = Matrix2D<UVY2u8>;
 	using ViewUVY = MatrixView2D<UVY2u8>;
-	using SubViewUVY = SubMatrixView2D<UVY2u8>;
 
 	using ImageBGR = Matrix2D<BGRu8>;
 	using ViewBGR = MatrixView2D<BGRu8>;
-	using SubViewBGR = SubMatrixView2D<BGRu8>;
 
 	using ImageRGB = Matrix2D<RGBu8>;
 	using ViewRGB = MatrixView2D<RGBu8>;
-	using SubViewRGB = SubMatrixView2D<RGBu8>;
 }
 
 

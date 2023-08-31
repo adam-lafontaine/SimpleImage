@@ -85,18 +85,6 @@ void process_range(u32 id_begin, u32 id_end, std::function<void(u32)> const& id_
 #ifndef SIMAGE_NO_CUDA
 
 
-/* row_begin */
-
-namespace simage
-{
-    template <typename T>
-    static T* row_begin(DeviceMatrix2D<T> const& view, u32 y)
-    {
-        return view.data + (u64)(y * view.width);
-    }
-}
-
-
 /* copy device */
 
 namespace simage

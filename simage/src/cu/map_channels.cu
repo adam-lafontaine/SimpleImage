@@ -1,5 +1,3 @@
-
-
 namespace gpuf
 {    
     GPU_CONSTEXPR_FUNCTION

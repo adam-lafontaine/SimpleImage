@@ -38,32 +38,6 @@ constexpr int calc_thread_blocks(u32 n_threads)
 }
 
 
-/* verify */
-
-namespace simage
-{
-#ifndef NDEBUG
-
-    template <typename T>
-	static bool verify(DeviceMatrix2D<T> const& view)
-	{
-		return view.width && view.height && view.data;
-	}
-
-
-    template <class IMG_A, class IMG_B>
-	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
-	{
-		return
-			verify(lhs) && verify(rhs) &&
-			lhs.width == rhs.width &&
-			lhs.height == rhs.height;
-	}
-
-#endif
-}
-
-
 namespace gpuf
 {
     template <typename T>
@@ -128,6 +102,37 @@ namespace gpuf
 
 
     
+}
+
+
+namespace simage
+{
+#ifndef NDEBUG
+
+	template <typename T>
+	static bool verify(cuda::DeviceBuffer<T> const& buffer, u32 n_elements)
+	{
+		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
+	}
+
+
+	template <typename T>
+	static bool verify(DeviceMatrix2D<T> const& view)
+	{
+		return view.width && view.height && view.data;
+	}
+
+
+	template <class IMG_A, class IMG_B>
+	static bool verify(IMG_A const& lhs, IMG_B const& rhs)
+	{
+		return
+			verify(lhs) && verify(rhs) &&
+			lhs.width == rhs.width &&
+			lhs.height == rhs.height;
+	}
+
+#endif
 }
 
 

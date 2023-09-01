@@ -6,8 +6,8 @@ namespace simage
 	static inline void copy_view_1_no_simd(View1<T> const& src, View1<T> const& dst)
 	{
 		auto len = src.width * src.height;
-		auto s = src.data;
-		auto d = dst.data;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
 
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -31,33 +31,39 @@ namespace simage
 	}
 
 
+	template <typename T>
+	static void copy_span_no_simd(T* src, T* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			dst[i] = src[i];
+		}
+	}
+
+
 #ifdef SIMAGE_NO_SIMD
 
 	template <typename T>
 	static inline void copy_view_1(View1<T> const& src, View1<T> const& dst)
 	{
-		copy_view_1_no_simd(src, dst);
+		auto len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		copy_span(s, d, len);
 	}
 
 
 	template <typename T>
-	static inline void copy_sub_view_1(SubView1<T> const& src, SubView1<T> const& dst)
+	static inline void copy_sub_view_1(View1<T> const& src, View1<T> const& dst)
 	{
-		copy_sub_view_1_no_simd(src, dst);
-	}
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
 
-
-	template <typename T>
-	static inline void copy_sub_view_1(View1<T> const& src, SubView1<T> const& dst)
-	{
-		copy_sub_view_1_no_simd(src, dst);
-	}
-
-
-	template <typename T>
-	static inline void copy_sub_view_1(SubView1<T> const& src, View1<T> const& dst)
-	{
-		copy_sub_view_1_no_simd(src, dst);
+			copy_span(s, d, src.width);
+		}
 	}
 
 #else
@@ -123,9 +129,10 @@ namespace simage
 	template <typename T, size_t N>
 	static inline void copy_view_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst)
 	{
-		auto const ch_func = [&](u32 ch){ copy_view_1(select_channel(src, ch), select_channel(dst, ch)); };
-
-		process_range(0, N, ch_func);
+		for (u32 ch = 0; ch < (u32)N; ++ch)
+		{
+			copy_view_1(select_channel(src, ch), select_channel(dst, ch));
+		}
 	}
 }
 
@@ -138,7 +145,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		copy_view_1(src, dst);
+		if (is_1d(src) && is_1d(dst))
+		{
+			copy_view_1(src, dst);
+		}
+		else
+		{
+			copy_sub_view_1(src, dst);
+		}
 	}
 
 
@@ -146,60 +160,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		copy_view_1(src, dst);
-	}
-}
-
-
-/* copy sub_view */
-
-namespace simage
-{
-	void copy(SubView const& src, SubView const& dst)
-	{
-		assert(verify(src, dst));
-
-		copy_sub_view_1(src, dst);
-	}
-
-
-	void copy(SubView const& src, View const& dst)
-	{
-		assert(verify(src, dst));
-
-		copy_sub_view_1(src, dst);
-	}
-
-
-	void copy(View const& src, SubView const& dst)
-	{
-		assert(verify(src, dst));
-
-		copy_sub_view_1(src, dst);
-	}
-
-
-	void copy(SubViewGray const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-		copy_sub_view_1(src, dst);
-	}
-
-
-	void copy(SubViewGray const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-		copy_sub_view_1(src, dst);
-	}
-
-
-	void copy(ViewGray const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-		copy_sub_view_1(src, dst);
+		if (is_1d(src) && is_1d(dst))
+		{
+			copy_view_1(src, dst);
+		}
+		else
+		{
+			copy_sub_view_1(src, dst);
+		}
 	}
 }
 

@@ -20,27 +20,6 @@ namespace simage
 			dst[i] = cs::to_channel_u8(src[i]);
 		}
 	}
-
-
-    template <typename TSRC, typename TDST>
-	static inline void map_view_gray_1(View1<TSRC> const& src, View1<TDST> const& dst)
-	{
-		auto len = src.width * src.height;
-
-		map_span_gray_no_simd(src.data, dst.data, len);
-	}
-
-
-	template <class ViewSRC, class ViewDST>
-	static inline void map_sub_view_gray_1(ViewSRC const& src, ViewDST const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			map_span_gray_no_simd(s, d, src.width);
-		}
-	}
 }
 
 /*
@@ -171,29 +150,6 @@ namespace simage
 			dst[i] = cs::to_channel_f32(src[i].y);
 		}
 	}
-
-
-    template <class ViewSRC, class ViewDST>
-    static inline void map_view_yuv_to_gray(ViewSRC const& src, ViewDST const& dst)
-    {
-        auto len = src.width * src.height;
-
-        map_span_yuv_to_gray(src.data, dst.data, len);
-    }
-
-
-    template <class ViewSRC, class ViewDST>
-    static inline void map_sub_view_yuv_to_gray(ViewSRC const& src, ViewDST const& dst)
-    {
-        for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = row_begin(dst, y);
-			auto s = row_begin(src, y);			
-
-			map_span_yuv_to_gray(s, d, src.width);
-		}
-    }
-
 }
 
 
@@ -241,17 +197,6 @@ namespace simage
 	}
 
 
-    static inline void map_span_rgb_to_gray(Pixel* src, Pixel* dst, u32 len)
-	{
-		for (u32 i = 0; i < len; ++i)
-		{
-			auto rgba = src[i].rgba;
-			auto gray = gray::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-            dst[i] = to_pixel(gray, gray, gray);
-		}
-	}
-
-
     static inline void map_span_rgb_to_gray(f32* r, f32* g, f32* b, f32* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
@@ -276,19 +221,7 @@ namespace simage
 	}
 
 
-    static inline void map_span_rgb_to_gray(RGBAf32p const& src, f32* dst, u32 len)
-	{
-		map_span_rgb_to_gray(src.R, src.G, src.B, dst, len);
-	}
-
-
 	static inline void map_span_rgb_to_gray(RGBf32p const& src, u8* dst, u32 len)
-	{
-		map_span_rgb_to_gray(src.R, src.G, src.B, dst, len);
-	}
-
-
-	static inline void map_span_rgb_to_gray(RGBAf32p const& src, u8* dst, u32 len)
 	{
 		map_span_rgb_to_gray(src.R, src.G, src.B, dst, len);
 	}
@@ -297,49 +230,233 @@ namespace simage
 
 namespace simage
 {
-    template <class TSRC, class TDST>
-    static inline void map_view_rgb_to_gray(View1<TSRC> const& src, View1<TDST> const& dst)
+	template <class RGBT, class GrayT>
+    static inline void map_view_rgb_to_gray(View1<RGBT> const& src, View1<GrayT> const& dst)
     {
         u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
 
-        map_span_rgb_to_gray(src.data, dst.data, len);
+        map_span_rgb_to_gray(s, d, len);
     }
 
 
-    template <class TDST>
-    static inline void map_view_rgb_to_gray(ViewRGBf32 const& src, View1<TDST> const& dst)
-    {
-        u32 len = src.width * src.height;
-
-        map_span_rgb_to_gray(rgb_row_begin(src, 0), dst.data, len);
-    }
-
-
-	template <class TDST>
-	static inline void map_view_rgb_to_gray(ViewRGBAf32 const& src, View1<TDST> const& dst)
-	{
-		u32 len = src.width * src.height;
-
-		map_span_rgb_to_gray(rgba_row_begin(src, 0), dst.data, len);
-	}
-
-
-
-	template <class ViewSRC, class ViewDST>
-	static inline void map_sub_view_rgb_to_gray(ViewSRC const& src, ViewDST const& dst)
+	template <class RGBT, class GrayT>
+    static inline void map_sub_view_rgb_to_gray(View1<RGBT> const& src, View1<GrayT> const& dst)
 	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
-			auto d = row_begin(dst, y);
 			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
 
 			map_span_rgb_to_gray(s, d, src.width);
 		}
 	}
 
 
-	template <class TDST>
-	static inline void map_sub_view_rgb_to_gray(ViewRGBf32 const& src, SubView1<TDST> const& dst)
+	template <class ViewSRC, class ViewDST>
+    static inline void map_view_yuv_to_gray(ViewSRC const& src, ViewDST const& dst)
+    {
+        auto len = src.width * src.height;
+
+        map_span_yuv_to_gray(src.data, dst.data, len);
+    }
+
+
+    template <class ViewSRC, class ViewDST>
+    static inline void map_sub_view_yuv_to_gray(ViewSRC const& src, ViewDST const& dst)
+    {
+        for (u32 y = 0; y < src.height; ++y)
+		{
+			auto d = row_begin(dst, y);
+			auto s = row_begin(src, y);			
+
+			map_span_yuv_to_gray(s, d, src.width);
+		}
+    }
+
+
+	void map_gray(View const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		if (is_1d(src) && is_1d(dst))
+		{
+			map_view_rgb_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgb_to_gray(src, dst);
+		}
+	}
+
+
+	void map_gray(ViewBGR const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        if (is_1d(src) && is_1d(dst))
+		{
+			map_view_rgb_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgb_to_gray(src, dst);
+		}
+	}
+
+
+	void map_gray(ViewRGB const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        if (is_1d(src) && is_1d(dst))
+		{
+			map_view_rgb_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgb_to_gray(src, dst);
+		}
+	}
+
+
+	void map_gray(ViewYUV const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+		if (is_1d(src) && is_1d(dst))
+		{
+			map_view_yuv_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_yuv_to_gray(src, dst);
+		}
+	}
+
+
+	void map_gray(ViewUVY const& src, ViewGray const& dst)
+	{
+		assert(verify(src, dst));
+
+        if (is_1d(src) && is_1d(dst))
+		{
+			map_view_yuv_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_yuv_to_gray(src, dst);
+		}
+	}
+}
+
+
+/* gray to gray */
+
+namespace simage
+{
+    template <typename TSRC, typename TDST>
+	static inline void map_view_gray_1(View1<TSRC> const& src, View1<TDST> const& dst)
+	{
+		auto len = src.width * src.height;
+
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		map_span_gray_no_simd(s, d, len);
+	}
+
+
+	template <class ViewSRC, class ViewDST>
+	static inline void map_sub_view_gray_1(ViewSRC const& src, ViewDST const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_gray_no_simd(s, d, src.width);
+		}
+	}
+
+
+    void map_gray(View1u8 const& src, View1f32 const& dst)
+    {
+        assert(verify(src, dst));
+
+		if (is_1d(src))
+		{
+			map_view_gray_1(src, dst);
+		}
+		else
+		{
+			map_sub_view_gray_1(src, dst);
+		}
+    }
+
+
+	void map_gray(View1f32 const& src, View1u8 const& dst)
+    {
+        assert(verify(src, dst));
+
+        if (is_1d(dst))
+		{
+			map_view_gray_1(src, dst);
+		}
+		else
+		{
+			map_sub_view_gray_1(src, dst);
+		}
+    }
+
+
+    void map_gray(ViewYUV const& src, View1f32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        if (is_1d(src))
+		{
+			map_view_gray_1(src, dst);
+		}
+		else
+		{
+			map_sub_view_gray_1(src, dst);
+		}
+    }
+
+
+	void map_gray(ViewUVY const& src, View1f32 const& dst)
+    {
+        assert(verify(src, dst));
+
+        if (is_1d(dst))
+		{
+			map_view_gray_1(src, dst);
+		}
+		else
+		{
+			map_sub_view_gray_1(src, dst);
+		}
+    }
+}
+
+
+namespace simage
+{
+	template <class GrayT>
+    static inline void map_view_rgb_to_gray(ViewRGBf32 const& src, View1<GrayT> const& dst)
+    {
+        u32 len = src.width * src.height;
+		auto d = row_begin(dst, 0);
+		auto s = rgb_row_begin(src, 0);
+
+        map_span_rgb_to_gray(s, d, len);
+    }
+
+
+	template <class GrayT>
+	static inline void map_sub_view_rgb_to_gray(ViewRGBf32 const& src, View1<GrayT> const& dst)
 	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
@@ -351,210 +468,18 @@ namespace simage
 	}
 
 
-	template <class TDST>
-	static inline void map_sub_view_rgb_to_gray(ViewRGBAf32 const& src, SubView1<TDST> const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = row_begin(dst, y);
-			auto s = rgba_row_begin(src, y);
-
-			map_span_rgb_to_gray(s, d, src.width);
-		}
-	}
-}
-
-
-namespace simage
-{
-	void map_gray(View const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_view_rgb_to_gray(src, dst);
-	}
-
-
-    void map_gray(SubView const& src, ViewGray const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-    }
-
-
-	void map_gray(View const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-	}
-
-
-	void map_gray(SubView const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-	}
-
-
-	void map_gray(ViewBGR const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_view_rgb_to_gray(src, dst);
-	}
-
-
-    void map_gray(SubViewBGR const& src, ViewGray const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-    }
-
-
-	void map_gray(ViewBGR const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-	}
-
-
-	void map_gray(SubViewBGR const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-	}
-
-
-	void map_gray(ViewRGB const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_view_rgb_to_gray(src, dst);
-	}
-
-
-    void map_gray(SubViewRGB const& src, ViewGray const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-    }
-
-
-	void map_gray(ViewRGB const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-	}
-
-
-	void map_gray(SubViewRGB const& src, SubViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
-	}
-
-
-	void map_gray(ViewYUV const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_view_yuv_to_gray(src, dst);
-	}
-
-
-	void map_gray(ViewUVY const& src, ViewGray const& dst)
-	{
-		assert(verify(src, dst));
-
-        map_view_yuv_to_gray(src, dst);
-	}
-}
-
-
-
-namespace simage
-{
-    void map_gray(View1u8 const& src, View1f32 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_view_gray_1(src, dst);
-    }
-
-
-    void map_gray(SubView1u8 const& src, View1f32 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_gray_1(src, dst);
-    }
-
-
-	void map_gray(View1f32 const& src, View1u8 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_view_gray_1(src, dst);
-    }
-
-
-	void map_gray(View1f32 const& src, SubView1u8 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_gray_1(src, dst);
-    }
-
-
-	void map_gray(SubView1f32 const& src, SubView1u8 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_gray_1(src, dst);
-    }
-
-
-    void map_gray(ViewYUV const& src, View1f32 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_view_yuv_to_gray(src, dst);
-    }
-
-
-	void map_gray(ViewUVY const& src, View1f32 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_view_yuv_to_gray(src, dst);
-    }
-}
-
-
-namespace simage
-{
     void map_gray(View const& src, View1f32 const& dst)
     {
         assert(verify(src, dst));
 
-        map_view_rgb_to_gray(src, dst);
-    }
-
-
-	void map_gray(SubView const& src, View1f32 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
+		if (is_1d(src) && is_1d(dst))
+		{
+			map_view_rgb_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgb_to_gray(src, dst);
+		}
     }
 
 
@@ -562,7 +487,14 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        map_view_rgb_to_gray(src, dst);
+        if (is_1d(dst))
+		{
+			map_view_rgb_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgb_to_gray(src, dst);
+		}
     }
 
 
@@ -570,13 +502,13 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        map_view_rgb_to_gray(src, dst);
-    }
-
-	void map_gray(ViewRGBf32 const& src, SubView1u8 const& dst)
-    {
-        assert(verify(src, dst));
-
-        map_sub_view_rgb_to_gray(src, dst);
+        if (is_1d(dst))
+		{
+			map_view_rgb_to_gray(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgb_to_gray(src, dst);
+		}
     }
 }

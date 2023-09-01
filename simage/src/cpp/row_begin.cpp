@@ -10,7 +10,7 @@ namespace simage
 
 
 	template <typename T>
-	static inline T* row_begin(MatrixView2D<T> const& image, u32 y)
+	static inline T* row_begin(MatrixView2D<T> const& view, u32 y)
 	{
 		return view.matrix_data + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}

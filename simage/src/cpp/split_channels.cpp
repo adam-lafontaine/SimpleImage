@@ -85,9 +85,12 @@ namespace simage
 
 		for (u32 i = 0; i < N; ++i)
 		{
+			views[i].matrix_data = src.channel_data[i];
+			views[i].matrix_width = src.width;
 			views[i].width = src.width;
 			views[i].height = src.height;
-			views[i].data = src.channel_data[i];
+			views[i].range = make_range(src.width, src.height);
+			
 		}
 
 		return views;

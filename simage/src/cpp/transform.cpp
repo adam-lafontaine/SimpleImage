@@ -1,22 +1,3 @@
-
-
-
-/* binarize span */
-
-namespace simage
-{
-	
-}
-
-
-/* threshold span*/
-
-namespace simage
-{
-	
-}
-
-
 /* transform */
 
 namespace simage
@@ -25,10 +6,12 @@ namespace simage
 	static void transform_view(View1<TSRC> const& src, View1<TDST> const& dst, FUNC const& func)
 	{
 		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
 
 		for (u32 i = 0; i < len; ++i)
 		{
-			dst.data[i] = func(src.data[i]);
+			d[i] = func(s[i]);
 		}
 	}
 

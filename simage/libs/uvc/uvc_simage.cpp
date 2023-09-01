@@ -38,10 +38,12 @@ namespace convert
 
     static uvc::uvc_error_t yuyv_to_rgba(uvc::frame* in, img::View const& dst)
     {
-        img::ViewYUV src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::YUV2u8*)in->data;
+        img::ImageYUV image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::YUV2u8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_yuv_rgba(src, dst);
 
@@ -51,10 +53,12 @@ namespace convert
 
     static uvc::uvc_error_t yuyv_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
-        img::ViewYUV src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::YUV2u8*)in->data;
+        img::ImageYUV image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::YUV2u8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_gray(src, dst);
 
@@ -64,10 +68,12 @@ namespace convert
 
     static uvc::uvc_error_t uyvy_to_rgba(uvc::frame* in, img::View const& dst)
     {
-        img::ViewUVY src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::UVY2u8*)in->data;
+        img::ImageUVY image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::UVY2u8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_yuv_rgba(src, dst);
 
@@ -77,10 +83,12 @@ namespace convert
 
     static uvc::uvc_error_t uyvy_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
-        img::ViewUVY src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::UVY2u8*)in->data;
+        img::ImageUVY image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::UVY2u8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_gray(src, dst);
 
@@ -102,10 +110,12 @@ namespace convert
 
     static uvc::uvc_error_t rgb_to_rgba(uvc::frame* in, img::View const& dst)
     {
-        img::ViewRGB src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::RGBu8*)in->data;
+        img::ImageRGB image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::RGBu8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_rgba(src, dst);
 
@@ -115,10 +125,12 @@ namespace convert
 
     static uvc::uvc_error_t rgb_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
-        img::ViewRGB src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::RGBu8*)in->data;
+        img::ImageRGB image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::RGBu8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_gray(src, dst);
 
@@ -128,10 +140,12 @@ namespace convert
 
     static uvc::uvc_error_t bgr_to_rgba(uvc::frame* in, img::View const& dst)
     {
-        img::ViewBGR src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::BGRu8*)in->data;
+        img::ImageBGR image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::BGRu8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_rgba(src, dst);
 
@@ -141,10 +155,12 @@ namespace convert
 
     static uvc::uvc_error_t bgr_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
-        img::ViewBGR src{};
-        src.width = dst.width;
-        src.height = dst.height;
-        src.data = (img::BGRu8*)in->data;
+        img::ImageBGR image;
+        image.width = dst.width;
+        image.height = dst.height;
+        image.data_ = (img::BGRu8*)in->data;
+
+        auto src = img::make_view(image);
 
         img::map_gray(src, dst);
 

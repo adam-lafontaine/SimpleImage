@@ -144,7 +144,7 @@ namespace simage
         auto s = row_begin(src, 0);
         auto d = row_begin(dst, 0);
 
-        map_span_gray_rgb(src.data, dst.data, len);
+        map_span_gray_rgb(s, d, len);
     }
 
 

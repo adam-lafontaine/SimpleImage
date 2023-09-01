@@ -63,6 +63,8 @@ namespace simage
 
 	ViewYUV make_view(ImageYUV const& image);
 
+	ViewUVY make_view(ImageUVY const& image);
+
 	ViewBGR make_view(ImageBGR const& image);
 
 	ViewRGB make_view(ImageRGB const& image);
@@ -820,7 +822,7 @@ namespace simage
 
 namespace simage
 {
-	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> const& func32);
+	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> const& func);
 }
 
 

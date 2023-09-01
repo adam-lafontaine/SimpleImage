@@ -254,28 +254,6 @@ namespace simage
 	}
 
 
-	template <class ViewSRC, class ViewDST>
-    static inline void map_view_yuv_to_gray(ViewSRC const& src, ViewDST const& dst)
-    {
-        auto len = src.width * src.height;
-
-        map_span_yuv_to_gray(src.data, dst.data, len);
-    }
-
-
-    template <class ViewSRC, class ViewDST>
-    static inline void map_sub_view_yuv_to_gray(ViewSRC const& src, ViewDST const& dst)
-    {
-        for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = row_begin(dst, y);
-			auto s = row_begin(src, y);			
-
-			map_span_yuv_to_gray(s, d, src.width);
-		}
-    }
-
-
 	void map_gray(View const& src, ViewGray const& dst)
 	{
 		assert(verify(src, dst));
@@ -317,6 +295,35 @@ namespace simage
 		else
 		{
 			map_sub_view_rgb_to_gray(src, dst);
+		}
+	}
+}
+
+
+/* yuv to gray */
+
+namespace simage
+{
+	template <class YUVT, class GrayT>
+    static inline void map_view_yuv_to_gray(View1<YUVT> const& src, View1<GrayT> const& dst)
+    {
+        u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+        map_span_yuv_to_gray(s, d, len);
+    }
+
+
+	template <class YUVT, class GrayT>
+    static inline void map_sub_view_yuv_to_gray(View1<YUVT> const& src, View1<GrayT> const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_yuv_to_gray(s, d, src.width);
 		}
 	}
 
@@ -368,8 +375,8 @@ namespace simage
 	}
 
 
-	template <class ViewSRC, class ViewDST>
-	static inline void map_sub_view_gray_1(ViewSRC const& src, ViewDST const& dst)
+	template <typename TSRC, typename TDST>
+	static inline void map_sub_view_gray_1(View1<TSRC> const& src, View1<TDST> const& dst)
 	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
@@ -408,20 +415,25 @@ namespace simage
 		{
 			map_sub_view_gray_1(src, dst);
 		}
-    }
+    }    
+}
 
 
-    void map_gray(ViewYUV const& src, View1f32 const& dst)
+/* yuv to gray */
+
+namespace simage
+{
+	void map_gray(ViewYUV const& src, View1f32 const& dst)
     {
         assert(verify(src, dst));
 
         if (is_1d(src))
 		{
-			map_view_gray_1(src, dst);
+			map_view_yuv_to_gray(src, dst);
 		}
 		else
 		{
-			map_sub_view_gray_1(src, dst);
+			map_sub_view_yuv_to_gray(src, dst);
 		}
     }
 
@@ -430,17 +442,19 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        if (is_1d(dst))
+        if (is_1d(src))
 		{
-			map_view_gray_1(src, dst);
+			map_view_yuv_to_gray(src, dst);
 		}
 		else
 		{
-			map_sub_view_gray_1(src, dst);
+			map_sub_view_yuv_to_gray(src, dst);
 		}
     }
 }
 
+
+/* rgb to gray */
 
 namespace simage
 {

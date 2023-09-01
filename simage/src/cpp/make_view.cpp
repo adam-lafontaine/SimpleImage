@@ -7,15 +7,14 @@ namespace simage
 	{
 		View1<T> view{};
 
-		view.matrix_data = image.data;
+		view.matrix_data = image.data_;
 		view.matrix_width = image.width;
 		view.width = image.width;
 		view.height = image.height;
 
-		view.x_begin = 0;
-		view.x_end = image.width;
-		view.y_begin = 0;
-		view.y_end = image.height;
+		view.range = make_range(image.width, image.height);
+
+		return view;
 	}
 
 
@@ -28,10 +27,9 @@ namespace simage
 		view.width = width;
 		view.height = height;
 
-		view.x_begin = 0;
-		view.x_end = image.width;
-		view.y_begin = 0;
-		view.y_end = image.height;
+		view.range = make_range(image.width, image.height);
+
+		return view;
 	}
 
 
@@ -76,6 +74,17 @@ namespace simage
 
 
 	ViewYUV make_view(ImageYUV const& image)
+	{
+		assert(verify(image));
+
+		auto view = do_make_view_1(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewUVY make_view(ImageUVY const& image)
 	{
 		assert(verify(image));
 

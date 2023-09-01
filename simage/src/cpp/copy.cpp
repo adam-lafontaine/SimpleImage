@@ -14,28 +14,7 @@ namespace simage
 
 #ifdef SIMAGE_NO_SIMD
 
-	template <typename T>
-	static inline void copy_view_1(View1<T> const& src, View1<T> const& dst)
-	{
-		auto len = src.width * src.height;
-		auto s = row_begin(src, 0);
-		auto d = row_begin(dst, 0);
-
-		copy_span(s, d, len);
-	}
-
-
-	template <typename T>
-	static inline void copy_sub_view_1(View1<T> const& src, View1<T> const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			copy_span(s, d, src.width);
-		}
-	}
+	
 
 #else
 
@@ -97,6 +76,30 @@ namespace simage
 
 namespace simage
 {
+	template <typename T>
+	static inline void copy_view_1(View1<T> const& src, View1<T> const& dst)
+	{
+		auto len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		copy_span_no_simd(s, d, len);
+	}
+
+
+	template <typename T>
+	static inline void copy_sub_view_1(View1<T> const& src, View1<T> const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			copy_span_no_simd(s, d, src.width);
+		}
+	}
+
+
 	template <typename T, size_t N>
 	static inline void copy_view_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst)
 	{

@@ -24,6 +24,7 @@ namespace simage
 		View1<T> view{};
 
 		view.matrix_data = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;
 		view.width = width;
 		view.height = height;
 

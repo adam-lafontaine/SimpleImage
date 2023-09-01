@@ -7,9 +7,10 @@ namespace simage
         for (u32 i = 0; i < len; ++i)
         {
             auto& rgba = dst[i].rgba;
-            rgba.red = src[i];
-            rgba.green = src[i];
-            rgba.blue = src[i];
+            auto gray = src[i];
+            rgba.red = gray;
+            rgba.green = gray;
+            rgba.blue = gray;
             rgba.alpha = 255;
         }
     }

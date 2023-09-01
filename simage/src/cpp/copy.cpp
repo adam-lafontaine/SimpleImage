@@ -1,36 +1,7 @@
 /* copy span */
 
 namespace simage
-{
-	template <typename T>
-	static inline void copy_view_1_no_simd(View1<T> const& src, View1<T> const& dst)
-	{
-		auto len = src.width * src.height;
-		auto s = row_begin(src, 0);
-		auto d = row_begin(dst, 0);
-
-		for (u32 i = 0; i < len; ++i)
-		{
-			d[i] = s[i];
-		}
-	}
-
-
-	template <class ViewSRC, class ViewDST>
-	static inline void copy_sub_view_1_no_simd(ViewSRC const& src, ViewDST const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 i = 0; i < src.width; ++i)
-			{
-				d[i] = s[i];
-			}
-		}
-	}
-
-
+{	
 	template <typename T>
 	static void copy_span_no_simd(T* src, T* dst, u32 len)
 	{

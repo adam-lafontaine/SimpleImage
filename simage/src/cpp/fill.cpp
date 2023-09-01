@@ -16,15 +16,11 @@ namespace simage
 
 
 	template <typename T>
-	static void fill_sub_view_channel_no_simd(SubView1<T> const& view, T value)
+	static inline void fill_span_no_simd(T* dst, T value, u32 len)
 	{
-		for (u32 y = 0; y < view.height; ++y)
+		for (u32 i = 0; i < len; ++i)
 		{
-			auto d = row_begin(view, y);
-			for (u32 i = 0; i < view.width; ++i)
-			{
-				d[i] = value;
-			}
+			dst[i] = value;
 		}
 	}
 
@@ -32,16 +28,23 @@ namespace simage
 #ifdef SIMAGE_NO_SIMD
 
 	template <typename T>
-	static void fill_view_channel(View1<T> const& view, T value)
+	static inline void fill_view_1(View1<T> const& view, T value)
 	{
-		fill_view_channel_no_simd(view, value);
+		auto len = src.width * src.height;
+		auto d = row_begin(view, 0);
+
+		fill_span_no_simd(d, value, len);
 	}
 
 
 	template <typename T>
-	static void fill_sub_view_channel(SubView1<T> const& view, T value)
+	static inline void fill_sub_view_1(View1<T> const& view, T value)
 	{
-		fill_sub_view_channel_no_simd(view, value);
+		for (u32 y = 0; y < view.height; ++y)
+		{
+			auto d = row_begin(view, y);
+			fill_span_no_simd(d, value, view.width);
+		}
 	}
 
 #else
@@ -121,15 +124,14 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_view_channel(view, color);
-	}
-
-
-	void fill(SubView const& view, Pixel color)
-	{
-		assert(verify(view));
-
-		fill_sub_view_channel(view, color);
+		if (is_1d(view))
+		{
+			fill_view_1(view, color);
+		}
+		else
+		{
+			fill_sub_view_1(view, color);
+		}
 	}
 
 
@@ -137,15 +139,14 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_view_channel(view, gray);
-	}
-
-
-	void fill(SubViewGray const& view, u8 gray)
-	{
-		assert(verify(view));
-
-		fill_sub_view_channel(view, gray);
+		if (is_1d(view))
+		{
+			fill_view_1(view, gray);
+		}
+		else
+		{
+			fill_sub_view_1(view, gray);
+		}
 	}
 }
 
@@ -159,17 +160,10 @@ namespace simage
 	{
 		assert(verify(view));
 
-		f32 colors[4] = 
-		{
-			cs::to_channel_f32(color.channels[0]),
-			cs::to_channel_f32(color.channels[1]),
-			cs::to_channel_f32(color.channels[2]),
-			cs::to_channel_f32(color.channels[3])
-		};
-
-		auto const ch_func = [&](u32 ch){ fill_view_channel(select_channel(view, ch), colors[ch]); };
-
-		process_range(0, 4, ch_func);
+		fill_view_1(select_channel(view, RGBA::R), cs::to_channel_f32(color.rgba.red));
+		fill_view_1(select_channel(view, RGBA::G), cs::to_channel_f32(color.rgba.green));
+		fill_view_1(select_channel(view, RGBA::B), cs::to_channel_f32(color.rgba.blue));
+		fill_view_1(select_channel(view, RGBA::A), cs::to_channel_f32(color.rgba.alpha));
 	}
 
 
@@ -177,16 +171,9 @@ namespace simage
 	{
 		assert(verify(view));
 
-		f32 colors[3] = 
-		{
-			cs::to_channel_f32(color.channels[0]),
-			cs::to_channel_f32(color.channels[1]),
-			cs::to_channel_f32(color.channels[2]),
-		};
-
-		auto const ch_func = [&](u32 ch){ fill_view_channel(select_channel(view, ch), colors[ch]); };
-
-		process_range(0, 3, ch_func);
+		fill_view_1(select_channel(view, RGB::R), cs::to_channel_f32(color.rgba.red));
+		fill_view_1(select_channel(view, RGB::G), cs::to_channel_f32(color.rgba.green));
+		fill_view_1(select_channel(view, RGB::B), cs::to_channel_f32(color.rgba.blue));
 	}
 
 
@@ -194,7 +181,14 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_view_channel(view, gray);
+		if (is_1d(view))
+		{
+			fill_view_1(view, gray);
+		}
+		else
+		{
+			fill_sub_view_1(view, gray);
+		}
 	}
 
 
@@ -202,6 +196,15 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_view_channel(view, cs::to_channel_f32(gray));
+		auto gray32 = cs::to_channel_f32(gray);
+
+		if (is_1d(view))
+		{
+			fill_view_1(view, gray32);
+		}
+		else
+		{
+			fill_sub_view_1(view, gray32);
+		}
 	}
 }

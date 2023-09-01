@@ -1,8 +1,8 @@
-/* yuv */
+/* map_span yuv */
 
 namespace simage
 {
-    static inline void map_span_yuv_rgb(YUV2u8* src, Pixel* dst, u32 len)
+    static inline void map_span_yuv_rgba(YUV2u8* src, Pixel* dst, u32 len)
     {
         auto src422 = (YUYVu8*)src;
 
@@ -29,7 +29,7 @@ namespace simage
     }
 
 
-	static inline void map_span_yuv_rgb(UVY2u8* src, Pixel* dst, u32 len)
+	static inline void map_span_yuv_rgba(UVY2u8* src, Pixel* dst, u32 len)
     {
         auto src422 = (UYVYu8*)src;
 
@@ -103,7 +103,7 @@ namespace simage
 }
 
 
-/* hsv */
+/* map_span hsv */
 
 namespace simage
 {
@@ -159,7 +159,7 @@ namespace simage
 }
 
 
-/* lch */
+/* map_span lch */
 
 namespace simage
 {
@@ -219,13 +219,66 @@ namespace simage
 
 namespace simage
 {
+	template <typename YUV>
+	static inline void map_view_yuv_rgba(View1<YUV> const& src, View const& dst)
+	{
+		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		map_span_yuv_rgba(s, d, len);
+	}
+
+
+	template <typename YUV>
+	static inline void map_sub_view_yuv_rgba(View1<YUV> const& src, View const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_yuv_rgba(s, d, len);
+		}
+	}
+
+
+	template <typename YUV>
+	static inline void map_view_yuv_rgb(View1<YUV> const& src, ViewRGBf32 const& dst)
+	{
+		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = rgb_row_begin(dst, 0);
+
+		map_span_yuv_rgb(s, d, len);
+	}
+
+
+	template <typename YUV>
+	static inline void map_sub_view_yuv_rgb(View1<YUV> const& src, ViewRGBf32 const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = rgb_row_begin(dst, y);
+
+			map_span_yuv_rgb(s, d, len);
+		}
+	}
+
+
     void map_yuv_rgba(ViewYUV const& src, View const& dst)
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_yuv_rgb(src.data, dst.data, len);
+		if (is_1d(src) && is_1d(dst))
+		{
+			map_view_yuv_rgba(src, dst);
+		}
+		else
+		{
+			map_sub_view_yuv_rgba(src, dst);
+		}
     }
 
 
@@ -233,9 +286,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_yuv_rgb(src.data, dst.data, len);
+        if (is_1d(src) && is_1d(dst))
+		{
+			map_view_yuv_rgba(src, dst);
+		}
+		else
+		{
+			map_sub_view_yuv_rgba(src, dst);
+		}
 	}
 
 
@@ -243,9 +301,14 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_yuv_rgb(src.data, rgb_row_begin(dst, 0), len);
+        if (is_1d(src))
+		{
+			map_view_yuv_rgb(src, dst);
+		}
+		else
+		{
+			map_sub_view_yuv_rgb(src, dst);
+		}
     }
 
 
@@ -253,9 +316,14 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_yuv_rgb(src.data, rgb_row_begin(dst, 0), len);
+        if (is_1d(src))
+		{
+			map_view_yuv_rgb(src, dst);
+		}
+		else
+		{
+			map_sub_view_yuv_rgb(src, dst);
+		}
     }
 }
 
@@ -264,13 +332,62 @@ namespace simage
 
 namespace simage
 {
+	static inline void map_view_rgba_hsv(View const& src, ViewHSVf32 const& dst)
+	{
+		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = hsv_row_begin(dst, 0);
+
+		map_span_rgb_hsv(s, d, len);
+	}
+
+
+	static inline void map_sub_view_rgba_hsv(View const& src, ViewHSVf32 const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = hsv_row_begin(dst, y);
+
+			map_span_rgb_hsv(s, d, src.width);
+		}
+	}
+
+
+	static inline void map_view_hsv_rgba(ViewHSVf32 const& src, View const& dst)
+	{
+		u32 len = src.width * src.height;
+		auto s = hsv_row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		map_span_hsv_rgba(s, d, len);
+	}
+
+
+	static inline void map_sub_view_hsv_rgba(ViewHSVf32 const& src, View const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = hsv_row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_hsv_rgba(s, d, src.width);
+		}
+	}
+
+
 	void map_rgb_hsv(View const& src, ViewHSVf32 const& dst)
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_rgb_hsv(src.data, hsv_row_begin(dst, 0), len);
+		if (is_1d(src))
+		{
+			map_view_rgba_hsv(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgba_hsv(src, dst);
+		}
     }
 
 
@@ -278,9 +395,14 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_hsv_rgba(hsv_row_begin(src, 0), dst.data, len);
+		if (is_1d(dst))
+		{
+			map_view_hsv_rgba(src, dst);
+		}
+		else
+		{
+			map_sub_view_hsv_rgba(src, dst);
+		}
     }
 
 
@@ -309,13 +431,62 @@ namespace simage
 
 namespace simage
 {
+	static inline void map_view_rgba_lch(View const& src, ViewHSVf32 const& dst)
+	{
+		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = lch_row_begin(dst, 0);
+
+		map_span_rgb_lch(s, d, len);
+	}
+
+
+	static inline void map_sub_view_rgba_lch(View const& src, ViewHSVf32 const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = lch_row_begin(dst, y);
+
+			map_span_rgb_lch(s, d, src.width);
+		}
+	}
+
+
+	static inline void map_view_lch_rgba(ViewHSVf32 const& src, View const& dst)
+	{
+		u32 len = src.width * src.height;
+		auto s = lch_row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		map_span_lch_rgba(s, d, len);
+	}
+
+
+	static inline void map_sub_view_lch_rgba(ViewHSVf32 const& src, View const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = lch_row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_lch_rgba(s, d, src.width);
+		}
+	}
+
+
 	void map_rgb_lch(View const& src, ViewLCHf32 const& dst)
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_rgb_lch(src.data, lch_row_begin(dst, 0), len);
+		if (is_1d(src))
+		{
+			map_view_rgba_lch(src, dst);
+		}
+		else
+		{
+			map_sub_view_rgba_lch(src, dst);
+		}
     }
 
 
@@ -323,9 +494,14 @@ namespace simage
     {
         assert(verify(src, dst));
 
-        u32 len = src.width * src.height;
-
-        map_span_lch_rgba(lch_row_begin(src, 0), dst.data, len);
+		if (is_1d(dst))
+		{
+			map_view_lch_rgba(src, dst);
+		}
+		else
+		{
+			map_sub_view_lch_rgba(src, dst);
+		}
     }
 
 

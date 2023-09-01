@@ -38,7 +38,7 @@ public:
 };
 
 
-static void fill_to_top(img::SubView1u8 const& view, f32 value, u8 color)
+static void fill_to_top(img::View1u8 const& view, f32 value, u8 color)
 {
     int y_begin = (int)(view.height * (1.0f - value));
 
@@ -61,7 +61,7 @@ static void fill_to_top(img::SubView1u8 const& view, f32 value, u8 color)
 }
 
 
-static void draw_histogram(const f32* values, img::SubView1u8 const& dst, HistParams const& props)
+static void draw_histogram(const f32* values, img::View1u8 const& dst, HistParams const& props)
 {
     u32 space_px = props.bin_space;
     auto width = props.bin_width;

@@ -5,12 +5,18 @@ namespace simage
 	template <typename T, size_t N, typename CH>
 	static View1<T> select_channel(ChannelMatrix2D<T, N> const& view, CH ch)
 	{
-		View1<T> view1{};
-		
+		View1<T> view1{};	
+
+		view1.matrix_data = view.channel_data[id_cast(ch)];
+		view1.matrix_width = view.width;
+
 		view1.width = view.width;
 		view1.height = view.height;
 
-		view1.data = view.channel_data[id_cast(ch)];
+		view1.x_begin = 0;
+		view1.x_end = view.width;
+		view1.y_begin = 0;
+		view1.y_end = view.height;
 
 		return view1;
 	}

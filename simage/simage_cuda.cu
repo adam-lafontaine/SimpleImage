@@ -98,10 +98,6 @@ namespace gpuf
 
 		return p;
 	}
-
-
-
-    
 }
 
 

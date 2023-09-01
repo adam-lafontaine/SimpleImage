@@ -30,7 +30,7 @@ namespace simage
 	template <typename T>
 	static inline void fill_view_1(View1<T> const& view, T value)
 	{
-		auto len = src.width * src.height;
+		auto len = view.width * view.height;
 		auto d = row_begin(view, 0);
 
 		fill_span_no_simd(d, value, len);

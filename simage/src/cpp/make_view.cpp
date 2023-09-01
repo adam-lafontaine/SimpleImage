@@ -27,7 +27,7 @@ namespace simage
 		view.width = width;
 		view.height = height;
 
-		view.range = make_range(image.width, image.height);
+		view.range = make_range(width, height);
 
 		return view;
 	}

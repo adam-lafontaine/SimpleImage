@@ -67,18 +67,14 @@ namespace simage
     template <typename T>
     static void rotate_1(View1<T> const& src, View1<T> const& dst, Point2Du32 origin, f32 rad)
 	{
-		u32 len = src.width * src.height;
-
-		u32 y = 0;
-		u32 x = 0;
-
-		for (u32 i = 0; i < len; ++i)
+		for (u32 y = 0; y < src.height; ++y)
 		{
-			y = i / src.width;
-			x = i - y * src.width;
-
-			auto src_pt = find_rotation_src(x, y, origin, rad);
-			dst.data[i] = get_pixel_value(src, src_pt);
+			auto d = row_begin(dst, y);
+			for (u32 x = 0; x < src.width; ++x)
+			{
+				auto src_pt = find_rotation_src(x, y, origin, rad);
+				d[x] = get_pixel_value(src, src_pt);
+			}
 		}
 	}
 

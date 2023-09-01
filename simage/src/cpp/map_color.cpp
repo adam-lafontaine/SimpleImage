@@ -238,7 +238,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			map_span_yuv_rgba(s, d, len);
+			map_span_yuv_rgba(s, d, src.width);
 		}
 	}
 
@@ -262,7 +262,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = rgb_row_begin(dst, y);
 
-			map_span_yuv_rgb(s, d, len);
+			map_span_yuv_rgb(s, d, src.width);
 		}
 	}
 

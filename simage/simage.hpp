@@ -643,6 +643,14 @@ namespace simage
 }
 
 
+/* sub_view */
+
+namespace simage
+{
+	View1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
+}
+
+
 /* select_channel */
 
 namespace simage

@@ -38,19 +38,17 @@ namespace color_space
 {
     inline constexpr f32 clamp(f32 value)
     {
-        if (value < 0.0f)
+        if (value > 1.0f)
         {
-            value = 0.0f;
-        }
-        else if (value > 1.0f)
-        {
-            value = 1.0f;
+            return 1.0f;
         }
 
+        if (value < 0.0f)
+        {
+            return 0.0f;
+        }        
+
         return value;
-        
-        // slower
-        //return (value >= 0 && value <= 1) * value + 1.0f * (value > 1);
     }
 
 
@@ -216,6 +214,13 @@ namespace gray
     {
         auto gray = COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
         return cs::to_channel_f32(gray / cs::CH_U8_MAX);
+    }
+
+
+    inline constexpr u8 u8_from_rgb_f32(f32 r, f32 g, f32 b)
+    {
+        auto gray = COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
+        return cs::to_channel_u8(gray);
     }
     
 }

@@ -52,26 +52,15 @@ void yuv_draw_test(img::View const& out)
     auto view_U = img::select_channel(yuv, img::YUV::U);
     auto view_V = img::select_channel(yuv, img::YUV::V);
 
-    auto r = make_range(width, height);
-    for (u32 x = 0; x < width; ++x)
-    {
-        r.x_begin = x;
-        r.x_end = x + 1;
-        img::fill(img::sub_view(view_U, r), (f32)x / width);
-    }
+    img::for_each_xy(view_V, [height](u32 x, u32 y) { return (f32)y / height; });
 
-    r = make_range(width, height);
-    for (u32 y = 0; y < height; ++y)
-    {
-        r.y_begin = y;
-        r.y_end = y + 1;
-
-        img::fill(img::sub_view(view_V, r), (f32)y / height);
-    }
+    img::for_each_xy(view_U, [width](u32 x, u32 y) { return (f32)x / width; });
 
     img::fill(view_Y, 0.5f);
 
     img::map_yuv_rgba(yuv, out);
     
     mb::destroy_buffer(buffer);
+
+    printf("yuv_draw_test: TODO\n");
 }

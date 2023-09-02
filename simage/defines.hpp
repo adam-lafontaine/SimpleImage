@@ -16,9 +16,6 @@
 // Support .bmp image files
 #define SIMAGE_BMP
 
-// Disable multithreaded image processing
-//#define SIMAGE_NO_PARALLEL
-
 // Disable std::filesystem file paths as an alternative to const char*
 // Uses std::string instead
 //#define SIMAGE_NO_FILESYSTEM
@@ -38,14 +35,10 @@
 #endif
 #endif
 
-
-// Disable SIMD support
-#define SIMAGE_NO_SIMD
-
-#ifndef SIMAGE_NO_SIMD
+//#ifndef SIMAGE_NO_SIMD
 
 //#define SIMD_INTEL_128
 //#define SIMD_INTEL_256
-#define SIMD_INTEL_512
+//#define SIMD_INTEL_512
 
-#endif
+//#endif

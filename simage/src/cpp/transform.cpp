@@ -2,8 +2,22 @@
 
 namespace simage
 {
-	template <class IMG_S, class IMG_D, class FUNC>	
-	static void do_transform(IMG_S const& src, IMG_D const& dst, FUNC const& func)
+	template <typename TSRC, typename TDST, class FUNC>	
+	static void transform_view(View1<TSRC> const& src, View1<TDST> const& dst, FUNC const& func)
+	{
+		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		for (u32 i = 0; i < len; ++i)
+		{
+			d[i] = func(s[i]);
+		}
+	}
+
+
+	template <typename TSRC, typename TDST, class FUNC>	
+	static void transform_sub_view(View1<TSRC> const& src, View1<TDST> const& dst, FUNC const& func)
 	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
@@ -22,7 +36,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_transform(src, dst, func);
+		if (is_1d(src) && is_1d(dst))
+		{
+			transform_view(src, dst, func);
+		}
+		else
+		{
+			transform_sub_view(src, dst, func);
+		}
 	}
 
 
@@ -30,7 +51,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_transform(src, dst, func);
+		if (is_1d(src) && is_1d(dst))
+		{
+			transform_view(src, dst, func);
+		}
+		else
+		{
+			transform_sub_view(src, dst, func);
+		}
 	}
 
 
@@ -38,26 +66,79 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_transform(src, dst, func);
+		if (is_1d(src) && is_1d(dst))
+		{
+			transform_view(src, dst, func);
+		}
+		else
+		{
+			transform_sub_view(src, dst, func);
+		}
 	}
 
 
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min)
+	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func)
 	{
 		assert(verify(src, dst));
 
-		return do_transform(src, dst, [&](u8 p){ return p >= min ? p : 0; });
+		if (is_1d(src) && is_1d(dst))
+		{
+			transform_view(src, dst, func);
+		}
+		else
+		{
+			transform_sub_view(src, dst, func);
+		}
+	}
+	
+}
+
+
+/* binarize */
+
+namespace simage
+{
+	template <typename TSRC, class FUNC>
+    static inline void binarize_span(TSRC* src, u8* dst, u32 len, FUNC const& bool_func)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            dst[i] = bool_func(src[i]) * 255;
+        }
+    }
+
+
+    template <typename TSRC, class FUNC>
+    static inline void binarize_span(TSRC* src, f32* dst, u32 len, FUNC const& bool_func)
+    {
+        for (u32 i = 0; i < len; ++i)
+        {
+            dst[i] = bool_func(src[i]) * 1.0f;
+        }
+    }
+
+
+	template <typename TSRC, typename TDST, class FUNC>
+	static inline void binarize_view(View1<TSRC> const& src, View1<TDST> const& dst, FUNC const& bool_func)
+	{
+		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		binarize_span(s, d, len, bool_func);
 	}
 
 
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max)
+	template <typename TSRC, typename TDST, class FUNC>
+	static inline void binarize_sub_view(View1<TSRC> const& src, View1<TDST> const& dst, FUNC const& bool_func)
 	{
-		assert(verify(src, dst));
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = row_begin(src, y);
+			auto d = row_begin(dst, y);
 
-		auto mn = std::min(min, max);
-		auto mx = std::max(min, max);
-
-		return do_transform(src, dst, [&](u8 p){ return p >= mn && p <= mx ? p : 0; });
+			binarize_span(s, d, src.width, bool_func);
+		}
 	}
 
 
@@ -65,7 +146,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_transform(src, dst, [&](Pixel p){ return func(p) ? 255 : 0; });
+		if (is_1d(src) && is_1d(dst))
+		{
+			binarize_view(src, dst, func);
+		}
+		else
+		{
+			binarize_sub_view(src, dst, func);
+		}
 	}
 
 
@@ -73,65 +161,95 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		do_transform(src, dst, [&](u8 p){ return func(p) ? 255 : 0; });
+		if (is_1d(src) && is_1d(dst))
+		{
+			binarize_view(src, dst, func);
+		}
+		else
+		{
+			binarize_sub_view(src, dst, func);
+		}
 	}
+
+
+	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> const& func)
+    {
+        assert(verify(src, dst));
+
+        if (is_1d(src) && is_1d(dst))
+		{
+			binarize_view(src, dst, func);
+		}
+		else
+		{
+			binarize_sub_view(src, dst, func);
+		}
+    }
 }
 
 
-/* transform */
+/* threshold */
 
 namespace simage
 {
-	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func32)
+	template <typename T>
+	static inline void threshold_view(View1<T> const& src, View1<T> const& dst, T min, T max)
 	{
-		assert(verify(src, dst));
+		u32 len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
 
+		for (u32 i = 0; i < len; ++i)
+		{
+			d[i] = (s[i] >= min && s[i] <= max) * s[i];
+		}
+	}
+
+
+	template <typename T>
+	static inline void threshold_sub_view(View1<T> const& src, View1<T> const& dst, T min, T max)
+	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			for (u32 x = 0; x < src.width; ++x)
+			for (u32 i = 0; i < src.width; ++i)
 			{
-				d[x] = func32(s[x]);
+				d[i] = (s[i] >= min && s[i] <= max) * s[i];
 			}
 		}
 	}
 
 
-	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func32)
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min)
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
+		if (is_1d(src) && is_1d(dst))
 		{
-			auto s0 = channel_row_begin(src, y, 0);
-			auto s1 = channel_row_begin(src, y, 1);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func32(s0[x], s1[x]);
-			}
+			threshold_view(src, dst, min, (u8)255);
+		}
+		else
+		{
+			threshold_sub_view(src, dst, min, (u8)255);
 		}
 	}
 
 
-	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func32)
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max)
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s0 = channel_row_begin(src, y, 0);
-			auto s1 = channel_row_begin(src, y, 1);
-			auto s2 = channel_row_begin(src, y, 2);
-			auto d = row_begin(dst, y);
+		auto [mn, mx] = std::minmax(min, max);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func32(s0[x], s1[x], s2[x]);
-			}
+		if (is_1d(src) && is_1d(dst))
+		{
+			threshold_view(src, dst, mn, mx);
+		}
+		else
+		{
+			threshold_sub_view(src, dst, mn, mx);
 		}
 	}
 
@@ -140,16 +258,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x] >= min32 ? s[x] : 0.0f;
-			}
-		}
+        threshold_view(src, dst, min32, 1.0f);
 	}
 
 
@@ -157,30 +266,8 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
+        auto [mn, mx] = std::minmax(min32, max32);
 
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = s[x] >= min32 && s[x] <= max32 ? s[x] : 0.0f;
-			}
-		}
-	}
-
-
-	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> func32)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				d[x] = func32(s[x]) ? 1.0f : 0.0f;
-			}
-		}
+		threshold_view(src, dst, mn, mx);
 	}
 }

@@ -6,7 +6,7 @@ namespace gpuf
     GPU_FUNCTION
     inline T* row_begin(DeviceMatrix2D<T> const& view, u32 y)
     {
-        return view.data_ + (u64)(y * view.width);
+        return view.data + (u64)(y * view.width);
     }
 
 

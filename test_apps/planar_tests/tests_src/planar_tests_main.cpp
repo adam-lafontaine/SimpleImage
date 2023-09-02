@@ -26,7 +26,6 @@ void hsv_draw_test(img::View const& out);
 void yuv_draw_test(img::View const& out);
 void lch_draw_test(img::View const& out);
 void transform_test(img::View const& out);
-void transform_gray_test(img::View const& out);
 void threshold_test(img::View const& out);
 void binarize_test(img::View const& out);
 void alpha_blend_test(img::View const& out);
@@ -54,7 +53,6 @@ static std::vector<std::function<void(img::View const&)>> tests =
 	yuv_draw_test,
 	lch_draw_test,
 	transform_test,
-	transform_gray_test,
 	threshold_test,
 	binarize_test,
 	alpha_blend_test,

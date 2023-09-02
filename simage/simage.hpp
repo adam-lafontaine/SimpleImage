@@ -25,7 +25,7 @@ namespace simage
 	void destroy_image(ImageYUV& image);
 
 
-	using Buffer32 = MemoryBuffer<Pixel>;
+    using Buffer32 = MemoryBuffer<Pixel>;
     using Buffer8 = MemoryBuffer<u8>;
 
 
@@ -63,6 +63,8 @@ namespace simage
 
 	ViewYUV make_view(ImageYUV const& image);
 
+	ViewUVY make_view(ImageUVY const& image);
+
 	ViewBGR make_view(ImageBGR const& image);
 
 	ViewRGB make_view(ImageRGB const& image);
@@ -80,22 +82,31 @@ namespace simage
 {
 	View sub_view(Image const& image, Range2Du32 const& range);
 
-	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
-
 	View sub_view(View const& view, Range2Du32 const& range);
+
+	ViewGray sub_view(ImageGray const& image, Range2Du32 const& range);
 
 	ViewGray sub_view(ViewGray const& view, Range2Du32 const& range);
 
 
-	ViewYUV sub_view(ImageYUV const& camera_src, Range2Du32 const& range);
+	ViewYUV sub_view(ImageYUV const& image, Range2Du32 const& range);
 
-	ViewBGR sub_view(ImageBGR const& camera_src, Range2Du32 const& range);
+	ViewYUV sub_view(ViewYUV const& view, Range2Du32 const& range);
 
-	ViewBGR sub_view(ViewBGR const& camera_src, Range2Du32 const& range);
 
-	ViewRGB sub_view(ImageRGB const& camera_src, Range2Du32 const& range);
+	ViewUVY sub_view(ImageUVY const& image, Range2Du32 const& range);
 
-	ViewRGB sub_view(ViewRGB const& camera_src, Range2Du32 const& range);
+	ViewUVY sub_view(ViewUVY const& view, Range2Du32 const& range);
+
+
+	ViewBGR sub_view(ImageBGR const& image, Range2Du32 const& range);
+
+	ViewBGR sub_view(ViewBGR const& view, Range2Du32 const& range);
+
+
+	ViewRGB sub_view(ImageRGB const& image, Range2Du32 const& range);
+
+	ViewRGB sub_view(ViewRGB const& view, Range2Du32 const& range);
 }
 
 
@@ -137,7 +148,13 @@ namespace simage
 {
 	void map_gray(View const& src, ViewGray const& dst);
 
+	void map_gray(ViewBGR const& src, ViewGray const& dst);
+
+	void map_gray(ViewRGB const& src, ViewGray const& dst);
+
 	void map_gray(ViewYUV const& src, ViewGray const& dst);
+
+	void map_gray(ViewUVY const& src, ViewGray const& dst);
 }
 
 
@@ -147,11 +164,18 @@ namespace simage
 {
 	void map_rgba(ViewGray const& src, View const& dst);
 
-	void map_rgba(ViewYUV const& src, View const& dst);
-
 	void map_rgba(ViewBGR const& src, View const& dst);
 
-	void map_rgba(ViewRGB const& src, View const& dst);
+	void map_rgba(ViewRGB const& src, View const& dst);	
+
+}
+
+
+namespace simage
+{
+	void map_yuv_rgba(ViewYUV const& src, View const& dst);
+
+	void map_yuv_rgba(ViewUVY const& src, View const& dst);
 }
 
 
@@ -162,6 +186,10 @@ namespace simage
 	void alpha_blend(View const& src, View const& cur, View const& dst);
 
 	void alpha_blend(View const& src, View const& cur_dst);
+
+	void alpha_blend(View const& src, u8 alpha, View const& cur, View const& dst);
+
+	void alpha_blend(View const& src, u8 alpha, View const& cur_dst);
 }
 
 
@@ -172,6 +200,11 @@ namespace simage
 	void for_each_pixel(View const& view, std::function<void(Pixel&)> const& func);
 
 	void for_each_pixel(ViewGray const& view, std::function<void(u8&)> const& func);
+
+
+	void for_each_xy(View const& view, std::function<Pixel(u32 x, u32 y)> const& func);
+
+	void for_each_xy(ViewGray const& view, std::function<u8(u32 x, u32 y)> const& func);
 }
 
 
@@ -197,14 +230,14 @@ namespace simage
 	void transform(View const& src, ViewGray const& dst, pixel_to_u8_f const& func);
 
 
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min);
-
-	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max);
-
-
 	void binarize(View const& src, ViewGray const& dst, pixel_to_bool_f const& func);
 
 	void binarize(ViewGray const& src, ViewGray const& dst, u8_to_bool_f const& func);
+
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min);
+
+	void threshold(ViewGray const& src, ViewGray const& dst, u8 min, u8 max);
 
 }
 
@@ -351,16 +384,14 @@ namespace hist
 
 			f32 list[12][MAX_HIST_BINS] = { 0 };
 		};
-
-		u32 n_bins = MAX_HIST_BINS;
 	};
 
 
-	void make_histograms(View const& src, Histogram12f32& dst);
+	void make_histograms(View const& src, Histogram12f32& dst, u32 n_bins);
 
-	void make_histograms(ViewYUV const& src, Histogram12f32& dst);
+	void make_histograms(ViewYUV const& src, Histogram12f32& dst, u32 n_bins);
 
-	void make_histograms(ViewBGR const& src, Histogram12f32& dst);
+	void make_histograms(ViewBGR const& src, Histogram12f32& dst, u32 n_bins);
 
 
 	void make_histograms(View const& src, HistRGBf32& dst, u32 n_bins);
@@ -466,12 +497,12 @@ namespace simage
 	
 	
 	template <typename T, typename PATH>
-	inline MatrixView<T> make_view_from_file(PATH img_path_src, Matrix2D<T>& image_dst)
+	inline MatrixView2D<T> make_view_from_file(PATH img_path_src, Matrix2D<T>& image_dst)
 	{		
 		if (!read_image_from_file(img_path_src, image_dst))
 		{
 			assert(false);
-			MatrixView<T> view;
+			MatrixView2D<T> view;
 			return view;
 		}
 
@@ -480,7 +511,7 @@ namespace simage
 
 
 	template <typename T>
-	inline MatrixView<T> make_view_resized(Matrix2D<T> const& image_src, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	inline MatrixView2D<T> make_view_resized(Matrix2D<T> const& image_src, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		Matrix2D<T> image_dst;
 		image_dst.data_ = mb::push_elements(buffer, width * height);
@@ -488,7 +519,8 @@ namespace simage
 		if (!resize_image(image_src, image_dst, width, height))
 		{
 			assert(false);
-			MatrixView<T> view;
+			mb::pop_elements(buffer, width * height);
+			MatrixView2D<T> view;
 			return view;
 		}
 
@@ -497,12 +529,12 @@ namespace simage
 
 
 	template <typename T, typename PATH>
-	inline MatrixView<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	inline MatrixView2D<T> make_view_resized_from_file(PATH img_path_src, Matrix2D<T>& file_image, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		if (!read_image_from_file(img_path_src, file_image))
 		{
 			assert(false);
-			MatrixView<T> view;
+			MatrixView2D<T> view;
 			return view;
 		}
 
@@ -526,15 +558,11 @@ namespace simage
 		u32 frame_height = 0;
 		u32 max_fps = 0;
 
-		Image frame_image;
-
-		Range2Du32 roi;
-
-		bool is_open;
+		bool is_open = false;
 	};
 	
-	using rgb_callback = std::function<void(View const&)>;
-	using gray_callback = std::function<void(ViewGray const&)>;
+	using view_callback = std::function<void(View const&)>;
+	using view_gray_callback = std::function<void(ViewGray const&)>;
 	using bool_f = std::function<bool()>;
 
 
@@ -542,19 +570,35 @@ namespace simage
 
 	void close_camera(CameraUSB& camera);
 
+
 	bool grab_rgb(CameraUSB const& camera, View const& dst);
 
-	bool grab_rgb(CameraUSB const& camera, rgb_callback const& grab_cb);
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, View const& dst);
 
-	bool grab_rgb_continuous(CameraUSB const& camera, rgb_callback const& grab_cb, bool_f const& grab_condition);
+
+	bool grab_rgb(CameraUSB const& camera, view_callback const& grab_cb);
+
+	bool grab_rgb_continuous(CameraUSB const& camera, view_callback const& grab_cb, bool_f const& grab_condition);
+
+
+	bool grab_rgb(CameraUSB const& camera, Range2Du32 const& roi, view_callback const& grab_cb);
+
+	bool grab_rgb_continuous(CameraUSB const& camera, Range2Du32 const& roi, view_callback const& grab_cb, bool_f const& grab_condition);
+
 	
 	bool grab_gray(CameraUSB const& camera, ViewGray const& dst);
 
-	bool grab_gray(CameraUSB const& camera, gray_callback const& grab_cb);
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, ViewGray const& dst);
 
-	bool grab_gray_continuous(CameraUSB const& camera, gray_callback const& grab_cb, bool_f const& grab_condition);
 
-	void set_roi(CameraUSB& camera, Range2Du32 roi);
+	bool grab_gray(CameraUSB const& camera, view_gray_callback const& grab_cb);
+
+	bool grab_gray_continuous(CameraUSB const& camera, view_gray_callback const& grab_cb, bool_f const& grab_condition);
+
+
+	bool grab_gray(CameraUSB const& camera, Range2Du32 const& roi, view_gray_callback const& grab_cb);
+
+	bool grab_gray_continuous(CameraUSB const& camera, Range2Du32 const& roi, view_gray_callback const& grab_cb, bool_f const& grab_condition);
 
 #endif // !SIMAGE_NO_USB_CAMERA
 }
@@ -571,6 +615,31 @@ namespace simage
 	View3f32 make_view_3(u32 width, u32 height, Buffer32& buffer);
 
 	View4f32 make_view_4(u32 width, u32 height, Buffer32& buffer);
+	
+
+	inline View1f32 make_view_1(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_1(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+	
+
+	inline View2f32 make_view_2(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_2(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+	
+
+	inline View3f32 make_view_3(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_3(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+	
+
+	inline View4f32 make_view_4(Range2Du32 const& range, Buffer32& buffer)
+	{
+		return make_view_4(range.x_end - range.x_begin, range.y_end - range.y_begin, buffer);
+	}
+
 }
 
 
@@ -578,12 +647,6 @@ namespace simage
 
 namespace simage
 {
-	View4f32 sub_view(View4f32 const& view, Range2Du32 const& range);
-
-	View3f32 sub_view(View3f32 const& view, Range2Du32 const& range);
-
-	View2f32 sub_view(View2f32 const& view, Range2Du32 const& range);
-
 	View1f32 sub_view(View1f32 const& view, Range2Du32 const& range);
 }
 
@@ -600,12 +663,11 @@ namespace simage
 
 	View1f32 select_channel(ViewLCHf32 const& view, LCH channel);
 
-	View1f32 select_channel(ViewYUVf32 const& view, YUV channel);
+    View1f32 select_channel(ViewYUVf32 const& view, YUV channel);
 
 	View1f32 select_channel(View2f32 const& view, GA channel);
 
 	View1f32 select_channel(View2f32 const& view, XY channel);
-
 
 	ViewRGBf32 select_rgb(ViewRGBAf32 const& view);
 }
@@ -619,11 +681,20 @@ namespace simage
 
 	void map_gray(View1f32 const& src, View1u8 const& dst);
 
-	void map_gray(ViewYUV const& src, View1f32 const& dst);	
+	void map_gray(ViewYUV const& src, View1f32 const& dst);
 
+	void map_gray(ViewUVY const& src, View1f32 const& dst);
+}
+
+
+namespace simage
+{
 	void map_gray(View const& src, View1f32 const& dst);
 
 	void map_gray(ViewRGBf32 const& src, View1f32 const& dst);
+
+	void map_gray(ViewRGBf32 const& src, View1u8 const& dst);
+
 
 	inline void map_gray(ImageGray const& src, View1f32 const& dst)
 	{
@@ -644,7 +715,13 @@ namespace simage
 
 	void map_rgba(ViewRGBf32 const& src, View const& dst);
 
+
 	void map_rgba(View1f32 const& src, View const& dst);
+
+
+	void map_rgb(ViewBGR const& src, ViewRGBf32 const& dst);
+
+	void map_rgb(ViewRGB const& src, ViewRGBf32 const& dst);
 
 
 	inline void map_rgba(Image const& src, ViewRGBAf32 const& dst)
@@ -663,6 +740,18 @@ namespace simage
 	{
 		map_rgba(src, make_view(dst));
 	}
+}
+
+
+/* map_yuv */
+
+namespace simage
+{	
+	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
+
+	void map_yuv_rgb(ViewUVY const& src, ViewRGBf32 const& dst);
+
+    void map_yuv_rgba(ViewYUVf32 const& src, View const& dst);
 }
 
 
@@ -695,24 +784,6 @@ namespace simage
 }
 
 
-/* map_yuv */
-
-namespace simage
-{
-	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
-
-	void map_yuv_rgba(ViewYUVf32 const& src, View const& dst);
-}
-
-
-/* map_bgr */
-
-namespace simage
-{
-	void map_bgr_rgb(ViewBGR const& src, ViewRGBf32 const& dst);
-}
-
-
 /* copy */
 
 namespace simage
@@ -737,7 +808,17 @@ namespace simage
 
 	void fill(View1f32 const& view, f32 gray);
 
-	void fill(View1f32 const& view, u8 gray);	
+	void fill(View1f32 const& view, u8 gray);
+}
+
+
+/* for_each_pixel */
+
+namespace simage
+{
+	void for_each_pixel(View1f32 const& view, std::function<void(f32&)> const& func);
+
+	void for_each_xy(View1f32 const& view, std::function<f32(u32 x, u32 y)> const& func);
 }
 
 
@@ -746,24 +827,24 @@ namespace simage
 namespace simage
 {
 	void transform(View1f32 const& src, View1f32 const& dst, std::function<f32(f32)> const& func32);
-
-	void transform(View2f32 const& src, View1f32 const& dst, std::function<f32(f32, f32)> const& func32);
-
-	void transform(View3f32 const& src, View1f32 const& dst, std::function<f32(f32, f32, f32)> const& func32);
-
-	
-	inline void transform_gray(ViewRGBf32 const& src, View1f32 const& dst)
-	{
-		return transform(src, dst, [](f32 red, f32 green, f32 blue) { return 0.299f * red + 0.587f * green + 0.114f * blue; });
-	}
+}
 
 
+/* binarize */
+
+namespace simage
+{
+	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> const& func);
+}
+
+
+/* threshold */
+
+namespace simage
+{	
 	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32);
 
-	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32, f32 max32);
-
-
-	void binarize(View1f32 const& src, View1f32 const& dst, std::function<bool(f32)> func32);
+	void threshold(View1f32 const& src, View1f32 const& dst, f32 min32, f32 max32);	
 }
 
 

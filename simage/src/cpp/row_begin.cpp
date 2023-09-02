@@ -10,39 +10,16 @@ namespace simage
 
 
 	template <typename T>
-	static inline T* row_begin(MatrixView<T> const& view, u32 y)
+	static inline T* row_begin(MatrixView2D<T> const& view, u32 y)
 	{
-		return view.matrix_data_ + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
+		return view.matrix_data + (u64)((view.y_begin + y) * view.matrix_width + view.x_begin);
 	}
 
 
 	template <typename T>
-	static inline T* xy_at(MatrixView<T> const& view, u32 x, u32 y)
+	static inline T* xy_at(MatrixView2D<T> const& view, u32 x, u32 y)
 	{
 		return row_begin(view, y) + x;
-	}
-
-
-    template <typename T>
-	static T* row_offset_begin(MatrixView<T> const& view, u32 y, int y_offset)
-	{
-		assert(verify(view));
-
-		int y_eff = y + y_offset;
-
-		auto offset = (view.y_begin + y_eff) * view.matrix_width + view.x_begin;
-
-		auto ptr = view.matrix_data_ + (u64)(offset);
-		assert(ptr);
-
-		return ptr;
-	}
-
-
-    template <typename T, size_t N>
-	static inline u64 row_offset(ChannelView<T, N> const& view, u32 y)
-	{
-		return ((u64)view.y_begin + y) * view.channel_width_ + view.x_begin;
 	}
 
 
@@ -51,13 +28,13 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = row_offset(view, y);
+		auto offset = y * view.width;
 
 		RGBf32p rgb{};
 
-		rgb.R = view.channel_data_[id_cast(RGB::R)] + offset;
-		rgb.G = view.channel_data_[id_cast(RGB::G)] + offset;
-		rgb.B = view.channel_data_[id_cast(RGB::B)] + offset;
+		rgb.R = view.channel_data[id_cast(RGB::R)] + offset;
+		rgb.G = view.channel_data[id_cast(RGB::G)] + offset;
+		rgb.B = view.channel_data[id_cast(RGB::B)] + offset;
 
 		return rgb;
 	}
@@ -68,14 +45,14 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = row_offset(view, y);
+		auto offset = y * view.width;
 
 		RGBAf32p rgba{};
 
-		rgba.R = view.channel_data_[id_cast(RGBA::R)] + offset;
-		rgba.G = view.channel_data_[id_cast(RGBA::G)] + offset;
-		rgba.B = view.channel_data_[id_cast(RGBA::B)] + offset;
-		rgba.A = view.channel_data_[id_cast(RGBA::A)] + offset;
+		rgba.R = view.channel_data[id_cast(RGBA::R)] + offset;
+		rgba.G = view.channel_data[id_cast(RGBA::G)] + offset;
+		rgba.B = view.channel_data[id_cast(RGBA::B)] + offset;
+		rgba.A = view.channel_data[id_cast(RGBA::A)] + offset;
 
 		return rgba;
 	}
@@ -86,32 +63,15 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = row_offset(view, y);
+		auto offset = y * view.width;
 
 		HSVf32p hsv{};
 
-		hsv.H = view.channel_data_[id_cast(HSV::H)] + offset;
-		hsv.S = view.channel_data_[id_cast(HSV::S)] + offset;
-		hsv.V = view.channel_data_[id_cast(HSV::V)] + offset;
+		hsv.H = view.channel_data[id_cast(HSV::H)] + offset;
+		hsv.S = view.channel_data[id_cast(HSV::S)] + offset;
+		hsv.V = view.channel_data[id_cast(HSV::V)] + offset;
 
 		return hsv;
-	}
-
-
-	static YUVf32p yuv_row_begin(ViewYUVf32 const& view, u32 y)
-	{
-		assert(verify(view));
-		assert(y < view.height);
-
-		auto offset = row_offset(view, y);
-
-		YUVf32p yuv{};
-
-		yuv.Y = view.channel_data_[id_cast(YUV::Y)] + offset;
-		yuv.U = view.channel_data_[id_cast(YUV::U)] + offset;
-		yuv.V = view.channel_data_[id_cast(YUV::V)] + offset;
-
-		return yuv;
 	}
 
 
@@ -120,31 +80,48 @@ namespace simage
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = row_offset(view, y);
+		auto offset = y * view.width;
 
 		LCHf32p lch{};
 
-		lch.L = view.channel_data_[id_cast(LCH::L)] + offset;
-		lch.C = view.channel_data_[id_cast(LCH::C)] + offset;
-		lch.H = view.channel_data_[id_cast(LCH::H)] + offset;
+		lch.L = view.channel_data[id_cast(LCH::L)] + offset;
+		lch.C = view.channel_data[id_cast(LCH::C)] + offset;
+		lch.H = view.channel_data[id_cast(LCH::H)] + offset;
 
 		return lch;
 	}
 
 
-	template <typename T, size_t N>
-	static std::array<T*, N> view_row_begin(ChannelView<T, N> const& view, u32 y)
+	static YUVf32p yuv_row_begin(ViewYUVf32 const& view, u32 y)
 	{
 		assert(verify(view));
 		assert(y < view.height);
 
-		auto offset = row_offset(view, y);
+		auto offset = y * view.width;
+
+		YUVf32p yuv{};
+
+		yuv.Y = view.channel_data[id_cast(YUV::Y)] + offset;
+		yuv.U = view.channel_data[id_cast(YUV::U)] + offset;
+		yuv.V = view.channel_data[id_cast(YUV::V)] + offset;
+
+		return yuv;
+	}
+
+
+	template <typename T, size_t N>
+	static std::array<T*, N> view_row_begin(ChannelMatrix2D<T, N> const& view, u32 y)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+
+		auto offset = y * view.width;
 
 		std::array<T*, N> rows = { 0 };
 
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			rows[ch] = view.channel_data_[ch] + offset;
+			rows[ch] = view.channel_data[ch] + offset;
 		}
 
 		return rows;
@@ -152,14 +129,42 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static T* channel_row_begin(ChannelView<T, N> const& view, u32 y, u32 ch)
+	static T* channel_row_begin(ChannelMatrix2D<T, N> const& view, u32 y, u32 ch)
 	{
 		assert(verify(view));
-
 		assert(y < view.height);
 
-		auto offset = row_offset(view, y);
+		auto offset = y * view.width;
 
-		return view.channel_data_[ch] + offset;
+		return view.channel_data[ch] + offset;
+	}
+
+
+	template <typename T, size_t N>
+	static T* channel_xy_at(ChannelMatrix2D<T, N> const& view, u32 x, u32 y, u32 ch)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+		assert(x < view.width);
+
+		auto offset = y * view.width + x;
+
+		return view.channel_data[ch] + offset;
 	}
 }
+
+
+#ifndef SIMAGE_NO_CUDA
+
+/* row_begin */
+
+namespace simage
+{
+    template <typename T>
+    static T* row_begin(DeviceMatrix2D<T> const& view, u32 y)
+    {
+        return view.data + (u64)(y * view.width);
+    }
+}
+
+#endif

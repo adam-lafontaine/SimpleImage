@@ -12,23 +12,25 @@ namespace simage
 
 
 	template <typename T>
-	static bool verify(MatrixView<T> const& view)
+	static bool verify(MatrixView2D<T> const& view)
 	{
-		return view.matrix_width && view.width && view.height && view.matrix_data_;
-	}	
+		return view.width && view.height && 
+			view.matrix_data && view.matrix_width &&
+			view.width <= view.matrix_width;
+	}
+
+
+	template <typename T, size_t N>
+	static bool verify(ChannelMatrix2D<T,N> const& view)
+	{
+		return view.width && view.height && view.channel_data[0];
+	}
 
 
 	template <typename T>
 	static bool verify(MemoryBuffer<T> const& buffer, u32 n_elements)
 	{
 		return n_elements && (buffer.capacity_ - buffer.size_) >= n_elements;
-	}
-
-
-	template <typename T, size_t N>
-	static bool verify(ChannelView<T,N> const& view)
-	{
-		return view.channel_width_ && view.width && view.height && view.channel_data_[0];
 	}
 
 
@@ -58,11 +60,30 @@ namespace simage
 	template <typename T>
 	static bool verify(DeviceMatrix2D<T> const& view)
 	{
-		return view.width && view.height && view.data_;
+		return view.width && view.height && view.data;
 	}
 
 
 #endif // SIMAGE_NO_CUDA
+
+#ifndef SIMAGE_NO_USB_CAMERA
+
+	static bool verify(CameraUSB const& camera)
+	{
+		return camera.frame_width && camera.frame_height && camera.max_fps && camera.device_id >= 0;
+	}
+
+
+	template <typename T>
+	static bool verify(CameraUSB const& camera, MatrixView2D<T> const& view)
+	{
+		return verify(camera) && verify(view) &&
+			camera.frame_width == view.width &&
+			camera.frame_height == view.height;
+	}
+
+
+#endif // SIMAGE_NO_USB_CAMERA
 
 
 	template <class IMG_A, class IMG_B>

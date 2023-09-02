@@ -1,70 +1,49 @@
 /* copy span */
 
 namespace simage
-{
-	template <typename T>
-	static inline void copy_1_no_simd(View1<T> const& src, View1<T> const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			for (u32 i = 0; i < src.width; ++i)
-			{
-				d[i] = s[i];
-			}
-		}
-	}
-
-
-#ifdef SIMAGE_NO_SIMD
-
-	template <typename T>
-	static inline void copy_1(View1<T> const& src, View1<T> const& dst)
-	{
-		copy_1_no_simd(src, dst);
-	}
-
-#else
-
+{	
 	template <typename T>
 	static void copy_span(T* src, T* dst, u32 len)
 	{
-		constexpr auto step = (u32)simd::LEN * sizeof(f32) / sizeof(T);
-
-		simd::vecf32 v_bytes{};
-
-		u32 i = 0;
-        for (; i <= (len - step); i += step)
+		for (u32 i = 0; i < len; ++i)
 		{
-			v_bytes = simd::load_bytes(src + i);
-			simd::store_bytes(v_bytes, dst + i);
+			dst[i] = src[i];
 		}
-
-		i = len - step;
-		v_bytes = simd::load_bytes(src + i);
-		simd::store_bytes(v_bytes, dst + i);
 	}
 
 
 	template <typename T>
-	static void copy_1(View1<T> const& src, View1<T> const& dst)
+	static inline void copy_view_1(View1<T> const& src, View1<T> const& dst)
 	{
-		if (src.width < simd::LEN)
-		{
-			copy_1_no_simd(src, dst);
-			return;
-		}
+		auto len = src.width * src.height;
+		auto s = row_begin(src, 0);
+		auto d = row_begin(dst, 0);
 
+		copy_span(s, d, len);
+	}
+
+
+	template <typename T>
+	static inline void copy_sub_view_1(View1<T> const& src, View1<T> const& dst)
+	{
 		for (u32 y = 0; y < src.height; ++y)
 		{
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
+
 			copy_span(s, d, src.width);
 		}
 	}
+	
 
-#endif // SIMAGE_NO_SIMD
+	template <typename T, size_t N>
+	static inline void copy_view_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst)
+	{
+		for (u32 ch = 0; ch < (u32)N; ++ch)
+		{
+			copy_view_1(select_channel(src, ch), select_channel(dst, ch));
+		}
+	}
 }
 
 
@@ -76,7 +55,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		copy_1(src, dst);
+		if (is_1d(src) && is_1d(dst))
+		{
+			copy_view_1(src, dst);
+		}
+		else
+		{
+			copy_sub_view_1(src, dst);
+		}
 	}
 
 
@@ -84,7 +70,14 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		copy_1(src, dst);
+		if (is_1d(src) && is_1d(dst))
+		{
+			copy_view_1(src, dst);
+		}
+		else
+		{
+			copy_sub_view_1(src, dst);
+		}
 	}
 }
 
@@ -97,15 +90,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		std::array<std::function<void()>, 4> f_list = 
-		{ 
-			[&]() { copy_1(select_channel(src, 0), select_channel(dst, 0)); },
-			[&]() { copy_1(select_channel(src, 1), select_channel(dst, 1)); },
-			[&]() { copy_1(select_channel(src, 2), select_channel(dst, 2)); },
-			[&]() { copy_1(select_channel(src, 3), select_channel(dst, 3)); }
-		};
-
-		execute(f_list);
+		copy_view_n(src, dst);
 	}
 
 
@@ -113,14 +98,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		std::array<std::function<void()>, 3> f_list =
-		{
-			[&]() { copy_1(select_channel(src, 0), select_channel(dst, 0)); },
-			[&]() { copy_1(select_channel(src, 1), select_channel(dst, 1)); },
-			[&]() { copy_1(select_channel(src, 2), select_channel(dst, 2)); },
-		};
-
-		execute(f_list);
+		copy_view_n(src, dst);
 	}
 
 
@@ -128,13 +106,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		std::array<std::function<void()>, 2> f_list =
-		{
-			[&]() { copy_1(select_channel(src, 0), select_channel(dst, 0)); },
-			[&]() { copy_1(select_channel(src, 1), select_channel(dst, 1)); },
-		};
-
-		execute(f_list);
+		copy_view_n(src, dst);
 	}
 
 
@@ -142,6 +114,6 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		copy_1(src, dst);
+		copy_view_1(src, dst);
 	}
 }

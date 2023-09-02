@@ -75,55 +75,6 @@ static void run_next_test(Input const& input, app::AppState& app_state, img::Cam
 }
 
 
-static void adjust_screen_views(img::CameraUSB& camera, img::View& app_screen)
-{
-	if (camera.frame_width == app_screen.width && camera.frame_height == app_screen.height)
-	{
-		return;
-	}	
-
-	// change camera roi if it is larger than the screen
-	auto roi_camera = make_range(camera.frame_width, camera.frame_height);
-
-	if (camera.frame_width > app_screen.width)
-	{
-		roi_camera.x_begin = (camera.frame_width - app_screen.width) / 2;
-		roi_camera.x_end = roi_camera.x_begin + app_screen.width;
-	}
-
-	if (camera.frame_height > app_screen.height)
-	{
-		roi_camera.y_begin = (camera.frame_height - app_screen.height) / 2;
-		roi_camera.y_end = roi_camera.y_begin + app_screen.height;
-	}
-
-	img::set_roi(camera, roi_camera);
-
-	// screen view that fits in camera roi
-	u32 x_adj_screen = 0;
-	u32 y_adj_screen = 0;
-	
-	if (camera.frame_width < app_screen.width)
-	{
-		x_adj_screen = (app_screen.width - camera.frame_width) / 2;
-	}
-	
-	if (camera.frame_height < app_screen.height)
-	{
-		y_adj_screen = (app_screen.height - camera.frame_height) / 2;
-	}
-	
-	auto roi_screen = make_range(camera.frame_width, camera.frame_height);
-
-	roi_screen.x_begin += x_adj_screen;
-	roi_screen.x_end += x_adj_screen;
-	roi_screen.y_begin += y_adj_screen;
-	roi_screen.y_end += y_adj_screen;	
-
-	app_screen = img::sub_view(app_screen, roi_screen);
-}
-
-
 int main()
 {
     if (!run_preliminary_tests())
@@ -152,7 +103,6 @@ int main()
 	}
 
     auto out_view = app_state.screen_buffer[0];
-    adjust_screen_views(camera, out_view);
 
     if (!init_camera_test_memory(out_view.width, out_view.height))
     {

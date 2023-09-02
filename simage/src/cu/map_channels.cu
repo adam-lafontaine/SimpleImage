@@ -1,5 +1,3 @@
-
-
 namespace gpuf
 {    
     GPU_CONSTEXPR_FUNCTION
@@ -126,12 +124,12 @@ namespace gpu
             return;
         }
         
-        auto src_uyvy_x = (x >> 1) << 1;        
+        auto src_yuyv_x = (x >> 1) << 1;        
 
-        auto src_uyvy = *(img::YUV422u8*)gpuf::xy_at(src, src_uyvy_x, y);
+        auto src_yuyv = *(img::YUYVu8*)gpuf::xy_at(src, src_yuyv_x, y);
 
-        auto yuv_u = src_uyvy.u;
-        auto yuv_v = src_uyvy.v;
+        auto yuv_u = src_yuyv.u;
+        auto yuv_v = src_yuyv.v;
         
         auto yuv_y = gpuf::xy_at(src, x, y)->y;
 

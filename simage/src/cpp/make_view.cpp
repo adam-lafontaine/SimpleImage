@@ -3,13 +3,12 @@
 namespace simage
 {
     template <typename T>
-	static MatrixView<T> do_make_view(Matrix2D<T> const& image)
+	static View1<T> do_make_view_1(Matrix2D<T> const& image)
 	{
-		MatrixView<T> view;
+		View1<T> view{};
 
-		view.matrix_data_ = image.data_;
+		view.matrix_data = image.data_;
 		view.matrix_width = image.width;
-
 		view.width = image.width;
 		view.height = image.height;
 
@@ -20,29 +19,30 @@ namespace simage
 
 
 	template <typename T>
-	static void do_make_view_1(View1<T>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	static View1<T> do_make_view_1(u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
-		view.matrix_data_ = mb::push_elements(buffer, width * height);
-		view.matrix_width = width;		
+		View1<T> view{};
+
+		view.matrix_data = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;
 		view.width = width;
 		view.height = height;
 
 		view.range = make_range(width, height);
+
+		return view;
 	}
 
 
     template <typename T, size_t N>
-	static void do_make_view_n(ChannelView<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
+	static inline void make_view_n(ChannelMatrix2D<T, N>& view, u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
-		view.channel_width_ = width;
 		view.width = width;
 		view.height = height;
 
-		view.range = make_range(width, height);
-
 		for (u32 ch = 0; ch < N; ++ch)
 		{
-			view.channel_data_[ch] = mb::push_elements(buffer, width * height);
+			view.channel_data[ch] = mb::push_elements(buffer, width * height);
 		}
 	}
 }
@@ -56,7 +56,7 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view(image);
+		auto view = do_make_view_1(image);
 		assert(verify(view));
 
 		return view;
@@ -67,7 +67,7 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view(image);
+		auto view = do_make_view_1(image);
 		assert(verify(view));
 
 		return view;
@@ -78,7 +78,18 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view(image);
+		auto view = do_make_view_1(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewUVY make_view(ImageUVY const& image)
+	{
+		assert(verify(image));
+
+		auto view = do_make_view_1(image);
 		assert(verify(view));
 
 		return view;
@@ -89,7 +100,7 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view(image);
+		auto view = do_make_view_1(image);
 		assert(verify(view));
 
 		return view;
@@ -100,7 +111,7 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view(image);
+		auto view = do_make_view_1(image);
 		assert(verify(view));
 
 		return view;
@@ -111,9 +122,7 @@ namespace simage
 	{
 		assert(verify(buffer, width * height));
 
-		View view;
-
-		do_make_view_1(view, width, height, buffer);
+		auto view  = do_make_view_1(width, height, buffer);
 		assert(verify(view));
 
 		return view;
@@ -124,9 +133,7 @@ namespace simage
 	{
 		assert(verify(buffer, width * height));
 
-		ViewGray view;
-
-		do_make_view_1(view, width, height, buffer);
+		auto view  = do_make_view_1(width, height, buffer);
 		assert(verify(view));
 
 		return view;
@@ -150,9 +157,7 @@ namespace simage
 	{
 		assert(verify(buffer, width * height));
 
-		View1f32 view;
-
-		do_make_view_1(view, width, height, reinterpret_buffer(buffer));
+		auto view = do_make_view_1(width, height, reinterpret_buffer(buffer));
 
 		assert(verify(view));
 
@@ -166,7 +171,7 @@ namespace simage
 
 		View2f32 view;
 
-		do_make_view_n(view, width, height, reinterpret_buffer(buffer));
+		make_view_n(view, width, height, reinterpret_buffer(buffer));
 
 		assert(verify(view));
 
@@ -180,7 +185,7 @@ namespace simage
 
 		View3f32 view;
 
-		do_make_view_n(view, width, height, reinterpret_buffer(buffer));
+		make_view_n(view, width, height, reinterpret_buffer(buffer));
 
 		assert(verify(view));
 
@@ -194,7 +199,7 @@ namespace simage
 
 		View4f32 view;
 
-		do_make_view_n(view, width, height, reinterpret_buffer(buffer));
+		make_view_n(view, width, height, reinterpret_buffer(buffer));
 
 		assert(verify(view));
 

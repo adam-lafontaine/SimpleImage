@@ -121,9 +121,8 @@ void generate_histograms(img::View const& src, img::View const& dst)
     params.hist_height = (height - HIST_SPACE) / 12 - HIST_SPACE;
 
     img::hist::Histogram12f32 hists;
-    hists.n_bins = N_BINS;
 
-    img::hist::make_histograms(src, hists);
+    img::hist::make_histograms(src, hists, N_BINS);
     draw(hists, hist_view, params);
 
     img::map_rgba(hist_view, dst);

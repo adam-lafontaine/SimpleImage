@@ -57,6 +57,6 @@ namespace simage
 	using RGBAf32p = RGBAp<f32>;
 
 	using HSVf32p = HSVp<f32>;
-	using YUVf32p = YUVp<f32>;
 	using LCHf32p = LCHp<f32>;
+	using YUVf32p = YUVp<f32>;
 }

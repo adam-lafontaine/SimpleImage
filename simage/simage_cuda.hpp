@@ -70,7 +70,7 @@ namespace simage
     {
         DeviceMatrix2D<T> view{};
 
-        view.data_ = cuda::push_elements(buffer, width * height);
+        view.data = cuda::push_elements(buffer, width * height);
         view.width = width;
         view.height = height;
 

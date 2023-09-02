@@ -27,21 +27,21 @@ namespace simage
 {
     typedef union pixel_t
 	{
-		u8 channels[4] = {};
+		u8 channels[4];
 
 		u32 value;
 
-		RGBAu8 rgba;
+		RGBAu8 rgba = {};
 
 	} Pixel;
 
 
 	template <typename T>
-    class MatrixView
+    class MatrixView2D
 	{
 	public:
 
-		T* matrix_data_ = 0;
+		T* matrix_data = 0;
 		u32 matrix_width = 0;
 
 		u32 width = 0;
@@ -63,10 +63,10 @@ namespace simage
 
 
 	using Image = Matrix2D<Pixel>;
-	using View = MatrixView<Pixel>;
+	using View = MatrixView2D<Pixel>;
 
 	using ImageGray = Matrix2D<u8>;
-	using ViewGray = MatrixView<u8>;
+	using ViewGray = MatrixView2D<u8>;
 }
 
 
@@ -75,56 +75,42 @@ namespace simage
 namespace simage
 {
 	template <typename T, size_t N>
-	class ChannelView
+	class ChannelMatrix2D
 	{
 	public:
 
-		u32 channel_width_ = 0;
-
-		T* channel_data_[N] = {};		
+		T* channel_data[N] = {};		
 
 		u32 width = 0;
 		u32 height = 0;
-
-		union
-		{
-			Range2Du32 range = {};
-
-			struct
-			{
-				u32 x_begin;
-				u32 x_end;
-				u32 y_begin;
-				u32 y_end;
-			};
-		};
 	};
-	
+
 
 	template <typename T>
-	using View4 = ChannelView<T, 4>;
+	using View4 = ChannelMatrix2D<T, 4>;
 
 	template <typename T>
-	using View3 = ChannelView<T, 3>;
+	using View3 = ChannelMatrix2D<T, 3>;
 
 	template <typename T>
-	using View2 = ChannelView<T, 2>;
+	using View2 = ChannelMatrix2D<T, 2>;
 
 	template <typename T>
-	using View1 = MatrixView<T>;
+	using View1 = MatrixView2D<T>;
+
+	using View1u8 = ViewGray;
+
 
 	using View4f32 = View4<f32>;
 	using View3f32 = View3<f32>;
 	using View2f32 = View2<f32>;
-	using View1f32 = View1<f32>;
-
-	using View1u8 = ViewGray;
+	using View1f32 = View1<f32>;	
 
 	using ViewRGBAf32 = View4f32;
 	using ViewRGBf32 = View3f32;
 	using ViewHSVf32 = View3f32;
+	using ViewLCHf32 = View3f32;
 	using ViewYUVf32 = View3f32;
-	using ViewLCHf32 = View3f32;    
 }
 
 
@@ -132,7 +118,25 @@ namespace simage
 
 namespace simage
 {
-	class YUV422u8
+	class YUYVu8
+	{
+	public:		
+		u8 y1;
+		u8 u;		
+		u8 y2;
+		u8 v;
+	};
+
+
+	class YUV2u8
+	{
+	public:		
+		u8 y;
+		u8 uv;
+	};
+
+
+	class UYVYu8
 	{
 	public:
 		u8 u;
@@ -142,7 +146,7 @@ namespace simage
 	};
 
 
-	class YUV2u8
+	class UVY2u8
 	{
 	public:
 		u8 uv;
@@ -236,12 +240,6 @@ namespace simage
 	};
 
 
-	enum class YUV : int
-	{
-		Y = 2, U = 1, V = 0
-	};
-
-
 	enum class GA : int
 	{
 		G = 1, A = 0
@@ -264,13 +262,16 @@ namespace simage
 
 
 	using ImageYUV = Matrix2D<YUV2u8>;
-	using ViewYUV = MatrixView<YUV2u8>;
+	using ViewYUV = MatrixView2D<YUV2u8>;
+
+	using ImageUVY = Matrix2D<UVY2u8>;
+	using ViewUVY = MatrixView2D<UVY2u8>;
 
 	using ImageBGR = Matrix2D<BGRu8>;
-	using ViewBGR = MatrixView<BGRu8>;
+	using ViewBGR = MatrixView2D<BGRu8>;
 
 	using ImageRGB = Matrix2D<RGBu8>;
-	using ViewRGB = MatrixView<RGBu8>;
+	using ViewRGB = MatrixView2D<RGBu8>;
 }
 
 
@@ -313,10 +314,14 @@ namespace simage
 	class DeviceMatrix2D
 	{
 	public:
-		T* data_ = nullptr;
+		T* data = nullptr;
 		u32 width = 0;
 		u32 height = 0;
 	};
+
+
+	template <typename T>
+	using DeviceView1 = DeviceMatrix2D<T>;
 
 
 	using DeviceView = DeviceMatrix2D<Pixel>;

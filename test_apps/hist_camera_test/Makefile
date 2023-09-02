@@ -68,11 +68,14 @@ simage_dep += $(cpp)/for_each_pixel.cpp
 simage_dep += $(cpp)/gradients.cpp
 simage_dep += $(cpp)/histogram.cpp
 simage_dep += $(cpp)/make_view.cpp
-simage_dep += $(cpp)/map_channels.cpp
+simage_dep += $(cpp)/map_color.cpp
+simage_dep += $(cpp)/map_gray.cpp
+simage_dep += $(cpp)/map_rgb.cpp
 simage_dep += $(cpp)/platform_image.cpp
 simage_dep += $(cpp)/rotate.cpp
 simage_dep += $(cpp)/row_begin.cpp
 simage_dep += $(cpp)/select_channel.cpp
+simage_dep += $(cpp)/simd.cpp
 simage_dep += $(cpp)/skeleton.cpp
 simage_dep += $(cpp)/split_channels.cpp
 simage_dep += $(cpp)/sub_view.cpp
@@ -87,8 +90,6 @@ simage_dep += $(stb)/stb_simage.cpp
 simage_dep += $(uvc)/libuvc2.hpp
 simage_dep += $(uvc)/uvc_simage.cpp
 simage_dep += $(util)/color_space.hpp
-simage_dep += $(util)/execute.hpp
-simage_dep += $(util)/execute.cpp
 simage_dep += $(util)/memory_buffer.hpp
 
 simage_c := $(simage)/simage.cpp
@@ -115,7 +116,7 @@ LIBRARIES += $(LIBUSB)
 CCFLAGS := -std=c++17
 CCFLAGS += -DSIMAGE_NO_CUDA
 
-#CCFLAGS += -O3 -DNDEBUG
+CCFLAGS += -O3 -DNDEBUG
 
 # build rules
 

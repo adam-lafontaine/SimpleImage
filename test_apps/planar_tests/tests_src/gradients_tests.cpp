@@ -48,10 +48,10 @@ void gradients_xy_tests(img::View const& out)
 
     img::gradients_xy(src, dst);
 
-    auto to_abs = [](f32 p) { return p < 0.0f ? p * -1.0f : p; };
+    auto to_abs = [](f32& p) { p = p < 0.0f ? p * -1.0f : p; };
 
-    img::transform(grad_x, grad_x, to_abs);
-    img::transform(grad_y, grad_y, to_abs);
+    img::for_each_pixel(grad_x, to_abs);
+    img::for_each_pixel(grad_y, to_abs);
 
     auto full = make_range(width, height);
     auto top = full;

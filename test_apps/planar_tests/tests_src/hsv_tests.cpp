@@ -54,22 +54,9 @@ void hsv_draw_test(img::View const& out)
     auto sat = img::select_channel(hsv, img::HSV::S);
     auto val = img::select_channel(hsv, img::HSV::V);
 
-    auto r = make_range(width, height);
-    for (u32 x = 0; x < width; ++x)
-    {
-        r.x_begin = x;
-        r.x_end = x + 1;
-        img::fill(img::sub_view(hue, r), (f32)x / width);
-    }
+    img::for_each_xy(hue, [width](u32 x, u32 y) { return (f32)x / width; });
 
-    r = make_range(width, height);
-    for (u32 y = 0; y < height; ++y)
-    {
-        r.y_begin = y;
-        r.y_end = y + 1;
-
-        img::fill(img::sub_view(sat, r), (f32)y / height);
-    }
+    img::for_each_xy(sat, [height](u32 x, u32 y) { return (f32)y / height; });
 
     img::fill(val, 1.0f);
 

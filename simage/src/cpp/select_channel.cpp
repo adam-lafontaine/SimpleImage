@@ -3,16 +3,20 @@
 namespace simage
 {
 	template <typename T, size_t N, typename CH>
-	static View1<T> select_channel(ChannelView<T, N> const& view, CH ch)
+	static View1<T> select_channel(ChannelMatrix2D<T, N> const& view, CH ch)
 	{
-		View1<T> view1{};
+		View1<T> view1{};	
 
-		view1.matrix_width = view.channel_width_;
-		view1.range = view.range;
+		view1.matrix_data = view.channel_data[id_cast(ch)];
+		view1.matrix_width = view.width;
+
 		view1.width = view.width;
 		view1.height = view.height;
 
-		view1.matrix_data_ = view.channel_data_[id_cast(ch)];
+		view1.x_begin = 0;
+		view1.x_end = view.width;
+		view1.y_begin = 0;
+		view1.y_end = view.height;
 
 		return view1;
 	}
@@ -22,9 +26,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -36,9 +38,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -50,9 +50,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -64,9 +62,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -78,9 +74,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -92,9 +86,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -106,9 +98,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -121,30 +111,14 @@ namespace simage
 		assert(verify(view));
 
 		ViewRGBf32 rgb;
-
-		rgb.channel_width_ = view.channel_width_;
+		
 		rgb.width = view.width;
 		rgb.height = view.height;
-		rgb.range = view.range;
 
-		rgb.channel_data_[id_cast(RGB::R)] = view.channel_data_[id_cast(RGB::R)];
-		rgb.channel_data_[id_cast(RGB::G)] = view.channel_data_[id_cast(RGB::G)];
-		rgb.channel_data_[id_cast(RGB::B)] = view.channel_data_[id_cast(RGB::B)];
+		rgb.channel_data[id_cast(RGB::R)] = view.channel_data[id_cast(RGBA::R)];
+		rgb.channel_data[id_cast(RGB::G)] = view.channel_data[id_cast(RGBA::G)];
+		rgb.channel_data[id_cast(RGB::B)] = view.channel_data[id_cast(RGBA::B)];
 
 		return rgb;
-	}
-
-
-	template <typename T, size_t N>
-	static std::array<View1<T>, N> split_channels(ChannelView<T, N> const& view)
-	{
-		std::array<View1<T>, N> arr = { 0 };
-
-		for (u32 ch = 0; ch < (u32)N; ++ch)
-		{
-			arr[ch] = select_channel(view, ch);
-		}
-
-		return arr;
 	}
 }

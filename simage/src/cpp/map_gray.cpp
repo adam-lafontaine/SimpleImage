@@ -1,10 +1,8 @@
 /* gray to gray */
 
-/* no_simd */
-
 namespace simage
 {
-	static inline void map_span_gray_no_simd(u8* src, f32* dst, u32 len)
+	static inline void map_span_gray(u8* src, f32* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -13,7 +11,7 @@ namespace simage
 	}
 
 
-	static inline void map_span_gray_no_simd(f32* src, u8* dst, u32 len)
+	static inline void map_span_gray(f32* src, u8* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -22,111 +20,6 @@ namespace simage
 	}
 }
 
-/*
-namespace simage
-{
-#ifdef SIMAGE_NO_SIMD
-
-    template <typename TSRC, typename TDST>
-	static inline void map_view_gray_1(View1<TSRC> const& src, View1<TDST> const& dst)
-    {
-        map_view_gray_1_no_simd(src, dst);
-    }
-
-
-    template <class ViewSRC, class ViewDST>
-	static inline void map_sub_view_gray_1(ViewSRC const& src, ViewDST const& dst)
-    {
-        map_sub_view_gray_1_no_simd(src, dst);
-    }
-
-#else
-
-    static void map_span_gray(u8* src, f32* dst, u32 len)
-	{		
-		constexpr auto step = (u32)simd::LEN;
-		constexpr f32 scalar = 1.0f / 255.0f;
-		
-		simd::vecf32 gray255;
-		simd::vecf32 gray1;
-
-		auto conv = simd::load_f32_broadcast(scalar);
-
-		u32 i = 0;
-        for (; i <= (len - step); i += step)
-		{
-			gray255 = simd::load_gray(src + i);
-			gray1 = simd::mul(gray255, conv);
-			simd::store_gray(gray1, dst + i);
-		}
-
-		i = len - step;
-		gray255 = simd::load_gray(src + i);
-		gray1 = simd::mul(gray255, conv);
-		simd::store_gray(gray1, dst + i);
-	}
-
-
-	static void map_span_gray(f32* src, u8* dst, u32 len)
-    {
-		constexpr auto step = (u32)simd::LEN;
-		constexpr f32 scalar = 255.0f;
-		
-		simd::vecf32 gray255;
-		simd::vecf32 gray1;
-
-		auto conv = simd::load_f32_broadcast(scalar);
-
-		u32 i = 0;
-        for (; i <= (len - step); i += step)
-		{
-			gray1 = simd::load_gray(src + i);
-			gray255 = simd::mul(gray1, conv);
-			simd::store_gray(gray255, dst + i);
-		}
-
-		i = len - step;
-		gray1 = simd::load_gray(src + i);
-		gray255 = simd::mul(gray1, conv);
-		simd::store_gray(gray255, dst + i);
-    }
-
-
-    template <typename TSRC, typename TDST>
-	static inline void map_view_gray_1(View1<TSRC> const& src, View1<TDST> const& dst)
-    {
-        auto len = src.width * src.height;
-
-        if (len < simd::LEN)
-        {
-            map_view_gray_1_no_simd(src, dst);
-            return;
-        }
-
-        map_span_gray(src.data, dst.data, len);
-    }
-
-
-    template <class ViewSRC, class ViewDST>
-	static inline void map_sub_view_gray_1(ViewSRC const& src, ViewDST const& dst)
-    {
-        if (src.width < simd::LEN)
-        {
-            map_sub_view_gray_1_no_simd(src, dst);
-            return;
-        }
-
-        for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(dst, y);
-			map_span_gray(s, d, src.width);
-		}
-    }
-
-#endif // SIMAGE_NO_SIMD
-}
-*/
 
 /* yuv to gray */
 
@@ -371,7 +264,7 @@ namespace simage
 		auto s = row_begin(src, 0);
 		auto d = row_begin(dst, 0);
 
-		map_span_gray_no_simd(s, d, len);
+		map_span_gray(s, d, len);
 	}
 
 
@@ -383,7 +276,7 @@ namespace simage
 			auto s = row_begin(src, y);
 			auto d = row_begin(dst, y);
 
-			map_span_gray_no_simd(s, d, src.width);
+			map_span_gray(s, d, src.width);
 		}
 	}
 

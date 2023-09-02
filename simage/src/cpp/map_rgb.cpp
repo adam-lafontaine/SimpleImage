@@ -29,7 +29,13 @@ namespace simage
         }
     }
 
+}
 
+
+/* rgb to rgb */
+
+namespace simage
+{
     static inline void map_span_rgb(Pixel* src, RGBf32p const& dst, u32 len)
     {
         for (u32 i = 0; i < len; ++i)

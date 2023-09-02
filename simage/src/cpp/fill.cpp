@@ -3,7 +3,7 @@
 namespace simage
 {
 	template <typename T>
-	static void fill_view_channel_no_simd(View1<T> const& view, T value)
+	static void fill_view_channel(View1<T> const& view, T value)
 	{
 		auto len = view.width * view.height;
 		auto d = view.data;
@@ -16,16 +16,14 @@ namespace simage
 
 
 	template <typename T>
-	static inline void fill_span_no_simd(T* dst, T value, u32 len)
+	static inline void fill_span(T* dst, T value, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
 			dst[i] = value;
 		}
 	}
-
-
-#ifdef SIMAGE_NO_SIMD
+	
 
 	template <typename T>
 	static inline void fill_view_1(View1<T> const& view, T value)
@@ -33,7 +31,7 @@ namespace simage
 		auto len = view.width * view.height;
 		auto d = row_begin(view, 0);
 
-		fill_span_no_simd(d, value, len);
+		fill_span(d, value, len);
 	}
 
 
@@ -43,76 +41,9 @@ namespace simage
 		for (u32 y = 0; y < view.height; ++y)
 		{
 			auto d = row_begin(view, y);
-			fill_span_no_simd(d, value, view.width);
+			fill_span(d, value, view.width);
 		}
 	}
-
-#else
-
-
-	static inline void fill_span(f32* dst, simd::vecf32 const& v_val, u32 len)
-	{
-		constexpr auto step = simd::LEN;		
-
-		u32 i = 0;
-        for (; i <= (len - step); i += step)
-		{
-			simd::store_f32(v_val, dst + i);
-		}
-
-		i = len - step;
-		simd::store_f32(v_val, dst + i);
-	}
-
-
-	template <typename T>
-	static void fill_view_channel(View1<T> const& view, T value)
-	{
-		fill_view_channel_no_simd(view, value);
-	}
-
-
-	static void fill_view_channel(View1<f32> const& view, f32 value)
-	{
-		auto len = view.width * view.height;
-
-		if (len < simd::LEN)
-		{
-			fill_view_channel_no_simd(view, value);
-			return;
-		}
-		
-		auto v_val = simd::load_f32_broadcast(value);	
-
-		fill_span(view.data, v_val, len);
-	}
-
-
-	template <typename T>
-	static void fill_sub_view_channel(SubView1<T> const& view, T value)
-	{
-		fill_sub_view_channel_no_simd(view, value);
-	}
-
-
-	static void fill_sub_view_channel(SubView1<f32> const& view, f32 value)
-	{
-		if (view.width < simd::LEN)
-		{
-			fill_sub_view_channel_no_simd(view, value);
-			return;
-		}
-		
-		auto v_val = simd::load_f32_broadcast(value);
-
-		for (u32 y = 0; y < view.height; ++y)
-		{
-			auto d = row_begin(view, y);
-			fill_span(d, v_val, view.width);
-		}
-	}
-
-#endif // SIMAGE_NO_SIMD
 }
 
 

@@ -15,7 +15,7 @@ namespace simage
 	};
 
 
-	static inline void alpha_blend_span_u8_no_simd(Pixel* src, Pixel* cur, Pixel* dst, u32 len)
+	static inline void alpha_blend_span_u8(Pixel* src, Pixel* cur, Pixel* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -31,7 +31,7 @@ namespace simage
 	}
 
 
-	static inline void alpha_blend_span_u8_no_simd(Pixel* src, u8 alpha, Pixel* cur, Pixel* dst, u32 len)
+	static inline void alpha_blend_span_u8(Pixel* src, u8 alpha, Pixel* cur, Pixel* dst, u32 len)
 	{
 		auto a = cs::to_channel_f32(alpha);
 
@@ -48,7 +48,7 @@ namespace simage
 	}
 
 
-	static inline void alpha_blend_span_f32_no_simd(f32* src, f32* cur, f32* alpha, f32* dst, u32 len)
+	static inline void alpha_blend_span_f32(f32* src, f32* cur, f32* alpha, f32* dst, u32 len)
 	{		
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -57,7 +57,7 @@ namespace simage
 	}
 
 
-	static inline void alpha_blend_span_f32_no_simd(f32* src, f32 alpha, f32* cur, f32* dst, u32 len)
+	static inline void alpha_blend_span_f32(f32* src, f32 alpha, f32* cur, f32* dst, u32 len)
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
@@ -65,194 +65,6 @@ namespace simage
 		}
 	}
 }
-
-#if 0
-
-
-/* alpha_blend no_simd */
-
-namespace simage
-{
-	static inline void alpha_blend_u8_no_simd(View const& src, View const& cur, View const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto c = row_begin(cur, y);
-			auto d = row_begin(dst, y);
-
-			alpha_blend_span_u8_no_simd(s, c, d, src.width);
-		}
-	}
-
-
-	static inline void alpha_blend_u8_no_simd(View const& src, View const& cur_dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(cur_dst, y);
-
-			alpha_blend_span_u8_no_simd(s, d, d, src.width);
-		}
-	}
-
-
-	static inline void alpha_blend_f32_no_simd(View1f32 const& src, View1f32 const& cur, View1f32 const& alpha, View1f32 const& dst)
-	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto c = row_begin(cur, y);
-			auto a = row_begin(alpha, y);
-			auto d = row_begin(dst, y);
-			
-			alpha_blend_span_f32_no_simd(s, c, a, d, src.width);
-		}
-	}
-}
-
-
-/* alpha_blend simd */
-
-namespace simage
-{
-#ifndef SIMAGE_NO_SIMD
-
-	static inline void alpha_blend_span_u8(Pixel* src, Pixel* cur, Pixel* dst, u32 len)
-	{
-		// TODO
-		alpha_blend_span_u8_no_simd(src, cur, dst, len);
-	}
-
-
-	static inline void alpha_blend_span_f32(f32* src, f32* cur, f32* alpha, f32* dst, u32 len)
-	{
-		constexpr auto step = (u32)simd::LEN;
-
-		simd::vecf32 v_val;
-		simd::vecf32 v_alpha;
-		simd::vecf32 v_dst;
-
-		simd::vecf32 v_one = simd::load_f32_broadcast(1.0f);		
-
-		u32 i = 0;
-        for (; i <= (len - step); i += step)
-		{
-			v_val = simd::load_f32(src + i);
-			v_alpha = simd::load_f32(alpha + i);
-			v_dst = simd::mul(v_val, v_alpha);
-
-			v_val = simd::load_f32(cur + i);
-			v_alpha = simd::sub(v_one, v_alpha);
-			v_dst = simd::fmadd(v_val, v_alpha, v_dst);
-
-			simd::store_f32(v_dst, dst + i);
-		}
-
-		i = len - step;
-		v_val = simd::load_f32(src + i);
-		v_alpha = simd::load_f32(alpha + i);
-		v_dst = simd::mul(v_val, v_alpha);
-
-		v_val = simd::load_f32(cur + i);
-		v_alpha = simd::sub(v_one, v_alpha);
-		v_dst = simd::fmadd(v_val, v_alpha, v_dst);
-
-		simd::store_f32(v_dst, dst + i);
-	}
-
-#endif // !SIMAGE_NO_SIMD
-}
-
-
-/* alpha_blend  simd option*/
-
-namespace simage
-{
-#ifdef SIMAGE_NO_SIMD
-
-	static inline void alpha_blend_u8(View const& src, View const& cur, View const& dst)
-	{
-		alpha_blend_u8_no_simd(src, cur, dst);
-	}
-
-
-	static inline void alpha_blend_u8(View const& src, View const& cur_dst)
-	{
-		alpha_blend_u8_no_simd(src, cur_dst);
-	}
-
-
-	static inline void alpha_blend_f32(View1f32 const& src, View1f32 const& cur, View1f32 const& alpha, View1f32 const& dst)
-	{
-		alpha_blend_f32_no_simd(src, cur, alpha, dst);
-	}
-
-#else
-
-	static inline void alpha_blend_u8(View const& src, View const& cur, View const& dst)
-	{
-		if (src.width < simd::LEN)
-		{
-			alpha_blend_u8_no_simd(src, cur, dst);
-			return;
-		}
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto c = row_begin(cur, y);
-			auto d = row_begin(dst, y);
-
-			alpha_blend_span_u8(s, c, d, src.width);
-		}
-	}
-
-
-	static inline void alpha_blend_u8(View const& src, View const& cur_dst)
-	{
-		if (src.width < simd::LEN)
-		{
-			alpha_blend_u8_no_simd(src, cur_dst);
-			return;
-		}
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto d = row_begin(cur_dst, y);
-
-			alpha_blend_span_u8(s, d, d, src.width);
-		}
-	}
-
-
-	static inline void alpha_blend_f32(View1f32 const& src, View1f32 const& cur, View1f32 const& alpha, View1f32 const& dst)
-	{
-		if (src.width < simd::LEN)
-		{
-			alpha_blend_f32_no_simd(src, cur, alpha, dst);
-			return;
-		}
-		
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto s = row_begin(src, y);
-			auto c = row_begin(cur, y);
-			auto a = row_begin(alpha, y);
-			auto d = row_begin(dst, y);
-			
-			alpha_blend_span_f32(s, c, a, d, src.width);
-		}
-
-		//alpha_blend_f32_no_simd(src, cur, alpha, dst);
-	}
-
-#endif // SIMAGE_NO_SIMD
-}
-
-#endif
 
 
 /* alpha blend */
@@ -267,7 +79,7 @@ namespace simage
 		auto c = row_begin(cur, 0);
 		auto d = row_begin(dst, 0);
 
-		alpha_blend_span_u8_no_simd(s, c, d, len);
+		alpha_blend_span_u8(s, c, d, len);
 	}
 
 
@@ -279,7 +91,7 @@ namespace simage
 			auto c = row_begin(cur, y);
 			auto d = row_begin(dst, y);
 
-			alpha_blend_span_u8_no_simd(s, c, d, src.width);
+			alpha_blend_span_u8(s, c, d, src.width);
 		}
 	}
 
@@ -292,7 +104,7 @@ namespace simage
 		auto c = row_begin(cur, 0);
 		auto d = row_begin(dst, 0);
 
-		alpha_blend_span_u8_no_simd(s, alpha, c, d, len);
+		alpha_blend_span_u8(s, alpha, c, d, len);
 	}
 
 
@@ -304,7 +116,7 @@ namespace simage
 			auto c = row_begin(cur, y);
 			auto d = row_begin(dst, y);
 
-			alpha_blend_span_u8_no_simd(s, alpha, c, d, src.width);
+			alpha_blend_span_u8(s, alpha, c, d, src.width);
 		}
 	}
 
@@ -396,7 +208,7 @@ namespace simage
 			auto c = row_begin(select_channel(cur, ch), 0);
 			auto d = row_begin(select_channel(dst, ch), 0);
 
-			alpha_blend_span_f32_no_simd(s, c, a, d, len);
+			alpha_blend_span_f32(s, c, a, d, len);
 		}
 	}
 }

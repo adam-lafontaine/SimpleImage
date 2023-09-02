@@ -50,7 +50,7 @@ static bool is_1d(simage::View1<T> const& view)
 #include "src/cpp/channel_pixels.cpp"
 #include "src/cpp/platform_image.cpp"
 
-#include "src/cpp/simd.cpp"
+//#include "src/cpp/simd.cpp"
 
 #include "src/cpp/row_begin.cpp"
 #include "src/cpp/select_channel.cpp"

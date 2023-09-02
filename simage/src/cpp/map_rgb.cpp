@@ -121,7 +121,7 @@ namespace simage
         auto s = row_begin(src, 0);
         auto d = row_begin(dst, 0);
 
-        map_span_rgb(s, d, src.width);
+        map_span_rgb(s, d, len);
     }
 
 

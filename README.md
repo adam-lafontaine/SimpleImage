@@ -15,13 +15,6 @@ A simple image processing library written in C++17.
 ### View
 
 * Provides access to an image's memory
-* Does not own the memory
-* Its memory can be that of an "Image" or part of a "MemoryBuffer"
-* Memory is guaranteed to be contiguous
-
-### Sub View
-
-* Provides access to all or part of an image
 * Represents an entire image or a rectangular sub-section
 * Does not own the memory
 * Its memory can be that of an "Image" or part of a "MemoryBuffer"
@@ -54,9 +47,7 @@ An interleaved image or view.  It is in the format suitable for interacting with
 * `SubView`: A view into a rectagular sub-section of 4 byte image data
 * `ImageGray`: 1 byte image data
 * `ViewGray`: A view to 1 byte image data
-* `SubViewGray`: A view into a rectagular sub-section of 1 byte image data
 * `View1f32`: Single channel float view
-* `SubView1f32`: A rectagular sub-section of a single channel float view
 * `View2f32`, `View3f32`, `View4f32`: Multi-channel float view
 * `Buffer32`: Allocates data for 4 byte pixel or float channel data
 * `Buffer8`: Allocates data for 1 byte pixel data
@@ -612,9 +603,6 @@ rotate()
 // Support .bmp image files
 #define SIMAGE_BMP
 
-// Disable multithreaded image processing
-#define SIMAGE_NO_PARALLEL
-
 // Disable std::filesystem file paths as an alternative to const char*
 // Uses std::string instead
 #define SIMAGE_NO_FILESYSTEM
@@ -624,9 +612,6 @@ rotate()
 
 // Disable CUDA GPU support
 #define SIMAGE_NO_CUDA
-
-// Disable SIMD support
-#define SIMAGE_NO_SIMD
 ```
 
 ## Credits (dependencies)

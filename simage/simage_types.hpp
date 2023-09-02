@@ -110,6 +110,7 @@ namespace simage
 	using ViewRGBf32 = View3f32;
 	using ViewHSVf32 = View3f32;
 	using ViewLCHf32 = View3f32;
+	using ViewYUVf32 = View3f32;
 }
 
 
@@ -193,6 +194,12 @@ namespace simage
 	enum class LCH : int
 	{
 		L = 0, C = 1, H = 2
+	};
+
+
+	enum class YUV : int
+	{
+		Y = 0, U = 1, V = 2
 	};
 
 

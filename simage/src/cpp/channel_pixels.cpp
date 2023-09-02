@@ -43,9 +43,20 @@ namespace simage
 	};
 
 
+	template <typename T>
+	class YUVp
+	{
+	public:
+		T* Y;
+		T* U;
+		T* V;
+	};
+
+
 	using RGBf32p = RGBp<f32>;
 	using RGBAf32p = RGBAp<f32>;
 
 	using HSVf32p = HSVp<f32>;
 	using LCHf32p = LCHp<f32>;
+	using YUVf32p = YUVp<f32>;
 }

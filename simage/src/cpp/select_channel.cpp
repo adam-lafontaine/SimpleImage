@@ -26,9 +26,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -40,9 +38,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -54,9 +50,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -68,9 +62,19 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
+		auto view1 = select_channel(view, id_cast(channel));
 
-		auto view1 = select_channel(view, ch);
+		assert(verify(view1));
+
+		return view1;
+	}
+
+
+	View1f32 select_channel(ViewYUVf32 const& view, YUV channel)
+	{
+		assert(verify(view));
+
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -82,9 +86,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 
@@ -96,9 +98,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto ch = id_cast(channel);
-
-		auto view1 = select_channel(view, ch);
+		auto view1 = select_channel(view, id_cast(channel));
 
 		assert(verify(view1));
 

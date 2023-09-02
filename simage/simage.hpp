@@ -25,7 +25,7 @@ namespace simage
 	void destroy_image(ImageYUV& image);
 
 
-	using Buffer32 = MemoryBuffer<Pixel>;
+    using Buffer32 = MemoryBuffer<Pixel>;
     using Buffer8 = MemoryBuffer<u8>;
 
 
@@ -663,6 +663,8 @@ namespace simage
 
 	View1f32 select_channel(ViewLCHf32 const& view, LCH channel);
 
+    View1f32 select_channel(ViewYUVf32 const& view, YUV channel);
+
 	View1f32 select_channel(View2f32 const& view, GA channel);
 
 	View1f32 select_channel(View2f32 const& view, XY channel);
@@ -748,6 +750,8 @@ namespace simage
 	void map_yuv_rgb(ViewYUV const& src, ViewRGBf32 const& dst);
 
 	void map_yuv_rgb(ViewUVY const& src, ViewRGBf32 const& dst);
+
+    void map_yuv_rgba(ViewYUVf32 const& src, View const& dst);
 }
 
 

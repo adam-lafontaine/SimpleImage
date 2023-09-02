@@ -40,7 +40,7 @@ bool yuv_conversion_test()
 
 void yuv_draw_test(img::View const& out)
 {
-    /*auto const width = out.width;
+    auto const width = out.width;
     auto const height = out.height;
 
     img::Buffer32 buffer;
@@ -60,11 +60,7 @@ void yuv_draw_test(img::View const& out)
 
     img::map_yuv_rgba(yuv, out);
     
-    mb::destroy_buffer(buffer);*/
-
-    auto gray = img::to_pixel(128, 128, 128);
-
-    img::fill(out, gray);
+    mb::destroy_buffer(buffer);
 
     printf("yuv_draw_test: TODO\n");
 }

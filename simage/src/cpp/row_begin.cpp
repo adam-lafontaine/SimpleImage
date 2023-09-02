@@ -92,6 +92,23 @@ namespace simage
 	}
 
 
+	static YUVf32p yuv_row_begin(ViewYUVf32 const& view, u32 y)
+	{
+		assert(verify(view));
+		assert(y < view.height);
+
+		auto offset = y * view.width;
+
+		YUVf32p yuv{};
+
+		yuv.Y = view.channel_data[id_cast(YUV::Y)] + offset;
+		yuv.U = view.channel_data[id_cast(YUV::U)] + offset;
+		yuv.V = view.channel_data[id_cast(YUV::V)] + offset;
+
+		return yuv;
+	}
+
+
 	template <typename T, size_t N>
 	static std::array<T*, N> view_row_begin(ChannelMatrix2D<T, N> const& view, u32 y)
 	{

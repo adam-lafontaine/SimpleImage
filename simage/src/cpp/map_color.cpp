@@ -100,6 +100,20 @@ namespace simage
             dst.B[i] =  cs::to_channel_f32(rgb.blue);
 		}
     }
+
+
+	static inline void map_span_yuv_rgba(YUVf32p const& src, Pixel* dst, u32 len)
+	{
+		for (u32 i = 0; i < len; ++i)
+		{
+			auto rgb = yuv::f32_to_rgb_u8(src.Y[i], src.U[i], src.V[i]);
+			auto& d = dst[i].rgba;
+			d.red = rgb.red;
+			d.green = rgb.green;
+			d.blue = rgb.blue;
+			d.alpha = 255;
+		}
+	}
 }
 
 
@@ -267,6 +281,28 @@ namespace simage
 	}
 
 
+	static inline void map_view_yuv_rgba(ViewYUVf32 const& src, View const& dst)
+	{
+		u32 len = src.width * src.height;
+		auto s = yuv_row_begin(src, 0);
+		auto d = row_begin(dst, 0);
+
+		map_span_yuv_rgba(s, d, len);
+	}
+
+
+	static inline void map_sub_view_yuv_rgba(ViewYUVf32 const& src, View const& dst)
+	{
+		for (u32 y = 0; y < src.height; ++y)
+		{
+			auto s = yuv_row_begin(src, y);
+			auto d = row_begin(dst, y);
+
+			map_span_yuv_rgba(s, d, src.width);
+		}
+	}
+
+
     void map_yuv_rgba(ViewYUV const& src, View const& dst)
     {
         assert(verify(src, dst));
@@ -325,6 +361,21 @@ namespace simage
 			map_sub_view_yuv_rgb(src, dst);
 		}
     }
+
+
+	void map_yuv_rgba(ViewYUVf32 const& src, View const& dst)
+	{
+		assert(verify(src, dst));
+
+		if (is_1d(dst))
+		{
+			map_view_yuv_rgba(src, dst);
+		}
+		else
+		{
+			map_sub_view_yuv_rgba(src, dst);
+		}
+	}
 }
 
 

@@ -1585,9 +1585,6 @@ namespace uvc
 }
 
 
-
-
-
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1596,13 +1593,21 @@ namespace uvc
 #include <chrono>
 
 
+#include <libusb-1.0/libusb.h>
+//#include <libusb.h>
+
+namespace uvc
+{
+    template <typename T>
+    static void print_libusb_error(T err)
+    {
+        printf("libusb error:\n%s\n", libusb_strerror((libusb_error)err));
+    }
+}
+
+
 #ifdef _WIN32
 
-#if 0
-
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <winsock.h>
 //#include "lib/libusb.h"
 
@@ -1616,21 +1621,20 @@ namespace uvc
 
 #endif
 
-#endif
+class thread_t
+{
+public:
+
+};
+
+
+class mutex_t
+{
+public:
+};
 
 #else
 
-#include <libusb-1.0/libusb.h>
-//#include <libusb.h>
-
-namespace uvc
-{
-    template <typename T>
-    static void print_libusb_error(T err)
-    {
-        printf("libusb error:\n%s\n", libusb_strerror((libusb_error)err));
-    }
-}
 
 #include <pthread.h>
 
@@ -1650,6 +1654,7 @@ public:
 };
 
 #endif // _WIN32
+
 
 
 
@@ -1941,45 +1946,53 @@ namespace uvc
     };
 
 
+    static void thread_create(thread_t& th, void *(*start_f)(void *), void* user_data)
+    {
+        pthread_create(&th.thread, NULL, start_f, user_data);
+    }
+
+
+    static void thread_join(thread_t& th)
+    {
+        pthread_join(th.thread, NULL);
+    }
+
+
+    static void mutex_init(mutex_t& mtx)
+    {
+        pthread_mutex_init(&mtx.mutex, NULL);
+        pthread_cond_init(&mtx.cond, NULL);
+    }
+
+
+    static void mutex_destroy(mutex_t& mtx)
+    {
+        pthread_cond_destroy(&mtx.cond);
+        pthread_mutex_destroy(&mtx.mutex);
+    }
+
+
     static void stream_thread_create(uvc_stream_handle* strmh, void *(*start_f)(void *))
     {
-#ifdef CPP_THREAD
-        strmh->cb_thread = std::thread(start_f, (void *)strmh);
-#else
-        pthread_create(&strmh->cb_thread.thread, NULL, start_f, (void *)strmh);
-#endif
+        thread_create(strmh->cb_thread, start_f, (void*)strmh);
     }
 
 
     static void stream_thread_join(uvc_stream_handle* strmh)
     {
-#ifdef CPP_THREAD
-        strmh->cb_thread.join();
-#else
-        pthread_join(strmh->cb_thread.thread, NULL);
-#endif
+        thread_join(strmh->cb_thread);
     }
 
 
     static void stream_mutex_init(uvc_stream_handle* strmh)
     {
-#ifdef CPP_MUTEX
-        // do nothing?
-#else
-        pthread_mutex_init(&strmh->cb_mutex.mutex, NULL);
-        pthread_cond_init(&strmh->cb_mutex.cond, NULL);
-#endif
+        mutex_init(strmh->cb_mutex);
     }
 
 
     static void stream_mutex_destroy(uvc_stream_handle* strmh)
     {
-#ifdef CPP_MUTEX
-        // do nothing?
-#else
-        pthread_cond_destroy(&strmh->cb_mutex.cond);
-        pthread_mutex_destroy(&strmh->cb_mutex.mutex);
-#endif
+        mutex_destroy(strmh->cb_mutex);
     }
 
 
@@ -2092,21 +2105,13 @@ namespace uvc
 
     static void handler_thread_create(uvc_context_t* ctx, void *(*start_f)(void *))
     {
-#ifdef CPP_THREAD
-        ctx->handler_thread = std::thread(start_f, (void *)ctx);
-#else
-        pthread_create(&ctx->handler_thread.thread, NULL, start_f, (void *)ctx);
-#endif
+        thread_create(ctx->handler_thread, start_f, (void*)ctx);
     }
 
 
     static void handler_thread_join(uvc_context_t* ctx)
     {
-#ifdef CPP_THREAD
-        ctx->handler_thread.join();
-#else
-        pthread_join(ctx->handler_thread.thread, NULL);
-#endif
+        thread_join(ctx->handler_thread);
     }
 
 

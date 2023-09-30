@@ -1624,6 +1624,7 @@ namespace uvc
 class thread_t
 {
 public:
+    HANDLE h_thread;
 
 };
 
@@ -1632,6 +1633,69 @@ class mutex_t
 {
 public:
 };
+
+
+static void thread_create(thread_t& th, void *(*start_f)(void *), void* user_data)
+{
+    pthread_create(&th.thread, NULL, start_f, user_data);
+    th.h_thread = CreateThread(
+                         NULL,                   /* default security attributes */
+                         0,                      /* use default stack size      */
+                         func,                   /* thread function             */
+                         arg,                    /* argument to thread function */
+                         0,                      /* use default creation flags  */
+                         NULL);                  /* do not need thread ID       */
+}
+
+
+static void thread_join(thread_t& th)
+{
+    pthread_join(th.thread, NULL);
+}
+
+
+static void mutex_init(mutex_t& mtx)
+{
+    pthread_mutex_init(&mtx.mutex, NULL);
+    pthread_cond_init(&mtx.cond, NULL);
+}
+
+
+static void mutex_destroy(mutex_t& mtx)
+{
+    pthread_cond_destroy(&mtx.cond);
+    pthread_mutex_destroy(&mtx.mutex);
+}
+
+
+static void mutex_lock(mutex_t& mtx)
+{
+    pthread_mutex_lock(&mtx.mutex);
+}
+
+
+static void mutex_unlock(mutex_t& mtx)
+{
+    pthread_mutex_unlock(&mtx.mutex);
+}
+
+
+static void mutex_wait(mutex_t& mtx)
+{
+    pthread_cond_wait(&mtx.cond, &mtx.mutex);
+}
+
+
+static void mutex_broadcast(mutex_t& mtx)
+{
+    pthread_cond_broadcast(&mtx.cond);
+}
+
+
+static int mutex_wait_for(mutex_t& mtx, timespec* ts)
+{
+    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
+}
 
 #else
 
@@ -1657,6 +1721,62 @@ public:
 
 
 
+
+
+static void thread_create(thread_t& th, void *(*start_f)(void *), void* user_data)
+{
+    pthread_create(&th.thread, NULL, start_f, user_data);
+}
+
+
+static void thread_join(thread_t& th)
+{
+    pthread_join(th.thread, NULL);
+}
+
+
+static void mutex_init(mutex_t& mtx)
+{
+    pthread_mutex_init(&mtx.mutex, NULL);
+    pthread_cond_init(&mtx.cond, NULL);
+}
+
+
+static void mutex_destroy(mutex_t& mtx)
+{
+    pthread_cond_destroy(&mtx.cond);
+    pthread_mutex_destroy(&mtx.mutex);
+}
+
+
+static void mutex_lock(mutex_t& mtx)
+{
+    pthread_mutex_lock(&mtx.mutex);
+}
+
+
+static void mutex_unlock(mutex_t& mtx)
+{
+    pthread_mutex_unlock(&mtx.mutex);
+}
+
+
+static void mutex_wait(mutex_t& mtx)
+{
+    pthread_cond_wait(&mtx.cond, &mtx.mutex);
+}
+
+
+static void mutex_broadcast(mutex_t& mtx)
+{
+    pthread_cond_broadcast(&mtx.cond);
+}
+
+
+static int mutex_wait_for(mutex_t& mtx, timespec* ts)
+{
+    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
+}
 
 
 
@@ -1944,121 +2064,6 @@ namespace uvc
         uint8_t *meta_outbuf, *meta_holdbuf;
         size_t meta_got_bytes, meta_hold_bytes;
     };
-
-
-    static void thread_create(thread_t& th, void *(*start_f)(void *), void* user_data)
-    {
-        pthread_create(&th.thread, NULL, start_f, user_data);
-    }
-
-
-    static void thread_join(thread_t& th)
-    {
-        pthread_join(th.thread, NULL);
-    }
-
-
-    static void mutex_init(mutex_t& mtx)
-    {
-        pthread_mutex_init(&mtx.mutex, NULL);
-        pthread_cond_init(&mtx.cond, NULL);
-    }
-
-
-    static void mutex_destroy(mutex_t& mtx)
-    {
-        pthread_cond_destroy(&mtx.cond);
-        pthread_mutex_destroy(&mtx.mutex);
-    }
-
-
-    static void stream_thread_create(uvc_stream_handle* strmh, void *(*start_f)(void *))
-    {
-        thread_create(strmh->cb_thread, start_f, (void*)strmh);
-    }
-
-
-    static void stream_thread_join(uvc_stream_handle* strmh)
-    {
-        thread_join(strmh->cb_thread);
-    }
-
-
-    static void stream_mutex_init(uvc_stream_handle* strmh)
-    {
-        mutex_init(strmh->cb_mutex);
-    }
-
-
-    static void stream_mutex_destroy(uvc_stream_handle* strmh)
-    {
-        mutex_destroy(strmh->cb_mutex);
-    }
-
-
-    static void stream_mutex_lock(uvc_stream_handle* strmh)
-    {
-#ifdef CPP_MUTEX
-        strmh->cb_mutex.lock();
-#else
-        pthread_mutex_lock(&strmh->cb_mutex.mutex);
-#endif
-    }
-
-
-    static void stream_mutex_unlock(uvc_stream_handle* strmh)
-    {
-#ifdef CPP_MUTEX
-        strmh->cb_mutex.unlock();
-#else
-        pthread_mutex_unlock(&strmh->cb_mutex.mutex);
-#endif
-    }
-
-
-    static void stream_mutex_wait(uvc_stream_handle* strmh)
-    {
-#ifdef CPP_MUTEX
-        std::unique_lock<std::mutex> lock(strmh->cb_mutex);
-        strmh->cb_cond.wait(lock);
-#else
-        pthread_cond_wait(&strmh->cb_mutex.cond, &strmh->cb_mutex.mutex);
-#endif
-    }
-
-
-    static void stream_mutex_broadcast(uvc_stream_handle* strmh)
-    {
-#ifdef CPP_MUTEX
-        strmh->cb_cond.notify_all();
-#else
-        pthread_cond_broadcast(&strmh->cb_mutex.cond);
-#endif
-    }
-
-
-
-    static int stream_mutex_wait_for(uvc_stream_handle* strmh, timespec* ts)
-    {
-#ifdef CPP_MUTEX
-        std::unique_lock<std::mutex> lock(strmh->cb_mutex);
-
-        ts->tv_nsec;
-
-        auto status = strmh->cb_cond.wait_for(lock, std::chrono::nanoseconds(ts->tv_nsec));
-        if (status == std::cv_status::timeout)
-        {
-            return ETIMEDOUT;
-        }
-
-        // other return codes?
-        return status == std::cv_status::timeout ? ETIMEDOUT : 0;
-#else
-        return pthread_cond_timedwait(&strmh->cb_mutex.cond, &strmh->cb_mutex.mutex, ts);
-#endif
-    }
-
-
 
 
     /** Handle on an open UVC device
@@ -2806,7 +2811,7 @@ namespace uvc
     {
         uint8_t *tmp_buf;
         
-        stream_mutex_lock(strmh);
+        mutex_lock(strmh->cb_mutex);
 
         auto time = chr::system_clock::now().time_since_epoch();
 
@@ -2830,8 +2835,8 @@ namespace uvc
         strmh->meta_outbuf = tmp_buf;
         strmh->meta_hold_bytes = strmh->meta_got_bytes;
         
-        stream_mutex_broadcast(strmh);
-        stream_mutex_unlock(strmh);
+        mutex_broadcast(strmh->cb_mutex);
+        mutex_unlock(strmh->cb_mutex);
 
         strmh->seq++;
         strmh->got_bytes = 0;
@@ -3014,7 +3019,7 @@ namespace uvc
         {
             int i;
             UVC_DEBUG("not retrying transfer, status = %d", transfer->status);
-            stream_mutex_lock(strmh);
+            mutex_lock(strmh->cb_mutex);
 
             /* Mark transfer as deleted. */
             for (i = 0; i < LIBUVC_NUM_TRANSFER_BUFS; i++)
@@ -3035,8 +3040,8 @@ namespace uvc
 
             resubmit = 0;
             
-            stream_mutex_broadcast(strmh);
-            stream_mutex_unlock(strmh);
+            mutex_broadcast(strmh->cb_mutex);
+            mutex_unlock(strmh->cb_mutex);
 
             break;
         }
@@ -3055,7 +3060,7 @@ namespace uvc
                 if (libusbret < 0)
                 {
                     int i;
-                    stream_mutex_lock(strmh);
+                    mutex_lock(strmh->cb_mutex);
 
                     /* Mark transfer as deleted. */
                     for (i = 0; i < LIBUVC_NUM_TRANSFER_BUFS; i++)
@@ -3074,14 +3079,14 @@ namespace uvc
                         UVC_DEBUG("failed transfer %p not found; not freeing!", transfer);
                     }
                     
-                    stream_mutex_broadcast(strmh);
-                    stream_mutex_unlock(strmh);
+                    mutex_broadcast(strmh->cb_mutex);
+                    mutex_unlock(strmh->cb_mutex);
                 }
             }
             else
             {
                 int i;
-                stream_mutex_lock(strmh);
+                mutex_lock(strmh->cb_mutex);
 
                 /* Mark transfer as deleted. */
                 for (i = 0; i < LIBUVC_NUM_TRANSFER_BUFS; i++)
@@ -3100,8 +3105,8 @@ namespace uvc
                     UVC_DEBUG("orphan transfer %p not found; not freeing!", transfer);
                 }
                 
-                stream_mutex_broadcast(strmh);
-                stream_mutex_unlock(strmh);
+                mutex_broadcast(strmh->cb_mutex);
+                mutex_unlock(strmh->cb_mutex);
             }
         }
     }
@@ -3244,7 +3249,7 @@ namespace uvc
         strmh->meta_outbuf = (uint8_t *)malloc(LIBUVC_XFER_META_BUF_SIZE);
         strmh->meta_holdbuf = (uint8_t *)malloc(LIBUVC_XFER_META_BUF_SIZE);
         
-        stream_mutex_init(strmh);
+        mutex_init(strmh->cb_mutex);
 
         DL_APPEND(devh->streams, strmh);
 
@@ -3452,7 +3457,7 @@ namespace uvc
          */
         if (cb)
         {
-            stream_thread_create(strmh, _uvc_user_caller);
+            thread_create(strmh->cb_thread, _uvc_user_caller, (void*)strmh);
         }
 
         for (transfer_id = 0; transfer_id < LIBUVC_NUM_TRANSFER_BUFS;
@@ -3517,29 +3522,42 @@ namespace uvc
 
         do
         {
-            stream_mutex_lock(strmh);
+            mutex_lock(strmh->cb_mutex);
 
             while (strmh->running && last_seq == strmh->hold_seq)
             {
-                stream_mutex_wait(strmh);
+                mutex_wait(strmh->cb_mutex);
             }
 
             if (!strmh->running)
             {
-                stream_mutex_unlock(strmh);
+                mutex_unlock(strmh->cb_mutex);
                 break;
             }
 
             last_seq = strmh->hold_seq;
             _uvc_populate_frame(strmh);
             
-            stream_mutex_unlock(strmh);
+            mutex_unlock(strmh->cb_mutex);
 
             strmh->user_cb(&strmh->frame, strmh->user_ptr);
         } while (1);
 
         return NULL; // return value ignored
     }
+
+
+    using dword_win32 = unsigned long;
+
+
+    dword_win32 _uvc_user_caller_win32(void* arg)
+    {
+        _uvc_user_caller(arg);
+        return 0;
+    }
+
+
+
 
     /** @internal
      * @brief Populate the fields of a frame to be handed to user code
@@ -3631,7 +3649,7 @@ namespace uvc
         if (strmh->user_cb)
             return UVC_ERROR_CALLBACK_EXISTS;
             
-        stream_mutex_lock(strmh);
+        mutex_lock(strmh->cb_mutex);
 
         if (strmh->last_polled_seq < strmh->hold_seq)
         {
@@ -3643,7 +3661,7 @@ namespace uvc
         {
             if (timeout_us == 0)
             {
-                stream_mutex_wait(strmh);
+                mutex_wait(strmh->cb_mutex);
             }
             else
             {
@@ -3671,13 +3689,13 @@ namespace uvc
                 ts.tv_sec += ts.tv_nsec / 1000000000;
                 ts.tv_nsec = ts.tv_nsec % 1000000000;
                 
-                int err = stream_mutex_wait_for(strmh, &ts);  
+                int err = mutex_wait_for(strmh->cb_mutex, &ts);
 
                 // TODO: How should we handle EINVAL?
                 if (err)
                 {
                     *frame = NULL;
-                    stream_mutex_unlock(strmh);
+                    mutex_unlock(strmh->cb_mutex);
                     
                     return err == ETIMEDOUT ? UVC_ERROR_TIMEOUT : UVC_ERROR_OTHER;
                 }
@@ -3699,7 +3717,7 @@ namespace uvc
             *frame = NULL;
         }
         
-        stream_mutex_unlock(strmh);
+        mutex_unlock(strmh->cb_mutex);
 
         return UVC_SUCCESS;
     }
@@ -3737,7 +3755,7 @@ namespace uvc
 
         strmh->running = 0;
         
-        stream_mutex_lock(strmh);
+        mutex_lock(strmh->cb_mutex);
 
         /* Attempt to cancel any running transfers, we can't free them just yet because they aren't
          *   necessarily completed but they will be free'd in _uvc_stream_callback().
@@ -3759,12 +3777,12 @@ namespace uvc
             if (i == LIBUVC_NUM_TRANSFER_BUFS)
                 break;
                 
-            stream_mutex_wait(strmh);
+            mutex_wait(strmh->cb_mutex);
 
         } while (1);
         // Kick the user thread awake
-        stream_mutex_broadcast(strmh);
-        stream_mutex_unlock(strmh);
+        mutex_broadcast(strmh->cb_mutex);
+        mutex_unlock(strmh->cb_mutex);
 
         /** @todo stop the actual stream, camera side? */
 
@@ -3772,7 +3790,7 @@ namespace uvc
         {
             /* wait for the thread to stop (triggered by
              * LIBUSB_TRANSFER_CANCELLED transfer) */
-            stream_thread_join(strmh);
+            thread_join(strmh->cb_thread);
         }
 
         return UVC_SUCCESS;
@@ -3801,7 +3819,7 @@ namespace uvc
         free(strmh->meta_outbuf);
         free(strmh->meta_holdbuf);
         
-        stream_mutex_destroy(strmh);
+        mutex_destroy(strmh->cb_mutex);
 
         DL_DELETE(strmh->devh->streams, strmh);
         free(strmh);

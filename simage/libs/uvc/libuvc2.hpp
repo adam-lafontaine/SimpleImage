@@ -1635,14 +1635,49 @@ public:
 };
 
 
-static void thread_create(thread_t& th, void *(*start_f)(void *), void* user_data)
+using thread_ret_t = unsigned long;
+
+
+
+#else
+
+#include <pthread.h>
+
+
+class thread_t
+{
+public:
+    pthread_t thread;
+};
+
+
+class mutex_t
+{
+public:
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+};
+
+
+using thread_ret_t = void*;
+
+#endif
+
+
+typedef void* (*thread_f)(void*);
+
+
+#ifdef _WIN32
+
+
+static void thread_create(thread_t& th, thread_f start_f, void* user_data)
 {
     pthread_create(&th.thread, NULL, start_f, user_data);
     th.h_thread = CreateThread(
                          NULL,                   /* default security attributes */
                          0,                      /* use default stack size      */
-                         func,                   /* thread function             */
-                         arg,                    /* argument to thread function */
+                         start_f,                   /* thread function             */
+                         user_data,                    /* argument to thread function */
                          0,                      /* use default creation flags  */
                          NULL);                  /* do not need thread ID       */
 }
@@ -1700,30 +1735,7 @@ static int mutex_wait_for(mutex_t& mtx, timespec* ts)
 #else
 
 
-#include <pthread.h>
-
-
-class thread_t
-{
-public:
-    pthread_t thread;
-};
-
-
-class mutex_t
-{
-public:
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-};
-
-#endif // _WIN32
-
-
-
-
-
-static void thread_create(thread_t& th, void *(*start_f)(void *), void* user_data)
+static void thread_create(thread_t& th, thread_f start_f, void* user_data)
 {
     pthread_create(&th.thread, NULL, start_f, user_data);
 }
@@ -1777,6 +1789,15 @@ static int mutex_wait_for(mutex_t& mtx, timespec* ts)
 {
     return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
 }
+
+
+#endif // _WIN32
+
+
+
+
+
+
 
 
 
@@ -2108,19 +2129,6 @@ namespace uvc
     };
 
 
-    static void handler_thread_create(uvc_context_t* ctx, void *(*start_f)(void *))
-    {
-        thread_create(ctx->handler_thread, start_f, (void*)ctx);
-    }
-
-
-    static void handler_thread_join(uvc_context_t* ctx)
-    {
-        thread_join(ctx->handler_thread);
-    }
-
-
-
     uvc_error_t uvc_query_stream_ctrl(
         uvc_device_handle_t *devh,
         uvc_stream_ctrl_t *ctrl,
@@ -2175,8 +2183,11 @@ namespace uvc
     uvc_frame_desc_t *uvc_find_frame_desc_stream(uvc_stream_handle_t *strmh,
                                                  uint16_t format_id, uint16_t frame_id);
     uvc_frame_desc_t *uvc_find_frame_desc(uvc_device_handle_t *devh,
-                                          uint16_t format_id, uint16_t frame_id);
-    void *_uvc_user_caller(void *arg);
+                                          uint16_t format_id, uint16_t frame_id);    
+
+    thread_ret_t _uvc_user_caller(void *arg); 
+
+
     void _uvc_populate_frame(uvc_stream_handle_t *strmh);
 
     static uvc_streaming_interface_t *_uvc_get_stream_if(uvc_device_handle_t *devh, int interface_idx);
@@ -3514,7 +3525,7 @@ namespace uvc
      * @note There should be at most one of these per currently streaming device
      * @param arg Device handle
      */
-    void *_uvc_user_caller(void *arg)
+    thread_ret_t _uvc_user_caller(void *arg)
     {
         uvc_stream_handle_t *strmh = (uvc_stream_handle_t *)arg;
 
@@ -3545,18 +3556,6 @@ namespace uvc
 
         return NULL; // return value ignored
     }
-
-
-    using dword_win32 = unsigned long;
-
-
-    dword_win32 _uvc_user_caller_win32(void* arg)
-    {
-        _uvc_user_caller(arg);
-        return 0;
-    }
-
-
 
 
     /** @internal
@@ -3923,7 +3922,7 @@ namespace uvc
     {
         if (ctx->own_usb_ctx)
         {
-            handler_thread_create(ctx, _uvc_handle_events);
+            thread_create(ctx->handler_thread, _uvc_handle_events, (void*)ctx);
         }
             
     }
@@ -6894,7 +6893,7 @@ namespace uvc
         {
             ctx->kill_handler_thread = 1;
             libusb_close(devh->usb_devh);
-            handler_thread_join(ctx);
+            thread_join(ctx->handler_thread);
         }
         else
         {

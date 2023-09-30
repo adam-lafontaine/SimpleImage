@@ -1584,6 +1584,10 @@ namespace uvc
 #endif /* UTLIST_H */
 }
 
+
+
+
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1612,20 +1616,12 @@ namespace uvc
 
 #endif
 
-#define CPP_THREAD
-#define CPP_MUTEX
-
 #endif
 
 #else
 
 #include <libusb-1.0/libusb.h>
 //#include <libusb.h>
-#include <pthread.h>
-
-#endif // _WIN32
-
-
 
 namespace uvc
 {
@@ -1636,14 +1632,34 @@ namespace uvc
     }
 }
 
+#include <pthread.h>
+
+
+class thread_t
+{
+public:
+    pthread_t thread;
+};
+
+
+class mutex_t
+{
+public:
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+};
+
+#endif // _WIN32
+
+
+
+
+
 
 namespace uvc
 {
 #define LIBUVC_INTERNAL_H
 #ifdef LIBUVC_INTERNAL_H
-
-    
-
 
 
 /** Converts an unaligned four-byte little-endian integer into an int32 */
@@ -1907,20 +1923,8 @@ namespace uvc
         size_t got_bytes, hold_bytes;
         uint8_t *outbuf, *holdbuf;
 
-#ifdef CPP_THREAD        
-        std::thread cb_thread;
-#else        
-        pthread_t cb_thread;
-
-#endif // CPP_THREAD
-
-#ifdef CPP_MUTEX
-        std::mutex cb_mutex;        
-        std::condition_variable cb_cond;
-#else
-        pthread_mutex_t cb_mutex;
-        pthread_cond_t cb_cond;
-#endif // CPP_MUTEX
+        thread_t cb_thread;
+        mutex_t cb_mutex;
 
         uint32_t last_polled_seq;
         uvc_frame_callback_t *user_cb;
@@ -1942,7 +1946,7 @@ namespace uvc
 #ifdef CPP_THREAD
         strmh->cb_thread = std::thread(start_f, (void *)strmh);
 #else
-        pthread_create(&strmh->cb_thread, NULL, start_f, (void *)strmh);
+        pthread_create(&strmh->cb_thread.thread, NULL, start_f, (void *)strmh);
 #endif
     }
 
@@ -1952,7 +1956,7 @@ namespace uvc
 #ifdef CPP_THREAD
         strmh->cb_thread.join();
 #else
-        pthread_join(strmh->cb_thread, NULL);
+        pthread_join(strmh->cb_thread.thread, NULL);
 #endif
     }
 
@@ -1962,8 +1966,8 @@ namespace uvc
 #ifdef CPP_MUTEX
         // do nothing?
 #else
-        pthread_mutex_init(&strmh->cb_mutex, NULL);
-        pthread_cond_init(&strmh->cb_cond, NULL);
+        pthread_mutex_init(&strmh->cb_mutex.mutex, NULL);
+        pthread_cond_init(&strmh->cb_mutex.cond, NULL);
 #endif
     }
 
@@ -1973,8 +1977,8 @@ namespace uvc
 #ifdef CPP_MUTEX
         // do nothing?
 #else
-        pthread_cond_destroy(&strmh->cb_cond);
-        pthread_mutex_destroy(&strmh->cb_mutex);
+        pthread_cond_destroy(&strmh->cb_mutex.cond);
+        pthread_mutex_destroy(&strmh->cb_mutex.mutex);
 #endif
     }
 
@@ -1984,7 +1988,7 @@ namespace uvc
 #ifdef CPP_MUTEX
         strmh->cb_mutex.lock();
 #else
-        pthread_mutex_lock(&strmh->cb_mutex);
+        pthread_mutex_lock(&strmh->cb_mutex.mutex);
 #endif
     }
 
@@ -1994,7 +1998,7 @@ namespace uvc
 #ifdef CPP_MUTEX
         strmh->cb_mutex.unlock();
 #else
-        pthread_mutex_unlock(&strmh->cb_mutex);
+        pthread_mutex_unlock(&strmh->cb_mutex.mutex);
 #endif
     }
 
@@ -2005,7 +2009,7 @@ namespace uvc
         std::unique_lock<std::mutex> lock(strmh->cb_mutex);
         strmh->cb_cond.wait(lock);
 #else
-        pthread_cond_wait(&strmh->cb_cond, &strmh->cb_mutex);
+        pthread_cond_wait(&strmh->cb_mutex.cond, &strmh->cb_mutex.mutex);
 #endif
     }
 
@@ -2015,7 +2019,7 @@ namespace uvc
 #ifdef CPP_MUTEX
         strmh->cb_cond.notify_all();
 #else
-        pthread_cond_broadcast(&strmh->cb_cond);
+        pthread_cond_broadcast(&strmh->cb_mutex.cond);
 #endif
     }
 
@@ -2037,7 +2041,7 @@ namespace uvc
         // other return codes?
         return status == std::cv_status::timeout ? ETIMEDOUT : 0;
 #else
-        return pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, ts);
+        return pthread_cond_timedwait(&strmh->cb_mutex.cond, &strmh->cb_mutex.mutex, ts);
 #endif
     }
 
@@ -2080,11 +2084,7 @@ namespace uvc
         /** List of open devices in this context */
         uvc_device_handle_t *open_devices;
 
-#ifdef CPP_THREAD        
-        std::thread handler_thread;
-#else
-        pthread_t handler_thread;
-#endif
+        thread_t handler_thread;
 
         int kill_handler_thread;
     };
@@ -2095,7 +2095,7 @@ namespace uvc
 #ifdef CPP_THREAD
         ctx->handler_thread = std::thread(start_f, (void *)ctx);
 #else
-        pthread_create(&ctx->handler_thread, NULL, start_f, (void *)ctx);
+        pthread_create(&ctx->handler_thread.thread, NULL, start_f, (void *)ctx);
 #endif
     }
 
@@ -2105,7 +2105,7 @@ namespace uvc
 #ifdef CPP_THREAD
         ctx->handler_thread.join();
 #else
-        pthread_join(ctx->handler_thread, NULL);
+        pthread_join(ctx->handler_thread.thread, NULL);
 #endif
     }
 

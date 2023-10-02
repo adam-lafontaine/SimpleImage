@@ -1601,7 +1601,6 @@ namespace uvc
 
 
 #include <libusb-1.0/libusb.h>
-//#include <libusb.h>
 
 namespace uvc
 {
@@ -1612,140 +1611,14 @@ namespace uvc
     }
 }
 
-
-#ifdef _WIN32
-
-#include <winsock.h>
-//#include "lib/libusb.h"
-
-#ifdef NDEBUG
-
-#pragma comment (lib,"../../src/uvc/lib/x64/libusb-1.0.lib")
-
-#else
-
-#pragma comment (lib,"../../src/uvc/lib/x64dbg/libusb-1.0.lib")
-
-#endif
-
-
-using thread_ret_t = unsigned long;
-
-
-
-#else
-
 #include <pthread.h>
 
 
 using thread_ret_t = void*;
 
-#endif
-
 
 typedef void* (*thread_f)(void*);
 
-
-#ifdef _WIN32
-
-class thread_t
-{
-public:
-    HANDLE h_thread;
-
-};
-
-
-class mutex_t
-{
-public:
-    HANDLE h_mutex;
-
-    CRITICAL_SECTION cs;
-    CONDITION_VARIABLE cond;
-};
-
-
-static void thread_create(thread_t& th, thread_f start_f, void* user_data)
-{
-    th.h_thread = CreateThread(
-                         NULL,                   /* default security attributes */
-                         0,                      /* use default stack size      */
-                         start_f,                   /* thread function             */
-                         user_data,                    /* argument to thread function */
-                         0,                      /* use default creation flags  */
-                         NULL);                  /* do not need thread ID       */
-}
-
-
-static void thread_join(thread_t& th)
-{
-    WaitForSingleObject(th.h_thread, (DWORD)INFINITE);
-    CloseHandle(th.h_thread);
-}
-
-
-static void mutex_init(mutex_t& mtx)
-{
-    //mtx.h_mutex = CreateMutex(
-    //                    NULL,                   /* default security attributes  */
-    //                    FALSE,                  /* initially not owned          */
-    //                    NULL);                  /* unnamed mutex                */
-
-    InitializeCriticalSection(&mtx.cs);
-    InitializeConditionVariable(&mtx.cond);
-}
-
-
-static void mutex_destroy(mutex_t& mtx)
-{
-    DeleteCriticalSection(&mtx.cs);
-    //DeleteConditionVariable(&mtx.cond); ???
-    
-    //CloseHandle(mtx.h_mutex)
-}
-
-
-static void mutex_lock(mutex_t& mtx)
-{
-    /*DWORD dwWaitResult = ~WAIT_OBJECT_0;
-
-    while(dwWaitResult != WAIT_OBJECT_0) 
-    {
-        dwWaitResult = WaitForSingleObject(mtx.h_mutex, INFINITE);
-    }*/
-
-    EnterCriticalSection(&mtx.cs);
-}
-
-
-static void mutex_wait(mutex_t& mtx)
-{
-    SleepConditionVariableCS(&mtx.cond, &mtx.cs, INFINITE);
-}
-
-
-static int mutex_wait_for(mutex_t& mtx, int32_t timeout_us)
-{
-    // not used
-    return UVC_ERROR_TIMEOUT;
-}
-
-
-static void mutex_unlock(mutex_t& mtx)
-{
-    //ReleaseMutex(mtx.h_mutex);
-    LeaveCriticalSection(&mtx.cs);
-}
-
-
-static void mutex_unlock_broadcast(mutex_t& mtx)
-{
-    WakeConditionVariable(&mtx.cond);
-    LeaveCriticalSection(&mtx.cs);
-}
-
-#else
 
 class thread_t
 {
@@ -1847,16 +1720,6 @@ static void mutex_unlock_broadcast(mutex_t& mtx)
     pthread_cond_broadcast(&mtx.cond);
     pthread_mutex_unlock(&mtx.mutex);
 }
-
-
-#endif // _WIN32
-
-
-
-
-
-
-
 
 
 

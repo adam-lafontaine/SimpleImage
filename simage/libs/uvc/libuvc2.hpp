@@ -1621,6 +1621,26 @@ namespace uvc
 
 #endif
 
+
+using thread_ret_t = unsigned long;
+
+
+
+#else
+
+#include <pthread.h>
+
+
+using thread_ret_t = void*;
+
+#endif
+
+
+typedef void* (*thread_f)(void*);
+
+
+#ifdef _WIN32
+
 class thread_t
 {
 public:
@@ -1632,17 +1652,92 @@ public:
 class mutex_t
 {
 public:
+    HANDLE h_mutex;
+
+    CRITICAL_SECTION cs;
+    CONDITION_VARIABLE cond;
 };
 
 
-using thread_ret_t = unsigned long;
+static void thread_create(thread_t& th, thread_f start_f, void* user_data)
+{
+    th.h_thread = CreateThread(
+                         NULL,                   /* default security attributes */
+                         0,                      /* use default stack size      */
+                         start_f,                   /* thread function             */
+                         user_data,                    /* argument to thread function */
+                         0,                      /* use default creation flags  */
+                         NULL);                  /* do not need thread ID       */
+}
 
 
+static void thread_join(thread_t& th)
+{
+    WaitForSingleObject(th.h_thread, (DWORD)INFINITE);
+    CloseHandle(th.h_thread);
+}
+
+
+static void mutex_init(mutex_t& mtx)
+{
+    //mtx.h_mutex = CreateMutex(
+    //                    NULL,                   /* default security attributes  */
+    //                    FALSE,                  /* initially not owned          */
+    //                    NULL);                  /* unnamed mutex                */
+
+    InitializeCriticalSection(&mtx.cs);
+    InitializeConditionVariable(&mtx.cond);
+}
+
+
+static void mutex_destroy(mutex_t& mtx)
+{
+    DeleteCriticalSection(&mtx.cs);
+    //DeleteConditionVariable(&mtx.cond); ???
+    
+    //CloseHandle(mtx.h_mutex)
+}
+
+
+static void mutex_lock(mutex_t& mtx)
+{
+    /*DWORD dwWaitResult = ~WAIT_OBJECT_0;
+
+    while(dwWaitResult != WAIT_OBJECT_0) 
+    {
+        dwWaitResult = WaitForSingleObject(mtx.h_mutex, INFINITE);
+    }*/
+
+    EnterCriticalSection(&mtx.cs);
+}
+
+
+static void mutex_wait(mutex_t& mtx)
+{
+    SleepConditionVariableCS(&mtx.cond, &mtx.cs, INFINITE);
+}
+
+
+static int mutex_wait_for(mutex_t& mtx, timespec* ts)
+{
+    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
+}
+
+
+static void mutex_unlock(mutex_t& mtx)
+{
+    //ReleaseMutex(mtx.h_mutex);
+    LeaveCriticalSection(&mtx.cs);
+}
+
+
+static void mutex_unlock_broadcast(mutex_t& mtx)
+{
+    WakeConditionVariable(&mtx.cond);
+    LeaveCriticalSection(&mtx.cs);
+}
 
 #else
-
-#include <pthread.h>
-
 
 class thread_t
 {
@@ -1659,82 +1754,6 @@ public:
 };
 
 
-using thread_ret_t = void*;
-
-#endif
-
-
-typedef void* (*thread_f)(void*);
-
-
-#ifdef _WIN32
-
-
-static void thread_create(thread_t& th, thread_f start_f, void* user_data)
-{
-    pthread_create(&th.thread, NULL, start_f, user_data);
-    th.h_thread = CreateThread(
-                         NULL,                   /* default security attributes */
-                         0,                      /* use default stack size      */
-                         start_f,                   /* thread function             */
-                         user_data,                    /* argument to thread function */
-                         0,                      /* use default creation flags  */
-                         NULL);                  /* do not need thread ID       */
-}
-
-
-static void thread_join(thread_t& th)
-{
-    pthread_join(th.thread, NULL);
-}
-
-
-static void mutex_init(mutex_t& mtx)
-{
-    pthread_mutex_init(&mtx.mutex, NULL);
-    pthread_cond_init(&mtx.cond, NULL);
-}
-
-
-static void mutex_destroy(mutex_t& mtx)
-{
-    pthread_cond_destroy(&mtx.cond);
-    pthread_mutex_destroy(&mtx.mutex);
-}
-
-
-static void mutex_lock(mutex_t& mtx)
-{
-    pthread_mutex_lock(&mtx.mutex);
-}
-
-
-static void mutex_unlock(mutex_t& mtx)
-{
-    pthread_mutex_unlock(&mtx.mutex);
-}
-
-
-static void mutex_wait(mutex_t& mtx)
-{
-    pthread_cond_wait(&mtx.cond, &mtx.mutex);
-}
-
-
-static void mutex_broadcast(mutex_t& mtx)
-{
-    pthread_cond_broadcast(&mtx.cond);
-}
-
-
-static int mutex_wait_for(mutex_t& mtx, timespec* ts)
-{
-    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
-}
-
-#else
-
-
 static void thread_create(thread_t& th, thread_f start_f, void* user_data)
 {
     pthread_create(&th.thread, NULL, start_f, user_data);
@@ -1767,27 +1786,28 @@ static void mutex_lock(mutex_t& mtx)
 }
 
 
-static void mutex_unlock(mutex_t& mtx)
-{
-    pthread_mutex_unlock(&mtx.mutex);
-}
-
-
 static void mutex_wait(mutex_t& mtx)
 {
     pthread_cond_wait(&mtx.cond, &mtx.mutex);
 }
 
 
-static void mutex_broadcast(mutex_t& mtx)
-{
-    pthread_cond_broadcast(&mtx.cond);
-}
-
-
 static int mutex_wait_for(mutex_t& mtx, timespec* ts)
 {
     return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
+}
+
+
+static void mutex_unlock(mutex_t& mtx)
+{
+    pthread_mutex_unlock(&mtx.mutex);
+}
+
+
+static void mutex_unlock_broadcast(mutex_t& mtx)
+{
+    pthread_cond_broadcast(&mtx.cond);
+    pthread_mutex_unlock(&mtx.mutex);
 }
 
 
@@ -2846,8 +2866,7 @@ namespace uvc
         strmh->meta_outbuf = tmp_buf;
         strmh->meta_hold_bytes = strmh->meta_got_bytes;
         
-        mutex_broadcast(strmh->cb_mutex);
-        mutex_unlock(strmh->cb_mutex);
+        mutex_unlock_broadcast(strmh->cb_mutex);
 
         strmh->seq++;
         strmh->got_bytes = 0;
@@ -3051,8 +3070,7 @@ namespace uvc
 
             resubmit = 0;
             
-            mutex_broadcast(strmh->cb_mutex);
-            mutex_unlock(strmh->cb_mutex);
+            mutex_unlock_broadcast(strmh->cb_mutex);
 
             break;
         }
@@ -3090,8 +3108,7 @@ namespace uvc
                         UVC_DEBUG("failed transfer %p not found; not freeing!", transfer);
                     }
                     
-                    mutex_broadcast(strmh->cb_mutex);
-                    mutex_unlock(strmh->cb_mutex);
+                    mutex_unlock_broadcast(strmh->cb_mutex);
                 }
             }
             else
@@ -3116,8 +3133,7 @@ namespace uvc
                     UVC_DEBUG("orphan transfer %p not found; not freeing!", transfer);
                 }
                 
-                mutex_broadcast(strmh->cb_mutex);
-                mutex_unlock(strmh->cb_mutex);
+                mutex_unlock_broadcast(strmh->cb_mutex);
             }
         }
     }
@@ -3554,7 +3570,8 @@ namespace uvc
             strmh->user_cb(&strmh->frame, strmh->user_ptr);
         } while (1);
 
-        return NULL; // return value ignored
+        //return NULL; // return value ignored
+        return (thread_ret_t)0;
     }
 
 
@@ -3780,8 +3797,7 @@ namespace uvc
 
         } while (1);
         // Kick the user thread awake
-        mutex_broadcast(strmh->cb_mutex);
-        mutex_unlock(strmh->cb_mutex);
+        mutex_unlock_broadcast(strmh->cb_mutex);
 
         /** @todo stop the actual stream, camera side? */
 
@@ -3837,13 +3853,15 @@ namespace uvc
      * There's one of these per UVC context.
      * @todo We shouldn't run this if we don't own the USB context
      */
-    void *_uvc_handle_events(void *arg)
+    thread_ret_t _uvc_handle_events(void *arg)
     {
         uvc_context_t *ctx = (uvc_context_t *)arg;
 
         while (!ctx->kill_handler_thread)
             libusb_handle_events_completed(ctx->usb_ctx, &ctx->kill_handler_thread);
-        return NULL;
+
+        //return NULL; // return value ignored
+        return (thread_ret_t)0;
     }
 
     /** @brief Initializes the UVC context

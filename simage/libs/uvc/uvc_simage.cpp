@@ -584,7 +584,7 @@ static bool set_frame_formats(DeviceUVC& device)
 {
     uvc::frame* frame;
 
-    auto res = uvc::uvc_stream_get_frame(device.h_stream, &frame, 0);
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &frame);
     if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");
@@ -691,7 +691,7 @@ static bool grab_and_convert_frame_rgba(DeviceUVC& device)
 {
     uvc::frame* in_frame;
 
-    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame, 0);
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame);
     if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");
@@ -713,7 +713,7 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
 {
     uvc::frame* in_frame;
 
-    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame, 0);
+    auto res = uvc::uvc_stream_get_frame(device.h_stream, &in_frame);
     if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_get_frame");

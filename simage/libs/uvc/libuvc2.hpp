@@ -670,10 +670,17 @@ namespace uvc
     uvc_error_t uvc_stream_start_iso(uvc_stream_handle_t *strmh,
                                         uvc_frame_callback_t *cb,
                                         void *user_ptr);
-    uvc_error_t uvc_stream_get_frame(
+
+    uvc_error_t uvc_stream_get_frame_old(
         uvc_stream_handle_t *strmh,
         uvc_frame_t **frame,
         int32_t timeout_us);
+
+    uvc_error_t uvc_stream_get_frame(
+        uvc_stream_handle_t *strmh,
+        uvc_frame_t **frame);
+
+
     uvc_error_t uvc_stream_stop(uvc_stream_handle_t *strmh);
     void uvc_stream_close(uvc_stream_handle_t *strmh);
 
@@ -1718,9 +1725,10 @@ static void mutex_wait(mutex_t& mtx)
 }
 
 
-static int mutex_wait_for(mutex_t& mtx, timespec* ts)
+static int mutex_wait_for(mutex_t& mtx, int32_t timeout_us)
 {
-    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
+    // not used
+    return UVC_ERROR_TIMEOUT;
 }
 
 
@@ -1792,9 +1800,39 @@ static void mutex_wait(mutex_t& mtx)
 }
 
 
-static int mutex_wait_for(mutex_t& mtx, timespec* ts)
+static int mutex_wait_for(mutex_t& mtx, int32_t timeout_us)
 {
-    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, ts);
+    // implementation moved here from uvc_stream_get_frame().
+    // not used
+    time_t add_secs;
+    time_t add_nsecs;
+    struct timespec ts;
+
+    add_secs = timeout_us / 1000000;
+    add_nsecs = (timeout_us % 1000000) * 1000;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 0;
+
+#if _POSIX_TIMERS > 0
+    clock_gettime(CLOCK_REALTIME, &ts);
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ts.tv_sec = tv.tv_sec;
+    ts.tv_nsec = tv.tv_usec * 1000;
+#endif
+
+    ts.tv_sec += add_secs;
+    ts.tv_nsec += add_nsecs;
+
+    /* pthread_cond_timedwait FAILS with EINVAL if ts.tv_nsec > 1000000000 (1 billion)
+        * Since we are just adding values to the timespec, we have to increment the seconds if nanoseconds is greater than 1 billion,
+        * and then re-adjust the nanoseconds in the correct range.
+        * */
+    ts.tv_sec += ts.tv_nsec / 1000000000;
+    ts.tv_nsec = ts.tv_nsec % 1000000000;
+
+    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, &ts);
 }
 
 
@@ -3651,7 +3689,7 @@ namespace uvc
      * @param[out] frame Location to store pointer to captured frame (NULL on error)
      * @param timeout_us >0: Wait at most N microseconds; 0: Wait indefinitely; -1: return immediately
      */
-    uvc_error_t uvc_stream_get_frame(uvc_stream_handle_t *strmh,
+    uvc_error_t uvc_stream_get_frame_old(uvc_stream_handle_t *strmh,
                                      uvc_frame_t **frame,
                                      int32_t timeout_us)
     {
@@ -3673,7 +3711,11 @@ namespace uvc
             *frame = &strmh->frame;
             strmh->last_polled_seq = strmh->hold_seq;
         }
-        else if (timeout_us != -1)
+        else if (timeout_us == -1)
+        {
+            *frame = NULL;
+        }
+        else
         {
             if (timeout_us == 0)
             {
@@ -3681,31 +3723,7 @@ namespace uvc
             }
             else
             {
-                add_secs = timeout_us / 1000000;
-                add_nsecs = (timeout_us % 1000000) * 1000;
-                ts.tv_sec = 0;
-                ts.tv_nsec = 0;
-
-#if _POSIX_TIMERS > 0
-                clock_gettime(CLOCK_REALTIME, &ts);
-#else
-                struct timeval tv;
-                gettimeofday(&tv, NULL);
-                ts.tv_sec = tv.tv_sec;
-                ts.tv_nsec = tv.tv_usec * 1000;
-#endif
-
-                ts.tv_sec += add_secs;
-                ts.tv_nsec += add_nsecs;
-
-                /* pthread_cond_timedwait FAILS with EINVAL if ts.tv_nsec > 1000000000 (1 billion)
-                 * Since we are just adding values to the timespec, we have to increment the seconds if nanoseconds is greater than 1 billion,
-                 * and then re-adjust the nanoseconds in the correct range.
-                 * */
-                ts.tv_sec += ts.tv_nsec / 1000000000;
-                ts.tv_nsec = ts.tv_nsec % 1000000000;
-                
-                int err = mutex_wait_for(strmh->cb_mutex, &ts);
+                int err = mutex_wait_for(strmh->cb_mutex, timeout_us);
 
                 // TODO: How should we handle EINVAL?
                 if (err)
@@ -3728,15 +3746,56 @@ namespace uvc
                 *frame = NULL;
             }
         }
+        
+        mutex_unlock(strmh->cb_mutex);
+
+        return UVC_SUCCESS;
+    }
+
+
+    /** Poll for a frame
+     * @ingroup streaming
+     *
+     * @param devh UVC device
+     * @param[out] frame Location to store pointer to captured frame (NULL on error)
+     */
+    uvc_error_t uvc_stream_get_frame(uvc_stream_handle_t *strmh, uvc_frame_t **frame)
+    {
+        if (!strmh->running)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (strmh->user_cb)
+            return UVC_ERROR_CALLBACK_EXISTS;
+            
+        mutex_lock(strmh->cb_mutex);
+
+        if (strmh->last_polled_seq < strmh->hold_seq)
+        {
+            _uvc_populate_frame(strmh);
+            *frame = &strmh->frame;
+            strmh->last_polled_seq = strmh->hold_seq;
+        }
         else
         {
-            *frame = NULL;
+            mutex_wait(strmh->cb_mutex);
+
+            if (strmh->last_polled_seq < strmh->hold_seq)
+            {
+                _uvc_populate_frame(strmh);
+                *frame = &strmh->frame;
+                strmh->last_polled_seq = strmh->hold_seq;
+            }
+            else
+            {
+                *frame = NULL;
+            }
         }
         
         mutex_unlock(strmh->cb_mutex);
 
         return UVC_SUCCESS;
     }
+                                    
 
     /** @brief Stop streaming video
      * @ingroup streaming

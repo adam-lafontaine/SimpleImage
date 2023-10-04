@@ -365,27 +365,6 @@ static void print_uvc_stream_info(DeviceUVC const& device)
 }
 
 
-static DeviceUVC* get_default_device(DeviceListUVC& list)
-{
-    auto& devices = list.devices;
-    if(devices.empty())
-    {
-        return nullptr;
-    }
-
-    // return camera with highest index
-    for (int id = (int)devices.size() - 1; id >= 0; --id)
-    {
-        if (devices[id].is_connected)
-        {
-            return devices.data() + id;
-        }
-    }
-
-    return nullptr;
-}
-
-
 static void disconnect_device(DeviceUVC& device)
 {
     if (device.is_connected)
@@ -473,6 +452,27 @@ static bool connect_device(DeviceUVC& device)
 }
 
 
+static DeviceUVC* get_default_device(DeviceListUVC& list)
+{
+    auto& devices = list.devices;
+    if(devices.empty())
+    {
+        return nullptr;
+    }
+
+    // return camera with highest index that will connect
+    for (int id = (int)devices.size() - 1; id >= 0; --id)
+    {
+        if (connect_device(devices[id]))
+        {
+            return devices.data() + id;
+        }
+    }
+
+    return nullptr;
+}
+
+
 static bool enumerate_devices(DeviceListUVC& list)
 {
     uvc::device_descriptor* desc;
@@ -524,12 +524,6 @@ static bool enumerate_devices(DeviceListUVC& list)
     {
         uvc::uvc_exit(list.context);
         return false;
-    }
-
-    for (size_t i = 0; i < list.devices.size(); ++i)
-    {        
-        auto& dev = list.devices[i];
-        connect_device(dev);
     }
 
     return true;

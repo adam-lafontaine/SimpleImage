@@ -534,13 +534,11 @@ static bool enumerate_devices(DeviceListUVC& list)
     std::vector<uvc::stream_ctrl> ctrls(list.devices.size());
     list.stream_ctrl_list = std::move(ctrls);
 
-    list.is_connected = false;
-
     for (size_t i = 0; i < list.devices.size(); ++i)
     {        
         auto& dev = list.devices[i];
         auto ctrl = list.stream_ctrl_list.data() + i;
-        list.is_connected |= connect_device(dev, ctrl);
+        connect_device(dev, ctrl);
     }
 
     return true;
@@ -559,11 +557,6 @@ static void stop_device(DeviceUVC& device)
 
 static void close_devices(DeviceListUVC& list)
 {
-    if (!list.is_connected)
-    {
-        return;
-    }
-
     for (auto& device : list.devices)
     {
         stop_device(device);
@@ -571,7 +564,6 @@ static void close_devices(DeviceListUVC& list)
         img::destroy_image(device.rgb_frame);
     }
     
-    list.is_connected = false;
     list.devices.clear();
     g_device_list.stream_ctrl_list.clear();
 

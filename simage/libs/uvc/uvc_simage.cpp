@@ -274,8 +274,6 @@ public:
     std::vector<uvc::stream_ctrl> stream_ctrl_list;
 
     std::vector<DeviceUVC> devices;
-
-    bool is_connected = false;
 };
 
 
@@ -559,6 +557,32 @@ static void stop_device(DeviceUVC& device)
 }
 
 
+static void close_devices(DeviceListUVC& list)
+{
+    if (!list.is_connected)
+    {
+        return;
+    }
+
+    for (auto& device : list.devices)
+    {
+        stop_device(device);
+        disconnect_device(device);
+        img::destroy_image(device.rgb_frame);
+    }
+    
+    list.is_connected = false;
+    list.devices.clear();
+    g_device_list.stream_ctrl_list.clear();
+
+    uvc::uvc_free_device_list(g_device_list.device_list, 0);
+    list.device_list = nullptr;
+
+    uvc::uvc_exit(list.context);
+    list.context = nullptr;
+}
+
+
 static void enable_exposure_mode(DeviceUVC const& device)
 {
     auto res = uvc::uvc_set_ae_mode(device.h_device, EXPOSURE_MODE_AUTO);
@@ -658,32 +682,6 @@ static bool start_device_single_frame(DeviceUVC& device)
     enable_exposure_mode(device);
 
     return true;
-}
-
-
-static void close_all_devices()
-{
-    if (!g_device_list.is_connected)
-    {
-        return;
-    }
-
-    for (auto& device : g_device_list.devices)
-    {
-        stop_device(device);
-        disconnect_device(device);
-        img::destroy_image(device.rgb_frame);
-    }
-    
-    g_device_list.is_connected = false;
-    g_device_list.devices.clear();
-    g_device_list.stream_ctrl_list.clear();
-
-    uvc::uvc_free_device_list(g_device_list.device_list, 0);
-    g_device_list.device_list = nullptr;
-
-    uvc::uvc_exit(g_device_list.context);
-    g_device_list.context = nullptr;
 }
 
 
@@ -837,7 +835,7 @@ namespace simage
 			return;
 		}
 
-        close_all_devices();
+        close_devices(g_device_list);
     }
     
 

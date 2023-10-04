@@ -238,7 +238,7 @@ class DeviceUVC
 public:
     uvc::device* p_device = nullptr;
     uvc::device_handle* h_device = nullptr;
-    uvc::stream_ctrl* ctrl = nullptr;
+    uvc::stream_ctrl ctrl;
     uvc::stream_handle* h_stream = nullptr;
 
     convert_rgba_callback_t* convert_rgba = convert::rgb_error;
@@ -270,8 +270,6 @@ class DeviceListUVC
 public:
     uvc::context* context = nullptr;
     uvc::device** device_list = nullptr;
-
-    std::vector<uvc::stream_ctrl> stream_ctrl_list;
 
     std::vector<DeviceUVC> devices;
 };
@@ -406,10 +404,8 @@ static void disconnect_device(DeviceUVC& device)
 }
 
 
-static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
+static bool connect_device(DeviceUVC& device)
 {
-    device.ctrl = ctrl;
-
     auto res = uvc::uvc_open(device.p_device, &device.h_device);
     if (res != uvc::UVC_SUCCESS)
     {
@@ -457,7 +453,7 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
     device.is_connected = true;
 
     res = uvc::uvc_get_stream_ctrl_format_size(
-        device.h_device, device.ctrl, /* result stored in ctrl */
+        device.h_device, &device.ctrl, /* result stored in ctrl */
         frame_format,
         width, height, fps /* width, height, fps */
     );
@@ -530,15 +526,10 @@ static bool enumerate_devices(DeviceListUVC& list)
         return false;
     }
 
-    // allocate for stream info
-    std::vector<uvc::stream_ctrl> ctrls(list.devices.size());
-    list.stream_ctrl_list = std::move(ctrls);
-
     for (size_t i = 0; i < list.devices.size(); ++i)
     {        
         auto& dev = list.devices[i];
-        auto ctrl = list.stream_ctrl_list.data() + i;
-        connect_device(dev, ctrl);
+        connect_device(dev);
     }
 
     return true;
@@ -565,7 +556,6 @@ static void close_devices(DeviceListUVC& list)
     }
     
     list.devices.clear();
-    g_device_list.stream_ctrl_list.clear();
 
     uvc::uvc_free_device_list(g_device_list.device_list, 0);
     list.device_list = nullptr;
@@ -654,7 +644,7 @@ static bool start_device_single_frame(DeviceUVC& device)
         return true;
     }
 
-    auto res = uvc::uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
+    auto res = uvc::uvc_stream_open_ctrl(device.h_device, &device.h_stream, &device.ctrl);
     if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_open_ctrl");

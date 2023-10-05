@@ -24,7 +24,7 @@ typedef uvc::uvc_error_t(convert_gray_callback_t)(uvc::frame* in, img::ViewGray 
 
 namespace convert
 {
-    static uvc::uvc_error_t rgb_error(uvc::frame* in, img::View const& dst)
+    static uvc::uvc_error_t rgba_error(uvc::frame* in, img::View const& dst)
     {
         return uvc::UVC_ERROR_NOT_SUPPORTED;
     }
@@ -238,13 +238,13 @@ class DeviceUVC
 public:
     uvc::device* p_device = nullptr;
     uvc::device_handle* h_device = nullptr;
-    uvc::stream_ctrl* ctrl = nullptr;
+    uvc::stream_ctrl ctrl;
     uvc::stream_handle* h_stream = nullptr;
 
-    convert_rgba_callback_t* convert_rgba = convert::rgb_error;
+    convert_rgba_callback_t* convert_rgba = convert::rgba_error;
     convert_gray_callback_t* convert_gray = convert::gray_error;
 
-    img::Image rgb_frame;
+    img::Image rgba_frame;
     
     img::View rgba_view;
 	img::ViewGray gray_view;
@@ -271,11 +271,7 @@ public:
     uvc::context* context = nullptr;
     uvc::device** device_list = nullptr;
 
-    std::vector<uvc::stream_ctrl> stream_ctrl_list;
-
     std::vector<DeviceUVC> devices;
-
-    bool is_connected = false;
 };
 
 
@@ -369,49 +365,32 @@ static void print_uvc_stream_info(DeviceUVC const& device)
 }
 
 
-static DeviceUVC* get_default_device(DeviceListUVC& list)
-{
-    auto& devices = list.devices;
-    if(devices.empty())
-    {
-        return nullptr;
-    }
-
-    // return camera with highest index
-    for (int id = (int)devices.size() - 1; id >= 0; --id)
-    {
-        if (devices[id].is_connected)
-        {
-            return devices.data() + id;
-        }
-    }
-
-    return nullptr;
-}
-
-
 static void disconnect_device(DeviceUVC& device)
 {
-    if (device.is_connected)
+    if (!device.is_connected)
     {
-        uvc::uvc_close(device.h_device);
-        device.h_device = nullptr;
-
-        uvc::uvc_unref_device(device.p_device);
-        device.p_device = nullptr;
-
-        device.frame_width = -1;
-        device.frame_height = -1;
-        device.fps = -1;
-        device.is_connected = false;        
+        return;
     }
+
+    uvc::uvc_close(device.h_device);
+    device.h_device = nullptr;
+
+    uvc::uvc_unref_device(device.p_device);
+    device.p_device = nullptr;
+
+    device.frame_width = -1;
+    device.frame_height = -1;
+    device.fps = -1;
+
+    device.convert_rgba = convert::rgba_error;
+    device.convert_gray = convert::gray_error;
+
+    device.is_connected = false;
 }
 
 
-static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
+static bool connect_device(DeviceUVC& device)
 {
-    device.ctrl = ctrl;
-
     auto res = uvc::uvc_open(device.p_device, &device.h_device);
     if (res != uvc::UVC_SUCCESS)
     {
@@ -459,7 +438,7 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
     device.is_connected = true;
 
     res = uvc::uvc_get_stream_ctrl_format_size(
-        device.h_device, device.ctrl, /* result stored in ctrl */
+        device.h_device, &device.ctrl, /* result stored in ctrl */
         frame_format,
         width, height, fps /* width, height, fps */
     );
@@ -476,6 +455,27 @@ static bool connect_device(DeviceUVC& device, uvc::stream_ctrl* ctrl)
     }    
 
     return true;
+}
+
+
+static DeviceUVC* get_default_device(DeviceListUVC& list)
+{
+    auto& devices = list.devices;
+    if(devices.empty())
+    {
+        return nullptr;
+    }
+
+    // return camera with highest index that will connect
+    for (int id = (int)devices.size() - 1; id >= 0; --id)
+    {
+        if (connect_device(devices[id]))
+        {
+            return devices.data() + id;
+        }
+    }
+
+    return nullptr;
 }
 
 
@@ -532,19 +532,6 @@ static bool enumerate_devices(DeviceListUVC& list)
         return false;
     }
 
-    // allocate for stream info
-    std::vector<uvc::stream_ctrl> ctrls(list.devices.size());
-    list.stream_ctrl_list = std::move(ctrls);
-
-    list.is_connected = false;
-
-    for (size_t i = 0; i < list.devices.size(); ++i)
-    {        
-        auto& dev = list.devices[i];
-        auto ctrl = list.stream_ctrl_list.data() + i;
-        list.is_connected |= connect_device(dev, ctrl);
-    }
-
     return true;
 }
 
@@ -556,6 +543,25 @@ static void stop_device(DeviceUVC& device)
         uvc::uvc_stop_streaming(device.h_device);
         device.h_stream = nullptr;
     }
+}
+
+
+static void close_devices(DeviceListUVC& list)
+{
+    for (auto& device : list.devices)
+    {
+        img::destroy_image(device.rgba_frame);
+        stop_device(device);
+        disconnect_device(device);        
+    }
+    
+    list.devices.clear();
+
+    uvc::uvc_free_device_list(g_device_list.device_list, 0);
+    list.device_list = nullptr;
+
+    uvc::uvc_exit(list.context);
+    list.context = nullptr;
 }
 
 
@@ -610,7 +616,7 @@ static bool set_frame_formats(DeviceUVC& device)
         device.convert_gray = convert::rgb_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        device.convert_rgba = convert::bgr_to_rgba;;
+        device.convert_rgba = convert::bgr_to_rgba;
         device.convert_gray = convert::bgr_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
@@ -638,7 +644,7 @@ static bool start_device_single_frame(DeviceUVC& device)
         return true;
     }
 
-    auto res = uvc::uvc_stream_open_ctrl(device.h_device, &device.h_stream, device.ctrl);
+    auto res = uvc::uvc_stream_open_ctrl(device.h_device, &device.h_stream, &device.ctrl);
     if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_stream_open_ctrl");
@@ -658,32 +664,6 @@ static bool start_device_single_frame(DeviceUVC& device)
     enable_exposure_mode(device);
 
     return true;
-}
-
-
-static void close_all_devices()
-{
-    if (!g_device_list.is_connected)
-    {
-        return;
-    }
-
-    for (auto& device : g_device_list.devices)
-    {
-        stop_device(device);
-        disconnect_device(device);
-        img::destroy_image(device.rgb_frame);
-    }
-    
-    g_device_list.is_connected = false;
-    g_device_list.devices.clear();
-    g_device_list.stream_ctrl_list.clear();
-
-    uvc::uvc_free_device_list(g_device_list.device_list, 0);
-    g_device_list.device_list = nullptr;
-
-    uvc::uvc_exit(g_device_list.context);
-    g_device_list.context = nullptr;
 }
 
 
@@ -753,16 +733,16 @@ static void write_frame_sub_view_gray(img::CameraUSB const& camera, ViewSRC cons
 }
 
 
+static bool camera_is_initialized(img::CameraUSB const& camera)
+{
+    return camera.is_open        
+        && camera.device_id >= 0
+        && camera.device_id < (int)g_device_list.devices.size();
+}
+
+
 namespace simage
 {
-    static bool camera_is_initialized(CameraUSB const& camera)
-    {
-        return camera.is_open
-            && camera.device_id >= 0
-            && camera.device_id < (int)g_device_list.devices.size();
-    }
-
-
     bool open_camera(CameraUSB& camera)
     {
         if (!enumerate_devices(g_device_list))
@@ -784,9 +764,8 @@ namespace simage
 
         auto const fail = [&]()
         {
-            uvc::uvc_free_device_list(g_device_list.device_list, 0);
-            uvc::uvc_exit(g_device_list.context);
-            destroy_image(device.rgb_frame);
+            close_devices(g_device_list);
+            destroy_image(device.rgba_frame);
             return false;
         };
 
@@ -798,17 +777,17 @@ namespace simage
         camera.frame_width = width;
         camera.frame_height = height;  
 
-        if (!create_image(device.rgb_frame, width, height))
+        if (!create_image(device.rgba_frame, width, height))
         {
             return fail();
         }
 
-        device.rgba_view = make_view(device.rgb_frame);
+        device.rgba_view = make_view(device.rgba_frame);
 
         img::ImageGray gray_frame;
         gray_frame.width = width;
         gray_frame.height = height;
-        gray_frame.data_ = (u8*)device.rgb_frame.data_;
+        gray_frame.data_ = (u8*)device.rgba_frame.data_;
 
         device.gray_view = img::make_view(gray_frame);
 
@@ -830,14 +809,14 @@ namespace simage
 
     void close_camera(CameraUSB& camera)
     {
+        camera.device_id = -1;
+        camera.max_fps = -1;
+        camera.frame_width = -1;
+        camera.frame_height = -1;
+        
         camera.is_open = false;
 
-        if (camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
-		{
-			return;
-		}
-
-        close_all_devices();
+        close_devices(g_device_list);
     }
     
 

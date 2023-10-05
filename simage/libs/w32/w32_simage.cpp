@@ -184,7 +184,7 @@ static void print_error(const char* msg)
 }
 
 
-static void print_device_list(DeviceListW32 const& list)
+static void print_device_list(DeviceListW32& list)
 {
 #ifndef NDEBUG
 
@@ -239,7 +239,6 @@ static void disconnect_device(DeviceW32& device)
 
     w32::release(device.p_source);
     w32::release(device.p_reader);
-    //w32::release(device.p_sample);
 
     device.frame_width = -1;
     device.frame_height = -1;
@@ -257,7 +256,7 @@ static bool connect_device(DeviceW32& device)
 {
     if (!w32::activate(device.p_device, device.p_source, device.p_reader))
     {
-        print_error("Error w32::activate()");
+        print_error("Error w32::activate()");        
         return false;
     }
 
@@ -338,7 +337,7 @@ static bool enumerate_devices(DeviceListW32& list)
     w32::release(p_attr);
 
     if (FAILED(hr) || !n_devices)
-    {
+    {      
         return false;
     }
 
@@ -388,13 +387,14 @@ static bool grab_and_convert_frame_rgba(DeviceW32& device)
     }
 
     w32::release(frame);
+    w32::release(device.p_sample);
 
     return true;
 }
 
 
 static bool grab_and_convert_frame_gray(DeviceW32& device)
-{
+{    
     auto result = w32::read_frame(device.p_reader, device.p_sample);
     if (!result.success)
     {
@@ -411,6 +411,7 @@ static bool grab_and_convert_frame_gray(DeviceW32& device)
     }
 
     w32::release(frame);
+    w32::release(device.p_sample);
 
     return true;
 }

@@ -610,7 +610,7 @@ static bool set_frame_formats(DeviceUVC& device)
         device.convert_gray = convert::rgb_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
-        device.convert_rgba = convert::bgr_to_rgba;;
+        device.convert_rgba = convert::bgr_to_rgba;
         device.convert_gray = convert::bgr_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
@@ -758,8 +758,7 @@ namespace simage
 
         auto const fail = [&]()
         {
-            uvc::uvc_free_device_list(g_device_list.device_list, 0);
-            uvc::uvc_exit(g_device_list.context);
+            close_devices(g_device_list);
             destroy_image(device.rgb_frame);
             return false;
         };

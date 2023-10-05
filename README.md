@@ -618,7 +618,6 @@ rotate()
 
 * [stb_image](https://github.com/nothings/stb): Read, write, resize images (included)
 * [libuvc](https://github.com/libuvc/libuvc): Webcam support - Linux (included, requires libusb-1.0)
-* [OpenCV](https://opencv.org/): Wecam support - Windows (requires install)
 * [SDL2](https://www.libsdl.org/): Rendering test application examples (requires install)
 
 ## Compile Instructions
@@ -626,8 +625,8 @@ rotate()
 * Copy the /simage directory to your project
 * #include "{your_path}/simage/simage.hpp" for the api
 * Compile/link with {your_path}/simage/simage.cpp
-* Note: For USB camera functionality, install libusb for Linux or OpenCV for windows
-    * Or #define SIMAGE_NO_USB_CAMERA
+* Note: For USB camera functionality, install libusb for Linux
+    * Or disable it with #define SIMAGE_NO_USB_CAMERA
 * If compiling with CUDA, compile/link with {your_path}/simage/simage_cuda.cu
 
 ## Run the examples
@@ -635,7 +634,6 @@ rotate()
 Install the required libraries
 
 * libusb (USB camera, Linux)
-* OpenCV (USB camera, Windows)
 
 Edit the `ROOT_DIR` variable in `/test_apps/tests_include.hpp` to where your project is.
 

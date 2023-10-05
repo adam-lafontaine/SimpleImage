@@ -450,8 +450,53 @@ namespace simage
 {
     bool open_camera(CameraUSB& camera)
     {
+        if (!enumerate_devices(g_device_list))
+        {
+            print_error("Error enumerate_devices()");
+            return false;
+        }
 
+        print_device_list(g_device_list);
 
+        auto result = get_default_device(g_device_list);
+        if (!result)
+        {
+            print_error("No connected devices available");
+            return false;
+        }        
+
+        auto& device = *result;
+
+        auto const fail = [&]()
+        {
+            close_devices(g_device_list);
+            destroy_image(device.rgba_frame);
+            return false;
+        };
+
+        auto width = device.frame_width;
+        auto height = device.frame_height;
+
+        camera.device_id = device.device_id;
+        camera.max_fps = device.fps;
+        camera.frame_width = width;
+        camera.frame_height = height;  
+
+        if (!create_image(device.rgba_frame, width, height))
+        {
+            return fail();
+        }
+
+        device.rgba_view = make_view(device.rgba_frame);
+
+        img::ImageGray gray_frame;
+        gray_frame.width = width;
+        gray_frame.height = height;
+        gray_frame.data_ = (u8*)device.rgba_frame.data_;
+
+        device.gray_view = img::make_view(gray_frame);
+
+        camera.is_open = true;
 
         return true;
     }

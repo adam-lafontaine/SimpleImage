@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include <Windows.h>
 #include <mfapi.h>
 #include <mfidl.h>

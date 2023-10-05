@@ -244,7 +244,7 @@ public:
     convert_rgba_callback_t* convert_rgba = convert::rgb_error;
     convert_gray_callback_t* convert_gray = convert::gray_error;
 
-    img::Image rgb_frame;
+    img::Image rgba_frame;
     
     img::View rgba_view;
 	img::ViewGray gray_view;
@@ -546,7 +546,7 @@ static void close_devices(DeviceListUVC& list)
     {
         stop_device(device);
         disconnect_device(device);
-        img::destroy_image(device.rgb_frame);
+        img::destroy_image(device.rgba_frame);
     }
     
     list.devices.clear();
@@ -759,7 +759,7 @@ namespace simage
         auto const fail = [&]()
         {
             close_devices(g_device_list);
-            destroy_image(device.rgb_frame);
+            destroy_image(device.rgba_frame);
             return false;
         };
 
@@ -771,17 +771,17 @@ namespace simage
         camera.frame_width = width;
         camera.frame_height = height;  
 
-        if (!create_image(device.rgb_frame, width, height))
+        if (!create_image(device.rgba_frame, width, height))
         {
             return fail();
         }
 
-        device.rgba_view = make_view(device.rgb_frame);
+        device.rgba_view = make_view(device.rgba_frame);
 
         img::ImageGray gray_frame;
         gray_frame.width = width;
         gray_frame.height = height;
-        gray_frame.data_ = (u8*)device.rgb_frame.data_;
+        gray_frame.data_ = (u8*)device.rgba_frame.data_;
 
         device.gray_view = img::make_view(gray_frame);
 

@@ -1,22 +1,11 @@
 #include "../../simage.hpp"
 #include "../../src/util/color_space.hpp"
-
-#include <Windows.h>
-#include <mfapi.h>
-#include <mfidl.h>
-#include <Mfreadwrite.h>
-#include <Shlwapi.h>
-#include <vector>
+#include "w32.h"
 
 #ifndef NDEBUG
 #include <cstdio>
 #endif
 
-#pragma comment(lib, "mf.lib")
-#pragma comment(lib, "mfplat.lib")
-#pragma comment(lib, "mfreadwrite.lib")
-#pragma comment(lib, "mfuuid.lib")
-#pragma comment(lib, "Shlwapi.lib")
 
 namespace img = simage;
 
@@ -24,15 +13,24 @@ namespace img = simage;
 class DeviceW32
 {
 public:
-    IMFActivate* p_device = nullptr;
-    int device_id = -1;
+    w32::Device_p p_device = nullptr;    
 
-    IMFMediaSource* p_source = nullptr;
-    IMFSourceReader* p_reader = nullptr;
-    IMFSample* p_sample = nullptr;
+    w32::MediaSource_p p_source = nullptr;
+    w32::SourceReader_p p_reader = nullptr;
+
+    w32::Sample_p p_sample = nullptr;
+
+    img::Image rgba_frame;
+    
+    img::View rgba_view;
+	img::ViewGray gray_view;
+
+    int device_id = -1;
     
     int frame_width = -1;
     int frame_height = -1;
+    int frame_stride = -1;
+    int fps = -1;
 
     bool is_connected = false;
 };
@@ -41,7 +39,7 @@ public:
 class DeviceListW32
 {
 public:
-    IMFActivate** device_list = nullptr;
+    w32::Device_p* device_list = nullptr;
 
     std::vector<DeviceW32> devices;
 
@@ -50,17 +48,6 @@ public:
 
 
 static DeviceListW32 g_device_list;
-
-
-template <class T>
-static void imf_release(T*& ptr)
-{
-    if (ptr)
-    {
-        ptr->Release();
-        ptr = nullptr;
-    }
-}
 
 
 static void print_device_list(DeviceListW32 const& list)
@@ -91,9 +78,9 @@ static void disconnect_device(DeviceW32& device)
         return;
     }
 
-    imf_release(device.p_source);
-    imf_release(device.p_reader);
-    imf_release(device.p_sample);
+    w32::release(device.p_source);
+    w32::release(device.p_reader);
+    w32::release(device.p_sample);
 
     device.frame_width = -1;
     device.frame_height = -1;

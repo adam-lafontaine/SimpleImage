@@ -79,7 +79,7 @@ static bool is_1d(simage::View1<T> const& view)
 
 #ifdef _WIN32
 
-#include "libs/opencv/opencv_simage.cpp"
+#include "libs/w32/w32_simage.cpp"
 
 #else
 

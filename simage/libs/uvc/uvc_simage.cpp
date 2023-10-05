@@ -24,7 +24,7 @@ typedef uvc::uvc_error_t(convert_gray_callback_t)(uvc::frame* in, img::ViewGray 
 
 namespace convert
 {
-    static uvc::uvc_error_t rgb_error(uvc::frame* in, img::View const& dst)
+    static uvc::uvc_error_t rgba_error(uvc::frame* in, img::View const& dst)
     {
         return uvc::UVC_ERROR_NOT_SUPPORTED;
     }
@@ -241,7 +241,7 @@ public:
     uvc::stream_ctrl ctrl;
     uvc::stream_handle* h_stream = nullptr;
 
-    convert_rgba_callback_t* convert_rgba = convert::rgb_error;
+    convert_rgba_callback_t* convert_rgba = convert::rgba_error;
     convert_gray_callback_t* convert_gray = convert::gray_error;
 
     img::Image rgba_frame;
@@ -367,19 +367,25 @@ static void print_uvc_stream_info(DeviceUVC const& device)
 
 static void disconnect_device(DeviceUVC& device)
 {
-    if (device.is_connected)
+    if (!device.is_connected)
     {
-        uvc::uvc_close(device.h_device);
-        device.h_device = nullptr;
-
-        uvc::uvc_unref_device(device.p_device);
-        device.p_device = nullptr;
-
-        device.frame_width = -1;
-        device.frame_height = -1;
-        device.fps = -1;
-        device.is_connected = false;        
+        return;
     }
+
+    uvc::uvc_close(device.h_device);
+    device.h_device = nullptr;
+
+    uvc::uvc_unref_device(device.p_device);
+    device.p_device = nullptr;
+
+    device.frame_width = -1;
+    device.frame_height = -1;
+    device.fps = -1;
+
+    device.convert_rgba = convert::rgba_error;
+    device.convert_gray = convert::gray_error;
+
+    device.is_connected = false;
 }
 
 
@@ -544,9 +550,9 @@ static void close_devices(DeviceListUVC& list)
 {
     for (auto& device : list.devices)
     {
-        stop_device(device);
-        disconnect_device(device);
         img::destroy_image(device.rgba_frame);
+        stop_device(device);
+        disconnect_device(device);        
     }
     
     list.devices.clear();
@@ -727,16 +733,16 @@ static void write_frame_sub_view_gray(img::CameraUSB const& camera, ViewSRC cons
 }
 
 
+static bool camera_is_initialized(img::CameraUSB const& camera)
+{
+    return camera.is_open        
+        && camera.device_id >= 0
+        && camera.device_id < (int)g_device_list.devices.size();
+}
+
+
 namespace simage
 {
-    static bool camera_is_initialized(CameraUSB const& camera)
-    {
-        return camera.is_open
-            && camera.device_id >= 0
-            && camera.device_id < (int)g_device_list.devices.size();
-    }
-
-
     bool open_camera(CameraUSB& camera)
     {
         if (!enumerate_devices(g_device_list))
@@ -803,12 +809,12 @@ namespace simage
 
     void close_camera(CameraUSB& camera)
     {
+        camera.device_id = -1;
+        camera.max_fps = -1;
+        camera.frame_width = -1;
+        camera.frame_height = -1;
+        
         camera.is_open = false;
-
-        if (camera.device_id < 0 || camera.device_id >= (int)g_device_list.devices.size())
-		{
-			return;
-		}
 
         close_devices(g_device_list);
     }

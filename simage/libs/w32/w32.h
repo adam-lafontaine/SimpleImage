@@ -29,7 +29,7 @@ namespace w32
         D16 = 9,
         AI44 = 10,
         AYUV = 11,
-        YUY2 = 12,
+        YUYV = 12,
         YVYU = 13,
         YVU9 = 14,
         UYVY = 15,
@@ -349,7 +349,7 @@ namespace w32
         else if(sub_type == MFVideoFormat_D16)  { format.pixel_format = PixelFormat::D16; }
         else if(sub_type == MFVideoFormat_AI44) { format.pixel_format = PixelFormat::AI44; }
         else if(sub_type == MFVideoFormat_AYUV) { format.pixel_format = PixelFormat::AYUV; }
-        else if(sub_type == MFVideoFormat_YUY2) { format.pixel_format = PixelFormat::YUY2; }
+        else if(sub_type == MFVideoFormat_YUY2) { format.pixel_format = PixelFormat::YUYV; }
         else if(sub_type == MFVideoFormat_YVYU) { format.pixel_format = PixelFormat::YVYU; }
         else if(sub_type == MFVideoFormat_YVU9) { format.pixel_format = PixelFormat::YVU9; }
         else if(sub_type == MFVideoFormat_UYVY) { format.pixel_format = PixelFormat::UYVY; }

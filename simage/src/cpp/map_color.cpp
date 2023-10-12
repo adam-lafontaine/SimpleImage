@@ -12,19 +12,19 @@ namespace simage
 
 			auto i = 2 * i422;
 			auto rgb = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
-			auto& d = dst[i].rgba;
-			d.red = rgb.red;
-			d.green = rgb.green;
-			d.blue = rgb.blue;
-			d.alpha = 255;
+			auto& d1 = dst[i].rgba;
+			d1.red = rgb.red;
+			d1.green = rgb.green;
+			d1.blue = rgb.blue;
+			d1.alpha = 255;
 
 			++i;
 			rgb = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
-			d = dst[i].rgba;
-			d.red = rgb.red;
-			d.green = rgb.green;
-			d.blue = rgb.blue;
-			d.alpha = 255;
+			auto& d2 = dst[i].rgba;
+			d2.red = rgb.red;
+			d2.green = rgb.green;
+			d2.blue = rgb.blue;
+			d2.alpha = 255;
 		}
     }
 
@@ -39,19 +39,19 @@ namespace simage
 
 			auto i = 2 * i422;
 			auto rgb = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
-			auto& d = dst[i].rgba;
-			d.red = rgb.red;
-			d.green = rgb.green;
-			d.blue = rgb.blue;
-			d.alpha = 255;
+			auto& d1 = dst[i].rgba;
+			d1.red = rgb.red;
+			d1.green = rgb.green;
+			d1.blue = rgb.blue;
+			d1.alpha = 255;
 
 			++i;
 			rgb = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
-			d = dst[i].rgba;
-			d.red = rgb.red;
-			d.green = rgb.green;
-			d.blue = rgb.blue;
-			d.alpha = 255;
+			auto& d2 = dst[i].rgba;
+			d2.red = rgb.red;
+			d2.green = rgb.green;
+			d2.blue = rgb.blue;
+			d2.alpha = 255;
 		}
     }
 

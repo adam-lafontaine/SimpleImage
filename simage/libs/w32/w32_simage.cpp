@@ -62,7 +62,7 @@ namespace convert
     }
 
 
-    static bool uyuv_to_rgba(w32::Frame& frame, img::View const& dst)
+    static bool uyvy_to_rgba(w32::Frame& frame, img::View const& dst)
     {
         assert((size_t)frame.size_bytes == sizeof(img::UVY2u8) * dst.width * dst.height);
 
@@ -79,7 +79,7 @@ namespace convert
     }
 
 
-    static bool uyuv_to_gray(w32::Frame& frame, img::ViewGray const& dst)
+    static bool uyvy_to_gray(w32::Frame& frame, img::ViewGray const& dst)
     {
         assert((size_t)frame.size_bytes == sizeof(img::UVY2u8) * dst.width * dst.height);
 
@@ -221,8 +221,8 @@ static void set_frame_formats(DeviceW32& device, w32::PixelFormat pixel_format)
             break;
 
         case PF::UYVY:
-            device.convert_rgba = convert::uyuv_to_rgba;
-            device.convert_gray = convert::uyuv_to_gray;
+            device.convert_rgba = convert::uyvy_to_rgba;
+            device.convert_gray = convert::uyvy_to_gray;
             break;        
 
         default: return;

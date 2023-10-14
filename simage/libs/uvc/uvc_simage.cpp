@@ -219,19 +219,6 @@ vendor and product ID of your webcams.
 
 */
 
-constexpr auto DEVICE_PERMISSION_MSG = 
-"libuvc requires RW permissions for opening capturing devices, so you must create the following .rules file:"
-"\n\n"
-"/etc/udev/rules.d/99-uvc.rules"
-"\n\n"
-"Then, for each webcam add the following line:"
-"\n\n"
-"SUBSYSTEMS==\"usb\", ENV{DEVTYPE}==\"usb_device\", ATTRS{idVendor}==\"XXXX\", ATTRS{idProduct}==\"YYYY\", MODE=\"0666\"\n\n"
-"Replace XXXX and YYYY for the 4 hexadecimal characters corresponding to the vendor and product ID of your webcams."
-"\n\n"
-"Restart the computer for the changes to take effect."
-;
-
 
 class DeviceUVC
 {
@@ -298,13 +285,24 @@ static void print_error(const char* msg)
 }
 
 
-static void print_device_permissions_msg()
+static void print_device_permissions_msg(DeviceListUVC const& list)
 {
 #ifndef NDEBUG
 
 printf("\n********** LINUX PERMISSIONS ERROR **********\n\n");
 
-printf("%s", DEVICE_PERMISSION_MSG);
+printf("Libuvc requires RW permissions for opening capturing devices, so you must create the following .rules file:\n\n");
+printf("/etc/udev/rules.d/99-uvc.rules\n\n");
+printf("Add the following line(s) to register each device:\n\n");
+
+auto const fmt = "SUBSYSTEMS==\"usb\", ENV{DEVTYPE}==\"usb_device\", ATTRS{idVendor}==\"%04x\", ATTRS{idProduct}==\"%04x\", MODE=\"0666\"\n";
+
+for (auto const& cam : list.devices)
+{
+    printf(fmt, cam.vendor_id, cam.product_id);
+}
+
+printf("Restart the computer for the changes to take effect.");
 
 printf("\n\n********** LINUX PERMISSIONS ERROR **********\n\n");
 
@@ -329,7 +327,7 @@ static void print_device_error_info(DeviceListUVC const& list)
         printf("  Product ID:  0x%04x\n", dev.product_id);
     }
 
-    print_device_permissions_msg();
+    print_device_permissions_msg(list);
 
 #endif
 }

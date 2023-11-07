@@ -307,7 +307,7 @@ static void map_rgba()
 
 static void map_rgb_gray()
 {
-    auto n_channels32 = 8;
+    auto n_channels32 = 5;
     auto n_channels8 = 1;
 
     auto width = WIDTH;
@@ -332,7 +332,7 @@ static void map_rgb_gray()
 
 static void map_yuv()
 {
-    auto n_channels32 = 7;
+    auto n_channels32 = 4;
     auto n_channels8 = 2 * 2;
 
     auto width = WIDTH;
@@ -354,6 +354,32 @@ static void map_yuv()
 
     img::destroy_buffer(buffer32);
     img::destroy_buffer(buffer8);
+}
+
+
+static void map_hsv()
+{
+    auto n_channels32 = 7;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_3_rgb = img::make_view_3(width, height, buffer32);
+    auto view_3_hsv = img::make_view_3(width, height, buffer32);
+    
+    auto color = img::to_pixel(200, 150, 100);
+    img::fill(view_rgba, color);
+    img::fill(view_3_rgb, color);
+
+    PROFILE(img::map_rgb_hsv(view_rgba, view_3_hsv));
+    PROFILE(img::map_hsv_rgba(view_3_hsv, view_rgba));
+    PROFILE(img::map_rgb_hsv(view_3_rgb, view_3_hsv));
+    PROFILE(img::map_hsv_rgb(view_3_hsv, view_3_rgb));
+
+    img::destroy_buffer(buffer32);
 }
 
 
@@ -804,7 +830,8 @@ void run_profile_tests()
     run_test(map_rgba, "map_rgba");
     run_test(map_rgb_gray, "map_rgb_gray");*/
 
-    run_test(map_yuv, "map_yuv");
+    //run_test(map_yuv, "map_yuv");
+    run_test(map_hsv, "map_hsv");
 
     /*run_test(alpha_blend, "alpha_blend");
     run_test(rotate, "rotate");

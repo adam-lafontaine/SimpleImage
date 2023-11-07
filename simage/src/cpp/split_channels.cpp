@@ -69,10 +69,7 @@ namespace simage
 			for (u32 x = 0; x < src.width; ++x)
 			{
 				auto const rgba = p[x].rgba;
-				auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-				h[x] = hsv.hue;
-				s[x] = hsv.sat;
-				v[x] = hsv.val;
+				hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue, (h + x), (s + x), (v + x));
 			}
 		}
 	}

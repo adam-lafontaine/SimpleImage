@@ -91,13 +91,14 @@ namespace simage
 {
     static inline void map_span_rgb_hsv(Pixel* src, HSVf32p const& dst, u32 len)
     {
+		auto ph = dst.H;
+		auto ps = dst.S;
+		auto pv = dst.V;
+
         for (u32 i = 0; i < len; ++i)
 		{
 			auto rgba = src[i].rgba;
-			auto hsv = hsv::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-			dst.H[i] = hsv.hue;
-			dst.S[i] = hsv.sat;
-			dst.V[i] = hsv.val;
+			hsv::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue, (ph + i), (ps + i), (pv + i));
 		}
     }
 
@@ -106,36 +107,34 @@ namespace simage
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
-			auto rgb = hsv::f32_to_rgb_u8(src.H[i], src.S[i], src.V[i]);
 			auto& d = dst[i].rgba;
-			d.red = rgb.red;
-			d.green = rgb.green;
-			d.blue = rgb.blue;
-			d.alpha = 255;
+			hsv::f32_to_rgb_u8(src.H[i], src.S[i], src.V[i], &d.red, &d.green, &d.blue);
 		}
 	}
 
 
     static inline void map_span_rgb_hsv(RGBf32p const& src, HSVf32p const& dst, u32 len)
 	{
+		auto ph = dst.H;
+		auto ps = dst.S;
+		auto pv = dst.V;
+
 		for (u32 i = 0; i < len; ++i)
 		{
-			auto hsv = hsv::f32_from_rgb_f32(src.R[i], src.G[i], src.B[i]);
-			dst.H[i] = hsv.hue;
-			dst.S[i] = hsv.sat;
-			dst.V[i] = hsv.val;
+			hsv::f32_from_rgb_f32(src.R[i], src.G[i], src.B[i], (ph + i), (ps + i), (pv + i));
 		}
 	}
 
 
 	static inline void map_span_hsv_rgb(HSVf32p const& src, RGBf32p const& dst, u32 len)
 	{
+		auto pr = dst.R;
+		auto pg = dst.G;
+		auto pb = dst.B;
+
 		for (u32 i = 0; i < len; ++i)
 		{
-			auto rgb = hsv::f32_to_rgb_f32(src.H[i], src.S[i], src.V[i]);
-			dst.R[i] = rgb.red;
-			dst.G[i] = rgb.green;
-			dst.B[i] = rgb.blue;
+			hsv::f32_to_rgb_f32(src.H[i], src.S[i], src.V[i], (pr + i), (pg + i), (pb + i));
 		}
 	}
 }

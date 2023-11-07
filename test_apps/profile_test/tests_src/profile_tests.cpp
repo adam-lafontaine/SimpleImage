@@ -383,6 +383,32 @@ static void map_hsv()
 }
 
 
+static void map_lch()
+{
+    auto n_channels32 = 7;
+
+    auto width = WIDTH;
+    auto height = HEIGHT;
+
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_3_rgb = img::make_view_3(width, height, buffer32);
+    auto view_3_lch = img::make_view_3(width, height, buffer32);
+
+    auto color = img::to_pixel(200, 150, 100);
+    img::fill(view_rgba, color);
+    img::fill(view_3_rgb, color);
+
+    PROFILE(img::map_rgb_lch(view_rgba, view_3_lch));
+    PROFILE(img::map_lch_rgba(view_3_lch, view_rgba));
+    PROFILE(img::map_rgb_lch(view_3_rgb, view_3_lch));
+    PROFILE(img::map_lch_rgb(view_3_lch, view_3_rgb));
+
+    img::destroy_buffer(buffer32);
+}
+
+
 static void alpha_blend()
 {
     auto n_channels32 = 13;
@@ -831,7 +857,8 @@ void run_profile_tests()
     run_test(map_rgb_gray, "map_rgb_gray");*/
 
     //run_test(map_yuv, "map_yuv");
-    run_test(map_hsv, "map_hsv");
+    //run_test(map_hsv, "map_hsv");
+    run_test(map_lch, "map_lch");
 
     /*run_test(alpha_blend, "alpha_blend");
     run_test(rotate, "rotate");

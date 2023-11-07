@@ -9,6 +9,14 @@ bool lch_conversion_test()
 {
     printf("lch_conversion_test: ");
 
+    f32 R = 0.0f;
+    f32 G = 0.0f;
+    f32 B = 0.0f;
+
+    f32 L = 0.0f;
+    f32 C = 0.0f;
+    f32 H = 0.0f;
+
     for (u32 r = 0; r < 256; ++r)
     {
         auto red = r / 255.0f;
@@ -21,10 +29,10 @@ bool lch_conversion_test()
             {
                 auto blue = b / 255.0f;
 
-                auto lch = lch::f32_from_rgb_f32(red, green, blue);
-                auto rgb = lch::f32_to_rgb_f32(lch.light, lch.chroma, lch.hue);
+                lch::f32_from_rgb_f32(red, green, blue, &L, &C, &H);
+                lch::f32_to_rgb_f32(L, C, H, &R, &G, &B);
 
-                if (!equals(red, rgb.red) || !equals(green, rgb.green) || !equals(blue, rgb.blue))
+                if (!equals(red, R) || !equals(green, G) || !equals(blue, B))
                 {
                     printf("FAIL\n");
                     return false;

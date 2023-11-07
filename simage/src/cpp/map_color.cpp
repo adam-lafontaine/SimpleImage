@@ -146,13 +146,14 @@ namespace simage
 {
     static inline void map_span_rgb_lch(Pixel* src, LCHf32p const& dst, u32 len)
 	{
+		auto pl = dst.L;
+		auto pc = dst.C;
+		auto ph = dst.H;
+
 		for (u32 i = 0; i < len; ++i)
 		{
 			auto rgba = src[i].rgba;
-			auto lch = lch::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-			dst.L[i] = lch.light;
-			dst.C[i] = lch.chroma;
-			dst.H[i] = lch.hue;
+			lch::f32_from_rgb_u8(rgba.red, rgba.green, rgba.blue, (pl + i), (pc + i), (ph + i));
 		}
 	}
 
@@ -161,36 +162,34 @@ namespace simage
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
-			auto rgb = lch::f32_to_rgb_u8(src.L[i], src.C[i], src.H[i]);
 			auto& d = dst[i].rgba;
-			d.red = rgb.red;
-			d.green = rgb.green;
-			d.blue = rgb.blue;
-			d.alpha = 255;
+			lch::f32_to_rgb_u8(src.L[i], src.C[i], src.H[i], &d.red, &d.green, &d.blue);
 		}
 	}
 
 
 	static inline void map_span_rgb_lch(RGBf32p const& src, LCHf32p const& dst, u32 len)
 	{
+		auto pl = dst.L;
+		auto pc = dst.C;
+		auto ph = dst.H;
+
 		for (u32 i = 0; i < len; ++i)
 		{
-			auto lch = lch::f32_from_rgb_f32(src.R[i], src.G[i], src.B[i]);
-			dst.L[i] = lch.light;
-			dst.C[i] = lch.chroma;
-			dst.H[i] = lch.hue;
+			lch::f32_from_rgb_f32(src.R[i], src.G[i], src.B[i], (pl + i), (pc + i), (ph + i));
 		}
 	}
 
 
 	static inline void map_span_lch_rgb(LCHf32p const& src, RGBf32p const& dst, u32 len)
 	{
+		auto pr = dst.R;
+		auto pg = dst.G;
+		auto pb = dst.B;
+
 		for (u32 i = 0; i < len; ++i)
 		{
-			auto rgb = lch::f32_to_rgb_f32(src.L[i], src.C[i], src.H[i]);
-			dst.R[i] = rgb.red;
-			dst.G[i] = rgb.green;
-			dst.B[i] = rgb.blue;
+			lch::f32_to_rgb_f32(src.L[i], src.C[i], src.H[i], (pr + i), (pg + i), (pb + i));
 		}
 	}
 }

@@ -339,3 +339,10 @@ map_rgb_gray:
 map_yuv:
 2.96e+08: img::map_yuv_rgba(view_uvy, view_rgba) x 20
 2.99e+08: img::map_yuv_rgba(view_yuv, view_rgba) x 20
+
+map_yuv:
+2.52e+07: img::map_yuv_rgb(view_uvy, view_3)     x 20
+2.96e+07: img::map_yuv_rgba(view_3, view_rgba)   x 20
+3.88e+07: img::map_yuv_rgb(view_yuv, view_3)     x 20
+4.07e+07: img::map_yuv_rgba(view_uvy, view_rgba) x 20
+4.19e+07: img::map_yuv_rgba(view_yuv, view_rgba) x 20

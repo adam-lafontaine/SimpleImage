@@ -67,3 +67,54 @@ public:
 	u32 width = 0;
 	u32 height = 0;
 };
+
+
+template <typename T>
+class RGB
+{
+public:
+    T red;
+    T green;
+    T blue;
+};
+
+
+template <typename T>
+class RGBA
+{
+public:
+    T red;
+    T green;
+    T blue;
+    T alpha;
+};
+
+
+template <typename T>
+class HSV
+{
+public:
+    T hue;
+    T sat;
+    T val;
+};
+
+
+template <typename T>
+class LCH
+{
+public:
+    T light;
+    T chroma;
+    T hue;
+};
+
+
+template <typename T>
+class YUV
+{
+public:
+    T y;
+    T u;
+    T v;
+};

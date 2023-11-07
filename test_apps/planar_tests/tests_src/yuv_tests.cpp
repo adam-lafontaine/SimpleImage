@@ -9,6 +9,14 @@ bool yuv_conversion_test()
 {
     printf("yuv_conversion_test: ");
 
+    f32 R = 0.0f;
+    f32 G = 0.0f;
+    f32 B = 0.0f;
+
+    f32 Y = 0.0f;
+    f32 U = 0.0f;
+    f32 V = 0.0f;
+
     for (u32 r = 0; r < 256; ++r)
     {
         auto red = r / 255.0f;
@@ -21,10 +29,10 @@ bool yuv_conversion_test()
             {
                 auto blue = b / 255.0f;
 
-                auto yuv = yuv::f32_from_rgb_f32(red, green, blue);
-                auto rgb = yuv::f32_to_rgb_f32(yuv.y, yuv.u, yuv.v);
+                yuv::f32_from_rgb_f32(red, green, blue, &Y, &U, &V);
+                yuv::f32_to_rgb_f32(Y, U, V, &R, &G, &B);
 
-                if (!equals(red, rgb.red) || !equals(green, rgb.green) || !equals(blue, rgb.blue))
+                if (!equals(red, R) || !equals(green, G) || !equals(blue, B))
                 {
                     printf("FAIL\n");
                     return false;
@@ -61,6 +69,4 @@ void yuv_draw_test(img::View const& out)
     img::map_yuv_rgba(yuv, out);
     
     mb::destroy_buffer(buffer);
-
-    printf("yuv_draw_test: TODO\n");
 }

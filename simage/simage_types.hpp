@@ -3,28 +3,15 @@
 #include "defines.hpp"
 
 
-
-namespace simage
-{
-	constexpr auto RGB_CHANNELS = 3u;
-	constexpr auto RGBA_CHANNELS = 4u;
-
-	class RGBAu8
-	{
-	public:
-		u8 red;
-		u8 green;
-		u8 blue;
-		u8 alpha;
-	};
-    
-}
-
-
 /* platform (interleaved) image */
 
 namespace simage
 {
+	constexpr u32 RGBA_CHANNELS = 4;
+	constexpr u32 RGB_CHANNELS = 3;
+
+	using RGBAu8 = RGBA<u8>;
+
     typedef union pixel_t
 	{
 		u8 channels[4];

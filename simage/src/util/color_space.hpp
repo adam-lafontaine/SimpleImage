@@ -109,6 +109,18 @@ namespace color_space
         T blue;
     };
 
+
+    template <typename T>
+    class RGBA
+    {
+    public:
+        T red;
+        T green;
+        T blue;
+        T alpha;
+    };
+
+
     template <typename T>
     class HSV
     {
@@ -141,6 +153,7 @@ namespace color_space
 
     using RGBf32 = RGB<f32>;
     using RGBu8 = RGB<u8>;
+    using RGBAu8 = RGBA<u8>;
 
     using HSVf32 = HSV<f32>;
     using HSVu8 = HSV<u8>;

@@ -297,3 +297,41 @@ copy:
 1.56e+07: img::copy(view_2_s, view_2_d)       x 5
 2.26e+07: img::copy(view_3_s, view_3_d)       x 5
 3.42e+07: img::copy(view_4_s, view_4_d)       x 5
+
+map_gray_gray:
+4.18e+07: img::map_gray(view_gray, view_1) x 20
+9.44e+07: img::map_gray(view_1, view_gray) x 20
+
+map_gray_rgba:
+1.28e+07: img::map_rgba(view_gray, view_rgba) x 20
+8.62e+07: img::map_rgba(view_1, view_rgba)    x 20
+
+map_rgba:
+1.23e+08: img::map_rgb(view_rgba, view_3)  x 20
+1.62e+08: img::map_rgba(view_rgba, view_4) x 20
+2.56e+08: img::map_rgba(view_3, view_rgba) x 20
+3.48e+08: img::map_rgba(view_4, view_rgba) x 20
+
+map_rgb_gray:
+3.12e+07: img::map_gray(view_3, view_1)       x 20
+7.57e+07: img::map_gray(view_rgba, view_gray) x 20
+1.06e+08: img::map_gray(view_rgba, view_1)    x 20
+
+map_gray_gray:
+3.53e+07: img::map_gray(view_gray, view_1) x 20
+8.91e+07: img::map_gray(view_1, view_gray) x 20
+
+map_gray_rgba:
+1.22e+07: img::map_rgba(view_gray, view_rgba) x 20
+7.79e+07: img::map_rgba(view_1, view_rgba)    x 20
+
+map_rgba:
+9.66e+07: img::map_rgb(view_rgba, view_3)  x 20
+1.33e+08: img::map_rgba(view_rgba, view_4) x 20
+2.27e+08: img::map_rgba(view_3, view_rgba) x 20
+3.07e+08: img::map_rgba(view_4, view_rgba) x 20
+
+map_rgb_gray:
+2.78e+07: img::map_gray(view_3, view_1)       x 20
+6.67e+07: img::map_gray(view_rgba, view_gray) x 20
+9.53e+07: img::map_gray(view_rgba, view_1)    x 20

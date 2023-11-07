@@ -70,7 +70,7 @@ namespace simage
 }
 
 
-/* channel view */
+/* channel view (planar) */
 
 namespace simage
 {

@@ -3,7 +3,7 @@
 namespace simage
 {
     template <typename T>
-	static View1<T> do_make_view_1(Matrix2D<T> const& image)
+	static View1<T> make_view_from_image(Matrix2D<T> const& image)
 	{
 		View1<T> view{};
 
@@ -19,11 +19,27 @@ namespace simage
 
 
 	template <typename T>
-	static View1<T> do_make_view_1(u32 width, u32 height, MemoryBuffer<T>& buffer)
+	static View1<T> make_view_from_buffer(u32 width, u32 height, MemoryBuffer<T>& buffer)
 	{
 		View1<T> view{};
 
 		view.matrix_data = mb::push_elements(buffer, width * height);
+		view.matrix_width = width;
+		view.width = width;
+		view.height = height;
+
+		view.range = make_range(width, height);
+
+		return view;
+	}
+
+
+	template <typename T>
+	View1<T> make_view_from_buffer8(u32 width, u32 height, Buffer8& buffer)
+	{
+		View1<T> view;
+
+		view.matrix_data = (T*)mb::push_elements(buffer, width * height * (u32)sizeof(T));
 		view.matrix_width = width;
 		view.width = width;
 		view.height = height;
@@ -56,7 +72,7 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view_1(image);
+		auto view = make_view_from_image(image);
 		assert(verify(view));
 
 		return view;
@@ -67,40 +83,7 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view_1(image);
-		assert(verify(view));
-
-		return view;
-	}
-
-
-	ViewYUV make_view(ImageYUV const& image)
-	{
-		assert(verify(image));
-
-		auto view = do_make_view_1(image);
-		assert(verify(view));
-
-		return view;
-	}
-
-
-	ViewUVY make_view(ImageUVY const& image)
-	{
-		assert(verify(image));
-
-		auto view = do_make_view_1(image);
-		assert(verify(view));
-
-		return view;
-	}
-
-
-	ViewBGR make_view(ImageBGR const& image)
-	{
-		assert(verify(image));
-
-		auto view = do_make_view_1(image);
+		auto view = make_view_from_image(image);
 		assert(verify(view));
 
 		return view;
@@ -111,7 +94,40 @@ namespace simage
 	{
 		assert(verify(image));
 
-		auto view = do_make_view_1(image);
+		auto view = make_view_from_image(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewBGR make_view(ImageBGR const& image)
+	{
+		assert(verify(image));
+
+		auto view = make_view_from_image(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewYUV make_view(ImageYUV const& image)
+	{
+		assert(verify(image));
+
+		auto view = make_view_from_image(image);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewUVY make_view(ImageUVY const& image)
+	{
+		assert(verify(image));
+
+		auto view = make_view_from_image(image);
 		assert(verify(view));
 
 		return view;
@@ -122,7 +138,7 @@ namespace simage
 	{
 		assert(verify(buffer, width * height));
 
-		auto view  = do_make_view_1(width, height, buffer);
+		auto view  = make_view_from_buffer(width, height, buffer);
 		assert(verify(view));
 
 		return view;
@@ -133,7 +149,55 @@ namespace simage
 	{
 		assert(verify(buffer, width * height));
 
-		auto view  = do_make_view_1(width, height, buffer);
+		auto view  = make_view_from_buffer(width, height, buffer);
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewRGB make_view_rgb(u32 width, u32 height, Buffer8& buffer)
+	{
+		assert(verify(buffer, width * height));
+
+		auto view = make_view_from_buffer8<RGBu8>(width, height, buffer);
+
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewBGR make_view_bgr(u32 width, u32 height, Buffer8& buffer)
+	{
+		assert(verify(buffer, width * height));
+
+		auto view = make_view_from_buffer8<BGRu8>(width, height, buffer);
+
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewYUV make_view_yuv(u32 width, u32 height, Buffer8& buffer)
+	{
+		assert(verify(buffer, width * height));
+
+		auto view = make_view_from_buffer8<YUV2u8>(width, height, buffer);
+
+		assert(verify(view));
+
+		return view;
+	}
+
+
+	ViewUVY make_view_uvy(u32 width, u32 height, Buffer8& buffer)
+	{
+		assert(verify(buffer, width * height));
+
+		auto view = make_view_from_buffer8<UVY2u8>(width, height, buffer);
+
 		assert(verify(view));
 
 		return view;
@@ -157,7 +221,7 @@ namespace simage
 	{
 		assert(verify(buffer, width * height));
 
-		auto view = do_make_view_1(width, height, reinterpret_buffer(buffer));
+		auto view = make_view_from_buffer(width, height, reinterpret_buffer(buffer));
 
 		assert(verify(view));
 

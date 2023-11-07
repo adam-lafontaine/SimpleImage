@@ -112,11 +112,11 @@ namespace hist
 		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
 
-		auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
-		auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-		auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+		auto rgb = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
+		auto hsv = hsv::u8_from_rgb_u8(rgb.red, rgb.green, rgb.blue);
+		auto lch = lch::u8_from_rgb_u8(rgb.red, rgb.green, rgb.blue);
 
-		update_counts(rgba.red, rgba.green, rgba.blue, dst.rgb, n_bins);
+		update_counts(rgb.red, rgb.green, rgb.blue, dst.rgb, n_bins);
 		update_counts(hsv.hue, hsv.sat, hsv.val, dst.hsv, n_bins);
 		update_counts(lch.light, lch.chroma, lch.hue, dst.lch, n_bins);
 		update_counts(yuv_y, yuv_u, yuv_v, dst.yuv, n_bins);

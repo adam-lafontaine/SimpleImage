@@ -326,24 +326,34 @@ static void map_rgb_gray()
     PROFILE(img::map_gray(view_rgba, view_1));
 
     img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
 }
 
 
 static void map_yuv()
 {
+    auto n_channels32 = 7;
+    auto n_channels8 = 2 * 2;
+
     auto width = WIDTH;
     auto height = HEIGHT;
 
-    img::ImageYUV yuv{};
-    img::create_image(yuv, width, height);
+    auto buffer32 = img::create_buffer32(width * height * n_channels32);
+    auto buffer8 = img::create_buffer8(width * height * n_channels8);
 
+    auto view_rgba = img::make_view(width, height, buffer32);
+    auto view_3 = img::make_view_3(width, height, buffer32);
+    auto view_yuv = img::make_view_yuv(width, height, buffer8);
+    auto view_uvy = img::make_view_uvy(width, height, buffer8);
 
-    img::ImageUVY uvy{};
-    uvy.width = width;
-    uvy.height = height;
-    uvy.data_ = (img::UVY2u8*)yuv.data_;
+    PROFILE(img::map_yuv_rgba(view_yuv, view_rgba));
+    PROFILE(img::map_yuv_rgba(view_uvy, view_rgba));
+    PROFILE(img::map_yuv_rgb(view_yuv, view_3));
+    PROFILE(img::map_yuv_rgb(view_uvy, view_3));
+    PROFILE(img::map_yuv_rgba(view_3, view_rgba));
 
-    img::destroy_image(yuv);
+    img::destroy_buffer(buffer32);
+    img::destroy_buffer(buffer8);
 }
 
 
@@ -788,11 +798,14 @@ void run_profile_tests()
     run_test(make_view, "make_view");
     run_test(sub_view, "sub_view");
     run_test(copy, "copy");
-    run_test(fill, "fill");*/
+    run_test(fill, "fill");
     run_test(map_gray_gray, "map_gray_gray");
     run_test(map_gray_rgba, "map_gray_rgba");
     run_test(map_rgba, "map_rgba");
-    run_test(map_rgb_gray, "map_rgb_gray");
+    run_test(map_rgb_gray, "map_rgb_gray");*/
+
+    run_test(map_yuv, "map_yuv");
+
     /*run_test(alpha_blend, "alpha_blend");
     run_test(rotate, "rotate");
     run_test(blur, "blur");

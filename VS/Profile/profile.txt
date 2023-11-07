@@ -335,3 +335,7 @@ map_rgb_gray:
 2.78e+07: img::map_gray(view_3, view_1)       x 20
 6.67e+07: img::map_gray(view_rgba, view_gray) x 20
 9.53e+07: img::map_gray(view_rgba, view_1)    x 20
+
+map_yuv:
+2.96e+08: img::map_yuv_rgba(view_uvy, view_rgba) x 20
+2.99e+08: img::map_yuv_rgba(view_yuv, view_rgba) x 20

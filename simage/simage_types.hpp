@@ -10,15 +10,22 @@ namespace simage
 	constexpr u32 RGBA_CHANNELS = 4;
 	constexpr u32 RGB_CHANNELS = 3;
 
-	using RGBAu8 = RGBA<u8>;
+	class RGBAu8
+	{
+	public:
+		u8 red;
+		u8 green;
+		u8 blue;
+		u8 alpha;
+	};
 
     typedef union pixel_t
 	{
 		u8 channels[4];
 
-		u32 value;
+		u32 value = 0;
 
-		RGBAu8 rgba = {};
+		RGBAu8 rgba;
 
 	} Pixel;
 

@@ -96,25 +96,6 @@ namespace color_space
 }
 
 
-/* types */
-
-namespace color_space
-{   
-    using RGBf32 = RGB<f32>;
-    using RGBu8 = RGB<u8>;
-    using RGBAu8 = RGBA<u8>;
-
-    using HSVf32 = HSV<f32>;
-    using HSVu8 = HSV<u8>;
-
-    using LCHf32 = LCH<f32>;
-    using LCHu8 = LCH<u8>;
-
-    using YUVf32 = YUV<f32>;
-    using YUVu8 = YUV<u8>;
-}
-
-
 /* grayscale */
 
 namespace gray
@@ -533,7 +514,7 @@ namespace lch
     }
 
 
-    inline cs::RGBu8 u8_to_rgb_u8(u8 l, u8 c, u8 h, u8* pr, u8* pg, u8* pb)
+    static inline void u8_to_rgb_u8(u8 l, u8 c, u8 h, u8* pr, u8* pg, u8* pb)
     {
         auto L = cs::to_channel_f32(l);
         auto C = cs::to_channel_f32(c);

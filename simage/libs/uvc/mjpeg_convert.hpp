@@ -1,7 +1,7 @@
 #ifndef MJPEG_CONVERT_HPP
 #define MJPEG_CONVERT_HPP
 
-#define MJPEG_CONVERT_IMPLEMENTATION
+//#define MJPEG_CONVERT_IMPLEMENTATION
 
 #include <cstdint>
 
@@ -19,7 +19,7 @@ namespace mjpeg
     };
 
 
-    bool convert(u8* in_data, u32 in_width, u32 in_size, u8* out_data, u32 out_width, image_format out_format);
+    bool convert(u8* in_data, u32 in_width, u32 in_size, u8* out_data, image_format out_format);
 }
 
 #endif // MJPEG_CONVERT_HPP
@@ -159,7 +159,7 @@ namespace mjpeg
     }
 
 
-    bool convert(u8* in_data, u32 in_width, u32 in_size, u8* out_data, u32 out_width, image_format out_format)
+    bool convert(u8* in_data, u32 in_width, u32 in_size, u8* out_data, image_format out_format)
     {
         jpeg_info_t jinfo;
         if (!setup_jpeg(jinfo, in_data, in_width, in_size, out_format))
@@ -189,6 +189,8 @@ namespace mjpeg
 
         jpeg_finish_decompress(&dinfo);
         jpeg_destroy_decompress(&dinfo);
+
+        return true;
     }
 }
 

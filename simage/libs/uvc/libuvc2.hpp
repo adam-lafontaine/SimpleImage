@@ -9714,7 +9714,7 @@ namespace opt
         u32 out_step = 0;
     };
     
-    
+
     static bool setup_jpeg(jpeg_info_t& jinfo, frame* jframe, image_format out_format)
     {
         auto& jerr = jinfo.jerr;
@@ -9745,7 +9745,7 @@ namespace opt
             insert_huff_tables(&dinfo);
         }
 
-        switch ((image_format)out_format)
+        switch (out_format)
         {
         case image_format::RGB8:
             dinfo.out_color_space = JCS_RGB;

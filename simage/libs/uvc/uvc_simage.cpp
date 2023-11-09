@@ -4,6 +4,9 @@
 #define LIBUVC_IMPLEMENTATION 1
 #include "libuvc2.hpp"
 
+#define MJPEG_CONVERT_IMPLEMENTATION
+#include "mjpeg_convert.hpp"
+
 #include <vector>
 #include <algorithm>
 
@@ -18,25 +21,25 @@ constexpr u8 EXPOSURE_MODE_AUTO = 2;
 constexpr u8 EXPOSURE_MODE_APERTURE = 8;
 
 
-typedef uvc::error(convert_rgba_callback_t)(uvc::frame* in, img::View const& dst);
-typedef uvc::error(convert_gray_callback_t)(uvc::frame* in, img::ViewGray const& dst);
+typedef bool(convert_rgba_callback_t)(uvc::frame* in, img::View const& dst);
+typedef bool(convert_gray_callback_t)(uvc::frame* in, img::ViewGray const& dst);
 
 
 namespace convert
 {
-    static uvc::error rgba_error(uvc::frame* in, img::View const& dst)
+    static bool rgba_error(uvc::frame* in, img::View const& dst)
     {
-        return uvc::UVC_ERROR_NOT_SUPPORTED;
+        return false;
     }
 
 
-    static uvc::error gray_error(uvc::frame* in, img::ViewGray const& dst)
+    static bool gray_error(uvc::frame* in, img::ViewGray const& dst)
     {
-        return uvc::UVC_ERROR_NOT_SUPPORTED;
+        return false;
     }
     
 
-    static uvc::error yuyv_to_rgba(uvc::frame* in, img::View const& dst)
+    static bool yuyv_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageYUV image;
         image.width = dst.width;
@@ -47,11 +50,11 @@ namespace convert
 
         img::map_yuv_rgba(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return false;
     }
 
 
-    static uvc::error yuyv_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static bool yuyv_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageYUV image;
         image.width = dst.width;
@@ -62,11 +65,11 @@ namespace convert
 
         img::map_gray(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error uyvy_to_rgba(uvc::frame* in, img::View const& dst)
+    static bool uyvy_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageUVY image;
         image.width = dst.width;
@@ -77,11 +80,11 @@ namespace convert
 
         img::map_yuv_rgba(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error uyvy_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static bool uyvy_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageUVY image;
         image.width = dst.width;
@@ -92,27 +95,37 @@ namespace convert
 
         img::map_gray(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error mjpeg_to_rgba(uvc::frame* in, img::View const& dst)
+    static bool mjpeg_to_rgba(uvc::frame* in, img::View const& dst)
     {
         assert(is_1d(dst)); // TODO
 
-        return uvc::opt::mjpeg2rgba(in, (u8*)dst.matrix_data);
+        //return uvc::opt::mjpeg2rgba(in, (u8*)dst.matrix_data);
+
+        assert(in);
+        assert(in->data);
+
+        auto format = mjpeg::image_format::RGBA8;
+
+        return mjpeg::convert((u8*)in->data, in->width, (u32)in->data_bytes, (u8*)dst.matrix_data, format);
     }
 
 
-    static uvc::error mjpeg_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static bool mjpeg_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         assert(is_1d(dst)); // TODO
 
-        return uvc::opt::mjpeg2gray(in, (u8*)dst.matrix_data);
+        //return uvc::opt::mjpeg2gray(in, (u8*)dst.matrix_data);
+        auto format = mjpeg::image_format::GRAY8;
+
+        return mjpeg::convert((u8*)in->data, in->width, (u32)in->data_bytes, (u8*)dst.matrix_data, format);
     }
 
 
-    static uvc::error rgb_to_rgba(uvc::frame* in, img::View const& dst)
+    static bool rgb_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageRGB image;
         image.width = dst.width;
@@ -123,11 +136,11 @@ namespace convert
 
         img::map_rgba(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error rgb_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static bool rgb_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageRGB image;
         image.width = dst.width;
@@ -138,11 +151,11 @@ namespace convert
 
         img::map_gray(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error bgr_to_rgba(uvc::frame* in, img::View const& dst)
+    static bool bgr_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageBGR image;
         image.width = dst.width;
@@ -153,11 +166,11 @@ namespace convert
 
         img::map_rgba(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error bgr_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static bool bgr_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageBGR image;
         image.width = dst.width;
@@ -168,11 +181,11 @@ namespace convert
 
         img::map_gray(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error gray_to_rgba(uvc::frame* in, img::View const& dst)
+    static bool gray_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageGray image;
         image.width = dst.width;
@@ -183,11 +196,11 @@ namespace convert
 
         img::map_rgba(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 
 
-    static uvc::error gray_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static bool gray_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageGray image;
         image.width = dst.width;
@@ -198,7 +211,7 @@ namespace convert
 
         img::copy(src, dst);
 
-        return uvc::UVC_SUCCESS;
+        return true;
     }
 }
 
@@ -680,10 +693,9 @@ static bool grab_and_convert_frame_rgba(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_rgba(in_frame, device.rgba_view);
-    if (res != uvc::UVC_SUCCESS)
+    if (!device.convert_rgba(in_frame, device.rgba_view))
     {  
-        print_uvc_error(res, "device.convert_rgb");
+        dbg_print("device.convert_rgb");
         return false;
     }
 
@@ -702,10 +714,9 @@ static bool grab_and_convert_frame_gray(DeviceUVC& device)
         return false;
     }
     
-    res = device.convert_gray(in_frame, device.gray_view);
-    if (res != uvc::UVC_SUCCESS)
+    if (!device.convert_gray(in_frame, device.gray_view))
     {  
-        print_uvc_error(res, "device.convert_gray");
+        dbg_print("device.convert_gray");
         return false;
     }
 

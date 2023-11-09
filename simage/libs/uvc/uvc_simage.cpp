@@ -596,34 +596,40 @@ static bool set_frame_formats(DeviceUVC& device)
     switch(frame->frame_format)
     {
     case uvc::UVC_FRAME_FORMAT_YUYV:
+        dbg_print("Format: YUYV");
         device.convert_rgba = convert::yuyv_to_rgba;
         device.convert_gray = convert::yuyv_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_UYVY:
+        dbg_print("Format: UYVY");
         device.convert_rgba = convert::uyvy_to_rgba;
         device.convert_gray = convert::uyvy_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_MJPEG:
+        dbg_print("Format: MJPEG");
         device.convert_rgba = convert::mjpeg_to_rgba;
         device.convert_gray = convert::mjpeg_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_RGB:
+        dbg_print("Format: RGB");
         device.convert_rgba = convert::rgb_to_rgba;
         device.convert_gray = convert::rgb_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_BGR:
+        dbg_print("Format: BGR");
         device.convert_rgba = convert::bgr_to_rgba;
         device.convert_gray = convert::bgr_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY8:
+        dbg_print("Format: GRAY8");
         device.convert_rgba = convert::gray_to_rgba;
         device.convert_gray = convert::gray_to_gray;
         break;
     case uvc::UVC_FRAME_FORMAT_GRAY16:
-
+        dbg_print("Format: GRAY16");
         break;
     case uvc::UVC_FRAME_FORMAT_NV12:
-
+        dbg_print("Format: NV12");
         break;
     default:
         break;

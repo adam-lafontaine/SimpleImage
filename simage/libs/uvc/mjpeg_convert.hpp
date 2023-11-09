@@ -31,6 +31,20 @@ namespace mjpeg
 #include <jpeglib.h>
 
 
+struct error_mgr
+{
+    struct jpeg_error_mgr super;
+    jmp_buf jmp;
+};
+
+static void _error_exit(j_common_ptr dinfo)
+{
+    struct error_mgr* myerr = (struct error_mgr*)dinfo->err;
+    (*dinfo->err->output_message)(dinfo);
+    longjmp(myerr->jmp, 1);
+}
+
+
 /* ISO/IEC 10918-1:1993(E) K.3.3. Default Huffman tables used by MJPEG UVC devices
        which don't specify a Huffman table in the JPEG stream. */
 static const unsigned char dc_lumi_len[] =
@@ -109,6 +123,8 @@ class jpeg_info_t
 {
 public:
     struct jpeg_decompress_struct dinfo;
+    struct error_mgr jerr;
+
     u32 out_step = 0;
 };
 
@@ -116,15 +132,24 @@ namespace mjpeg
 {
     static bool setup_jpeg(jpeg_info_t& jinfo, u8* in_data, u32 in_width, u32 in_size, image_format out_format)
     {
+        auto& jerr = jinfo.jerr;
         auto& dinfo = jinfo.dinfo;
 
         auto const fail = [&]()
-        {
-            jpeg_destroy_decompress(&dinfo);
-            return false;
-        };
+            {
+                jpeg_destroy_decompress(&dinfo);
+                return false;
+            };
 
-        jpeg_create_decompress(&dinfo);        
+        jerr.super.error_exit = _error_exit;
+        if (setjmp(jerr.jmp))
+        {
+            return fail();
+        }
+
+        dinfo.err = jpeg_std_error(&jerr.super);
+
+        jpeg_create_decompress(&dinfo);
 
         jpeg_mem_src(&dinfo, (unsigned char *)in_data, in_size);
         jpeg_read_header(&dinfo, TRUE);

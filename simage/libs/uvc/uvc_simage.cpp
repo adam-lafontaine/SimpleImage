@@ -50,7 +50,7 @@ namespace convert
 
         img::map_yuv_rgba(src, dst);
 
-        return false;
+        return true;
     }
 
 

@@ -96,7 +96,7 @@ object_files += $(tests_o)
 INCLUDES  := 
 #INCLUDES += -I /usr/include/libusb-1.0
 
-LIBRARIES := -ltbb -pthread
+LIBRARIES := -pthread
 LIBRARIES += $(LIBUSB)
 #LIBRARIES += $(SDL2)
 

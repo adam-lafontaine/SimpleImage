@@ -23,9 +23,9 @@ namespace simage
 	{
 		u8 channels[4];
 
-		u32 value = 0;
+		u32 value;
 
-		RGBAu8 rgba;
+		RGBAu8 rgba = {};
 
 	} Pixel;
 

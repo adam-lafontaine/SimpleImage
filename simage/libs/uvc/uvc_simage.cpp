@@ -18,25 +18,25 @@ constexpr u8 EXPOSURE_MODE_AUTO = 2;
 constexpr u8 EXPOSURE_MODE_APERTURE = 8;
 
 
-typedef uvc::uvc_error_t(convert_rgba_callback_t)(uvc::frame* in, img::View const& dst);
-typedef uvc::uvc_error_t(convert_gray_callback_t)(uvc::frame* in, img::ViewGray const& dst);
+typedef uvc::error(convert_rgba_callback_t)(uvc::frame* in, img::View const& dst);
+typedef uvc::error(convert_gray_callback_t)(uvc::frame* in, img::ViewGray const& dst);
 
 
 namespace convert
 {
-    static uvc::uvc_error_t rgba_error(uvc::frame* in, img::View const& dst)
+    static uvc::error rgba_error(uvc::frame* in, img::View const& dst)
     {
         return uvc::UVC_ERROR_NOT_SUPPORTED;
     }
 
 
-    static uvc::uvc_error_t gray_error(uvc::frame* in, img::ViewGray const& dst)
+    static uvc::error gray_error(uvc::frame* in, img::ViewGray const& dst)
     {
         return uvc::UVC_ERROR_NOT_SUPPORTED;
     }
     
 
-    static uvc::uvc_error_t yuyv_to_rgba(uvc::frame* in, img::View const& dst)
+    static uvc::error yuyv_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageYUV image;
         image.width = dst.width;
@@ -51,7 +51,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t yuyv_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static uvc::error yuyv_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageYUV image;
         image.width = dst.width;
@@ -66,7 +66,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t uyvy_to_rgba(uvc::frame* in, img::View const& dst)
+    static uvc::error uyvy_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageUVY image;
         image.width = dst.width;
@@ -81,7 +81,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t uyvy_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static uvc::error uyvy_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageUVY image;
         image.width = dst.width;
@@ -96,7 +96,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t mjpeg_to_rgba(uvc::frame* in, img::View const& dst)
+    static uvc::error mjpeg_to_rgba(uvc::frame* in, img::View const& dst)
     {
         assert(is_1d(dst)); // TODO
 
@@ -104,7 +104,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t mjpeg_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static uvc::error mjpeg_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         assert(is_1d(dst)); // TODO
 
@@ -112,7 +112,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t rgb_to_rgba(uvc::frame* in, img::View const& dst)
+    static uvc::error rgb_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageRGB image;
         image.width = dst.width;
@@ -127,7 +127,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t rgb_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static uvc::error rgb_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageRGB image;
         image.width = dst.width;
@@ -142,7 +142,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t bgr_to_rgba(uvc::frame* in, img::View const& dst)
+    static uvc::error bgr_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageBGR image;
         image.width = dst.width;
@@ -157,7 +157,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t bgr_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static uvc::error bgr_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageBGR image;
         image.width = dst.width;
@@ -172,7 +172,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t gray_to_rgba(uvc::frame* in, img::View const& dst)
+    static uvc::error gray_to_rgba(uvc::frame* in, img::View const& dst)
     {
         img::ImageGray image;
         image.width = dst.width;
@@ -187,7 +187,7 @@ namespace convert
     }
 
 
-    static uvc::uvc_error_t gray_to_gray(uvc::frame* in, img::ViewGray const& dst)
+    static uvc::error gray_to_gray(uvc::frame* in, img::ViewGray const& dst)
     {
         img::ImageGray image;
         image.width = dst.width;
@@ -275,7 +275,7 @@ static void print_uvc_error(uvc::error err, const char* msg)
 }
 
 
-static void print_error(const char* msg)
+static void dbg_print(const char* msg)
 {
 #ifndef NDEBUG
 
@@ -393,10 +393,6 @@ static bool connect_device(DeviceUVC& device)
     if (res != uvc::UVC_SUCCESS)
     {
         print_uvc_error(res, "uvc_open");
-        if (res == uvc::UVC_ERROR_ACCESS)
-        {
-            print_device_permissions_msg();
-        }
         
         return false;
     }        
@@ -472,6 +468,8 @@ static DeviceUVC* get_default_device(DeviceListUVC& list)
             return devices.data() + id;
         }
     }
+
+    print_device_permissions_msg(list);
 
     return nullptr;
 }
@@ -754,7 +752,7 @@ namespace simage
         auto result = get_default_device(g_device_list);
         if (!result)
         {
-            print_error("No connected devices available");
+            dbg_print("No connected devices available");
             return false;
         }        
 

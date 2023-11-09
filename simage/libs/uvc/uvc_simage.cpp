@@ -4,9 +4,6 @@
 #define LIBUVC_IMPLEMENTATION 1
 #include "libuvc2.hpp"
 
-#define MJPEG_CONVERT_IMPLEMENTATION
-#include "mjpeg_convert.hpp"
-
 #include <vector>
 #include <algorithm>
 
@@ -103,14 +100,7 @@ namespace convert
     {
         assert(is_1d(dst)); // TODO
 
-        //return uvc::opt::mjpeg2rgba(in, (u8*)dst.matrix_data);
-
-        assert(in);
-        assert(in->data);
-
-        auto format = mjpeg::image_format::RGBA8;
-
-        return mjpeg::convert((u8*)in->data, in->width, (u32)in->data_bytes, (u8*)dst.matrix_data, format);
+        return uvc::opt::mjpeg2rgba(in, (u8*)dst.matrix_data) == uvc::UVC_SUCCESS;
     }
 
 
@@ -118,10 +108,7 @@ namespace convert
     {
         assert(is_1d(dst)); // TODO
 
-        //return uvc::opt::mjpeg2gray(in, (u8*)dst.matrix_data);
-        auto format = mjpeg::image_format::GRAY8;
-
-        return mjpeg::convert((u8*)in->data, in->width, (u32)in->data_bytes, (u8*)dst.matrix_data, format);
+        return uvc::opt::mjpeg2gray(in, (u8*)dst.matrix_data) == uvc::UVC_SUCCESS;
     }
 
 

@@ -874,14 +874,10 @@ namespace opt
 
 }}
 
+/* end header */
+#endif // LIBUVC_H
 
 #ifdef LIBUVC_IMPLEMENTATION
-
-
-namespace uvc
-{
-    
-}
 
 
 namespace uvc
@@ -9717,10 +9713,9 @@ namespace opt
 
         u32 out_step = 0;
     };
-
-
-    template <typename T>
-    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, T out_format)
+    
+    
+    static bool setup_jpeg(jpeg_info_t& jinfo, frame* jframe, image_format out_format)
     {
         auto& jerr = jinfo.jerr;
         auto& dinfo = jinfo.dinfo;
@@ -9772,10 +9767,9 @@ namespace opt
         
         return true;
     }
+    
 
-
-    template <typename T>
-    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, T out_format)
+    static uvc_error_t mjpeg_convert(frame* in, u8* out, image_format out_format)
     {
         // not actually parallel
 
@@ -9839,6 +9833,3 @@ namespace opt
 }}
 
 #endif // LIBUVC_IMPLEMENTATION
-
-#endif // !def(LIBUVC_H)
-

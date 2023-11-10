@@ -116,14 +116,14 @@ namespace gray
 
     inline constexpr f32 f32_from_rgb_u8(u8 r, u8 g, u8 b)
     {
-        auto const gray = COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
+        auto gray = COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
         return cs::clamp_channel_f32(gray / cs::CH_U8_MAX);
     }
 
 
     inline constexpr u8 u8_from_rgb_f32(f32 r, f32 g, f32 b)
     {
-        auto const gray = COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
+        auto gray = COEFF_RED * r + COEFF_GREEN * g + COEFF_BLUE * b;
         return cs::to_channel_u8(gray);
     }
     

@@ -94,14 +94,25 @@ namespace hist
 		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
 
-		auto hsv = hsv::u8_from_rgb_u8(red, green, blue);
-		auto lch = lch::u8_from_rgb_u8(red, green, blue);
-		auto yuv = yuv::u8_from_rgb_u8(red, green, blue);
+		u8 hsv_h = 0;
+		u8 hsv_s = 0;
+		u8 hsv_v = 0;
+		hsv::u8_from_rgb_u8(red, green, blue, &hsv_h, &hsv_s, &hsv_v);
+
+		u8 lch_l = 0;
+		u8 lch_c = 0;
+		u8 lch_h = 0;
+		lch::u8_from_rgb_u8(red, green, blue, &lch_l, &lch_c, &lch_h);
+
+		u8 yuv_y = 0;
+		u8 yuv_u = 0;
+		u8 yuv_v = 0;
+		yuv::u8_from_rgb_u8(red, green, blue, &yuv_y, &yuv_u, &yuv_v);
 
 		update_counts(red, green, blue, dst.rgb, n_bins);
-		update_counts(hsv.hue, hsv.sat, hsv.val, dst.hsv, n_bins);
-		update_counts(lch.light, lch.chroma, lch.hue, dst.lch, n_bins);
-		update_counts(yuv.y, yuv.u, yuv.v, dst.yuv, n_bins);
+		update_counts(hsv_h, hsv_s, hsv_v, dst.hsv, n_bins);
+		update_counts(lch_l, lch_c, lch_h, dst.lch, n_bins);
+		update_counts(yuv_y, yuv_u, yuv_v, dst.yuv, n_bins);
 	}
 
 
@@ -112,13 +123,24 @@ namespace hist
 		auto& h_lch = dst.lch;
 		auto& h_yuv = dst.yuv;
 
-		auto rgba = yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v);
-		auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-		auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
+		u8 rgb_r = 0;
+		u8 rgb_g = 0;
+		u8 rgb_b = 0;
+		yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, &rgb_r, &rgb_g, &rgb_b);
 
-		update_counts(rgba.red, rgba.green, rgba.blue, dst.rgb, n_bins);
-		update_counts(hsv.hue, hsv.sat, hsv.val, dst.hsv, n_bins);
-		update_counts(lch.light, lch.chroma, lch.hue, dst.lch, n_bins);
+		u8 hsv_h = 0;
+		u8 hsv_s = 0;
+		u8 hsv_v = 0;
+		hsv::u8_from_rgb_u8(rgb_r, rgb_g, rgb_b, &hsv_h, &hsv_s, &hsv_v);
+
+		u8 lch_l = 0;
+		u8 lch_c = 0;
+		u8 lch_h = 0;
+		lch::u8_from_rgb_u8(rgb_r, rgb_g, rgb_b, &lch_l, &lch_c, &lch_h);
+
+		update_counts(rgb_r, rgb_g, rgb_b, dst.rgb, n_bins);
+		update_counts(hsv_h, hsv_s, hsv_v, dst.hsv, n_bins);
+		update_counts(lch_l, lch_c, lch_h, dst.lch, n_bins);
 		update_counts(yuv_y, yuv_u, yuv_v, dst.yuv, n_bins);
 	}
 
@@ -300,14 +322,18 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
+		u8 hsv_h = 0;
+		u8 hsv_s = 0;
+		u8 hsv_v = 0;
+
 		if (is_1d(src))
 		{
 			auto s = row_begin(src, 0);
 			for (u32 i = 0; i < len; ++i)
 			{
 				auto rgba = s[i].rgba;
-				auto hsv = hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-				update_counts(hsv.hue, hsv.sat, hsv.val, dst, n_bins);
+				hsv::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue, &hsv_h, &hsv_s, &hsv_v);
+				update_counts(hsv_h, hsv_s, hsv_v, dst, n_bins);
 			}
 		}
 		else
@@ -336,14 +362,18 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
+		u8 lch_l = 0;
+		u8 lch_c = 0;
+		u8 lch_h = 0;
+
 		if (is_1d(src))
 		{
 			auto s = row_begin(src, 0);
 			for (u32 i = 0; i < len; ++i)
 			{
 				auto rgba = s[i].rgba;
-				auto lch = lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue);
-				update_counts(lch.light, lch.chroma, lch.hue, dst, n_bins);
+				lch::u8_from_rgb_u8(rgba.red, rgba.green, rgba.blue, &lch_l, &lch_c, &lch_h);
+				update_counts(lch_l, lch_c, lch_h, dst, n_bins);
 			}
 		}
 		else
@@ -409,6 +439,10 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
+		u8 rgb_r = 0;
+		u8 rgb_g = 0;
+		u8 rgb_b = 0;
+
 		if (is_1d(src))
 		{
 			auto src422 = (YUYVu8*)row_begin(src, 0);
@@ -416,11 +450,11 @@ namespace hist
 			for (u32 i422 = 0; i422 < len / 2; ++i422)
 			{
 				auto yuv = src422[i422];
-				auto rgb = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
-				update_counts(rgb.red, rgb.green, rgb.blue, dst, n_bins);			
+				yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v, &rgb_r, &rgb_g, &rgb_b);
+				update_counts(rgb_r, rgb_g, rgb_b, dst, n_bins);
 				
-				rgb = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
-				update_counts(rgb.red, rgb.green, rgb.blue, dst, n_bins);
+				yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v, &rgb_r, &rgb_g, &rgb_b);
+				update_counts(rgb_r, rgb_g, rgb_b, dst, n_bins);
 			}
 		}
 		else
@@ -449,6 +483,14 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
+		u8 rgb_r = 0;
+		u8 rgb_g = 0;
+		u8 rgb_b = 0;
+
+		u8 hsv_h = 0;
+		u8 hsv_s = 0;
+		u8 hsv_v = 0;
+
 		if (is_1d(src))
 		{
 			auto src422 = (YUYVu8*)row_begin(src, 0);
@@ -456,13 +498,13 @@ namespace hist
 			for (u32 i422 = 0; i422 < len / 2; ++i422)
 			{
 				auto yuv = src422[i422];
-				auto rgb = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
-				auto hsv = hsv::u8_from_rgb_u8(rgb.red, rgb.green, rgb.blue);
-				update_counts(hsv.hue, hsv.sat, hsv.val, dst, n_bins);
+				yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v, &rgb_r, &rgb_g, &rgb_b);
+				hsv::u8_from_rgb_u8(rgb_r, rgb_g, rgb_b, &hsv_h, &hsv_s, &hsv_v);
+				update_counts(hsv_h, hsv_s, hsv_v, dst, n_bins);
 
-				rgb = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
-				hsv = hsv::u8_from_rgb_u8(rgb.red, rgb.green, rgb.blue);
-				update_counts(hsv.hue, hsv.sat, hsv.val, dst, n_bins);
+				yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v, &rgb_r, &rgb_g, &rgb_b);
+				hsv::u8_from_rgb_u8(rgb_r, rgb_g, rgb_b, &hsv_h, &hsv_s, &hsv_v);
+				update_counts(hsv_h, hsv_s, hsv_v, dst, n_bins);
 			}
 		}
 		else
@@ -491,6 +533,14 @@ namespace hist
 
 		u32 len = src.width * src.height;
 
+		u8 rgb_r = 0;
+		u8 rgb_g = 0;
+		u8 rgb_b = 0;
+
+		u8 lch_l = 0;
+		u8 lch_c = 0;
+		u8 lch_h = 0;
+
 		if (is_1d(src))
 		{
 			auto src422 = (YUYVu8*)row_begin(src, 0);
@@ -498,13 +548,13 @@ namespace hist
 			for (u32 i422 = 0; i422 < len / 2; ++i422)
 			{
 				auto yuv = src422[i422];
-				auto rgb = yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v);
-				auto lch = lch::u8_from_rgb_u8(rgb.red, rgb.green, rgb.blue);
-				update_counts(lch.light, lch.chroma, lch.hue, dst, n_bins);
+				yuv::u8_to_rgb_u8(yuv.y1, yuv.u, yuv.v, &rgb_r, &rgb_g, &rgb_b);
+				lch::u8_from_rgb_u8(rgb_r, rgb_g, rgb_b, &lch_l, &lch_c, &lch_h);
+				update_counts(lch_l, lch_c, lch_h, dst, n_bins);
 
-				rgb = yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v);
-				lch = lch::u8_from_rgb_u8(rgb.red, rgb.green, rgb.blue);
-				update_counts(lch.light, lch.chroma, lch.hue, dst, n_bins);
+				yuv::u8_to_rgb_u8(yuv.y2, yuv.u, yuv.v, &rgb_r, &rgb_g, &rgb_b);
+				lch::u8_from_rgb_u8(rgb_r, rgb_g, rgb_b, &lch_l, &lch_c, &lch_h);
+				update_counts(lch_l, lch_c, lch_h, dst, n_bins);
 			}
 		}
 		else

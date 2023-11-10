@@ -110,7 +110,7 @@ object_files += $(tests_o)
 INCLUDES  := 
 #INCLUDES += -I /usr/include/libusb-1.0
 
-LIBRARIES := $(SDL2) -ltbb -pthread
+LIBRARIES := $(SDL2) -pthread
 LIBRARIES += $(LIBUSB)
 
 CCFLAGS := -std=c++17 

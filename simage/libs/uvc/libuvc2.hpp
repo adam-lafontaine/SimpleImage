@@ -8,12 +8,10 @@
 #endif // ! NDEBUG
 
 
+struct libusb_context;
+struct libusb_device_handle;
 
-#include <stdio.h> // FILE
-#include <stdint.h>
-
-    struct libusb_context;
-    struct libusb_device_handle;
+/* libuvc types */
 
 namespace uvc
 {
@@ -559,6 +557,13 @@ namespace uvc
         uint8_t bInterfaceNumber;
     } uvc_still_ctrl_t;
 
+}
+
+
+/* libuvc api */
+
+namespace uvc
+{
     uvc_error_t uvc_init(uvc_context_t **ctx, struct libusb_context *usb_ctx);
     void uvc_exit(uvc_context_t *ctx);
 
@@ -844,18 +849,6 @@ namespace uvc
 
 namespace uvc
 {
-namespace opt
-{
-#ifdef LIBUVC_HAS_JPEG
-    uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out);
-    uvc_error_t mjpeg2gray(uvc_frame_t *in, u8* out);
-#endif  
-
-}}
-
-
-namespace uvc
-{
     using device = uvc_device_t;
     using device_handle = uvc_device_handle_t;
     using device_descriptor = uvc_device_descriptor_t;
@@ -870,7 +863,22 @@ namespace uvc
 }
 
 
+namespace uvc
+{
+namespace opt
+{
+#ifdef LIBUVC_HAS_JPEG
+    error mjpeg2rgba(frame* in, u8* out);
+    error mjpeg2gray(frame* in, u8* out);
+#endif  
+
+}}
+
+/* end header */
+#endif // LIBUVC_H
+
 #ifdef LIBUVC_IMPLEMENTATION
+
 
 namespace uvc
 {
@@ -1597,8 +1605,10 @@ namespace uvc
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
-#include <chrono>
+#include <pthread.h>
 
+#include <stdio.h> // FILE
+#include <stdint.h>
 
 #include <libusb-1.0/libusb.h>
 
@@ -1611,116 +1621,118 @@ namespace uvc
     }
 }
 
-#include <pthread.h>
 
+/* threads */
 
-using thread_ret_t = void*;
-
-
-typedef void* (*thread_f)(void*);
-
-
-class thread_t
+namespace uvc
 {
-public:
-    pthread_t thread;
-};
+    using thread_ret_t = void*;
 
 
-class mutex_t
-{
-public:
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-};
+    typedef void* (*thread_f)(void*);
 
 
-static void thread_create(thread_t& th, thread_f start_f, void* user_data)
-{
-    pthread_create(&th.thread, NULL, start_f, user_data);
+    class thread_t
+    {
+    public:
+        pthread_t thread;
+    };
+
+
+    class mutex_t
+    {
+    public:
+        pthread_mutex_t mutex;
+        pthread_cond_t cond;
+    };
+
+
+    static void thread_create(thread_t& th, thread_f start_f, void* user_data)
+    {
+        pthread_create(&th.thread, NULL, start_f, user_data);
+    }
+
+
+    static void thread_join(thread_t& th)
+    {
+        pthread_join(th.thread, NULL);
+    }
+
+
+    static void mutex_init(mutex_t& mtx)
+    {
+        pthread_mutex_init(&mtx.mutex, NULL);
+        pthread_cond_init(&mtx.cond, NULL);
+    }
+
+
+    static void mutex_destroy(mutex_t& mtx)
+    {
+        pthread_cond_destroy(&mtx.cond);
+        pthread_mutex_destroy(&mtx.mutex);
+    }
+
+
+    static void mutex_lock(mutex_t& mtx)
+    {
+        pthread_mutex_lock(&mtx.mutex);
+    }
+
+
+    static void mutex_wait(mutex_t& mtx)
+    {
+        pthread_cond_wait(&mtx.cond, &mtx.mutex);
+    }
+
+
+    static int mutex_wait_for(mutex_t& mtx, int32_t timeout_us)
+    {
+        // implementation moved here from uvc_stream_get_frame().
+        // not used
+        time_t add_secs;
+        time_t add_nsecs;
+        struct timespec ts;
+
+        add_secs = timeout_us / 1000000;
+        add_nsecs = (timeout_us % 1000000) * 1000;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 0;
+
+    #if _POSIX_TIMERS > 0
+        clock_gettime(CLOCK_REALTIME, &ts);
+    #else
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        ts.tv_sec = tv.tv_sec;
+        ts.tv_nsec = tv.tv_usec * 1000;
+    #endif
+
+        ts.tv_sec += add_secs;
+        ts.tv_nsec += add_nsecs;
+
+        /* pthread_cond_timedwait FAILS with EINVAL if ts.tv_nsec > 1000000000 (1 billion)
+            * Since we are just adding values to the timespec, we have to increment the seconds if nanoseconds is greater than 1 billion,
+            * and then re-adjust the nanoseconds in the correct range.
+            * */
+        ts.tv_sec += ts.tv_nsec / 1000000000;
+        ts.tv_nsec = ts.tv_nsec % 1000000000;
+
+        return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, &ts);
+    }
+
+
+    static void mutex_unlock(mutex_t& mtx)
+    {
+        pthread_mutex_unlock(&mtx.mutex);
+    }
+
+
+    static void mutex_unlock_broadcast(mutex_t& mtx)
+    {
+        pthread_cond_broadcast(&mtx.cond);
+        pthread_mutex_unlock(&mtx.mutex);
+    }
 }
-
-
-static void thread_join(thread_t& th)
-{
-    pthread_join(th.thread, NULL);
-}
-
-
-static void mutex_init(mutex_t& mtx)
-{
-    pthread_mutex_init(&mtx.mutex, NULL);
-    pthread_cond_init(&mtx.cond, NULL);
-}
-
-
-static void mutex_destroy(mutex_t& mtx)
-{
-    pthread_cond_destroy(&mtx.cond);
-    pthread_mutex_destroy(&mtx.mutex);
-}
-
-
-static void mutex_lock(mutex_t& mtx)
-{
-    pthread_mutex_lock(&mtx.mutex);
-}
-
-
-static void mutex_wait(mutex_t& mtx)
-{
-    pthread_cond_wait(&mtx.cond, &mtx.mutex);
-}
-
-
-static int mutex_wait_for(mutex_t& mtx, int32_t timeout_us)
-{
-    // implementation moved here from uvc_stream_get_frame().
-    // not used
-    time_t add_secs;
-    time_t add_nsecs;
-    struct timespec ts;
-
-    add_secs = timeout_us / 1000000;
-    add_nsecs = (timeout_us % 1000000) * 1000;
-    ts.tv_sec = 0;
-    ts.tv_nsec = 0;
-
-#if _POSIX_TIMERS > 0
-    clock_gettime(CLOCK_REALTIME, &ts);
-#else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    ts.tv_sec = tv.tv_sec;
-    ts.tv_nsec = tv.tv_usec * 1000;
-#endif
-
-    ts.tv_sec += add_secs;
-    ts.tv_nsec += add_nsecs;
-
-    /* pthread_cond_timedwait FAILS with EINVAL if ts.tv_nsec > 1000000000 (1 billion)
-        * Since we are just adding values to the timespec, we have to increment the seconds if nanoseconds is greater than 1 billion,
-        * and then re-adjust the nanoseconds in the correct range.
-        * */
-    ts.tv_sec += ts.tv_nsec / 1000000000;
-    ts.tv_nsec = ts.tv_nsec % 1000000000;
-
-    return pthread_cond_timedwait(&mtx.cond, &mtx.mutex, &ts);
-}
-
-
-static void mutex_unlock(mutex_t& mtx)
-{
-    pthread_mutex_unlock(&mtx.mutex);
-}
-
-
-static void mutex_unlock_broadcast(mutex_t& mtx)
-{
-    pthread_cond_broadcast(&mtx.cond);
-    pthread_mutex_unlock(&mtx.mutex);
-}
-
 
 
 namespace uvc
@@ -2064,11 +2076,11 @@ namespace uvc
 }
 
 #include <errno.h>
-#include <jpeglib.h>
 #include <setjmp.h>
 
 // #define _POSIX_C_SOURCE 199309L
 #include <time.h>
+
 
 namespace uvc
 {
@@ -3765,6 +3777,7 @@ namespace uvc
 #endif // STREAM_C
 }
 
+
 namespace uvc
 {
 #define INIT_C
@@ -3870,711 +3883,6 @@ namespace uvc
 #endif // INIT_C
 }
 
-namespace uvc
-{
-#define FRAME_C
-#ifdef FRAME_C
-
-    /** @internal */
-    uvc_error_t uvc_ensure_frame_size(uvc_frame_t *frame, size_t need_bytes)
-    {
-        if (frame->library_owns_data)
-        {
-            if (!frame->data || frame->data_bytes != need_bytes)
-            {
-                frame->data_bytes = need_bytes;
-                frame->data = realloc(frame->data, frame->data_bytes);
-            }
-            if (!frame->data)
-                return UVC_ERROR_NO_MEM;
-
-            return UVC_SUCCESS;
-        }
-        else
-        {
-            if (!frame->data || frame->data_bytes < need_bytes)
-                return UVC_ERROR_NO_MEM;
-
-            return UVC_SUCCESS;
-        }
-    }
-
-    /** @brief Allocate a frame structure
-     * @ingroup frame
-     *
-     * @param data_bytes Number of bytes to allocate, or zero
-     * @return New frame, or NULL on error
-     */
-    uvc_frame_t *uvc_allocate_frame(size_t data_bytes)
-    {
-        uvc_frame_t *frame = (uvc_frame_t *)malloc(sizeof(*frame));
-
-        if (!frame)
-            return NULL;
-
-        memset(frame, 0, sizeof(*frame));
-
-        frame->library_owns_data = 1;
-
-        if (data_bytes > 0)
-        {
-            frame->data_bytes = data_bytes;
-            frame->data = malloc(data_bytes);
-
-            if (!frame->data)
-            {
-                free(frame);
-                return NULL;
-            }
-        }
-
-        return frame;
-    }
-
-    /** @brief Free a frame structure
-     * @ingroup frame
-     *
-     * @param frame Frame to destroy
-     */
-    void uvc_free_frame(uvc_frame_t *frame)
-    {
-        if (frame->library_owns_data)
-        {
-            if (frame->data_bytes > 0)
-                free(frame->data);
-            if (frame->metadata_bytes > 0)
-                free(frame->metadata);
-        }
-
-        free(frame);
-    }
-
-    static inline unsigned char sat(int i)
-    {
-        return (unsigned char)(i >= 255 ? 255 : (i < 0 ? 0 : i));
-    }
-
-    /** @brief Duplicate a frame, preserving color format
-     * @ingroup frame
-     *
-     * @param in Original frame
-     * @param out Duplicate frame
-     */
-    uvc_error_t uvc_duplicate_frame(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (uvc_ensure_frame_size(out, in->data_bytes) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = in->frame_format;
-        out->step = in->step;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        memcpy(out->data, in->data, in->data_bytes);
-
-        if (in->metadata && in->metadata_bytes > 0)
-        {
-            if (out->metadata_bytes < in->metadata_bytes)
-            {
-                out->metadata = realloc(out->metadata, in->metadata_bytes);
-            }
-            out->metadata_bytes = in->metadata_bytes;
-            memcpy(out->metadata, in->metadata, in->metadata_bytes);
-        }
-
-        return UVC_SUCCESS;
-    }
-
-#define YUYV2RGB_2(pyuv, prgb)                                                  \
-    {                                                                           \
-        float r = 1.402f * ((pyuv)[3] - 128);                                   \
-        float g = -0.34414f * ((pyuv)[1] - 128) - 0.71414f * ((pyuv)[3] - 128); \
-        float b = 1.772f * ((pyuv)[1] - 128);                                   \
-        (prgb)[0] = sat(pyuv[0] + r);                                           \
-        (prgb)[1] = sat(pyuv[0] + g);                                           \
-        (prgb)[2] = sat(pyuv[0] + b);                                           \
-        (prgb)[3] = sat(pyuv[2] + r);                                           \
-        (prgb)[4] = sat(pyuv[2] + g);                                           \
-        (prgb)[5] = sat(pyuv[2] + b);                                           \
-    }
-#define IYUYV2RGB_2(pyuv, prgb)                                                \
-    {                                                                          \
-        int r = (22987 * ((pyuv)[3] - 128)) >> 14;                             \
-        int g = (-5636 * ((pyuv)[1] - 128) - 11698 * ((pyuv)[3] - 128)) >> 14; \
-        int b = (29049 * ((pyuv)[1] - 128)) >> 14;                             \
-        (prgb)[0] = sat(*(pyuv) + r);                                          \
-        (prgb)[1] = sat(*(pyuv) + g);                                          \
-        (prgb)[2] = sat(*(pyuv) + b);                                          \
-        (prgb)[3] = sat((pyuv)[2] + r);                                        \
-        (prgb)[4] = sat((pyuv)[2] + g);                                        \
-        (prgb)[5] = sat((pyuv)[2] + b);                                        \
-    }
-#define IYUYV2RGB_16(pyuv, prgb) \
-    IYUYV2RGB_8(pyuv, prgb);     \
-    IYUYV2RGB_8(pyuv + 16, prgb + 24);
-#define IYUYV2RGB_8(pyuv, prgb) \
-    IYUYV2RGB_4(pyuv, prgb);    \
-    IYUYV2RGB_4(pyuv + 8, prgb + 12);
-#define IYUYV2RGB_4(pyuv, prgb) \
-    IYUYV2RGB_2(pyuv, prgb);    \
-    IYUYV2RGB_2(pyuv + 4, prgb + 6);
-
-    /** @brief Convert a frame from YUYV to RGB
-     * @ingroup frame
-     *
-     * @param in YUYV frame
-     * @param out RGB frame
-     */
-    uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *prgb = (uint8_t *)out->data;
-        uint8_t *prgb_end = prgb + out->data_bytes;
-
-        while (prgb < prgb_end)
-        {
-            IYUYV2RGB_8(pyuv, prgb);
-
-            prgb += 3 * 8;
-            pyuv += 2 * 8;
-        }
-
-        return UVC_SUCCESS;
-    }
-
-#define IYUYV2BGR_2(pyuv, pbgr)                                                \
-    {                                                                          \
-        int r = (22987 * ((pyuv)[3] - 128)) >> 14;                             \
-        int g = (-5636 * ((pyuv)[1] - 128) - 11698 * ((pyuv)[3] - 128)) >> 14; \
-        int b = (29049 * ((pyuv)[1] - 128)) >> 14;                             \
-        (pbgr)[0] = sat(*(pyuv) + b);                                          \
-        (pbgr)[1] = sat(*(pyuv) + g);                                          \
-        (pbgr)[2] = sat(*(pyuv) + r);                                          \
-        (pbgr)[3] = sat((pyuv)[2] + b);                                        \
-        (pbgr)[4] = sat((pyuv)[2] + g);                                        \
-        (pbgr)[5] = sat((pyuv)[2] + r);                                        \
-    }
-#define IYUYV2BGR_16(pyuv, pbgr) \
-    IYUYV2BGR_8(pyuv, pbgr);     \
-    IYUYV2BGR_8(pyuv + 16, pbgr + 24);
-#define IYUYV2BGR_8(pyuv, pbgr) \
-    IYUYV2BGR_4(pyuv, pbgr);    \
-    IYUYV2BGR_4(pyuv + 8, pbgr + 12);
-#define IYUYV2BGR_4(pyuv, pbgr) \
-    IYUYV2BGR_2(pyuv, pbgr);    \
-    IYUYV2BGR_2(pyuv + 4, pbgr + 6);
-
-    /** @brief Convert a frame from YUYV to BGR
-     * @ingroup frame
-     *
-     * @param in YUYV frame
-     * @param out BGR frame
-     */
-    uvc_error_t uvc_yuyv2bgr(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_BGR;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *pbgr = (uint8_t *)out->data;
-        uint8_t *pbgr_end = pbgr + out->data_bytes;
-
-        while (pbgr < pbgr_end)
-        {
-            IYUYV2BGR_8(pyuv, pbgr);
-
-            pbgr += 3 * 8;
-            pyuv += 2 * 8;
-        }
-
-        return UVC_SUCCESS;
-    }
-
-#define IYUYV2Y(pyuv, py)    \
-    {                        \
-        (py)[0] = (pyuv[0]); \
-    }
-
-    /** @brief Convert a frame from YUYV to Y (GRAY8)
-     * @ingroup frame
-     *
-     * @param in YUYV frame
-     * @param out GRAY8 frame
-     */
-    uvc_error_t uvc_yuyv2y(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *py = (uint8_t *)out->data;
-        uint8_t *py_end = py + out->data_bytes;
-
-        while (py < py_end)
-        {
-            IYUYV2Y(pyuv, py);
-
-            py += 1;
-            pyuv += 2;
-        }
-
-        return UVC_SUCCESS;
-    }
-
-#define IYUYV2UV(pyuv, puv)   \
-    {                         \
-        (puv)[0] = (pyuv[1]); \
-    }
-
-    /** @brief Convert a frame from YUYV to UV (GRAY8)
-     * @ingroup frame
-     *
-     * @param in YUYV frame
-     * @param out GRAY8 frame
-     */
-    uvc_error_t uvc_yuyv2uv(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *puv = (uint8_t *)out->data;
-        uint8_t *puv_end = puv + out->data_bytes;
-
-        while (puv < puv_end)
-        {
-            IYUYV2UV(pyuv, puv);
-
-            puv += 1;
-            pyuv += 2;
-        }
-
-        return UVC_SUCCESS;
-    }
-
-#define IUYVY2RGB_2(pyuv, prgb)                                                \
-    {                                                                          \
-        int r = (22987 * ((pyuv)[2] - 128)) >> 14;                             \
-        int g = (-5636 * ((pyuv)[0] - 128) - 11698 * ((pyuv)[2] - 128)) >> 14; \
-        int b = (29049 * ((pyuv)[0] - 128)) >> 14;                             \
-        (prgb)[0] = sat((pyuv)[1] + r);                                        \
-        (prgb)[1] = sat((pyuv)[1] + g);                                        \
-        (prgb)[2] = sat((pyuv)[1] + b);                                        \
-        (prgb)[3] = sat((pyuv)[3] + r);                                        \
-        (prgb)[4] = sat((pyuv)[3] + g);                                        \
-        (prgb)[5] = sat((pyuv)[3] + b);                                        \
-    }
-#define IUYVY2RGB_16(pyuv, prgb) \
-    IUYVY2RGB_8(pyuv, prgb);     \
-    IUYVY2RGB_8(pyuv + 16, prgb + 24);
-#define IUYVY2RGB_8(pyuv, prgb) \
-    IUYVY2RGB_4(pyuv, prgb);    \
-    IUYVY2RGB_4(pyuv + 8, prgb + 12);
-#define IUYVY2RGB_4(pyuv, prgb) \
-    IUYVY2RGB_2(pyuv, prgb);    \
-    IUYVY2RGB_2(pyuv + 4, prgb + 6);
-
-    /** @brief Convert a frame from UYVY to RGB
-     * @ingroup frame
-     * @param ini UYVY frame
-     * @param out RGB frame
-     */
-    uvc_error_t uvc_uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_UYVY)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *prgb = (uint8_t *)out->data;
-        uint8_t *prgb_end = prgb + out->data_bytes;
-
-        while (prgb < prgb_end)
-        {
-            IUYVY2RGB_8(pyuv, prgb);
-
-            prgb += 3 * 8;
-            pyuv += 2 * 8;
-        }
-
-        return UVC_SUCCESS;
-    }
-
-#define IUYVY2BGR_2(pyuv, pbgr)                                                \
-    {                                                                          \
-        int r = (22987 * ((pyuv)[2] - 128)) >> 14;                             \
-        int g = (-5636 * ((pyuv)[0] - 128) - 11698 * ((pyuv)[2] - 128)) >> 14; \
-        int b = (29049 * ((pyuv)[0] - 128)) >> 14;                             \
-        (pbgr)[0] = sat((pyuv)[1] + b);                                        \
-        (pbgr)[1] = sat((pyuv)[1] + g);                                        \
-        (pbgr)[2] = sat((pyuv)[1] + r);                                        \
-        (pbgr)[3] = sat((pyuv)[3] + b);                                        \
-        (pbgr)[4] = sat((pyuv)[3] + g);                                        \
-        (pbgr)[5] = sat((pyuv)[3] + r);                                        \
-    }
-#define IUYVY2BGR_16(pyuv, pbgr) \
-    IUYVY2BGR_8(pyuv, pbgr);     \
-    IUYVY2BGR_8(pyuv + 16, pbgr + 24);
-#define IUYVY2BGR_8(pyuv, pbgr) \
-    IUYVY2BGR_4(pyuv, pbgr);    \
-    IUYVY2BGR_4(pyuv + 8, pbgr + 12);
-#define IUYVY2BGR_4(pyuv, pbgr) \
-    IUYVY2BGR_2(pyuv, pbgr);    \
-    IUYVY2BGR_2(pyuv + 4, pbgr + 6);
-
-    /** @brief Convert a frame from UYVY to BGR
-     * @ingroup frame
-     * @param ini UYVY frame
-     * @param out BGR frame
-     */
-    uvc_error_t uvc_uyvy2bgr(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_UYVY)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_BGR;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        uint8_t *pyuv = (uint8_t *)in->data;
-        uint8_t *pbgr = (uint8_t *)out->data;
-        uint8_t *pbgr_end = pbgr + out->data_bytes;
-
-        while (pbgr < pbgr_end)
-        {
-            IUYVY2BGR_8(pyuv, pbgr);
-
-            pbgr += 3 * 8;
-            pyuv += 2 * 8;
-        }
-
-        return UVC_SUCCESS;
-    }
-
-    /** @brief Convert a frame to RGB
-     * @ingroup frame
-     *
-     * @param in non-RGB frame
-     * @param out RGB frame
-     */
-    uvc_error_t uvc_any2rgb(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        switch (in->frame_format)
-        {
-#ifdef LIBUVC_HAS_JPEG
-        case UVC_FRAME_FORMAT_MJPEG:
-            return uvc_mjpeg2rgb(in, out);
-#endif
-        case UVC_FRAME_FORMAT_YUYV:
-            return uvc_yuyv2rgb(in, out);
-        case UVC_FRAME_FORMAT_UYVY:
-            return uvc_uyvy2rgb(in, out);
-        case UVC_FRAME_FORMAT_RGB:
-            return uvc_duplicate_frame(in, out);
-        default:
-            return UVC_ERROR_NOT_SUPPORTED;
-        }
-    }
-
-    /** @brief Convert a frame to BGR
-     * @ingroup frame
-     *
-     * @param in non-BGR frame
-     * @param out BGR frame
-     */
-    uvc_error_t uvc_any2bgr(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        switch (in->frame_format)
-        {
-        case UVC_FRAME_FORMAT_YUYV:
-            return uvc_yuyv2bgr(in, out);
-        case UVC_FRAME_FORMAT_UYVY:
-            return uvc_uyvy2bgr(in, out);
-        case UVC_FRAME_FORMAT_BGR:
-            return uvc_duplicate_frame(in, out);
-        default:
-            return UVC_ERROR_NOT_SUPPORTED;
-        }
-    }
-
-#endif // FRAME_C
-}
-
-
-namespace uvc
-{
-#define FRAME_MJPEG_C
-#ifdef FRAME_MJPEG_C
-
-    extern uvc_error_t uvc_ensure_frame_size(uvc_frame_t *frame, size_t need_bytes);
-
-    struct error_mgr
-    {
-        struct jpeg_error_mgr super;
-        jmp_buf jmp;
-    };
-
-    static void _error_exit(j_common_ptr dinfo)
-    {
-        struct error_mgr *myerr = (struct error_mgr *)dinfo->err;
-        (*dinfo->err->output_message)(dinfo);
-        longjmp(myerr->jmp, 1);
-    }
-
-    /* ISO/IEC 10918-1:1993(E) K.3.3. Default Huffman tables used by MJPEG UVC devices
-       which don't specify a Huffman table in the JPEG stream. */
-    static const unsigned char dc_lumi_len[] =
-        {0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
-    static const unsigned char dc_lumi_val[] =
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-
-    static const unsigned char dc_chromi_len[] =
-        {0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0};
-    static const unsigned char dc_chromi_val[] =
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-
-    static const unsigned char ac_lumi_len[] =
-        {0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d};
-    static const unsigned char ac_lumi_val[] =
-        {0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21,
-         0x31, 0x41, 0x06, 0x13, 0x51, 0x61, 0x07, 0x22, 0x71,
-         0x14, 0x32, 0x81, 0x91, 0xa1, 0x08, 0x23, 0x42, 0xb1,
-         0xc1, 0x15, 0x52, 0xd1, 0xf0, 0x24, 0x33, 0x62, 0x72,
-         0x82, 0x09, 0x0a, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x25,
-         0x26, 0x27, 0x28, 0x29, 0x2a, 0x34, 0x35, 0x36, 0x37,
-         0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48,
-         0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59,
-         0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a,
-         0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x83,
-         0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x92, 0x93,
-         0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3,
-         0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3,
-         0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3,
-         0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3,
-         0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2,
-         0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1,
-         0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
-    static const unsigned char ac_chromi_len[] =
-        {0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77};
-    static const unsigned char ac_chromi_val[] =
-        {0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21, 0x31,
-         0x06, 0x12, 0x41, 0x51, 0x07, 0x61, 0x71, 0x13, 0x22,
-         0x32, 0x81, 0x08, 0x14, 0x42, 0x91, 0xa1, 0xb1, 0xc1,
-         0x09, 0x23, 0x33, 0x52, 0xf0, 0x15, 0x62, 0x72, 0xd1,
-         0x0a, 0x16, 0x24, 0x34, 0xe1, 0x25, 0xf1, 0x17, 0x18,
-         0x19, 0x1a, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x35, 0x36,
-         0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47,
-         0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58,
-         0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69,
-         0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a,
-         0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a,
-         0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a,
-         0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa,
-         0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba,
-         0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca,
-         0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda,
-         0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea,
-         0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
-
-#define COPY_HUFF_TABLE(dinfo, tbl, name)                            \
-    do                                                               \
-    {                                                                \
-        if (dinfo->tbl == NULL)                                      \
-            dinfo->tbl = jpeg_alloc_huff_table((j_common_ptr)dinfo); \
-        memcpy(dinfo->tbl->bits, name##_len, sizeof(name##_len));    \
-        memset(dinfo->tbl->huffval, 0, sizeof(dinfo->tbl->huffval)); \
-        memcpy(dinfo->tbl->huffval, name##_val, sizeof(name##_val)); \
-    } while (0)
-
-    static void insert_huff_tables(j_decompress_ptr dinfo)
-    {
-        COPY_HUFF_TABLE(dinfo, dc_huff_tbl_ptrs[0], dc_lumi);
-        COPY_HUFF_TABLE(dinfo, dc_huff_tbl_ptrs[1], dc_chromi);
-        COPY_HUFF_TABLE(dinfo, ac_huff_tbl_ptrs[0], ac_lumi);
-        COPY_HUFF_TABLE(dinfo, ac_huff_tbl_ptrs[1], ac_chromi);
-    }
-
-    static uvc_error_t uvc_mjpeg_convert(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        struct jpeg_decompress_struct dinfo;
-        struct error_mgr jerr;
-        size_t lines_read;
-        dinfo.err = jpeg_std_error(&jerr.super);
-        jerr.super.error_exit = _error_exit;
-
-        if (setjmp(jerr.jmp))
-        {
-            goto fail;
-        }
-
-        jpeg_create_decompress(&dinfo);
-        jpeg_mem_src(&dinfo, (unsigned char *)in->data, in->data_bytes);
-        jpeg_read_header(&dinfo, TRUE);
-
-        if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
-        {
-            /* This frame is missing the Huffman tables: fill in the standard ones */
-            insert_huff_tables(&dinfo);
-        }
-
-        if (out->frame_format == UVC_FRAME_FORMAT_RGB)
-            dinfo.out_color_space = JCS_RGB;
-        else if (out->frame_format == UVC_FRAME_FORMAT_GRAY8)
-            dinfo.out_color_space = JCS_GRAYSCALE;
-        else
-            goto fail;
-
-        dinfo.dct_method = JDCT_IFAST;
-
-        jpeg_start_decompress(&dinfo);
-
-        lines_read = 0;
-        while (dinfo.output_scanline < dinfo.output_height)
-        {
-            unsigned char *buffer[1] = {(unsigned char *)out->data + lines_read * out->step};
-            int num_scanlines;
-
-            num_scanlines = jpeg_read_scanlines(&dinfo, buffer, 1);
-            lines_read += num_scanlines;
-        }
-
-        jpeg_finish_decompress(&dinfo);
-        jpeg_destroy_decompress(&dinfo);
-        return (uvc_error_t)0;
-
-    fail:
-        jpeg_destroy_decompress(&dinfo);
-        return UVC_ERROR_OTHER;
-    }
-
-    /** @brief Convert an MJPEG frame to RGB
-     * @ingroup frame
-     *
-     * @param in MJPEG frame
-     * @param out RGB frame
-     */
-    uvc_error_t uvc_mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_MJPEG)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_RGB;
-        out->step = in->width * 3;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        return uvc_mjpeg_convert(in, out);
-    }
-
-    /** @brief Convert an MJPEG frame to GRAY8
-     * @ingroup frame
-     *
-     * @param in MJPEG frame
-     * @param out GRAY8 frame
-     */
-    uvc_error_t uvc_mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out)
-    {
-        if (in->frame_format != UVC_FRAME_FORMAT_MJPEG)
-            return UVC_ERROR_INVALID_PARAM;
-
-        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
-            return UVC_ERROR_NO_MEM;
-
-        out->width = in->width;
-        out->height = in->height;
-        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
-        out->step = in->width;
-        out->sequence = in->sequence;
-        out->capture_time = in->capture_time;
-        out->capture_time_finished = in->capture_time_finished;
-        out->source = in->source;
-
-        return uvc_mjpeg_convert(in, out);
-    }
-
-#endif // FRAME_MJPE_C
-}
 
 namespace uvc
 {
@@ -4952,6 +4260,7 @@ namespace uvc
 
 #endif // DIAG_C
 }
+
 
 namespace uvc
 {
@@ -7105,6 +6414,7 @@ namespace uvc
 #endif // DEVICE_C
 }
 
+
 namespace uvc
 {
 #define CTRL_C
@@ -7245,6 +6555,7 @@ namespace uvc
 
 #endif // CTRL_C
 }
+
 
 namespace uvc
 {
@@ -9672,6 +8983,715 @@ namespace uvc
 
 namespace uvc
 {
+#define FRAME_C
+#ifdef FRAME_C
+
+    /** @internal */
+    uvc_error_t uvc_ensure_frame_size(uvc_frame_t *frame, size_t need_bytes)
+    {
+        if (frame->library_owns_data)
+        {
+            if (!frame->data || frame->data_bytes != need_bytes)
+            {
+                frame->data_bytes = need_bytes;
+                frame->data = realloc(frame->data, frame->data_bytes);
+            }
+            if (!frame->data)
+                return UVC_ERROR_NO_MEM;
+
+            return UVC_SUCCESS;
+        }
+        else
+        {
+            if (!frame->data || frame->data_bytes < need_bytes)
+                return UVC_ERROR_NO_MEM;
+
+            return UVC_SUCCESS;
+        }
+    }
+
+    /** @brief Allocate a frame structure
+     * @ingroup frame
+     *
+     * @param data_bytes Number of bytes to allocate, or zero
+     * @return New frame, or NULL on error
+     */
+    uvc_frame_t *uvc_allocate_frame(size_t data_bytes)
+    {
+        uvc_frame_t *frame = (uvc_frame_t *)malloc(sizeof(*frame));
+
+        if (!frame)
+            return NULL;
+
+        memset(frame, 0, sizeof(*frame));
+
+        frame->library_owns_data = 1;
+
+        if (data_bytes > 0)
+        {
+            frame->data_bytes = data_bytes;
+            frame->data = malloc(data_bytes);
+
+            if (!frame->data)
+            {
+                free(frame);
+                return NULL;
+            }
+        }
+
+        return frame;
+    }
+
+    /** @brief Free a frame structure
+     * @ingroup frame
+     *
+     * @param frame Frame to destroy
+     */
+    void uvc_free_frame(uvc_frame_t *frame)
+    {
+        if (frame->library_owns_data)
+        {
+            if (frame->data_bytes > 0)
+                free(frame->data);
+            if (frame->metadata_bytes > 0)
+                free(frame->metadata);
+        }
+
+        free(frame);
+    }
+
+    static inline unsigned char sat(int i)
+    {
+        return (unsigned char)(i >= 255 ? 255 : (i < 0 ? 0 : i));
+    }
+
+    /** @brief Duplicate a frame, preserving color format
+     * @ingroup frame
+     *
+     * @param in Original frame
+     * @param out Duplicate frame
+     */
+    uvc_error_t uvc_duplicate_frame(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (uvc_ensure_frame_size(out, in->data_bytes) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = in->frame_format;
+        out->step = in->step;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        memcpy(out->data, in->data, in->data_bytes);
+
+        if (in->metadata && in->metadata_bytes > 0)
+        {
+            if (out->metadata_bytes < in->metadata_bytes)
+            {
+                out->metadata = realloc(out->metadata, in->metadata_bytes);
+            }
+            out->metadata_bytes = in->metadata_bytes;
+            memcpy(out->metadata, in->metadata, in->metadata_bytes);
+        }
+
+        return UVC_SUCCESS;
+    }
+
+#define YUYV2RGB_2(pyuv, prgb)                                                  \
+    {                                                                           \
+        float r = 1.402f * ((pyuv)[3] - 128);                                   \
+        float g = -0.34414f * ((pyuv)[1] - 128) - 0.71414f * ((pyuv)[3] - 128); \
+        float b = 1.772f * ((pyuv)[1] - 128);                                   \
+        (prgb)[0] = sat(pyuv[0] + r);                                           \
+        (prgb)[1] = sat(pyuv[0] + g);                                           \
+        (prgb)[2] = sat(pyuv[0] + b);                                           \
+        (prgb)[3] = sat(pyuv[2] + r);                                           \
+        (prgb)[4] = sat(pyuv[2] + g);                                           \
+        (prgb)[5] = sat(pyuv[2] + b);                                           \
+    }
+#define IYUYV2RGB_2(pyuv, prgb)                                                \
+    {                                                                          \
+        int r = (22987 * ((pyuv)[3] - 128)) >> 14;                             \
+        int g = (-5636 * ((pyuv)[1] - 128) - 11698 * ((pyuv)[3] - 128)) >> 14; \
+        int b = (29049 * ((pyuv)[1] - 128)) >> 14;                             \
+        (prgb)[0] = sat(*(pyuv) + r);                                          \
+        (prgb)[1] = sat(*(pyuv) + g);                                          \
+        (prgb)[2] = sat(*(pyuv) + b);                                          \
+        (prgb)[3] = sat((pyuv)[2] + r);                                        \
+        (prgb)[4] = sat((pyuv)[2] + g);                                        \
+        (prgb)[5] = sat((pyuv)[2] + b);                                        \
+    }
+#define IYUYV2RGB_16(pyuv, prgb) \
+    IYUYV2RGB_8(pyuv, prgb);     \
+    IYUYV2RGB_8(pyuv + 16, prgb + 24);
+#define IYUYV2RGB_8(pyuv, prgb) \
+    IYUYV2RGB_4(pyuv, prgb);    \
+    IYUYV2RGB_4(pyuv + 8, prgb + 12);
+#define IYUYV2RGB_4(pyuv, prgb) \
+    IYUYV2RGB_2(pyuv, prgb);    \
+    IYUYV2RGB_2(pyuv + 4, prgb + 6);
+
+    /** @brief Convert a frame from YUYV to RGB
+     * @ingroup frame
+     *
+     * @param in YUYV frame
+     * @param out RGB frame
+     */
+    uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *prgb = (uint8_t *)out->data;
+        uint8_t *prgb_end = prgb + out->data_bytes;
+
+        while (prgb < prgb_end)
+        {
+            IYUYV2RGB_8(pyuv, prgb);
+
+            prgb += 3 * 8;
+            pyuv += 2 * 8;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+#define IYUYV2BGR_2(pyuv, pbgr)                                                \
+    {                                                                          \
+        int r = (22987 * ((pyuv)[3] - 128)) >> 14;                             \
+        int g = (-5636 * ((pyuv)[1] - 128) - 11698 * ((pyuv)[3] - 128)) >> 14; \
+        int b = (29049 * ((pyuv)[1] - 128)) >> 14;                             \
+        (pbgr)[0] = sat(*(pyuv) + b);                                          \
+        (pbgr)[1] = sat(*(pyuv) + g);                                          \
+        (pbgr)[2] = sat(*(pyuv) + r);                                          \
+        (pbgr)[3] = sat((pyuv)[2] + b);                                        \
+        (pbgr)[4] = sat((pyuv)[2] + g);                                        \
+        (pbgr)[5] = sat((pyuv)[2] + r);                                        \
+    }
+#define IYUYV2BGR_16(pyuv, pbgr) \
+    IYUYV2BGR_8(pyuv, pbgr);     \
+    IYUYV2BGR_8(pyuv + 16, pbgr + 24);
+#define IYUYV2BGR_8(pyuv, pbgr) \
+    IYUYV2BGR_4(pyuv, pbgr);    \
+    IYUYV2BGR_4(pyuv + 8, pbgr + 12);
+#define IYUYV2BGR_4(pyuv, pbgr) \
+    IYUYV2BGR_2(pyuv, pbgr);    \
+    IYUYV2BGR_2(pyuv + 4, pbgr + 6);
+
+    /** @brief Convert a frame from YUYV to BGR
+     * @ingroup frame
+     *
+     * @param in YUYV frame
+     * @param out BGR frame
+     */
+    uvc_error_t uvc_yuyv2bgr(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_BGR;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *pbgr = (uint8_t *)out->data;
+        uint8_t *pbgr_end = pbgr + out->data_bytes;
+
+        while (pbgr < pbgr_end)
+        {
+            IYUYV2BGR_8(pyuv, pbgr);
+
+            pbgr += 3 * 8;
+            pyuv += 2 * 8;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+#define IYUYV2Y(pyuv, py)    \
+    {                        \
+        (py)[0] = (pyuv[0]); \
+    }
+
+    /** @brief Convert a frame from YUYV to Y (GRAY8)
+     * @ingroup frame
+     *
+     * @param in YUYV frame
+     * @param out GRAY8 frame
+     */
+    uvc_error_t uvc_yuyv2y(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
+        out->step = in->width;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *py = (uint8_t *)out->data;
+        uint8_t *py_end = py + out->data_bytes;
+
+        while (py < py_end)
+        {
+            IYUYV2Y(pyuv, py);
+
+            py += 1;
+            pyuv += 2;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+#define IYUYV2UV(pyuv, puv)   \
+    {                         \
+        (puv)[0] = (pyuv[1]); \
+    }
+
+    /** @brief Convert a frame from YUYV to UV (GRAY8)
+     * @ingroup frame
+     *
+     * @param in YUYV frame
+     * @param out GRAY8 frame
+     */
+    uvc_error_t uvc_yuyv2uv(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_YUYV)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
+        out->step = in->width;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *puv = (uint8_t *)out->data;
+        uint8_t *puv_end = puv + out->data_bytes;
+
+        while (puv < puv_end)
+        {
+            IYUYV2UV(pyuv, puv);
+
+            puv += 1;
+            pyuv += 2;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+#define IUYVY2RGB_2(pyuv, prgb)                                                \
+    {                                                                          \
+        int r = (22987 * ((pyuv)[2] - 128)) >> 14;                             \
+        int g = (-5636 * ((pyuv)[0] - 128) - 11698 * ((pyuv)[2] - 128)) >> 14; \
+        int b = (29049 * ((pyuv)[0] - 128)) >> 14;                             \
+        (prgb)[0] = sat((pyuv)[1] + r);                                        \
+        (prgb)[1] = sat((pyuv)[1] + g);                                        \
+        (prgb)[2] = sat((pyuv)[1] + b);                                        \
+        (prgb)[3] = sat((pyuv)[3] + r);                                        \
+        (prgb)[4] = sat((pyuv)[3] + g);                                        \
+        (prgb)[5] = sat((pyuv)[3] + b);                                        \
+    }
+#define IUYVY2RGB_16(pyuv, prgb) \
+    IUYVY2RGB_8(pyuv, prgb);     \
+    IUYVY2RGB_8(pyuv + 16, prgb + 24);
+#define IUYVY2RGB_8(pyuv, prgb) \
+    IUYVY2RGB_4(pyuv, prgb);    \
+    IUYVY2RGB_4(pyuv + 8, prgb + 12);
+#define IUYVY2RGB_4(pyuv, prgb) \
+    IUYVY2RGB_2(pyuv, prgb);    \
+    IUYVY2RGB_2(pyuv + 4, prgb + 6);
+
+    /** @brief Convert a frame from UYVY to RGB
+     * @ingroup frame
+     * @param ini UYVY frame
+     * @param out RGB frame
+     */
+    uvc_error_t uvc_uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_UYVY)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *prgb = (uint8_t *)out->data;
+        uint8_t *prgb_end = prgb + out->data_bytes;
+
+        while (prgb < prgb_end)
+        {
+            IUYVY2RGB_8(pyuv, prgb);
+
+            prgb += 3 * 8;
+            pyuv += 2 * 8;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+#define IUYVY2BGR_2(pyuv, pbgr)                                                \
+    {                                                                          \
+        int r = (22987 * ((pyuv)[2] - 128)) >> 14;                             \
+        int g = (-5636 * ((pyuv)[0] - 128) - 11698 * ((pyuv)[2] - 128)) >> 14; \
+        int b = (29049 * ((pyuv)[0] - 128)) >> 14;                             \
+        (pbgr)[0] = sat((pyuv)[1] + b);                                        \
+        (pbgr)[1] = sat((pyuv)[1] + g);                                        \
+        (pbgr)[2] = sat((pyuv)[1] + r);                                        \
+        (pbgr)[3] = sat((pyuv)[3] + b);                                        \
+        (pbgr)[4] = sat((pyuv)[3] + g);                                        \
+        (pbgr)[5] = sat((pyuv)[3] + r);                                        \
+    }
+#define IUYVY2BGR_16(pyuv, pbgr) \
+    IUYVY2BGR_8(pyuv, pbgr);     \
+    IUYVY2BGR_8(pyuv + 16, pbgr + 24);
+#define IUYVY2BGR_8(pyuv, pbgr) \
+    IUYVY2BGR_4(pyuv, pbgr);    \
+    IUYVY2BGR_4(pyuv + 8, pbgr + 12);
+#define IUYVY2BGR_4(pyuv, pbgr) \
+    IUYVY2BGR_2(pyuv, pbgr);    \
+    IUYVY2BGR_2(pyuv + 4, pbgr + 6);
+
+    /** @brief Convert a frame from UYVY to BGR
+     * @ingroup frame
+     * @param ini UYVY frame
+     * @param out BGR frame
+     */
+    uvc_error_t uvc_uyvy2bgr(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_UYVY)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_BGR;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        uint8_t *pyuv = (uint8_t *)in->data;
+        uint8_t *pbgr = (uint8_t *)out->data;
+        uint8_t *pbgr_end = pbgr + out->data_bytes;
+
+        while (pbgr < pbgr_end)
+        {
+            IUYVY2BGR_8(pyuv, pbgr);
+
+            pbgr += 3 * 8;
+            pyuv += 2 * 8;
+        }
+
+        return UVC_SUCCESS;
+    }
+
+    /** @brief Convert a frame to RGB
+     * @ingroup frame
+     *
+     * @param in non-RGB frame
+     * @param out RGB frame
+     */
+    uvc_error_t uvc_any2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        switch (in->frame_format)
+        {
+#ifdef LIBUVC_HAS_JPEG
+        case UVC_FRAME_FORMAT_MJPEG:
+            return uvc_mjpeg2rgb(in, out);
+#endif
+        case UVC_FRAME_FORMAT_YUYV:
+            return uvc_yuyv2rgb(in, out);
+        case UVC_FRAME_FORMAT_UYVY:
+            return uvc_uyvy2rgb(in, out);
+        case UVC_FRAME_FORMAT_RGB:
+            return uvc_duplicate_frame(in, out);
+        default:
+            return UVC_ERROR_NOT_SUPPORTED;
+        }
+    }
+
+    /** @brief Convert a frame to BGR
+     * @ingroup frame
+     *
+     * @param in non-BGR frame
+     * @param out BGR frame
+     */
+    uvc_error_t uvc_any2bgr(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        switch (in->frame_format)
+        {
+        case UVC_FRAME_FORMAT_YUYV:
+            return uvc_yuyv2bgr(in, out);
+        case UVC_FRAME_FORMAT_UYVY:
+            return uvc_uyvy2bgr(in, out);
+        case UVC_FRAME_FORMAT_BGR:
+            return uvc_duplicate_frame(in, out);
+        default:
+            return UVC_ERROR_NOT_SUPPORTED;
+        }
+    }
+
+#endif // FRAME_C
+}
+
+
+#include <jpeglib.h>
+
+namespace uvc
+{
+#define FRAME_MJPEG_C
+#ifdef FRAME_MJPEG_C
+
+    extern uvc_error_t uvc_ensure_frame_size(uvc_frame_t *frame, size_t need_bytes);
+
+    struct error_mgr
+    {
+        struct jpeg_error_mgr super;
+        jmp_buf jmp;
+    };
+
+    static void _error_exit(j_common_ptr dinfo)
+    {
+        struct error_mgr *myerr = (struct error_mgr *)dinfo->err;
+        (*dinfo->err->output_message)(dinfo);
+        longjmp(myerr->jmp, 1);
+    }
+
+    /* ISO/IEC 10918-1:1993(E) K.3.3. Default Huffman tables used by MJPEG UVC devices
+       which don't specify a Huffman table in the JPEG stream. */
+    static const unsigned char dc_lumi_len[] =
+        {0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
+    static const unsigned char dc_lumi_val[] =
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+
+    static const unsigned char dc_chromi_len[] =
+        {0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0};
+    static const unsigned char dc_chromi_val[] =
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+
+    static const unsigned char ac_lumi_len[] =
+        {0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d};
+    static const unsigned char ac_lumi_val[] =
+        {0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21,
+         0x31, 0x41, 0x06, 0x13, 0x51, 0x61, 0x07, 0x22, 0x71,
+         0x14, 0x32, 0x81, 0x91, 0xa1, 0x08, 0x23, 0x42, 0xb1,
+         0xc1, 0x15, 0x52, 0xd1, 0xf0, 0x24, 0x33, 0x62, 0x72,
+         0x82, 0x09, 0x0a, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x25,
+         0x26, 0x27, 0x28, 0x29, 0x2a, 0x34, 0x35, 0x36, 0x37,
+         0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48,
+         0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59,
+         0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a,
+         0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x83,
+         0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x92, 0x93,
+         0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3,
+         0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3,
+         0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3,
+         0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3,
+         0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2,
+         0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1,
+         0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
+    static const unsigned char ac_chromi_len[] =
+        {0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77};
+    static const unsigned char ac_chromi_val[] =
+        {0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21, 0x31,
+         0x06, 0x12, 0x41, 0x51, 0x07, 0x61, 0x71, 0x13, 0x22,
+         0x32, 0x81, 0x08, 0x14, 0x42, 0x91, 0xa1, 0xb1, 0xc1,
+         0x09, 0x23, 0x33, 0x52, 0xf0, 0x15, 0x62, 0x72, 0xd1,
+         0x0a, 0x16, 0x24, 0x34, 0xe1, 0x25, 0xf1, 0x17, 0x18,
+         0x19, 0x1a, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x35, 0x36,
+         0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47,
+         0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58,
+         0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69,
+         0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a,
+         0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a,
+         0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a,
+         0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa,
+         0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba,
+         0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca,
+         0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda,
+         0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea,
+         0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
+
+#define COPY_HUFF_TABLE(dinfo, tbl, name)                            \
+    do                                                               \
+    {                                                                \
+        if (dinfo->tbl == NULL)                                      \
+            dinfo->tbl = jpeg_alloc_huff_table((j_common_ptr)dinfo); \
+        memcpy(dinfo->tbl->bits, name##_len, sizeof(name##_len));    \
+        memset(dinfo->tbl->huffval, 0, sizeof(dinfo->tbl->huffval)); \
+        memcpy(dinfo->tbl->huffval, name##_val, sizeof(name##_val)); \
+    } while (0)
+
+    static void insert_huff_tables(j_decompress_ptr dinfo)
+    {
+        COPY_HUFF_TABLE(dinfo, dc_huff_tbl_ptrs[0], dc_lumi);
+        COPY_HUFF_TABLE(dinfo, dc_huff_tbl_ptrs[1], dc_chromi);
+        COPY_HUFF_TABLE(dinfo, ac_huff_tbl_ptrs[0], ac_lumi);
+        COPY_HUFF_TABLE(dinfo, ac_huff_tbl_ptrs[1], ac_chromi);
+    }
+
+    static uvc_error_t uvc_mjpeg_convert(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        struct jpeg_decompress_struct dinfo;
+        struct error_mgr jerr;
+        size_t lines_read;
+        dinfo.err = jpeg_std_error(&jerr.super);
+        jerr.super.error_exit = _error_exit;
+
+        if (setjmp(jerr.jmp))
+        {
+            goto fail;
+        }
+
+        jpeg_create_decompress(&dinfo);
+        jpeg_mem_src(&dinfo, (unsigned char *)in->data, in->data_bytes);
+        jpeg_read_header(&dinfo, TRUE);
+
+        if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
+        {
+            /* This frame is missing the Huffman tables: fill in the standard ones */
+            insert_huff_tables(&dinfo);
+        }
+
+        if (out->frame_format == UVC_FRAME_FORMAT_RGB)
+            dinfo.out_color_space = JCS_RGB;
+        else if (out->frame_format == UVC_FRAME_FORMAT_GRAY8)
+            dinfo.out_color_space = JCS_GRAYSCALE;
+        else
+            goto fail;
+
+        dinfo.dct_method = JDCT_IFAST;
+
+        jpeg_start_decompress(&dinfo);
+
+        lines_read = 0;
+        while (dinfo.output_scanline < dinfo.output_height)
+        {
+            unsigned char *buffer[1] = {(unsigned char *)out->data + lines_read * out->step};
+            int num_scanlines;
+
+            num_scanlines = jpeg_read_scanlines(&dinfo, buffer, 1);
+            lines_read += num_scanlines;
+        }
+
+        jpeg_finish_decompress(&dinfo);
+        jpeg_destroy_decompress(&dinfo);
+        return (uvc_error_t)0;
+
+    fail:
+        jpeg_destroy_decompress(&dinfo);
+        return UVC_ERROR_OTHER;
+    }
+
+    /** @brief Convert an MJPEG frame to RGB
+     * @ingroup frame
+     *
+     * @param in MJPEG frame
+     * @param out RGB frame
+     */
+    uvc_error_t uvc_mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_MJPEG)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height * 3) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_RGB;
+        out->step = in->width * 3;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        return uvc_mjpeg_convert(in, out);
+    }
+
+    /** @brief Convert an MJPEG frame to GRAY8
+     * @ingroup frame
+     *
+     * @param in MJPEG frame
+     * @param out GRAY8 frame
+     */
+    uvc_error_t uvc_mjpeg2gray(uvc_frame_t *in, uvc_frame_t *out)
+    {
+        if (in->frame_format != UVC_FRAME_FORMAT_MJPEG)
+            return UVC_ERROR_INVALID_PARAM;
+
+        if (uvc_ensure_frame_size(out, in->width * in->height) < 0)
+            return UVC_ERROR_NO_MEM;
+
+        out->width = in->width;
+        out->height = in->height;
+        out->frame_format = UVC_FRAME_FORMAT_GRAY8;
+        out->step = in->width;
+        out->sequence = in->sequence;
+        out->capture_time = in->capture_time;
+        out->capture_time_finished = in->capture_time_finished;
+        out->source = in->source;
+
+        return uvc_mjpeg_convert(in, out);
+    }
+
+#endif // FRAME_MJPE_C
+}
+
+
+namespace uvc
+{
 namespace opt
 { 
     enum class image_format : int
@@ -9693,10 +9713,9 @@ namespace opt
 
         u32 out_step = 0;
     };
+    
 
-
-    template <typename T>
-    static bool setup_jpeg(jpeg_info_t& jinfo, uvc_frame_t* jframe, T out_format)
+    static bool setup_jpeg(jpeg_info_t& jinfo, frame* jframe, image_format out_format)
     {
         auto& jerr = jinfo.jerr;
         auto& dinfo = jinfo.dinfo;
@@ -9726,7 +9745,7 @@ namespace opt
             insert_huff_tables(&dinfo);
         }
 
-        switch ((image_format)out_format)
+        switch (out_format)
         {
         case image_format::RGB8:
             dinfo.out_color_space = JCS_RGB;
@@ -9748,10 +9767,9 @@ namespace opt
         
         return true;
     }
+    
 
-
-    template <typename T>
-    static uvc_error_t mjpeg_convert(uvc_frame_t *in, u8* out, T out_format)
+    static uvc_error_t mjpeg_convert(frame* in, u8* out, image_format out_format)
     {
         // not actually parallel
 
@@ -9789,7 +9807,7 @@ namespace opt
     }
 
 
-    uvc_error_t mjpeg2rgba(uvc_frame_t* in, u8* out)
+    error mjpeg2rgba(frame* in, u8* out)
     {
         if (!out)
         {
@@ -9800,7 +9818,7 @@ namespace opt
     }
 
 
-    uvc_error_t mjpeg2gray(uvc_frame_t* in, u8* out)
+    error mjpeg2gray(frame* in, u8* out)
     {
         if (!out)
         {
@@ -9815,6 +9833,3 @@ namespace opt
 }}
 
 #endif // LIBUVC_IMPLEMENTATION
-
-#endif // !def(LIBUVC_H)
-

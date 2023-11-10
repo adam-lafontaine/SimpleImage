@@ -123,7 +123,7 @@ namespace w32
         UINT32 height = 0;
         UINT32 stride = 0;
         UINT32 fps = 0;
-        UINT32 pixel_size = 0;
+        //UINT32 pixel_size = 0;
 
         PixelFormat pixel_format = PixelFormat::Unknown;
     };
@@ -314,8 +314,8 @@ namespace w32
         hr = media_type->GetUINT32(MF_MT_DEFAULT_STRIDE, &format.stride);
         if (FAILED(hr) || !format.stride)
         {
-            release(media_type);
-            return result;
+            //release(media_type);
+            //return result;
         }
 
         Bytes8 fps;
@@ -329,7 +329,7 @@ namespace w32
         }
 
         format.fps = fps.hi32 / fps.lo32;
-        format.pixel_size = format.stride / format.width;
+        //format.pixel_size = format.stride / format.width;
 
         GUID sub_type;
         hr = media_type->GetGUID(MF_MT_SUBTYPE, &sub_type);

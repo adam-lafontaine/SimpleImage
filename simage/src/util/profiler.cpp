@@ -57,6 +57,8 @@ namespace
 
         cstr label = 0;
 
+        u64 cpu_min = 0;
+        u64 cpu_max = 0;
         u64 cpu_total = 0;
 
         u32 hit_count = 0;
@@ -158,10 +160,22 @@ namespace perf
         {
             return;
         }
+
+        auto cpu = (cpu_end - cpu_start);
         
         auto& record = profile_records[profile_id];
 
-        record.cpu_total += (cpu_end - cpu_start);
+        if (record.cpu_min == 0 || cpu < record.cpu_min)
+        {
+            record.cpu_min = cpu;
+        }
+        
+        if (record.cpu_max == 0 || cpu > record.cpu_max)
+        {
+            record.cpu_max = cpu;
+        }
+
+        record.cpu_total += cpu;
         ++record.hit_count;
         record.is_active = false;
     }
@@ -196,20 +210,6 @@ namespace perf
 
     void profile_report(cstr report_label)
     {
-        auto begin = profile_records;
-        auto end = profile_records + n_records;
-        auto const compare = [](auto lhs, auto rhs)
-        {
-            return 
-                lhs.hit_count > 0 && 
-                rhs.hit_count > 0 && 
-                lhs.cpu_avg() < rhs.cpu_avg(); 
-        };
-
-        std::sort(begin, end, compare);
-
-        auto& min = profile_records[0];
-
         FILE* out = open_out_file();
 
         if (report_label)
@@ -237,7 +237,7 @@ namespace perf
             }
         }
         
-        auto format = "%3.2e: %-*s x %u\n";
+        auto format = "%3.2e [%3.2e - %3.2e]: %-*s x %u\n";
 
         for (u32 i = 0; i < n_records; ++i)
         {
@@ -249,9 +249,11 @@ namespace perf
 
             auto label = record.label;
             auto cpu = (f32)record.cpu_avg();
+            auto min = (f32)record.cpu_min;
+            auto max = (f32)record.cpu_max;
             auto count = record.hit_count;
             
-            print(out, format, cpu, label_len, label, count);
+            print(out, format, cpu, min, max, label_len, label, count);
         }
 
         fclose(out);

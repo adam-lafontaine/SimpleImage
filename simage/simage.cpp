@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <algorithm>
-#include <functional>
 #include <array>
 #include <vector>
 
@@ -25,17 +24,6 @@ static inline u8 abs_to_u8(f32 val)
 static inline u8 hypot_to_u8(f32 a, f32 b)
 {
     return (u8)(std::hypotf(a, b) + 0.5f);
-}
-
-
-static void process_range(u32 id_begin, u32 id_end, std::function<void(u32)> const& id_func)
-{
-    assert(id_begin <= id_end);
-
-    for (u32 i = id_begin; i < id_end; ++i)
-    {
-        id_func(i);
-    }
 }
 
 

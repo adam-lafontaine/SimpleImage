@@ -61,18 +61,27 @@ namespace simage
 
 	ViewGray make_view(ImageGray const& image);
 
-	ViewYUV make_view(ImageYUV const& image);
-
-	ViewUVY make_view(ImageUVY const& image);
+	ViewRGB make_view(ImageRGB const& image);
 
 	ViewBGR make_view(ImageBGR const& image);
 
-	ViewRGB make_view(ImageRGB const& image);
+	ViewYUV make_view(ImageYUV const& image);
+
+	ViewUVY make_view(ImageUVY const& image);
 	
 
 	View make_view(u32 width, u32 height, Buffer32& buffer);
 
 	ViewGray make_view(u32 width, u32 height, Buffer8& buffer);
+
+
+	ViewRGB make_view_rgb(u32 width, u32 height, Buffer8& buffer);
+
+	ViewBGR make_view_bgr(u32 width, u32 height, Buffer8& buffer);
+
+	ViewYUV make_view_yuv(u32 width, u32 height, Buffer8& buffer);
+
+	ViewUVY make_view_uvy(u32 width, u32 height, Buffer8& buffer);
 }
 
 
@@ -170,6 +179,8 @@ namespace simage
 
 }
 
+
+/* map_yuv */
 
 namespace simage
 {

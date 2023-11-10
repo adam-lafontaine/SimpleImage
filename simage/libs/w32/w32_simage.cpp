@@ -2,6 +2,9 @@
 #include "../../src/util/color_space.hpp"
 #include "w32.h"
 
+#define MJPEG_CONVERT_IMPLEMENTATION
+#include "../uvc/mjpeg_convert.hpp"
+
 #ifndef NDEBUG
 #include <cstdio>
 #endif
@@ -128,6 +131,119 @@ namespace convert
 
         return true;
     }
+
+
+    static bool mjpeg_to_rgba(w32::Frame& frame, img::View const& dst)
+    {
+        assert(is_1d(dst)); // TODO
+
+        auto format = mjpeg::image_format::RGBA8;
+
+        return mjpeg::convert((u8*)frame.data, dst.width, (u32)frame.size_bytes, (u8*)dst.matrix_data, format);
+    }
+
+
+    static bool mjpeg_to_gray(w32::Frame& frame, img::ViewGray const& dst)
+    {
+        assert(is_1d(dst)); // TODO
+
+        auto format = mjpeg::image_format::GRAY8;
+
+        return mjpeg::convert((u8*)frame.data, dst.width, (u32)frame.size_bytes, (u8*)dst.matrix_data, format);
+    }
+
+
+    static bool nv12_to_rgba(w32::Frame& frame, img::View const& dst)
+    {
+        auto const width = dst.width;
+        auto const height = dst.height;
+
+        assert(frame.size_bytes == width * height + width * height / 2);
+
+        class UV
+        {
+        public:
+            u8 u = 0;
+            u8 v = 0;
+        };
+
+        Matrix2D<UV> mat_uv{};
+        mat_uv.width = width / 2;
+        mat_uv.height = height / 2;
+        mat_uv.data_ = (UV*)(frame.data + width * height);
+
+        Matrix2D<u8> mat_y{};
+        mat_y.width = width;
+        mat_y.height = height;
+        mat_y.data_ = (u8*)frame.data;
+
+        u8 yuv_y = 0;
+        u8 yuv_u = 0;
+        u8 yuv_v = 0;
+
+        u8* pr = 0;
+        u8* pg = 0;
+        u8* pb = 0;
+
+        for (u32 i = 0; i < mat_uv.height; ++i)
+        {
+            auto uv = img::row_begin(mat_uv, i);
+            auto y1 = img::row_begin(mat_y, 2 * i);
+            auto y2 = img::row_begin(mat_y, 2 * i + 1);
+            auto d1 = img::row_begin(dst, 2 * i);
+            auto d2 = img::row_begin(dst, 2 * i + 1);
+
+            for (u32 j = 0; j < mat_uv.width; ++j)
+            {
+                yuv_u = uv[j].u;
+                yuv_v = uv[j].v;
+
+                yuv_y = y1[2 * j];
+                pr = &d1[2 * j].rgba.red;
+                pg = &d1[2 * j].rgba.green;
+                pb = &d1[2 * j].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+
+                yuv_y = y1[2 * j + 1];
+                pr = &d1[2 * j + 1].rgba.red;
+                pg = &d1[2 * j + 1].rgba.green;
+                pb = &d1[2 * j + 1].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+
+                yuv_y = y2[2 * j];
+                pr = &d2[2 * j].rgba.red;
+                pg = &d2[2 * j].rgba.green;
+                pb = &d2[2 * j].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+
+                yuv_y = y2[2 * j + 1];
+                pr = &d2[2 * j + 1].rgba.red;
+                pg = &d2[2 * j + 1].rgba.green;
+                pb = &d2[2 * j + 1].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+            }
+        }
+        
+        return true;
+    }
+
+
+    static bool nv12_to_gray(w32::Frame& frame, img::ViewGray const& dst)
+    {
+        auto const width = dst.width;
+        auto const height = dst.height;
+
+        assert(frame.size_bytes == width * height + width * height / 2);
+
+        img::ImageGray src{};
+        src.width = width;
+        src.height = height;
+        src.data_ = (u8*)frame.data;
+
+        img::copy(img::make_view(src), dst);
+
+        return true;
+    }
 }
 
 
@@ -174,7 +290,7 @@ public:
 static DeviceListW32 g_device_list;
 
 
-static void print_error(const char* msg)
+static void dbg_print(const char* msg)
 {
 #ifndef NDEBUG
 
@@ -215,6 +331,7 @@ static void set_frame_formats(DeviceW32& device, w32::PixelFormat pixel_format)
             device.convert_rgba = convert::rgb_to_rgba;
             device.convert_gray = convert::rgb_to_gray;
             break;
+
         case PF::YUYV:
             device.convert_rgba = convert::yuyv_to_rgba;
             device.convert_gray = convert::yuyv_to_gray;
@@ -223,7 +340,17 @@ static void set_frame_formats(DeviceW32& device, w32::PixelFormat pixel_format)
         case PF::UYVY:
             device.convert_rgba = convert::uyvy_to_rgba;
             device.convert_gray = convert::uyvy_to_gray;
-            break;        
+            break;
+
+        case PF::MJPG:
+            device.convert_rgba = convert::mjpeg_to_rgba;
+            device.convert_gray = convert::mjpeg_to_gray;
+            break;
+
+        case PF::NV12:
+            device.convert_rgba = convert::nv12_to_rgba;
+            device.convert_gray = convert::nv12_to_gray;
+            break;
 
         default: return;
     }
@@ -256,14 +383,14 @@ static bool connect_device(DeviceW32& device)
 {
     if (!w32::activate(device.p_device, device.p_source, device.p_reader))
     {
-        print_error("Error w32::activate()");        
+        dbg_print("Error w32::activate()");        
         return false;
     }
 
     auto result = w32::get_frame_format(device.p_reader);
     if (!result.success)
     {
-        print_error("Error w32::get_frame_format()");
+        dbg_print("Error w32::get_frame_format()");
         return false;
     }
 
@@ -374,7 +501,7 @@ static bool grab_and_convert_frame_rgba(DeviceW32& device)
     auto result = w32::read_frame(device.p_reader, device.p_sample);
     if (!result.success)
     {
-        print_error("Error: w32::read_frame()");
+        dbg_print("Error: w32::read_frame()");
         return false;
     }
 
@@ -382,7 +509,7 @@ static bool grab_and_convert_frame_rgba(DeviceW32& device)
 
     if (!device.convert_rgba(frame, device.rgba_view))
     {
-        print_error("Error: convert_rgba()");
+        dbg_print("Error: convert_rgba()");
         return false;
     }
 
@@ -398,7 +525,7 @@ static bool grab_and_convert_frame_gray(DeviceW32& device)
     auto result = w32::read_frame(device.p_reader, device.p_sample);
     if (!result.success)
     {
-        print_error("Error: w32::read_frame()");
+        dbg_print("Error: w32::read_frame()");
         return false;
     }
 
@@ -406,7 +533,7 @@ static bool grab_and_convert_frame_gray(DeviceW32& device)
 
     if (!device.convert_gray(frame, device.gray_view))
     {
-        print_error("Error: convert_gray()");
+        dbg_print("Error: convert_gray()");
         return false;
     }
 
@@ -453,7 +580,7 @@ namespace simage
     {
         if (!enumerate_devices(g_device_list))
         {
-            print_error("Error enumerate_devices()");
+            dbg_print("Error enumerate_devices()");
             return false;
         }
 
@@ -462,7 +589,7 @@ namespace simage
         auto result = get_default_device(g_device_list);
         if (!result)
         {
-            print_error("No connected devices available");
+            dbg_print("No connected devices available");
             return false;
         }        
 

@@ -41,9 +41,9 @@ namespace simage
         for (u32 i = 0; i < len; ++i)
         {
             auto rgba = src[i].rgba;
-            dst.R[i] =  cs::to_channel_f32(rgba.red);
-            dst.G[i] =  cs::to_channel_f32(rgba.green);
-            dst.B[i] =  cs::to_channel_f32(rgba.blue);
+            dst.R[i] =  cs::u8_to_channel_f32(rgba.red);
+            dst.G[i] =  cs::u8_to_channel_f32(rgba.green);
+            dst.B[i] =  cs::u8_to_channel_f32(rgba.blue);
         }
     }
 
@@ -53,10 +53,10 @@ namespace simage
         for (u32 i = 0; i < len; ++i)
         {
             auto rgba = src[i].rgba;
-            dst.R[i] =  cs::to_channel_f32(rgba.red);
-            dst.G[i] =  cs::to_channel_f32(rgba.green);
-            dst.B[i] =  cs::to_channel_f32(rgba.blue);
-            dst.A[i] = cs::to_channel_f32(rgba.alpha);
+            dst.R[i] =  cs::u8_to_channel_f32(rgba.red);
+            dst.G[i] =  cs::u8_to_channel_f32(rgba.green);
+            dst.B[i] =  cs::u8_to_channel_f32(rgba.blue);
+            dst.A[i] = cs::u8_to_channel_f32(rgba.alpha);
         }
     }
 
@@ -82,9 +82,9 @@ namespace simage
         for (u32 i = 0; i < len; ++i)
         {
             auto rgb = src[i];
-            dst.R[i] =  cs::to_channel_f32(rgb.red);
-            dst.G[i] =  cs::to_channel_f32(rgb.green);
-            dst.B[i] =  cs::to_channel_f32(rgb.blue);
+            dst.R[i] =  cs::u8_to_channel_f32(rgb.red);
+            dst.G[i] =  cs::u8_to_channel_f32(rgb.green);
+            dst.B[i] =  cs::u8_to_channel_f32(rgb.blue);
         }
     }
 

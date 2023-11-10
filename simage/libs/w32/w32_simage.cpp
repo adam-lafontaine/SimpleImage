@@ -230,11 +230,14 @@ namespace convert
 
     static bool nv12_to_gray(w32::Frame& frame, img::ViewGray const& dst)
     {
+        auto const width = dst.width;
+        auto const height = dst.height;
+
         assert(frame.size_bytes == width * height + width * height / 2);
 
         img::ImageGray src{};
-        src.width = dst.width;
-        src.height = dst.height;
+        src.width = width;
+        src.height = height;
         src.data_ = (u8*)frame.data;
 
         img::copy(img::make_view(src), dst);
@@ -328,6 +331,7 @@ static void set_frame_formats(DeviceW32& device, w32::PixelFormat pixel_format)
             device.convert_rgba = convert::rgb_to_rgba;
             device.convert_gray = convert::rgb_to_gray;
             break;
+
         case PF::YUYV:
             device.convert_rgba = convert::yuyv_to_rgba;
             device.convert_gray = convert::yuyv_to_gray;

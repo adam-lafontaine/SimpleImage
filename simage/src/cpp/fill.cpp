@@ -91,10 +91,10 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_view_1(select_channel(view, RGBA::R), cs::to_channel_f32(color.rgba.red));
-		fill_view_1(select_channel(view, RGBA::G), cs::to_channel_f32(color.rgba.green));
-		fill_view_1(select_channel(view, RGBA::B), cs::to_channel_f32(color.rgba.blue));
-		fill_view_1(select_channel(view, RGBA::A), cs::to_channel_f32(color.rgba.alpha));
+		fill_view_1(select_channel(view, RGBA::R), cs::u8_to_channel_f32(color.rgba.red));
+		fill_view_1(select_channel(view, RGBA::G), cs::u8_to_channel_f32(color.rgba.green));
+		fill_view_1(select_channel(view, RGBA::B), cs::u8_to_channel_f32(color.rgba.blue));
+		fill_view_1(select_channel(view, RGBA::A), cs::u8_to_channel_f32(color.rgba.alpha));
 	}
 
 
@@ -102,9 +102,9 @@ namespace simage
 	{
 		assert(verify(view));
 
-		fill_view_1(select_channel(view, RGB::R), cs::to_channel_f32(color.rgba.red));
-		fill_view_1(select_channel(view, RGB::G), cs::to_channel_f32(color.rgba.green));
-		fill_view_1(select_channel(view, RGB::B), cs::to_channel_f32(color.rgba.blue));
+		fill_view_1(select_channel(view, RGB::R), cs::u8_to_channel_f32(color.rgba.red));
+		fill_view_1(select_channel(view, RGB::G), cs::u8_to_channel_f32(color.rgba.green));
+		fill_view_1(select_channel(view, RGB::B), cs::u8_to_channel_f32(color.rgba.blue));
 	}
 
 
@@ -127,7 +127,7 @@ namespace simage
 	{
 		assert(verify(view));
 
-		auto gray32 = cs::to_channel_f32(gray);
+		auto gray32 = cs::u8_to_channel_f32(gray);
 
 		if (is_1d(view))
 		{

@@ -6,7 +6,7 @@ namespace simage
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
-			dst[i] = cs::to_channel_f32(src[i]);
+			dst[i] = cs::u8_to_channel_f32(src[i]);
 		}
 	}
 
@@ -40,7 +40,7 @@ namespace simage
 	{
 		for (u32 i = 0; i < len; ++i)
 		{
-			dst[i] = cs::to_channel_f32(src[i].y);
+			dst[i] = cs::u8_to_channel_f32(src[i].y);
 		}
 	}
 }

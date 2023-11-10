@@ -23,7 +23,7 @@ namespace simage
 			auto c = cur[i].rgba;
 			auto& d = dst[i].rgba;
 
-			auto a = cs::to_channel_f32(s.alpha);
+			auto a = cs::u8_to_channel_f32(s.alpha);
 			d.red = blend_linear(s.red, c.red, a);
 			d.green = blend_linear(s.green, c.green, a);
 			d.blue = blend_linear(s.blue, c.blue, a);
@@ -33,7 +33,7 @@ namespace simage
 
 	static inline void alpha_blend_span_u8(Pixel* src, u8 alpha, Pixel* cur, Pixel* dst, u32 len)
 	{
-		auto a = cs::to_channel_f32(alpha);
+		auto a = cs::u8_to_channel_f32(alpha);
 
 		for (u32 i = 0; i < len; ++i)
 		{

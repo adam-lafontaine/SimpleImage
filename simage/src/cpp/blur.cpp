@@ -192,12 +192,10 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		auto const channel_func = [&](u32 ch)
+		for (u32 ch = 0; ch < 3; ++ch)
 		{
 			blur_view_1(select_channel(src, ch), select_channel(dst, ch));
-		};
-
-		process_range(0, 3, channel_func);
+		}
 	}
 }
 

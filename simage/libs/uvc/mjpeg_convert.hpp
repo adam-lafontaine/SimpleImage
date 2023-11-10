@@ -111,7 +111,7 @@ namespace mjpeg
         memcpy(dinfo->tbl->huffval, name##_val, sizeof(name##_val)); \
     } while (0)
 
-    static void insert_huff_tables2(j_decompress_ptr dinfo)
+    static void insert_huff_tables(j_decompress_ptr dinfo)
     {
         COPY_HUFF_TABLE(dinfo, dc_huff_tbl_ptrs[0], dc_lumi);
         COPY_HUFF_TABLE(dinfo, dc_huff_tbl_ptrs[1], dc_chromi);
@@ -160,7 +160,7 @@ namespace mjpeg
         if (dinfo.dc_huff_tbl_ptrs[0] == NULL)
         {
             /* This frame is missing the Huffman tables: fill in the standard ones */
-            insert_huff_tables2(&dinfo);
+            insert_huff_tables(&dinfo);
         }
 
         switch (out_format)

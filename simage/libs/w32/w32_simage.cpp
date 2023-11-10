@@ -147,10 +147,99 @@ namespace convert
     {
         assert(is_1d(dst)); // TODO
 
-        //return uvc::opt::mjpeg2gray(in, (u8*)dst.matrix_data);
         auto format = mjpeg::image_format::GRAY8;
 
         return mjpeg::convert((u8*)frame.data, dst.width, (u32)frame.size_bytes, (u8*)dst.matrix_data, format);
+    }
+
+
+    static bool nv12_to_rgba(w32::Frame& frame, img::View const& dst)
+    {
+        auto const width = dst.width;
+        auto const height = dst.height;
+
+        assert(frame.size_bytes == width * height + width * height / 2);
+
+        class UV
+        {
+        public:
+            u8 u = 0;
+            u8 v = 0;
+        };
+
+        Matrix2D<UV> mat_uv{};
+        mat_uv.width = width / 2;
+        mat_uv.height = height / 2;
+        mat_uv.data_ = (UV*)(frame.data + width * height);
+
+        Matrix2D<u8> mat_y{};
+        mat_y.width = width;
+        mat_y.height = height;
+        mat_y.data_ = (u8*)frame.data;
+
+        u8 yuv_y = 0;
+        u8 yuv_u = 0;
+        u8 yuv_v = 0;
+
+        u8* pr = 0;
+        u8* pg = 0;
+        u8* pb = 0;
+
+        for (u32 i = 0; i < mat_uv.height; ++i)
+        {
+            auto uv = img::row_begin(mat_uv, i);
+            auto y1 = img::row_begin(mat_y, 2 * i);
+            auto y2 = img::row_begin(mat_y, 2 * i + 1);
+            auto d1 = img::row_begin(dst, 2 * i);
+            auto d2 = img::row_begin(dst, 2 * i + 1);
+
+            for (u32 j = 0; j < mat_uv.width; ++j)
+            {
+                yuv_u = uv[j].u;
+                yuv_v = uv[j].v;
+
+                yuv_y = y1[2 * j];
+                pr = &d1[2 * j].rgba.red;
+                pg = &d1[2 * j].rgba.green;
+                pb = &d1[2 * j].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+
+                yuv_y = y1[2 * j + 1];
+                pr = &d1[2 * j + 1].rgba.red;
+                pg = &d1[2 * j + 1].rgba.green;
+                pb = &d1[2 * j + 1].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+
+                yuv_y = y2[2 * j];
+                pr = &d2[2 * j].rgba.red;
+                pg = &d2[2 * j].rgba.green;
+                pb = &d2[2 * j].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+
+                yuv_y = y2[2 * j + 1];
+                pr = &d2[2 * j + 1].rgba.red;
+                pg = &d2[2 * j + 1].rgba.green;
+                pb = &d2[2 * j + 1].rgba.blue;
+                yuv::u8_to_rgb_u8(yuv_y, yuv_u, yuv_v, pr, pg, pb);
+            }
+        }
+        
+        return true;
+    }
+
+
+    static bool nv12_to_gray(w32::Frame& frame, img::ViewGray const& dst)
+    {
+        assert(frame.size_bytes == width * height + width * height / 2);
+
+        img::ImageGray src{};
+        src.width = dst.width;
+        src.height = dst.height;
+        src.data_ = (u8*)frame.data;
+
+        img::copy(img::make_view(src), dst);
+
+        return true;
     }
 }
 
@@ -252,6 +341,11 @@ static void set_frame_formats(DeviceW32& device, w32::PixelFormat pixel_format)
         case PF::MJPG:
             device.convert_rgba = convert::mjpeg_to_rgba;
             device.convert_gray = convert::mjpeg_to_gray;
+            break;
+
+        case PF::NV12:
+            device.convert_rgba = convert::nv12_to_rgba;
+            device.convert_gray = convert::nv12_to_gray;
             break;
 
         default: return;

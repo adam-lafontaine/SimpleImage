@@ -461,6 +461,20 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
         return false;
     }
 
+    Uint32 rmask, gmask, bmask, amask;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    int shift = (window_icon.bytes_per_pixel == 3) ? 8 : 0;
+    rmask = 0xff000000 >> shift;
+    gmask = 0x00ff0000 >> shift;
+    bmask = 0x0000ff00 >> shift;
+    amask = 0x000000ff >> shift;
+#else // little endian, like x86
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+
     for (int i = 0; i < 2; i++)
     {
         screen.surface[i] = SDL_CreateRGBSurface(
@@ -468,7 +482,7 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
             width,
             height,
             SCREEN_BYTES_PER_PIXEL * 8,
-            0, 0, 0, 0);
+            rmask, gmask, bmask, amask);
 
         if(!screen.surface[i])
         {

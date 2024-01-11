@@ -15,7 +15,7 @@
 #include <cstdio>
 #endif
 
-//#define SDL2_IMPL_B
+#define SDL2_IMPL_B
 
 class SDLControllerInput
 {
@@ -374,9 +374,10 @@ public:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     SDL_Texture* texture = nullptr;
-    SDL_Surface* surface = nullptr;
 
-    void* image_data = nullptr;
+    SDL_Surface* surface[2] = { 0 };
+
+    void* image_buffer[2] = { 0 };
     
     int image_width;
     int image_height;
@@ -385,25 +386,25 @@ public:
 };
 
 
-static void lock_surface(ScreenMemory& screen)
+static void lock_surface(ScreenMemory& screen, int buffer_index)
 {
     //assert(screen.surface);
 
-    if (!screen.surface_locked && SDL_MUSTLOCK(screen.surface)) 
+    if (!screen.surface_locked && SDL_MUSTLOCK(screen.surface[buffer_index])) 
     {
-        SDL_LockSurface(screen.surface);
+        SDL_LockSurface(screen.surface[buffer_index]);
         screen.surface_locked = true;
     }
 }
 
 
-static void unlock_surface(ScreenMemory& screen)
+static void unlock_surface(ScreenMemory& screen, int buffer_index)
 {
     //assert(screen.surface);
 
-    if (screen.surface_locked && SDL_MUSTLOCK(screen.surface)) 
+    if (screen.surface_locked && SDL_MUSTLOCK(screen.surface[buffer_index])) 
     {
-        SDL_UnlockSurface(screen.surface);
+        SDL_UnlockSurface(screen.surface[buffer_index]);
         screen.surface_locked = false;
     }
 }
@@ -411,7 +412,8 @@ static void unlock_surface(ScreenMemory& screen)
 
 static void destroy_screen_memory(ScreenMemory& screen)
 {
-    unlock_surface(screen);
+    unlock_surface(screen, 0);
+    unlock_surface(screen, 1);
 
     if (screen.texture)
     {
@@ -459,21 +461,28 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
         return false;
     }
 
-    screen.surface = SDL_CreateRGBSurface(
-        0,
-        width,
-        height,
-        SCREEN_BYTES_PER_PIXEL * 8,
-        0, 0, 0, 0);
-
-    if(!screen.surface)
+    for (int i = 0; i < 2; i++)
     {
-        display_error("SDL_CreateRGBSurface failed");
-        destroy_screen_memory(screen);
-        return false;
+        screen.surface[i] = SDL_CreateRGBSurface(
+            0,
+            width,
+            height,
+            SCREEN_BYTES_PER_PIXEL * 8,
+            0, 0, 0, 0);
+
+        if(!screen.surface[i])
+        {
+            display_error("SDL_CreateRGBSurface failed");
+            destroy_screen_memory(screen);
+            return false;
+        }
+
+        screen.image_buffer[i] = (void*)(screen.surface[i]->pixels);
     }
 
-    screen.texture =  SDL_CreateTextureFromSurface(screen.renderer, screen.surface);    
+    
+
+    screen.texture =  SDL_CreateTextureFromSurface(screen.renderer, screen.surface[0]);    
     
     if(!screen.texture)
     {
@@ -482,7 +491,7 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
         return false;
     }    
 
-    screen.image_data = (void*)(screen.surface->pixels);
+    
 
     screen.image_width = width;
     screen.image_height = height;
@@ -491,12 +500,12 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
 }
 
 
-static void render_screen(ScreenMemory& screen)
+static void render_screen(ScreenMemory& screen, int buffer_index)
 {
-    unlock_surface(screen);
+    unlock_surface(screen, buffer_index);
 
     auto const pitch = screen.image_width * SCREEN_BYTES_PER_PIXEL;
-    auto error = SDL_UpdateTexture(screen.texture, 0, screen.image_data, pitch);
+    auto error = SDL_UpdateTexture(screen.texture, 0, screen.image_buffer[buffer_index], pitch);
     if(error)
     {
         print_sdl_error("SDL_UpdateTexture failed");
@@ -510,7 +519,13 @@ static void render_screen(ScreenMemory& screen)
     
     SDL_RenderPresent(screen.renderer);
     
-    lock_surface(screen);
+    lock_surface(screen, buffer_index);
+}
+
+
+static void render_screen(ScreenMemory& screen)
+{
+    render_screen(screen, 0);    
 }
 
 #endif

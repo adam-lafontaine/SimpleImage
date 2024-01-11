@@ -15,7 +15,7 @@
 #include <cstdio>
 #endif
 
-#define SDL2_IMPL_B
+//#define SDL2_IMPL_B
 
 class SDLControllerInput
 {
@@ -321,9 +321,8 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
 }
 
 
-static void render_screen(ScreenMemory const& screen)
+static void render_screen(ScreenMemory const& screen, int buffer_index)
 {
-    auto buffer_index = 0;
     auto screen_data = screen.image_buffer[buffer_index];
 
     auto const pitch = screen.image_width * SCREEN_BYTES_PER_PIXEL;
@@ -343,24 +342,9 @@ static void render_screen(ScreenMemory const& screen)
 }
 
 
-static void render_screen(ScreenMemory const& screen, int buffer_index)
+static void render_screen(ScreenMemory const& screen)
 {
-    auto screen_data = screen.image_buffer[buffer_index];
-
-    auto const pitch = screen.image_width * SCREEN_BYTES_PER_PIXEL;
-    auto error = SDL_UpdateTexture(screen.texture, 0, screen_data, pitch);
-    if(error)
-    {
-        print_sdl_error("SDL_UpdateTexture failed");
-    }
-
-    error = SDL_RenderCopy(screen.renderer, screen.texture, 0, 0);
-    if(error)
-    {
-        print_sdl_error("SDL_RenderCopy failed");
-    }
-    
-    SDL_RenderPresent(screen.renderer);
+    render_screen(screen, 0);
 }
 
 #else
@@ -503,9 +487,7 @@ static bool create_screen_memory(ScreenMemory& screen, const char* title, int wi
         display_error("SDL_CreateTextureFromSurface");
         destroy_screen_memory(screen);
         return false;
-    }    
-
-    
+    }
 
     screen.image_width = width;
     screen.image_height = height;
@@ -525,7 +507,7 @@ static void render_screen(ScreenMemory& screen, int buffer_index)
         print_sdl_error("SDL_UpdateTexture failed");
     }
 
-    error = SDL_RenderCopy(screen.renderer, screen.texture, 0, 0);
+    auto error = SDL_RenderCopy(screen.renderer, screen.texture, 0, 0);
     if(error)
     {
         print_sdl_error("SDL_RenderCopy failed");

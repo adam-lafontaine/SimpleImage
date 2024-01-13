@@ -38,7 +38,7 @@ namespace color_space
 {
     inline constexpr f32 clamp(f32 value, f32 min, f32 max)
     {
-        if (value >= min && value <= max)
+        /*if (value >= min && value <= max)
         {
             return value;
         }
@@ -48,7 +48,10 @@ namespace color_space
             return max;
         }
 
-        return min;
+        return min;*/
+
+        const f32 t = value < min ? min : value;
+        return t > max ? max : t;
     }
 
 

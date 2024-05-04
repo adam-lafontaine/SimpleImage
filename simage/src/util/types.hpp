@@ -27,6 +27,7 @@ public:
 
 using Point2Du32 = Point2D<u32>;
 using Point2Df32 = Point2D<f32>;
+using Point2Di32 = Point2D<i32>;
 
 
 // region of interest in an image

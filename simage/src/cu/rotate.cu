@@ -1,53 +1,29 @@
 namespace gpuf
 {
 	GPU_FUNCTION
-	static Point2Df32 find_rotation_src_point(Point2Du32 const& pt, Point2Du32 const& origin, f32 radians)
+	static Point2Di32 find_src_point(Point2Du32 pivot, Point2Du32 dst, f32 cos, f32 sin)
 	{
-		auto dx_dst = (f32)pt.x - (f32)origin.x;
-		auto dy_dst = (f32)pt.y - (f32)origin.y;
+		auto const dx = (f32)dst.x - (f32)pivot.x;
+		auto const dy = (f32)dst.y - (f32)pivot.y;
 
-		auto radius = hypotf(dx_dst, dy_dst);
+		auto dxcos = cos * dx;
+		auto dxsin = sin * dx;
 
-		auto theta_dst = atan2f(dy_dst, dx_dst);
-		auto theta_src = theta_dst - radians;
+		auto dycos = cos * dy;
+		auto dysin = sin * dy;
 
-		auto dx_src = radius * cosf(theta_src);
-		auto dy_src = radius * sinf(theta_src);
-
-		Point2Df32 pt_src{};
-		pt_src.x = (f32)origin.x + dx_src;
-		pt_src.y = (f32)origin.y + dy_src;
-
-		return pt_src;
+		return {
+			(i32)roundf(dxcos + dysin) + (i32)pivot.x,
+			(i32)roundf(dycos - dxsin) + (i32)pivot.y
+		};
 	}
-
-
-	template <typename T>
-    GPU_FUNCTION
-	static T* find_rotation_src_pixel(DeviceMatrix2D<T> const& view, Point2Du32 const& origin, f32 radians, u32 x, u32 y)
-	{
-		auto const zero = 0.0f;
-		auto const width = (f32)view.width;
-		auto const height = (f32)view.height;
-
-		auto src_xy = gpuf::find_rotation_src_point({ x, y }, origin, radians);
-
-		if (src_xy.x < zero || src_xy.x >= width || src_xy.y < zero || src_xy.y >= height)
-		{
-			return nullptr;
-		}
-		else
-		{
-			return gpuf::xy_at(view, __float2int_rd(src_xy.x), __float2int_rd(src_xy.y));
-		}
-	}	
 }
 
 
 namespace gpu
 {
     GPU_KERNAL
-    static void rotate_gray(DeviceViewGray src, DeviceViewGray dst, Point2Du32 origin, f32 radians, u32 n_threads)
+    static void rotate_gray(DeviceViewGray src, DeviceViewGray dst, Point2Du32 pivot, f32 cos, f32 sin, u32 n_threads)
     {
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -57,18 +33,20 @@ namespace gpu
 
 		assert(n_threads == src.width * src.height);
 
-        auto xy = gpuf::get_thread_xy(src, t);
+        auto dst_xy = gpuf::get_thread_xy(src, t);
 
-        auto& d = *gpuf::xy_at(dst, xy.x, xy.y);
+		auto src_xy = gpuf::find_src_point(pivot, dst_xy, cos, sin);
 
-        auto s = gpuf::find_rotation_src_pixel(src,origin, radians, xy.x, xy.y);
-        
-        d = s ? *s : 0;
+		auto out = (src_xy.x < 0 || src_xy.x >= src.width || src_xy.y < 0 || src_xy.y >= src.height);
+
+		auto& d = *gpuf::xy_at(dst, dst_xy.x, dst_xy.y);
+
+		d = out ? 0 : *gpuf::xy_at(src, src_xy.x, src_xy.y);
     }
 
 
     GPU_KERNAL
-    static void rotate_rgb(DeviceView src, DeviceView dst, Point2Du32 origin, f32 radians, u32 n_threads)
+    static void rotate_rgb(DeviceView src, DeviceView dst, Point2Du32 pivot, f32 cos, f32 sin, u32 n_threads)
     {        
         auto t = blockDim.x * blockIdx.x + threadIdx.x;
 		if (t >= n_threads)
@@ -78,13 +56,15 @@ namespace gpu
 
 		assert(n_threads == src.width * src.height);
 
-        auto xy = gpuf::get_thread_xy(src, t);
+        auto dst_xy = gpuf::get_thread_xy(src, t);
 
-        auto& d = *gpuf::xy_at(dst, xy.x, xy.y);
+		auto src_xy = gpuf::find_src_point(pivot, dst_xy, cos, sin);
 
-        auto s = gpuf::find_rotation_src_pixel(src,origin, radians, xy.x, xy.y);
-        
-        d = s ? *s : gpuf::to_pixel(0, 0, 0);
+		auto out = (src_xy.x < 0 || src_xy.x >= src.width || src_xy.y < 0 || src_xy.y >= src.height);
+
+		auto& d = *gpuf::xy_at(dst, dst_xy.x, dst_xy.y);
+
+		d = out ? gpuf::to_pixel(0, 0, 0) : *gpuf::xy_at(src, src_xy.x, src_xy.y);
     }
 
 }
@@ -103,7 +83,7 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-		cuda_launch_kernel(gpu::rotate_rgb, n_blocks, block_size, src, dst, origin, rad, n_threads);
+		cuda_launch_kernel(gpu::rotate_rgb, n_blocks, block_size, src, dst, origin, cosf(rad), sinf(rad), n_threads);
 
 		auto result = cuda::launch_success("gpu::rotate_rgb");
 		assert(result);
@@ -121,7 +101,7 @@ namespace simage
 		auto const n_blocks = calc_thread_blocks(n_threads);
 		constexpr auto block_size = THREADS_PER_BLOCK;
 
-		cuda_launch_kernel(gpu::rotate_gray, n_blocks, block_size, src, dst, origin, rad, n_threads);
+		cuda_launch_kernel(gpu::rotate_gray, n_blocks, block_size, src, dst, origin, cosf(rad), sinf(rad), n_threads);
 
 		auto result = cuda::launch_success("gpu::rotate_gray");
 		assert(result);

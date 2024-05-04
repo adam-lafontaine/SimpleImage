@@ -94,12 +94,12 @@ namespace simage
                 auto sx = (i32)(dxcos + dysin + 0.5f) + spx;
                 auto sy = (i32)(dycos - dxsin + 0.5f) + spy;
 
+                dxsin += sin;
+                dxcos += cos;
+
                 auto out = (sx < 0 || sx >= sw || sy < 0 || sy >= sh);
 
                 d[x] = out ? default_color : *xy_at(src, (u32)sx, (u32)sy);
-
-                dxsin += sin;
-                dxcos += cos;
             }
 
             dysin += sin;
@@ -109,9 +109,9 @@ namespace simage
 
 
 	template <typename T, size_t N>
-	static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 origin, f32 rad)
+	static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 pivot, f32 rad, T default_color)
 	{
-		auto ch_src = split_channels(src);
+		/*auto ch_src = split_channels(src);
 
 		for (u32 y = 0; y < src.height; ++y)
 		{
@@ -126,6 +126,51 @@ namespace simage
 					d[ch][x] = get_pixel_value(ch_src[ch], src_pt);
 				}
 			}
+		}*/
+
+		auto const cos = cosf(rad);
+        auto const sin = sinf(rad);
+
+        auto const sw = (i32)src.width;
+        auto const sh = (i32)src.height;
+
+        auto const spx = (i32)pivot.x;
+        auto const spy = (i32)pivot.y;
+
+        auto const dpx = (i32)pivot.x;
+        auto const dpy = (i32)pivot.y;
+        
+        f32 dysin = -dpy * sin;
+        f32 dycos = -dpy * cos;
+
+		auto ch_src = split_channels(src);
+		auto ch_dst = split_channels(dst);
+
+		for (u32 y = 0; y < dst.height; y++)
+		{
+			auto d = view_row_begin(dst, y);
+
+			auto dxsin = -dpx * sin;
+            auto dxcos = -dpx * cos;
+
+			for (u32 x = 0; x < dst.width; x++)
+			{
+				auto sx = (i32)(dxcos + dysin + 0.5f) + spx;
+                auto sy = (i32)(dycos - dxsin + 0.5f) + spy;
+
+				dxsin += sin;
+                dxcos += cos;
+
+                auto out = (sx < 0 || sx >= sw || sy < 0 || sy >= sh);
+
+				for (u32 ch = 0; ch < (u32)N; ++ch)
+				{
+					d[ch][x] = out ? default_color : *xy_at(ch_src[ch], (u32)sx, (u32)sy);
+				}
+			}
+
+			dysin += sin;
+            dycos += cos;
 		}
 	}
 }
@@ -160,7 +205,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 		
-		rotate_n(src, dst, origin, rad);
+		rotate_n(src, dst, origin, rad, 0.0f);
 	}
 
 
@@ -168,7 +213,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 		
-		rotate_n(src, dst, origin, rad);
+		rotate_n(src, dst, origin, rad, 0.0f);
 	}
 
 
@@ -176,7 +221,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 		
-		rotate_n(src, dst, origin, rad);
+		rotate_n(src, dst, origin, rad, 0.0f);
 	}
 
 

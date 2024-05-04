@@ -2,68 +2,6 @@
 
 namespace simage
 {
-    static Point2Df32 find_rotation_src(u32 x, u32 y, Point2Du32 const& origin, f32 theta_rotate)
-	{
-		auto const dx_dst = (f32)x - (f32)origin.x;
-		auto const dy_dst = (f32)y - (f32)origin.y;
-
-		auto const radius = std::hypotf(dx_dst, dy_dst);
-
-		auto const theta_dst = atan2f(dy_dst, dx_dst);
-		auto const theta_src = theta_dst - theta_rotate;
-
-		auto const dx_src = radius * cosf(theta_src);
-		auto const dy_src = radius * sinf(theta_src);
-
-		Point2Df32 pt_src{};
-		pt_src.x = (f32)origin.x + dx_src;
-		pt_src.y = (f32)origin.y + dy_src;
-
-		return pt_src;
-	}
-
-
-    template <typename T>
-    static T get_pixel_value(View1<T> const& src, Point2Df32 location)
-    {
-        constexpr auto zero = 0.0f;
-		constexpr auto black = (T)0;
-
-		auto const width = (f32)src.width;
-		auto const height = (f32)src.height;
-
-		auto const x = location.x;
-		auto const y = location.y;
-
-		if (x < zero || x >= width || y < zero || y >= height)
-		{
-			return black;
-		}
-
-		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
-    }
-	
-
-	static Pixel get_pixel_value(View const& src, Point2Df32 location)
-	{
-		constexpr auto zero = 0.0f;
-		constexpr auto black = to_pixel(0, 0, 0);
-
-		auto const width = (f32)src.width;
-		auto const height = (f32)src.height;
-
-		auto const x = location.x;
-		auto const y = location.y;
-
-		if (x < zero || x >= width || y < zero || y >= height)
-		{
-			return black;
-		}
-
-		return *xy_at(src, (u32)floorf(x), (u32)floorf(y));
-	}
-
-
     template <typename T>
     static void rotate_1(View1<T> const& src, View1<T> const& dst, Point2Du32 pivot, f32 rad, T default_color)
 	{
@@ -91,8 +29,8 @@ namespace simage
 
             for (u32 x = 0; x < dst.width; x++)
             { 
-                auto sx = (i32)(dxcos + dysin + 0.5f) + spx;
-                auto sy = (i32)(dycos - dxsin + 0.5f) + spy;
+                auto sx = (i32)roundf(dxcos + dysin) + spx;
+                auto sy = (i32)roundf(dycos - dxsin) + spy;
 
                 dxsin += sin;
                 dxcos += cos;
@@ -111,23 +49,6 @@ namespace simage
 	template <typename T, size_t N>
 	static void rotate_n(ChannelMatrix2D<T, N> const& src, ChannelMatrix2D<T, N> const& dst, Point2Du32 pivot, f32 rad, T default_color)
 	{
-		/*auto ch_src = split_channels(src);
-
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = view_row_begin(dst, y);
-
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto src_pt = find_rotation_src(x, y, origin, rad);
-
-				for (u32 ch = 0; ch < (u32)N; ++ch)
-				{
-					d[ch][x] = get_pixel_value(ch_src[ch], src_pt);
-				}
-			}
-		}*/
-
 		auto const cos = cosf(rad);
         auto const sin = sinf(rad);
 
@@ -155,8 +76,8 @@ namespace simage
 
 			for (u32 x = 0; x < dst.width; x++)
 			{
-				auto sx = (i32)(dxcos + dysin + 0.5f) + spx;
-                auto sy = (i32)(dycos - dxsin + 0.5f) + spy;
+				auto sx = (i32)roundf(dxcos + dysin) + spx;
+                auto sy = (i32)roundf(dycos - dxsin) + spy;
 
 				dxsin += sin;
                 dxcos += cos;

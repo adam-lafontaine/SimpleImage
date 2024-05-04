@@ -65,17 +65,46 @@ namespace simage
 
 
     template <typename T>
-    static void rotate_1(View1<T> const& src, View1<T> const& dst, Point2Du32 origin, f32 rad)
+    static void rotate_1(View1<T> const& src, View1<T> const& dst, Point2Du32 pivot, f32 rad, T default_color)
 	{
-		for (u32 y = 0; y < src.height; ++y)
-		{
-			auto d = row_begin(dst, y);
-			for (u32 x = 0; x < src.width; ++x)
-			{
-				auto src_pt = find_rotation_src(x, y, origin, rad);
-				d[x] = get_pixel_value(src, src_pt);
-			}
-		}
+		auto const cos = cosf(rad);
+        auto const sin = sinf(rad);
+
+        auto const sw = (i32)src.width;
+        auto const sh = (i32)src.height;
+
+        auto const spx = (i32)pivot.x;
+        auto const spy = (i32)pivot.y;
+
+        auto const dpx = (i32)pivot.x;
+        auto const dpy = (i32)pivot.y;
+        
+        f32 dysin = -dpy * sin;
+        f32 dycos = -dpy * cos;
+
+        for (u32 y = 0; y < dst.height; y++)
+        {
+            auto d = row_begin(dst, y);            
+            
+            auto dxsin = -dpx * sin;
+            auto dxcos = -dpx * cos;
+
+            for (u32 x = 0; x < dst.width; x++)
+            { 
+                auto sx = (i32)(dxcos + dysin + 0.5f) + spx;
+                auto sy = (i32)(dycos - dxsin + 0.5f) + spy;
+
+                auto out = (sx < 0 || sx >= sw || sy < 0 || sy >= sh);
+
+                d[x] = out ? default_color : *xy_at(src, (u32)sx, (u32)sy);
+
+                dxsin += sin;
+                dxcos += cos;
+            }
+
+            dysin += sin;
+            dycos += cos;
+        }    
 	}
 
 
@@ -110,7 +139,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		rotate_1(src, dst, origin, rad);
+		rotate_1(src, dst, origin, rad, to_pixel(0, 0, 0));
 	}
 
 
@@ -118,7 +147,7 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		rotate_1(src, dst, origin, rad);
+		rotate_1(src, dst, origin, rad, (u8)0);
 	}
 }
 
@@ -155,6 +184,6 @@ namespace simage
 	{
 		assert(verify(src, dst));
 
-		rotate_1(src, dst, origin, rad);
+		rotate_1(src, dst, origin, rad, 0.0f);
 	}
 }

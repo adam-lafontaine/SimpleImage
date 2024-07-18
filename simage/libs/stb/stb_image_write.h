@@ -173,10 +173,20 @@ STBIWDEF int stbi_write_force_png_filter;
 #endif
 
 #ifndef STBI_WRITE_NO_STDIO
+
+#ifndef STBI_NO_PNG // Adam L
 STBIWDEF int stbi_write_png(char const *filename, int w, int h, int comp, const void  *data, int stride_in_bytes);
+#endif
+
 STBIWDEF int stbi_write_bmp(char const *filename, int w, int h, int comp, const void  *data);
+
+
 STBIWDEF int stbi_write_tga(char const *filename, int w, int h, int comp, const void  *data);
+
+#ifndef STBI_NO_HDR // Adam L
 STBIWDEF int stbi_write_hdr(char const *filename, int w, int h, int comp, const float *data);
+#endif
+
 STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const void  *data, int quality);
 
 #ifdef STBIW_WINDOWS_UTF8
@@ -186,11 +196,21 @@ STBIWDEF int stbiw_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const w
 
 typedef void stbi_write_func(void *context, void *data, int size);
 
+#ifndef STBI_NO_PNG // Adam L
 STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const void  *data, int stride_in_bytes);
+#endif
+
 STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const void  *data);
+
+
 STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const void  *data);
+
+#ifndef STBI_NO_HDR // Adam L
 STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const float *data);
+#endif
+
 STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const void  *data, int quality);
+
 
 STBIWDEF void stbi_flip_vertically_on_write(int flip_boolean);
 
@@ -634,6 +654,9 @@ STBIWDEF int stbi_write_tga(char const *filename, int x, int y, int comp, const 
 
 #define stbiw__max(a, b)  ((a) > (b) ? (a) : (b))
 
+
+#ifndef STBI_NO_HDR // Adam L
+
 #ifndef STBI_WRITE_NO_STDIO
 
 static void stbiw__linear_to_rgbe(unsigned char *rgbe, float *linear)
@@ -770,14 +793,11 @@ static int stbi_write_hdr_core(stbi__write_context *s, int x, int y, int comp, f
       char header[] = "#?RADIANCE\n# Written by stb_image_write.h\nFORMAT=32-bit_rle_rgbe\n";
       s->func(s->context, header, sizeof(header)-1);
 
-      /*
 #ifdef __STDC_LIB_EXT1__
       len = sprintf_s(buffer, sizeof(buffer), "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #else
       len = sprintf(buffer, "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #endif
-      */
-      len = snprintf(buffer, sizeof(buffer), "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
       s->func(s->context, buffer, len);
 
       for(i=0; i < y; i++)
@@ -804,13 +824,18 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
    } else
       return 0;
 }
+
 #endif // STBI_WRITE_NO_STDIO
+
+#endif // STBI_NO_HDR
 
 
 //////////////////////////////////////////////////////////////////////////////
 //
 // PNG writer
 //
+
+#ifndef STBI_NO_PNG // Adam L
 
 #ifndef STBIW_ZLIB_COMPRESS
 // stretchy buffer; stbiw__sbpush() == vector<>::push_back() -- stbiw__sbcount() == vector<>::size()
@@ -1241,6 +1266,7 @@ STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int x,
    return 1;
 }
 
+#endif // STBI_NO_PNG
 
 /* ***************************************************************************
  *

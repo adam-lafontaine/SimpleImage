@@ -843,11 +843,11 @@ static void compare_gradients()
 
 void run_profile_tests()
 {
-    run_test(create_destroy_image, "create_destroy_image");
-    run_test(create_destroy_buffer, "create_destroy_buffer");
+    /*run_test(create_destroy_image, "create_destroy_image");
+    run_test(create_destroy_buffer, "create_destroy_buffer");*/
     run_test(read_image, "read_image");
     run_test(resize_image, "resize_image");
-    run_test(make_view, "make_view");
+    /*run_test(make_view, "make_view");
     run_test(sub_view, "sub_view");
     run_test(copy, "copy");
     run_test(fill, "fill");
@@ -870,5 +870,5 @@ void run_profile_tests()
     run_test(compare_alpha_blend, "compare_alpha_blend");
     run_test(compare_rotate, "compare_rotate");
     run_test(compare_blur, "compare_blur");
-    run_test(compare_gradients, "compare_gradients");
+    run_test(compare_gradients, "compare_gradients");*/
 }

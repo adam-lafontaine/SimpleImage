@@ -104,6 +104,8 @@ namespace simage
 
 		int channels = (int)(RGBA_CHANNELS);
 
+		auto layout = stbir_pixel_layout::STBIR_RGBA;
+
 		int width_src = (int)(image_src.width);
 		int height_src = (int)(image_src.height);
 		int stride_bytes_src = width_src * channels;
@@ -112,21 +114,19 @@ namespace simage
 		int height_dst = (int)(image_dst.height);
 		int stride_bytes_dst = width_dst * channels;
 
-		int result = 0;
+		auto data = stbir_resize_uint8_linear(
+			(u8*)image_src.data_, width_src, height_src, stride_bytes_src,
+			(u8*)image_dst.data_, width_dst, height_dst, stride_bytes_dst,
+			layout);
+
+		assert(data && " *** resize_image failed *** ");
 
 		if (!image_dst.data_)
 		{
-			image_dst.data_ = (Pixel*)malloc(sizeof(Pixel) * image_dst.width * image_dst.height);
-		}		
+			image_dst.data_ = (Pixel*)data;
+		}
 
-		result = stbir_resize_uint8(
-			(u8*)image_src.data_, width_src, height_src, stride_bytes_src,
-			(u8*)image_dst.data_, width_dst, height_dst, stride_bytes_dst,
-			channels);
-
-		assert(result);
-
-		return (bool)result;
+		return (bool)data;
 	}
 
 #endif // !SIMAGE_NO_RESIZE
@@ -206,6 +206,8 @@ namespace simage
 
 		int channels = 1;
 
+		auto layout = stbir_pixel_layout::STBIR_1CHANNEL;
+
 		int width_src = (int)(image_src.width);
 		int height_src = (int)(image_src.height);
 		int stride_bytes_src = width_src * channels;
@@ -216,19 +218,19 @@ namespace simage
 
 		int result = 0;
 
-		if (!image_dst.data_)
-		{
-			image_dst.data_ = (u8*)malloc(sizeof(u8) * image_dst.width * image_dst.height);
-		}
-
-		result = stbir_resize_uint8(
+		auto data = stbir_resize_uint8_linear(
 			(u8*)image_src.data_, width_src, height_src, stride_bytes_src,
 			(u8*)image_dst.data_, width_dst, height_dst, stride_bytes_dst,
-			channels);
+			layout);
 
-		assert(result);
+		assert(data);
 
-		return (bool)result;
+		if (!image_dst.data_)
+		{
+			image_dst.data_ = data;
+		}
+
+		return (bool)data;
 	}
 
 #endif // !SIMAGE_NO_RESIZE

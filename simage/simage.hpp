@@ -440,7 +440,11 @@ namespace simage
 
 	bool write_image(Image const& image_src, const char* file_path_dst);
 
+	bool write_view(View const& view_src, const char* file_path_dst);
+
 	bool write_image(ImageGray const& image_src, const char* file_path_dst);
+
+	bool write_view(ViewGray const& view_src, const char* file_path_dst);
 
 	bool resize_image(Image const& image_src, Image& image_dst);
 

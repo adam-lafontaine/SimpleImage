@@ -89,40 +89,6 @@ namespace simage
 		return (bool)result;
 	}
 
-
-	bool write_view(View const& view_src, const char* file_path_dst)
-	{
-		assert(view_src.width);
-		assert(view_src.height);
-		assert(view_src.matrix_data);
-
-		int width = (int)(view_src.width);
-		int height = (int)(view_src.height);
-		int channels = (int)(RGBA_CHANNELS);
-		auto const data = view_src.matrix_data;
-
-		int result = 0;
-
-		if(is_bmp(file_path_dst))
-		{
-			result = stbi_write_bmp(file_path_dst, width, height, channels, data);
-			assert(result && " *** stbi_write_bmp() failed *** ");
-		}
-		else if(is_png(file_path_dst))
-		{
-			int stride_in_bytes = width * channels;
-
-			result = stbi_write_png(file_path_dst, width, height, channels, data, stride_in_bytes);
-			assert(result && " *** stbi_write_png() failed *** ");
-		}
-		else
-		{
-			assert(false && " *** not a valid image format *** ");
-		}
-
-		return (bool)result;
-	}
-
 #endif // !SIMAGE_NO_WRITE
 
 
@@ -202,40 +168,6 @@ namespace simage
 		int height = (int)(image_src.height);
 		int channels = 1;
 		auto const data = image_src.data_;
-
-		int result = 0;
-		
-		if(is_bmp(file_path_dst))
-		{
-			result = stbi_write_bmp(file_path_dst, width, height, channels, data);
-			assert(result && " *** stbi_write_bmp() failed *** ");
-		}
-		else if(is_png(file_path_dst))
-		{
-			int stride_in_bytes = width * channels;
-
-			result = stbi_write_png(file_path_dst, width, height, channels, data, stride_in_bytes);
-			assert(result && " *** stbi_write_png() failed *** ");
-		}
-		else
-		{
-			assert(false && " *** not a valid image format *** ");
-		}
-
-		return (bool)result;
-	}
-
-
-	bool write_view(ViewGray const& view_src, const char* file_path_dst)
-	{
-		assert(view_src.width);
-		assert(view_src.height);
-		assert(view_src.matrix_data);
-
-		int width = (int)(view_src.width);
-		int height = (int)(view_src.height);
-		int channels = (int)(RGBA_CHANNELS);
-		auto const data = view_src.matrix_data;
 
 		int result = 0;
 		

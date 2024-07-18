@@ -177,18 +177,18 @@ STBIWDEF int stbi_write_force_png_filter;
 #ifndef STBI_NO_PNG // Adam L
 STBIWDEF int stbi_write_png(char const *filename, int w, int h, int comp, const void  *data, int stride_in_bytes);
 #endif
-
+#ifndef STBI_NO_BMP // Adam L
 STBIWDEF int stbi_write_bmp(char const *filename, int w, int h, int comp, const void  *data);
-
-
+#endif
+#ifndef STBI_NO_TGA // Adam L
 STBIWDEF int stbi_write_tga(char const *filename, int w, int h, int comp, const void  *data);
-
+#endif
 #ifndef STBI_NO_HDR // Adam L
 STBIWDEF int stbi_write_hdr(char const *filename, int w, int h, int comp, const float *data);
 #endif
-
+#ifndef STBI_NO_JPEG // Adam L
 STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const void  *data, int quality);
-
+#endif
 #ifdef STBIW_WINDOWS_UTF8
 STBIWDEF int stbiw_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t* input);
 #endif
@@ -199,18 +199,18 @@ typedef void stbi_write_func(void *context, void *data, int size);
 #ifndef STBI_NO_PNG // Adam L
 STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const void  *data, int stride_in_bytes);
 #endif
-
+#ifndef STBI_NO_BMP // Adam L
 STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const void  *data);
-
-
+#endif
+#ifndef STBI_NO_TGA // Adam L
 STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const void  *data);
-
+#endif
 #ifndef STBI_NO_HDR // Adam L
 STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const float *data);
 #endif
-
+#ifndef STBI_NO_JPEG // Adam L
 STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const void  *data, int quality);
-
+#endif
 
 STBIWDEF void stbi_flip_vertically_on_write(int flip_boolean);
 
@@ -363,6 +363,8 @@ static void stbi__end_write_file(stbi__write_context *s)
 
 #endif // !STBI_WRITE_NO_STDIO
 
+#if !defined(STBI_NO_BMP) || !defined(STBI_NO_TGA)
+
 typedef unsigned int stbiw_uint32;
 typedef int stb_image_write_test[sizeof(stbiw_uint32)==4 ? 1 : -1];
 
@@ -509,6 +511,10 @@ static int stbiw__outfile(stbi__write_context *s, int rgb_dir, int vdir, int x, 
    }
 }
 
+#endif // !STBI_NO_BMP or !STBI_NO_TGA
+
+#ifndef STBI_NO_BMP // Adam L
+
 static int stbi_write_bmp_core(stbi__write_context *s, int x, int y, int comp, const void *data)
 {
    if (comp != 4) {
@@ -548,6 +554,10 @@ STBIWDEF int stbi_write_bmp(char const *filename, int x, int y, int comp, const 
       return 0;
 }
 #endif //!STBI_WRITE_NO_STDIO
+
+#endif // !STBI_NO_BMP
+
+#ifndef STBI_NO_TGA // Adam L
 
 static int stbi_write_tga_core(stbi__write_context *s, int x, int y, int comp, void *data)
 {
@@ -647,6 +657,8 @@ STBIWDEF int stbi_write_tga(char const *filename, int x, int y, int comp, const 
       return 0;
 }
 #endif
+
+#endif // !STBI_NO_TGA
 
 // *************************************************************************************************
 // Radiance RGBE HDR writer
@@ -827,7 +839,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
 
 #endif // STBI_WRITE_NO_STDIO
 
-#endif // STBI_NO_HDR
+#endif // !STBI_NO_HDR
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1266,7 +1278,7 @@ STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int x,
    return 1;
 }
 
-#endif // STBI_NO_PNG
+#endif // !STBI_NO_PNG
 
 /* ***************************************************************************
  *
@@ -1275,6 +1287,7 @@ STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int x,
  * This is based on Jon Olick's jo_jpeg.cpp:
  * public domain Simple, Minimalistic JPEG writer - http://www.jonolick.com/code.html
  */
+#ifndef STBI_NO_JPEG // Adam L
 
 static const unsigned char stbiw__jpg_ZigZag[] = { 0,1,5,6,14,15,27,28,2,4,7,13,16,26,29,42,3,8,12,17,25,30,41,43,9,11,18,
       24,31,40,44,53,10,19,23,32,39,45,52,54,20,22,33,38,46,51,55,60,21,34,37,47,50,56,59,61,35,36,48,49,57,58,62,63 };
@@ -1653,6 +1666,8 @@ STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const 
       return 0;
 }
 #endif
+
+#endif // !STBI_NO_JPEG
 
 #endif // STB_IMAGE_WRITE_IMPLEMENTATION
 
